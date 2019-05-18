@@ -1,0 +1,11 @@
+[
+  {
+    "name" : "integraality",
+    "title" : "inteGraality",
+    "description" : "Generate dashboards of property coverage for a given part of Wikidata.",
+    "url" : "https://tools.wmflabs.org/integraality/",
+    "keywords" : "wikidata, statistics, ",
+    "author" : "Jean-Frédéric",
+    "repository" : "https://github.com/JeanFred/integraality"
+  }
+]

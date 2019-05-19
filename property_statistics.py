@@ -52,7 +52,7 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(?entity)
 }} GROUP BY ?grouping ?higher_grouping
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
-LIMIT 10
+LIMIT 1000
 """)
         else:
             query = f("""
@@ -62,7 +62,7 @@ SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
 }} GROUP BY ?grouping
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
-LIMIT 10
+LIMIT 1000
 """)
         grouping_counts = collections.OrderedDict()
 
@@ -98,7 +98,7 @@ SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
 }} GROUP BY ?grouping
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
-LIMIT 10
+LIMIT 1000
 """)
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()

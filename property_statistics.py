@@ -230,7 +230,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += u'| {{Q|%s}}\n' % (grouping,)
 
             if self.grouping_link:
-                text += f('| [[{self.grouping_link}/{item.labels["en"]}|{item_count}]]')
+                text += f('| [[{self.grouping_link}/{item.labels["en"]}|{item_count}]] \n')
             else:
                 text += f('| {item_count} \n')
 

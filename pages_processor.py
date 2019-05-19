@@ -82,7 +82,8 @@ class PagesProcessor:
                 (key, value) = prop.split(':')
             except ValueError:
                 (key, value) = (prop, None)
-            properties_data[key] = value
+            if key:
+                properties_data[key] = value
         return properties_data
 
     def replace_in_page(self, output, page_text):

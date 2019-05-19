@@ -132,6 +132,11 @@ class TestParseConfigProperties(ProcessortTest):
         result = self.processor.parse_config_properties(properties)
         self.assertEqual(result, {'P136': 'genre', 'P404': None})
 
+    def test_with_trail_comma(self):
+        properties = 'P136:genre,P404,'
+        result = self.processor.parse_config_properties(properties)
+        self.assertEqual(result, {'P136': 'genre', 'P404': None})
+
     def test_more_properties(self):
         properties = 'P136,P178,P123,P495,P577,P404,P437'
         result = self.processor.parse_config_properties(properties)

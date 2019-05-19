@@ -1,0 +1,14 @@
+version: '2'
+services:
+  web:
+    build:
+      context: .
+      dockerfile: conf/Dockerfile.web
+    command: flask run --host=0.0.0.0
+    environment:
+      - FLASK_APP=app.py
+      - FLASK_ENV=development
+    ports:
+     - 5000:5000
+    volumes:
+     - .:/code

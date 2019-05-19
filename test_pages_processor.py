@@ -2,7 +2,6 @@
 """Unit tests for functions.py."""
 
 import unittest
-
 from collections import OrderedDict
 
 from pages_processor import ConfigException, PagesProcessor

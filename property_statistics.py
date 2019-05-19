@@ -64,7 +64,6 @@ HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 10
 """)
-        print(query)
         grouping_counts = collections.OrderedDict()
 
         grouping_groupings = collections.OrderedDict()
@@ -158,7 +157,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
 }}
 """)
-        print(query)
         return self._get_count_from_sparql(query)
 
     @staticmethod
@@ -274,7 +272,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         wikitext = self.retrieve_and_process_data()
         page = pywikibot.Page(self.repo, title=target_page_title)
         summary = u'Property usage stats'
-        print(wikitext)
         page.put(wikitext, summary)
 
 

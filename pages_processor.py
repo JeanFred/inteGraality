@@ -4,6 +4,7 @@
 Bot to generate statistics
 
 """
+import collections
 import logging
 import re
 
@@ -75,7 +76,7 @@ class PagesProcessor:
     @staticmethod
     def parse_config_properties(properties_string):
         properties = properties_string.split(',')
-        properties_data = {}
+        properties_data = collections.OrderedDict()
         for prop in properties:
             try:
                 (key, value) = prop.split(':')

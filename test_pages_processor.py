@@ -21,7 +21,7 @@ Head
 {{Property dashboard start
 |properties=P136:genre,P404
 |grouping_property=P400
-|no_group_stats=1
+|stats_for_no_group=1
 |selector_sparql=wdt:P31/wdt:P279* wd:Q7889
 |target_page_title=Wikidata:WikiProject Video games/Statistics/Platform
 |grouping_link=Wikidata::WikiProject Video games/Reports/Platform
@@ -35,7 +35,7 @@ Head
 {{Property dashboard start
 |properties=P136:genre,P404
 |grouping_property=P400
-|no_group_stats=1
+|stats_for_no_group=1
 |selector_sparql=wdt:P31/wdt:P279* wd:Q7889
 |target_page_title=Wikidata:WikiProject Video games/Statistics/Platform
 |grouping_link=Wikidata::WikiProject Video games/Reports/Platform
@@ -60,7 +60,7 @@ class TestParseConfig(ProcessortTest):
         input_config = {
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'grouping_property': 'P400',
-            'no_group_stats': '1',
+            'stats_for_no_group': '1',
             'properties': 'P136:genre,P404',
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
         }
@@ -68,7 +68,7 @@ class TestParseConfig(ProcessortTest):
         expected = {
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'grouping_property': 'P400',
-            'no_group_stats': True,
+            'stats_for_no_group': True,
             'properties': {'P136': 'genre', 'P404': None},
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889'
         }
@@ -85,7 +85,7 @@ class TestParseConfig(ProcessortTest):
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
             'properties': {'P136': 'genre', 'P404': None},
-            'no_group_stats': False,
+            'stats_for_no_group': False,
         }
         self.assertEqual(result, expected)
 
@@ -93,7 +93,7 @@ class TestParseConfig(ProcessortTest):
         input_config = {
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'grouping_property': 'P400',
-            'no_group_stats': '1',
+            'stats_for_no_group': '1',
             'properties': 'P136:genre,P404',
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_threshold': '1',
@@ -105,7 +105,7 @@ class TestParseConfig(ProcessortTest):
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
             'properties': {'P136': 'genre', 'P404': None},
-            'no_group_stats': True,
+            'stats_for_no_group': True,
             'grouping_threshold': '1',
             'property_threshold': '2',
         }

@@ -70,7 +70,7 @@ class PagesProcessor:
             if field not in config:
                 raise ConfigException
         config['properties'] = self.parse_config_properties(config['properties'])
-        config['no_group_stats'] = bool(config.get('no_group_stats', False))
+        config['stats_for_no_group'] = bool(config.get('stats_for_no_group', False))
         return config
 
     @staticmethod

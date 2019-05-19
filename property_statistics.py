@@ -18,7 +18,7 @@ class PropertyStatistics:
     Generate statitics
 
     """
-    def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, no_group_stats=False, grouping_link=None, grouping_threshold=20, property_threshold=10):  # noqa
+    def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=10):  # noqa
         """
         Set what to work on and other variables here.
         """
@@ -29,7 +29,7 @@ class PropertyStatistics:
         self.higher_grouping = higher_grouping
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
-        self.no_group_stats = no_group_stats
+        self.stats_for_no_group = stats_for_no_group
         self.grouping_threshold = grouping_threshold
         self.property_threshold = property_threshold
 
@@ -239,7 +239,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 percentage = self._get_percentage(propcount, item_count)
                 text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
 
-        if self.no_group_stats:
+        if self.stats_for_no_group:
             text += u'|-\n'
 
             if self.higher_grouping:
@@ -307,7 +307,7 @@ def main(*args):
         properties=properties,
         selector_sparql=u'wdt:P31/wdt:P279* wd:Q7889 ',
         grouping_property=u'P400',
-        no_group_stats=True,
+        stats_for_no_group=True,
         grouping_threshold=1
     )
     stats.run(u'Wikidata:WikiProject Video games/Statistics/Platform',)

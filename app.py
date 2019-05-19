@@ -3,7 +3,9 @@
 
 import os
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
+
+from pages_processor import PagesProcessor
 
 app = Flask(__name__)
 app.debug = True
@@ -12,6 +14,14 @@ app.debug = True
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+@app.route('/update')
+def update():
+    page = request.args.get('page')
+    processor = PagesProcessor()
+    processor.process_one_page(page)
+    return render_template('update.html', page=page)
 
 
 @app.errorhandler(404)

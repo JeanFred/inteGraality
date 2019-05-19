@@ -98,7 +98,7 @@ class PagesProcessor:
             self.process_page(page)
 
     def process_one_page(self, page_title):
-        page = pywikibot.Page(self.repo, self.page_title)
+        page = pywikibot.Page(self.repo, page_title)
         logging.info(f('Processing {page.title()}'))
         self.process_page(page)
 

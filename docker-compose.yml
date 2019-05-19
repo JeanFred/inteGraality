@@ -8,6 +8,7 @@ services:
     environment:
       - FLASK_APP=app.py
       - FLASK_ENV=development
+      - PYWIKIBOT_NO_USER_CONFIG=1
     ports:
      - 5000:5000
     volumes:

@@ -14,6 +14,11 @@ def index():
     return render_template('index.html')
 
 
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('page_not_found.html', title=u'Page not found'), 404
+
+
 if __name__ == '__main__':
     if os.uname()[1].startswith('tools-webgrid'):
         from flup.server.fcgi_fork import WSGIServer

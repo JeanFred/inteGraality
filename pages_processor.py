@@ -7,6 +7,8 @@ Bot to generate statistics
 import logging
 import re
 
+from ww import f
+
 import pywikibot
 from pywikibot import pagegenerators
 
@@ -83,19 +85,19 @@ class PagesProcessor:
         return properties_data
 
     def replace_in_page(self, output, page_text):
-        regex_text = f'({{{{{self.template_name}.*?}}}}).*?({{{{{self.end_template_name}}}}})'
+        regex_text = f('({{{{{self.template_name}.*?}}}}).*?({{{{{self.end_template_name}}}}})')
         regex = re.compile(regex_text, re.MULTILINE | re.DOTALL)
         new_text = re.sub(regex, r'\1\n%s\n\2' % output, page_text, count=1)
         return new_text
 
     def process_all(self):
         for page in self.get_all_pages():
-            logging.info(f"Processing {page.title()}")
+            logging.info(f('Processing {page.title()}'))
             self.process_page(page)
 
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.repo, self.page_title)
-        logging.info(f"Processing {page.title()}")
+        logging.info(f('Processing {page.title()}'))
         self.process_page(page)
 
 

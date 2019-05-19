@@ -7,6 +7,8 @@ Calculate and generate statistics
 import collections
 import logging
 
+from ww import f
+
 import pywikibot
 import pywikibot.data.sparql
 
@@ -42,7 +44,7 @@ class PropertyStatistics:
         :return: Tuple of two (ordered) dictionaries.
         """
         if self.higher_grouping:
-            query = f"""
+            query = f("""
 SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
@@ -51,9 +53,9 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(?entity)
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 10
-"""
+""")
         else:
-            query = f"""
+            query = f("""
 SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
@@ -61,7 +63,7 @@ SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 10
-"""
+""")
         print(query)
         grouping_counts = collections.OrderedDict()
 
@@ -89,7 +91,7 @@ LIMIT 10
         :param prop: Wikidata Pid of the property
         :return: (Ordered) dictionary with the counts per grouping
         """
-        query = f"""
+        query = f("""
 SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
@@ -98,7 +100,7 @@ SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 10
-"""
+""")
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
@@ -114,7 +116,7 @@ LIMIT 10
         :param property: Wikidata Pid of the property
         :return: (Ordered) dictionary with the counts per grouping
         """
-        query = f"""
+        query = f("""
 SELECT (COUNT(?entity) AS ?count) WHERE {{
     ?entity {self.selector_sparql} .
     MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
@@ -123,7 +125,7 @@ SELECT (COUNT(?entity) AS ?count) WHERE {{
 GROUP BY ?grouping
 ORDER BY DESC (?count)
 LIMIT 10
-"""
+""")
         return self._get_count_from_sparql(query)
 
     def get_totals_for_property(self, property):
@@ -132,29 +134,30 @@ LIMIT 10
         :param prop:  Wikidata Pid of the property.
         :return: number of games found
         """
-        query = f"""
+        query = f("""
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property}[] }} .
 }}
-"""
+
+""")
         return self._get_count_from_sparql(query)
 
     def get_totals_no_grouping(self):
-        query = f"""
+        query = f("""
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   MINUS {{ ?item wdt:{self.grouping_property} _:b28. }}
 }}
-"""
+""")
         return self._get_count_from_sparql(query)
 
     def get_totals(self):
-        query = f"""
+        query = f("""
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
 }}
-"""
+""")
         print(query)
         return self._get_count_from_sparql(query)
 
@@ -175,8 +178,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
     def get_header(self):
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
-        text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n'
-        text += f'! colspan="{len(self.properties)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'  # noqa
+        text += f('! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n')
+        text += f('! colspan="{len(self.properties)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n')  # noqa
         text += u'|-\n'
 
         if self.higher_grouping:
@@ -186,10 +189,10 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'! Count\n'
         for prop in self.properties:
             if self.properties.get(prop):
-                label = f'[[Property:{prop}|{self.properties.get(prop)}]]'
+                label = f('[[Property:{prop}|{self.properties.get(prop)}]]')
             else:
-                label = f'{{{{Property|{prop}}}}}'
-            text += f'! data-sort-type="number"|{label}\n'
+                label = f('{{{{Property|{prop}}}}}')
+            text += f('! data-sort-type="number"|{label}\n')
         return text
 
     def retrieve_and_process_data(self):
@@ -199,7 +202,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         logging.info("Retrieving grouping information...")
         (groupings_counts, groupings_groupings) = self.get_grouping_information()
 
-        logging.info(f"Grouping retrieved: {len(groupings_counts)}")
+        logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
         for prop in self.properties:
             self.property_data[prop] = self.get_property_info(prop)
 
@@ -219,24 +222,24 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                     type_mapping = {
                         "country": "{{Flag|%s}}" % higher_grouping_value,
                     }
-                    higher_grouping_text = type_mapping.get(self.higher_grouping_type, f'{{{{Q|{higher_grouping_value}}}}}')  # noqa
-                    text += f'| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n'
+                    higher_grouping_text = type_mapping.get(self.higher_grouping_type, f('{{{{Q|{higher_grouping_value}}}}}'))  # noqa
+                    text += f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
                 else:
                     text += u'|\n'
 
             text += u'| {{Q|%s}}\n' % (grouping,)
 
             if self.grouping_link:
-                text += f'| [[{self.grouping_link}/{item.labels["en"]}|{item_count}]]'
+                text += f('| [[{self.grouping_link}/{item.labels["en"]}|{item_count}]]')
             else:
-                text += f'| {item_count} \n'
+                text += f('| {item_count} \n')
 
             for prop in self.properties:
                 propcount = self.property_data.get(prop).get(grouping)
                 if not propcount:
                     propcount = 0
                 percentage = self._get_percentage(propcount, item_count)
-                text += f'| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n'
+                text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
 
         if self.no_group_stats:
             text += u'|-\n'
@@ -246,11 +249,11 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
             total_no_count = self.get_totals_no_grouping()
             text += u'| No grouping \n'
-            text += f'| {total_no_count} \n'
+            text += f('| {total_no_count} \n')
             for prop in self.properties:
                 propcount = self.get_property_info_no_grouping(prop)
                 percentage = self._get_percentage(propcount, total_no_count)
-                text += f'| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n'
+                text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
 
         # Get the totals
         total_items = self.get_totals()
@@ -259,11 +262,11 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         if self.higher_grouping:
             text += u"|\n|"
 
-        text += f'\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n'
+        text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
         for prop in self.properties:
             totalprop = self.get_totals_for_property(property=prop)
             percentage = self._get_percentage(totalprop, total_items)
-            text += f'| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n'
+            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
         text += u'|}\n'
         return text
 

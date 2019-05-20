@@ -103,6 +103,8 @@ LIMIT 1000
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
+        if not queryresult:
+            return None
         for resultitem in queryresult:
             qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
             result[qid] = int(resultitem.get('count'))
@@ -163,6 +165,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
     def _get_count_from_sparql(query):
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
+        if not queryresult:
+            return None
         for resultitem in queryresult:
             # Just one result, return that right away
             return int(resultitem.get('count'))

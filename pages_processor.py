@@ -42,6 +42,12 @@ class PagesProcessor:
         (field, _, value) = template_param.partition(u'=')
         return (field.strip(), value)
 
+    def parse_config_from_params(self, params):
+        return {
+            key: value for (key, value) in
+            [self.extract_elements_from_template_param(param) for param in params]
+        }
+
     def process_page(self, page):
         page_text = page.get()
         all_templates_with_params = page.templatesWithParams()
@@ -54,11 +60,8 @@ class PagesProcessor:
             logging.warning("More than one template on the page")
 
         (template, params) = templates_with_params[0]
-        config = {
-            key: value for (key, value) in
-            [self.extract_elements_from_template_param(param) for param in params]
-        }
-        config = self.parse_config(config)
+        parsed_config = self.parse_config_from_params(params)
+        config = self.parse_config(parsed_config)
         stats = PropertyStatistics(**config)
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page_text)

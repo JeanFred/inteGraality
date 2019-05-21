@@ -53,14 +53,14 @@ class PagesProcessor:
         page_text = page.get()
         all_templates_with_params = page.templatesWithParams()
 
-        templates_with_params = [
+        start_templates_with_params = [
             (template, params) for (template, params) in all_templates_with_params if
             template.title(with_ns=False) == self.template_name
         ]
-        if len(templates_with_params) > 1:
+        if len(start_templates_with_params) > 1:
             logging.warning("More than one template on the page")
 
-        (template, params) = templates_with_params[0]
+        (template, params) = start_templates_with_params[0]
         parsed_config = self.parse_config_from_params(params)
         config = self.parse_config(parsed_config)
         stats = PropertyStatistics(**config)

@@ -46,6 +46,7 @@ class PagesProcessor:
         return {
             key: value for (key, value) in
             [self.extract_elements_from_template_param(param) for param in params]
+            if key
         }
 
     def process_page(self, page):

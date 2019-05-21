@@ -136,6 +136,16 @@ class TestParseParams(ProcessortTest):
         result = self.processor.parse_config_from_params(params)
         self.assertEqual(result, expected)
 
+    def test_parse_config_from_params_with_empty_param(self):
+        params = ['', 'grouping_property=P195','properties=P170:creator,P276', 'selector_sparql=wdt:P31 wd:Q3305213']
+        expected = {
+            'grouping_property': 'P195',
+            'properties': 'P170:creator,P276',
+            'selector_sparql': 'wdt:P31 wd:Q3305213'
+        }
+        result = self.processor.parse_config_from_params(params)
+        self.assertEqual(result, expected)
+
 
 class TestParseConfigProperties(ProcessortTest):
 

@@ -5,7 +5,6 @@ Bot to generate statistics
 
 """
 import collections
-import logging
 import re
 
 from ww import f
@@ -58,7 +57,7 @@ class PagesProcessor:
             template.title(with_ns=False) == self.template_name
         ]
         if len(start_templates_with_params) > 1:
-            logging.warning("More than one template on the page")
+            pywikibot.warn("More than one template on the page %s" % page.title())
 
         (template, params) = start_templates_with_params[0]
         parsed_config = self.parse_config_from_params(params)
@@ -72,6 +71,7 @@ class PagesProcessor:
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
+                pywikibot.output("Missing required field %s" % field)
                 raise ConfigException
         config['properties'] = self.parse_config_properties(config['properties'])
         config['stats_for_no_group'] = bool(config.get('stats_for_no_group', False))
@@ -98,12 +98,12 @@ class PagesProcessor:
 
     def process_all(self):
         for page in self.get_all_pages():
-            logging.info(f('Processing {page.title()}'))
+            pywikibot.output("Processing page %s" % page.title())
             self.process_page(page)
 
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.repo, page_title)
-        logging.info(f('Processing {page.title()}'))
+        pywikibot.output("Processing page %s" % page.title())
         self.process_page(page)
 
 

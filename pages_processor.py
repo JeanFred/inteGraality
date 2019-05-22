@@ -61,7 +61,7 @@ class PagesProcessor:
         all_templates_with_params = page.templatesWithParams()
 
         if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
-            raise NoEndTemplateException()
+            raise NoEndTemplateException("No end template '%s' provided" % self.end_template_name)
 
         start_templates_with_params = [
             (template, params) for (template, params) in all_templates_with_params if
@@ -76,7 +76,7 @@ class PagesProcessor:
         try:
             stats = PropertyStatistics(**config)
         except TypeError as e:
-            raise ConfigException()
+            raise ConfigException("The template parameters are incorrect.")
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page_text)
         summary = u'Update property usage stats'
@@ -86,7 +86,7 @@ class PagesProcessor:
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
                 pywikibot.output("Missing required field %s" % field)
-                raise ConfigException
+                raise ConfigException("A required field is missing: %s" % field)
         config['properties'] = self.parse_config_properties(config['properties'])
         config['stats_for_no_group'] = bool(config.get('stats_for_no_group', False))
         return config

@@ -25,6 +25,10 @@ class ConfigException(ProcessingException):
     pass
 
 
+class NoEndTemplateException(ProcessingException):
+    pass
+
+
 class PagesProcessor:
 
     def __init__(self):
@@ -55,6 +59,9 @@ class PagesProcessor:
     def process_page(self, page):
         page_text = page.get()
         all_templates_with_params = page.templatesWithParams()
+
+        if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
+            raise NoEndTemplateException()
 
         start_templates_with_params = [
             (template, params) for (template, params) in all_templates_with_params if
@@ -105,6 +112,8 @@ class PagesProcessor:
             pywikibot.output("Processing page %s" % page.title())
             try:
                 self.process_page(page)
+            except NoEndTemplateException as e:
+                pywikibot.output("No end template on page %s, skipping" % page.title())
             except ConfigException as e:
                 pywikibot.output("Bad configuration on page %s, skipping" % page.title())
 

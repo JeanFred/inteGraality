@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert alert-danger">
+<p>Something went wrong when updating page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>.</p>
+<p>{{ error_message }}</p>
+</div>
+{% endblock %}

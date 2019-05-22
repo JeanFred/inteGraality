@@ -5,7 +5,7 @@ import os
 
 from flask import Flask, render_template, request
 
-from pages_processor import PagesProcessor
+from pages_processor import PagesProcessor, ProcessingException
 
 app = Flask(__name__)
 app.debug = True
@@ -20,8 +20,11 @@ def index():
 def update():
     page = request.args.get('page')
     processor = PagesProcessor()
-    processor.process_one_page(page)
-    return render_template('update.html', page=page)
+    try:
+        processor.process_one_page(page)
+        return render_template('update.html', page=page)
+    except ProcessingException as e:
+        return render_template('update_error.html', page=page, error_message=e)
 
 
 @app.errorhandler(404)

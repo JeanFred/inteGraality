@@ -103,7 +103,10 @@ class PagesProcessor:
     def process_all(self):
         for page in self.get_all_pages():
             pywikibot.output("Processing page %s" % page.title())
-            self.process_page(page)
+            try:
+                self.process_page(page)
+            except ConfigException as e:
+                pywikibot.output("Bad configuration on page %s, skipping" % page.title())
 
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.repo, page_title)

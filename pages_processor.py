@@ -17,7 +17,11 @@ from property_statistics import PropertyStatistics
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
 
 
-class ConfigException(Exception):
+class ProcessingException(Exception):
+    pass
+
+
+class ConfigException(ProcessingException):
     pass
 
 

@@ -45,7 +45,7 @@ class PropertyStatistics:
         """
         if self.higher_grouping:
             query = f("""
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(?entity) as ?count) WHERE {{
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
@@ -56,7 +56,7 @@ LIMIT 1000
 """)
         else:
             query = f("""
-SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
 }} GROUP BY ?grouping
@@ -91,7 +91,7 @@ LIMIT 1000
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT ?grouping (COUNT(?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   FILTER EXISTS {{ ?entity p:{property} [] }} .

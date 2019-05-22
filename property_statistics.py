@@ -223,6 +223,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 if higher_grouping_value:
                     type_mapping = {
                         "country": "{{Flag|%s}}" % higher_grouping_value,
+                        "string": "%s" % higher_grouping_value,
                     }
                     higher_grouping_text = type_mapping.get(self.higher_grouping_type, f('{{{{Q|{higher_grouping_value}}}}}'))  # noqa
                     text += f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')

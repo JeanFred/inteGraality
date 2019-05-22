@@ -73,7 +73,10 @@ class PagesProcessor:
         (template, params) = start_templates_with_params[0]
         parsed_config = self.parse_config_from_params(params)
         config = self.parse_config(parsed_config)
-        stats = PropertyStatistics(**config)
+        try:
+            stats = PropertyStatistics(**config)
+        except TypeError as e:
+            raise ConfigException()
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page_text)
         summary = u'Update property usage stats'

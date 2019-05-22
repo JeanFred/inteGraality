@@ -25,6 +25,8 @@ def update():
         return render_template('update.html', page=page)
     except ProcessingException as e:
         return render_template('update_error.html', page=page, error_message=e)
+    except Exception as e:
+        return render_template('update_unknown_error.html', page=page, error_type=type(e), error_message=e)
 
 
 @app.errorhandler(404)

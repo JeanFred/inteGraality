@@ -237,7 +237,10 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 text += f('| {item_count} \n')
 
             for prop in self.properties:
-                propcount = self.property_data.get(prop).get(grouping)
+                try:
+                    propcount = self.property_data.get(prop).get(grouping)
+                except AttributeError:
+                    propcount = 0
                 if not propcount:
                     propcount = 0
                 percentage = self._get_percentage(propcount, item_count)

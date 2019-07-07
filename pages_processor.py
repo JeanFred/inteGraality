@@ -111,6 +111,7 @@ class PagesProcessor:
         return new_text
 
     def process_all(self):
+        self.summary = u'Weekly update of property usage stats'
         for page in self.get_all_pages():
             pywikibot.output("Processing page %s" % page.title())
             try:

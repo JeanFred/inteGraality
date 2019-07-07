@@ -76,7 +76,7 @@ class PagesProcessor:
         config = self.parse_config(parsed_config)
         try:
             stats = PropertyStatistics(**config)
-        except TypeError as e:
+        except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page_text)
@@ -116,9 +116,9 @@ class PagesProcessor:
             pywikibot.output("Processing page %s" % page.title())
             try:
                 self.process_page(page)
-            except NoEndTemplateException as e:
+            except NoEndTemplateException:
                 pywikibot.output("No end template on page %s, skipping" % page.title())
-            except ConfigException as e:
+            except ConfigException:
                 pywikibot.output("Bad configuration on page %s, skipping" % page.title())
 
     def process_one_page(self, page_title):

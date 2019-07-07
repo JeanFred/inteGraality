@@ -127,7 +127,7 @@ class TestParseConfig(ProcessortTest):
 class TestParseParams(ProcessortTest):
 
     def test_parse_config_from_params_minimal(self):
-        params = ['grouping_property=P195','properties=P170:creator,P276', 'selector_sparql=wdt:P31 wd:Q3305213']
+        params = ['grouping_property=P195', 'properties=P170:creator,P276', 'selector_sparql=wdt:P31 wd:Q3305213']
         expected = {
             'grouping_property': 'P195',
             'properties': 'P170:creator,P276',
@@ -137,7 +137,7 @@ class TestParseParams(ProcessortTest):
         self.assertEqual(result, expected)
 
     def test_parse_config_from_params_with_empty_param(self):
-        params = ['', 'grouping_property=P195','properties=P170:creator,P276', 'selector_sparql=wdt:P31 wd:Q3305213']
+        params = ['', 'grouping_property=P195', 'properties=P170:creator,P276', 'selector_sparql=wdt:P31 wd:Q3305213']
         expected = {
             'grouping_property': 'P195',
             'properties': 'P170:creator,P276',
@@ -162,7 +162,7 @@ class TestParseConfigProperties(ProcessortTest):
     def test_more_properties(self):
         properties = 'P136,P178,P123,P495,P577,P404,P437'
         result = self.processor.parse_config_properties(properties)
-        expected =  OrderedDict({
+        expected = OrderedDict({
             'P136': None,
             'P178': None,
             'P123': None,

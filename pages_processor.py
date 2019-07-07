@@ -36,6 +36,7 @@ class PagesProcessor:
         self.repo = site.data_repository()
         self.template_name = 'Property dashboard'
         self.end_template_name = 'Property dashboard end'
+        self.summary = u'Update property usage stats'
 
         self.outputs = []
 
@@ -79,8 +80,7 @@ class PagesProcessor:
             raise ConfigException("The template parameters are incorrect.")
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page_text)
-        summary = u'Update property usage stats'
-        page.put(new_text, summary)
+        page.put(new_text, self.summary)
 
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:

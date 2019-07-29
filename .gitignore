@@ -108,3 +108,6 @@ logs
 apicache*
 *.ctrl
 *.lwp
+
+# Ansible files
+*.retry

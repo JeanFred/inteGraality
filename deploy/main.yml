@@ -1,0 +1,77 @@
+---
+- hosts: toolforge
+  become: yes
+  become_user: "tools.integraality"
+  gather_facts: no
+
+  vars:
+    base_path: /data/project/integraality
+    logs_path: "{{ base_path }}/logs"
+    checkout_path: "{{ base_path }}/integraality"
+    toolforge_path: "{{ base_path }}/www/python"
+    virtualenv_path: "{{ toolforge_path }}/venv"
+    source_path: "{{ toolforge_path }}/src"
+
+  handlers:
+    - name: Display message
+      debug:
+        msg: >
+          Deploy done. Please update the Server Admin Log via IRC:
+          https://webchat.freenode.net/?channels=#wikimedia-labs
+
+  tasks:
+    - name: Ensure directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - "{{ logs_path }}"
+        - "{{ toolforge_path }}"
+      tags:
+        - paths
+
+    - name: Clone Git repository
+      git:
+        repo: 'https://github.com/JeanFred/integraality'
+        dest: '{{ checkout_path }}'
+      notify:
+        - Display message
+      tags:
+        - git
+        - skip_ansible_lint  # Skip E401, we always want latest version
+
+    # - name: Install requirements
+    #   pip:
+    #     requirements: '{{ checkout_path }}/requirements.txt'
+    #     virtualenv: '{{ virtualenv_path }}'
+    #   tags:
+    #     - requirements
+
+    - name: Symlink src directory
+      file:
+        src: '{{ checkout_path }}'
+        path: '{{ source_path }}'
+        state: link
+      tags:
+        - paths
+
+    - name: Cron environment variables
+      cron:
+        name: "{{ item.name }}"
+        env: yes
+        value: "{{ item.value }}"
+      with_items:
+        - {name: 'UPDATE_SCRIPT', value: '/data/project/integraality/integraality/bin/run.sh'}
+        - {name: 'UPDATE_LOG_FILE', value: '/data/project/integraality/logs/weekly-update.log'}
+        - {name: 'CRONTAB_LOG_FILE', value: '/data/project/integraality/logs/crontab.log'}
+        - {name: 'JSUB_PARAMS', value: '-mem 1000m -once -j y'}
+      tags:
+        - crontab
+
+    - name: Weekly job updating all dashboards
+      cron:
+        name: Weekly update
+        special_time: weekly
+        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE -N weekly-update $UPDATE_SCRIPT >> $CRONTAB_LOG_FILE
+      tags:
+        - crontab

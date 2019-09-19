@@ -13,6 +13,10 @@ import pywikibot
 import pywikibot.data.sparql
 
 
+class QueryException(Exception):
+    pass
+
+
 class PropertyStatistics:
     """
     Generate statitics
@@ -70,6 +74,9 @@ LIMIT 1000
 
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
+
+        if not queryresult:
+            raise QueryException("No result when querying groupings.")
 
         for resultitem in queryresult:
             qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
@@ -202,7 +209,12 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         Query the data, output wikitext
         """
         logging.info("Retrieving grouping information...")
-        (groupings_counts, groupings_groupings) = self.get_grouping_information()
+
+        try:
+            (groupings_counts, groupings_groupings) = self.get_grouping_information()
+        except QueryException as e:
+            logging.error(f('No groupings found.'))
+            raise e
 
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
         for prop in self.properties:

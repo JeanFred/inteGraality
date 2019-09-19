@@ -120,7 +120,7 @@ class PagesProcessor:
                 pywikibot.output("No end template on page %s, skipping" % page.title())
             except ConfigException:
                 pywikibot.output("Bad configuration on page %s, skipping" % page.title())
-            except Exception, e:
+            except Exception as e:
                 pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
 
     def process_one_page(self, page_title):

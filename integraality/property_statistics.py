@@ -292,12 +292,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'|}\n'
         return text
 
-    def run(self, target_page_title):
-        wikitext = self.retrieve_and_process_data()
-        page = pywikibot.Page(self.repo, title=target_page_title)
-        summary = u'Property usage stats'
-        page.put(wikitext, summary)
-
 
 def main(*args):
     """
@@ -315,7 +309,7 @@ def main(*args):
         stats_for_no_group=True,
         grouping_threshold=5
     )
-    stats.run(u'Wikidata:WikiProject Video games/Statistics/Platform',)
+    print(stats.retrieve_and_process_data())
 
 
 if __name__ == "__main__":

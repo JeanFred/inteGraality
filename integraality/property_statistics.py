@@ -204,6 +204,15 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += f('! data-sort-type="number"|{label}\n')
         return text
 
+    def format_higher_grouping_text(self, higher_grouping_value):
+        type_mapping = {
+            "country": "{{Flag|%s}}" % higher_grouping_value,
+            "string": "%s" % higher_grouping_value,
+        }
+        default = f('{{{{Q|{higher_grouping_value}}}}}')
+        higher_grouping_text = type_mapping.get(self.higher_grouping_type, default)
+        return f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
+
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext
@@ -233,12 +242,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 higher_grouping_value = groupings_groupings.get(grouping)
 
                 if higher_grouping_value:
-                    type_mapping = {
-                        "country": "{{Flag|%s}}" % higher_grouping_value,
-                        "string": "%s" % higher_grouping_value,
-                    }
-                    higher_grouping_text = type_mapping.get(self.higher_grouping_type, f('{{{{Q|{higher_grouping_value}}}}}'))  # noqa
-                    text += f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
+                    text += self.format_higher_grouping_text(higher_grouping_value)
                 else:
                     text += u'|\n'
 

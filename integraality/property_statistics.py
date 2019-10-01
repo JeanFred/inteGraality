@@ -213,6 +213,24 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         higher_grouping_text = type_mapping.get(self.higher_grouping_type, default)
         return f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
 
+    def make_stats_for_no_group(self):
+        """
+        Query the data for no_group, return the wikitext
+        """
+        text = u'|-\n'
+
+        if self.higher_grouping:
+            text += u'|\n'
+
+        total_no_count = self.get_totals_no_grouping()
+        text += u'| No grouping \n'
+        text += f('| {total_no_count} \n')
+        for prop in self.properties:
+            propcount = self.get_property_info_no_grouping(prop)
+            percentage = self._get_percentage(propcount, total_no_count)
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+        return text
+
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext
@@ -264,18 +282,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
 
         if self.stats_for_no_group:
-            text += u'|-\n'
-
-            if self.higher_grouping:
-                text += u'|\n'
-
-            total_no_count = self.get_totals_no_grouping()
-            text += u'| No grouping \n'
-            text += f('| {total_no_count} \n')
-            for prop in self.properties:
-                propcount = self.get_property_info_no_grouping(prop)
-                percentage = self._get_percentage(propcount, total_no_count)
-                text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+            text += self.make_stats_for_no_group()
 
         # Get the totals
         total_items = self.get_totals()

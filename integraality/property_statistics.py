@@ -322,7 +322,7 @@ def main(*args):
         # 'P840': u'narrative location',
         # 'P2408': u'narrative period',
     })
-
+    logging.info("Main function...")
     stats = PropertyStatistics(
         properties=properties,
         selector_sparql=u'wdt:P31/wdt:P279* wd:Q7889 ',

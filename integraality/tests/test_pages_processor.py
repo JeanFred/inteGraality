@@ -4,7 +4,7 @@
 import unittest
 from collections import OrderedDict
 
-from pages_processor import ConfigException, PagesProcessor
+from integraality.pages_processor import ConfigException, PagesProcessor
 
 
 class ProcessortTest(unittest.TestCase):

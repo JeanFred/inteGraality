@@ -58,7 +58,6 @@ class PagesProcessor:
         }
 
     def process_page(self, page):
-        page_text = page.get()
         all_templates_with_params = page.templatesWithParams()
 
         if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
@@ -79,7 +78,7 @@ class PagesProcessor:
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         output = stats.retrieve_and_process_data()
-        new_text = self.replace_in_page(output, page_text)
+        new_text = self.replace_in_page(output, page.get())
         page.put(new_text, self.summary)
 
     def parse_config(self, config):

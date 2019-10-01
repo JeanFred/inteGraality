@@ -300,35 +300,16 @@ def main(*args):
     Main function.
     """
     properties = collections.OrderedDict({
-        # Core properties
-        # 'P136': u'genre',
-        # 'P178': u'developer',
-        # 'P123': u'publisher',
-        # 'P495': u'country',
-        # 'P577': u'publication date',
-
-        # # Gameplay properties
-        # 'P404': None,
-        # 'P437': None,
-
-        # # # Staff properties
-        # 'P57': u'director',
-        # 'P287': u'designer',
-        # 'P86': u'composer',
-        # 'P162': u'producer',
-
-        # # # Setting
-        # 'P1434': u'universe',
-        # 'P840': u'narrative location',
-        # 'P2408': u'narrative period',
+        'P21': None,
+        'P19': None,
     })
     logging.info("Main function...")
     stats = PropertyStatistics(
         properties=properties,
-        selector_sparql=u'wdt:P31/wdt:P279* wd:Q7889 ',
-        grouping_property=u'P400',
+        selector_sparql=u'wdt:P31 wd:Q41960',
+        grouping_property=u'P551',
         stats_for_no_group=True,
-        grouping_threshold=1
+        grouping_threshold=5
     )
     stats.run(u'Wikidata:WikiProject Video games/Statistics/Platform',)
 

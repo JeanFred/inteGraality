@@ -1,0 +1,14 @@
+language: python
+python: 3.5
+
+env:
+  - TOX_ENV=flake8
+  - TOX_ENV=py35
+  - TOX_ENV=isort
+  - TOX_ENV=bashate
+
+install:
+  - pip install tox
+
+script:
+  - tox -e $TOX_ENV

@@ -162,13 +162,13 @@ class TestParseConfigProperties(ProcessortTest):
     def test_more_properties(self):
         properties = 'P136,P178,P123,P495,P577,P404,P437'
         result = self.processor.parse_config_properties(properties)
-        expected = OrderedDict({
-            'P136': None,
-            'P178': None,
-            'P123': None,
-            'P495': None,
-            'P577': None,
-            'P404': None,
-            'P437': None,
-        })
+        expected = OrderedDict([
+            ('P136', None),
+            ('P178', None),
+            ('P123', None),
+            ('P495', None),
+            ('P577', None),
+            ('P404', None),
+            ('P437', None),
+        ])
         self.assertEqual(result, expected)

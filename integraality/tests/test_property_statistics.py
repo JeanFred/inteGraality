@@ -57,3 +57,23 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             call(self.stats, "P21"),
             call(self.stats, "P19"),
         ])
+
+
+class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        self.stats.property_data = {
+            'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6)]),
+            'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
+        }
+
+    def test_make_stats_for_one_grouping(self):
+        result = self.stats.make_stats_for_one_grouping("Q3115846", 10, None)
+        expected = "|-\n| {{Q|Q3115846}}\n| 10 \n| {{Coloured cell|100.0|10}}\n| {{Coloured cell|80.0|8}}\n"
+        self.assertEqual(result, expected)
+
+    def test_make_stats_for_one_grouping_with_higher_grouping(self):
+        result = self.stats.make_stats_for_one_grouping("Q3115846", 10, "Q1")
+        expected = "|-\n| {{Q|Q3115846}}\n| 10 \n| {{Coloured cell|100.0|10}}\n| {{Coloured cell|80.0|8}}\n"
+        self.assertEqual(result, expected)

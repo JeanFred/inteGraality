@@ -231,6 +231,39 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
         return text
 
+    def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):
+        """
+        Query the data for one group, return the wikitext.
+        """
+        text = u'|-\n'
+
+        if self.higher_grouping:
+            if higher_grouping:
+                text += self.format_higher_grouping_text(higher_grouping)
+            else:
+                text += u'|\n'
+
+        text += u'| {{Q|%s}}\n' % (grouping,)
+
+        if self.grouping_link:
+            group_item = pywikibot.ItemPage(self.repo, grouping)
+            group_item.get()
+            label = group_item.labels["en"]
+            text += f('| [[{self.grouping_link}/{label}|{item_count}]] \n')
+        else:
+            text += f('| {item_count} \n')
+
+        for prop in self.properties:
+            try:
+                propcount = self.property_data.get(prop).get(grouping)
+            except AttributeError:
+                propcount = 0
+            if not propcount:
+                propcount = 0
+            percentage = self._get_percentage(propcount, item_count)
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+        return text
+
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext
@@ -249,37 +282,9 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
         text = self.get_header()
 
-        for grouping in groupings_counts:
-            item_count = groupings_counts.get(grouping)
-            item = pywikibot.ItemPage(self.repo, grouping)
-            item.get()
-
-            text += u'|-\n'
-
-            if self.higher_grouping:
-                higher_grouping_value = groupings_groupings.get(grouping)
-
-                if higher_grouping_value:
-                    text += self.format_higher_grouping_text(higher_grouping_value)
-                else:
-                    text += u'|\n'
-
-            text += u'| {{Q|%s}}\n' % (grouping,)
-
-            if self.grouping_link:
-                text += f('| [[{self.grouping_link}/{item.labels["en"]}|{item_count}]] \n')
-            else:
-                text += f('| {item_count} \n')
-
-            for prop in self.properties:
-                try:
-                    propcount = self.property_data.get(prop).get(grouping)
-                except AttributeError:
-                    propcount = 0
-                if not propcount:
-                    propcount = 0
-                percentage = self._get_percentage(propcount, item_count)
-                text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+        for (grouping, item_count) in groupings_counts.items():
+            higher_grouping = groupings_groupings.get(grouping)
+            text += self.make_stats_for_one_grouping(grouping, item_count, higher_grouping)
 
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()

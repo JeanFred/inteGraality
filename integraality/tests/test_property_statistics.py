@@ -52,7 +52,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         result = self.stats.make_stats_for_no_group()
         expected = "|-\n| No grouping \n| 20 \n| {{Coloured cell|10.0|2}}\n| {{Coloured cell|50.0|10}}\n"
         self.assertEqual(result, expected)
-        mock_get_totals_no_grouping.assert_called_once()
+        mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         mock_get_property_info_no_grouping.assert_has_calls([
             call(self.stats, "P21"),
             call(self.stats, "P19"),

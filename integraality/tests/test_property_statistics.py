@@ -70,11 +70,24 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def test_make_stats_for_one_grouping(self):
         result = self.stats.make_stats_for_one_grouping("Q3115846", 10, None)
-        expected = "|-\n| {{Q|Q3115846}}\n| 10 \n| {{Coloured cell|100.0|10}}\n| {{Coloured cell|80.0|8}}\n"
+        expected = (
+            '|-\n'
+            '| {{Q|Q3115846}}\n'
+            '| 10 \n'
+            '| {{Coloured cell|100.0|10}}\n'
+            '| {{Coloured cell|80.0|8}}\n'
+        )
         self.assertEqual(result, expected)
 
     def test_make_stats_for_one_grouping_with_higher_grouping(self):
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.make_stats_for_one_grouping("Q3115846", 10, "Q1")
-        expected = '|-\n| data-sort-value="Q1"| {{Q|Q1}}\n| {{Q|Q3115846}}\n| 10 \n| {{Coloured cell|100.0|10}}\n| {{Coloured cell|80.0|8}}\n'
+        expected = (
+            '|-\n'
+            '| data-sort-value="Q1"| {{Q|Q1}}\n'
+            '| {{Q|Q3115846}}\n'
+            '| 10 \n'
+            '| {{Coloured cell|100.0|10}}\n'
+            '| {{Coloured cell|80.0|8}}\n'
+        )
         self.assertEqual(result, expected)

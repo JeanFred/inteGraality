@@ -118,3 +118,26 @@ class GetCountFromSparqlTest(SparqlQueryTest):
         result = self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
         self.assertEqual(result, None)
+
+
+class SparqlCountTest(SparqlQueryTest):
+
+    def setUp(self):
+        super().setUp()
+        self.mock_sparql_query.return_value.select.return_value = [{'count': '18'}]
+
+    def test_get_property_info_no_grouping(self):
+        result = self.stats.get_property_info_no_grouping('P1')
+        query = (
+            "\n"
+            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "    ?entity wdt:P31 wd:Q41960 .\n"
+            "    MINUS { ?entity wdt:P551 _:b28. }\n"
+            "    FILTER(EXISTS { ?entity p:P1 _:b29. })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, 18)

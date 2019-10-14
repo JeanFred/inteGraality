@@ -91,3 +91,30 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Coloured cell|80.0|8}}\n'
         )
         self.assertEqual(result, expected)
+
+
+class SparqlQueryTest(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch('pywikibot.data.sparql.SparqlQuery', autospec=True)
+        self.mock_sparql_query = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def assert_query_called(self, query):
+        self.mock_sparql_query.return_value.select.assert_called_once_with(query)
+
+
+class GetCountFromSparqlTest(SparqlQueryTest):
+
+    def test_return_count(self):
+        self.mock_sparql_query.return_value.select.return_value = [{'count': '18'}]
+        result = self.stats._get_count_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+        self.assertEqual(result, 18)
+
+    def test_return_None(self):
+        self.mock_sparql_query.return_value.select.return_value = None
+        result = self.stats._get_count_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+        self.assertEqual(result, None)

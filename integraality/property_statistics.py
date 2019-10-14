@@ -174,9 +174,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         queryresult = sq.select(query)
         if not queryresult:
             return None
-        for resultitem in queryresult:
-            # Just one result, return that right away
-            return int(resultitem.get('count'))
+        return int(queryresult[0].get('count'))
 
     @staticmethod
     def _get_percentage(count, total):

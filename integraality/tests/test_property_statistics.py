@@ -65,6 +65,19 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             call(self.stats, "P19"),
         ])
 
+    def test_make_stats_for_no_group_with_higher_grouping(self):
+        self.mock_get_totals_no_grouping.return_value = 20
+        self.mock_get_property_info_no_grouping.side_effect = [2, 10]
+        self.stats.higher_grouping = 'wdt:P17/wdt:P298'
+        result = self.stats.make_stats_for_no_group()
+        expected = "|-\n|\n| No grouping \n| 20 \n| {{Coloured cell|10.0|2}}\n| {{Coloured cell|50.0|10}}\n"
+        self.assertEqual(result, expected)
+        self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
+        self.mock_get_property_info_no_grouping.assert_has_calls([
+            call(self.stats, "P21"),
+            call(self.stats, "P19"),
+        ])
+
 
 class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 

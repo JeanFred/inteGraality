@@ -165,3 +165,14 @@ class SparqlCountTest(SparqlQueryTest):
         )
         self.assert_query_called(query)
         self.assertEqual(result, 18)
+
+    def test_get_totals(self):
+        result = self.stats.get_totals()
+        query = (
+            "\n"
+            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "  ?item wdt:P31 wd:Q41960\n"
+            "}\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, 18)

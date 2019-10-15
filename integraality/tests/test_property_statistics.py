@@ -11,10 +11,10 @@ from property_statistics import PropertyStatistics
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
-        properties = OrderedDict({
-            'P21': None,
-            'P19': None,
-        })
+        properties = OrderedDict([
+            ('P21', None),
+            ('P19', None),
+        ])
         self.stats = PropertyStatistics(
             properties=properties,
             selector_sparql=u'wdt:P31 wd:Q41960',

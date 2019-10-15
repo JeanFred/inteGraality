@@ -112,6 +112,20 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
+    @patch('pywikibot.ItemPage', autospec=True)
+    def test_make_stats_for_one_grouping_with_grouping_link(self, mock_item_page):
+        mock_item_page.return_value.labels = {'en': 'Bar'}
+        self.stats.grouping_link = "Foo"
+        result = self.stats.make_stats_for_one_grouping("Q3115846", 10, None)
+        expected = (
+            '|-\n'
+            '| {{Q|Q3115846}}\n'
+            '| [[Foo/Bar|10]] \n'
+            '| {{Coloured cell|100.0|10}}\n'
+            '| {{Coloured cell|80.0|8}}\n'
+        )
+        self.assertEqual(result, expected)
+
 
 class SparqlQueryTest(PropertyStatisticsTest):
 

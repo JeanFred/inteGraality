@@ -141,3 +141,15 @@ class SparqlCountTest(SparqlQueryTest):
         )
         self.assert_query_called(query)
         self.assertEqual(result, 18)
+
+    def test_get_totals_for_property(self):
+        result = self.stats.get_totals_for_property('P1')
+        query = (
+            "\n"
+            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "  ?item wdt:P31 wd:Q41960\n"
+            "  FILTER EXISTS { ?item p:P1[] } .\n"
+            "}\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, 18)

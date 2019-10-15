@@ -147,7 +147,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property}[] }} .
 }}
-
 """)
         return self._get_count_from_sparql(query)
 

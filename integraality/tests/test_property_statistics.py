@@ -44,16 +44,23 @@ class FormatHigherGroupingTextTest(PropertyStatisticsTest):
 
 class MakeStatsForNoGroupTest(PropertyStatisticsTest):
 
-    @patch('property_statistics.PropertyStatistics.get_property_info_no_grouping', autospec=True)
-    @patch('property_statistics.PropertyStatistics.get_totals_no_grouping', autospec=True)
-    def test_make_stats_for_no_group(self, mock_get_totals_no_grouping, mock_get_property_info_no_grouping):
-        mock_get_totals_no_grouping.return_value = 20
-        mock_get_property_info_no_grouping.side_effect = [2, 10]
+    def setUp(self):
+        super().setUp()
+        patcher1 = patch('property_statistics.PropertyStatistics.get_totals_no_grouping', autospec=True)
+        patcher2 = patch('property_statistics.PropertyStatistics.get_property_info_no_grouping', autospec=True)
+        self.mock_get_totals_no_grouping = patcher1.start()
+        self.mock_get_property_info_no_grouping = patcher2.start()
+        self.addCleanup(patcher1.stop)
+        self.addCleanup(patcher2.stop)
+
+    def test_make_stats_for_no_group(self):
+        self.mock_get_totals_no_grouping.return_value = 20
+        self.mock_get_property_info_no_grouping.side_effect = [2, 10]
         result = self.stats.make_stats_for_no_group()
         expected = "|-\n| No grouping \n| 20 \n| {{Coloured cell|10.0|2}}\n| {{Coloured cell|50.0|10}}\n"
         self.assertEqual(result, expected)
-        mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        mock_get_property_info_no_grouping.assert_has_calls([
+        self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
+        self.mock_get_property_info_no_grouping.assert_has_calls([
             call(self.stats, "P21"),
             call(self.stats, "P19"),
         ])

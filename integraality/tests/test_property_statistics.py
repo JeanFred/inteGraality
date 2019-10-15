@@ -5,7 +5,7 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import call, patch
 
-from property_statistics import PropertyStatistics
+from property_statistics import PropertyStatistics, QueryException
 
 
 class PropertyStatisticsTest(unittest.TestCase):
@@ -210,3 +210,98 @@ class SparqlCountTest(SparqlQueryTest):
         )
         self.assert_query_called(query)
         self.assertEqual(result, 18)
+
+
+class GetGroupingInformationTest(SparqlQueryTest):
+
+    def test_get_grouping_information(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        expected = (
+            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            OrderedDict()
+        )
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count > 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_with_grouping_threshold(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        expected = (
+            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            OrderedDict()
+        )
+        self.stats.grouping_threshold = 5
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count > 5)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_with_higher_grouping(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'higher_grouping': 'NZL', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'higher_grouping': 'USA', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'higher_grouping': 'USA', 'count': '6'}
+        ]
+        expected = (
+            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            OrderedDict([('Q3115846', 'NZL'), ('Q5087901', 'USA'), ('Q623333', 'USA')])
+        )
+        self.stats.higher_grouping = 'wdt:P17/wdt:P298'
+        query = (
+            "\n"
+            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) "
+            "(COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
+            "} GROUP BY ?grouping ?higher_grouping\n"
+            "HAVING (?count > 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_empty_result(self):
+        self.mock_sparql_query.return_value.select.return_value = None
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count > 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        with self.assertRaises(QueryException):
+            self.stats.get_grouping_information()
+        self.assert_query_called(query)

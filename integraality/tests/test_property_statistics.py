@@ -305,3 +305,30 @@ class GetGroupingInformationTest(SparqlQueryTest):
         with self.assertRaises(QueryException):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
+
+
+class GetPropertyInfoTest(SparqlQueryTest):
+
+    def test_get_property_info(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        expected = OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)])
+
+        result = self.stats.get_property_info('P1')
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  FILTER EXISTS { ?entity p:P1 [] } .\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "HAVING (?count > 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)

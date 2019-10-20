@@ -102,7 +102,8 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   FILTER EXISTS {{ ?entity p:{property} [] }} .
-}} GROUP BY ?grouping
+}}
+GROUP BY ?grouping
 HAVING (?count > {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000

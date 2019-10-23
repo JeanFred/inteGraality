@@ -5,16 +5,20 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import call, patch
 
-from property_statistics import PropertyStatistics, QueryException
+from property_statistics import (
+    PropertyConfig,
+    PropertyStatistics,
+    QueryException
+)
 
 
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
-        properties = OrderedDict([
-            ('P21', None),
-            ('P19', None),
-        ])
+        properties = [
+            PropertyConfig(property='P21'),
+            PropertyConfig(property='P19'),
+        ]
         self.stats = PropertyStatistics(
             properties=properties,
             selector_sparql=u'wdt:P31 wd:Q41960',

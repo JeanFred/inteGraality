@@ -4,7 +4,6 @@
 Bot to generate statistics
 
 """
-import collections
 import re
 
 from ww import f
@@ -12,7 +11,7 @@ from ww import f
 import pywikibot
 from pywikibot import pagegenerators
 
-from property_statistics import PropertyStatistics
+from property_statistics import PropertyConfig, PropertyStatistics
 
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
 
@@ -93,14 +92,14 @@ class PagesProcessor:
     @staticmethod
     def parse_config_properties(properties_string):
         properties = properties_string.split(',')
-        properties_data = collections.OrderedDict()
+        properties_data = []
         for prop in properties:
             try:
                 (key, value) = prop.split(':')
             except ValueError:
                 (key, value) = (prop, None)
             if key:
-                properties_data[key] = value
+                properties_data.append(PropertyConfig(property=key, title=value))
         return properties_data
 
     def replace_in_page(self, output, page_text):

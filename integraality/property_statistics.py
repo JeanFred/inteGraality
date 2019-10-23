@@ -13,6 +13,19 @@ import pywikibot
 import pywikibot.data.sparql
 
 
+class PropertyConfig:
+
+    def __init__(self, property, title=None):
+        self.property = property
+        self.title = title
+
+    def __eq__(self, other):
+        return (
+            self.property == other.property
+            and self.title == other.title
+        )
+
+
 class QueryException(Exception):
     pass
 
@@ -194,11 +207,11 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
         text += u'! Name\n'
         text += u'! Count\n'
-        for prop in self.properties:
-            if self.properties.get(prop):
-                label = f('[[Property:{prop}|{self.properties.get(prop)}]]')
+        for prop_entry in self.properties:
+            if prop_entry.title:
+                label = f('[[Property:{prop_entry.property}|{prop_entry.title}]]')
             else:
-                label = f('{{{{Property|{prop}}}}}')
+                label = f('{{{{Property|{prop_entry.property}}}}}')
             text += f('! data-sort-type="number"|{label}\n')
         return text
 
@@ -223,8 +236,9 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         total_no_count = self.get_totals_no_grouping()
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
-        for prop in self.properties:
-            propcount = self.get_property_info_no_grouping(prop)
+        for prop_entry in self.properties:
+            prop_name = prop_entry.property
+            propcount = self.get_property_info_no_grouping(prop_name)
             percentage = self._get_percentage(propcount, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
         return text
@@ -251,9 +265,10 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         else:
             text += f('| {item_count} \n')
 
-        for prop in self.properties:
+        for prop_entry in self.properties:
+            prop_name = prop_entry.property
             try:
-                propcount = self.property_data.get(prop).get(grouping)
+                propcount = self.property_data.get(prop_name).get(grouping)
             except AttributeError:
                 propcount = 0
             if not propcount:
@@ -275,8 +290,9 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             raise e
 
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
-        for prop in self.properties:
-            self.property_data[prop] = self.get_property_info(prop)
+        for prop_entry in self.properties:
+            property_name = prop_entry.property
+            self.property_data[property_name] = self.get_property_info(property_name)
 
         text = self.get_header()
 
@@ -295,8 +311,9 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += u"|\n|"
 
         text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
-        for prop in self.properties:
-            totalprop = self.get_totals_for_property(property=prop)
+        for prop_entry in self.properties:
+            property_name = prop_entry.property
+            totalprop = self.get_totals_for_property(property=property_name)
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
         text += u'|}\n'
@@ -307,10 +324,10 @@ def main(*args):
     """
     Main function.
     """
-    properties = collections.OrderedDict({
-        'P21': None,
-        'P19': None,
-    })
+    properties = [
+        PropertyConfig('P21'),
+        PropertyConfig('P19'),
+    ]
     logging.info("Main function...")
     stats = PropertyStatistics(
         properties=properties,

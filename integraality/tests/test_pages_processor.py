@@ -2,9 +2,12 @@
 """Unit tests for functions.py."""
 
 import unittest
-from collections import OrderedDict
 
-from integraality.pages_processor import ConfigException, PagesProcessor
+from integraality.pages_processor import (
+    ConfigException,
+    PagesProcessor,
+    PropertyConfig
+)
 
 
 class ProcessortTest(unittest.TestCase):
@@ -69,7 +72,10 @@ class TestParseConfig(ProcessortTest):
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'grouping_property': 'P400',
             'stats_for_no_group': True,
-            'properties': {'P136': 'genre', 'P404': None},
+            'properties': [
+                PropertyConfig(property='P136', title='genre'),
+                PropertyConfig(property='P404'),
+            ],
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889'
         }
         self.assertEqual(result, expected)
@@ -84,7 +90,10 @@ class TestParseConfig(ProcessortTest):
         expected = {
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
-            'properties': {'P136': 'genre', 'P404': None},
+            'properties': [
+                PropertyConfig(property='P136', title='genre'),
+                PropertyConfig(property='P404'),
+            ],
             'stats_for_no_group': False,
         }
         self.assertEqual(result, expected)
@@ -104,7 +113,10 @@ class TestParseConfig(ProcessortTest):
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
-            'properties': {'P136': 'genre', 'P404': None},
+            'properties': [
+                PropertyConfig(property='P136', title='genre'),
+                PropertyConfig(property='P404'),
+            ],
             'stats_for_no_group': True,
             'grouping_threshold': '1',
             'property_threshold': '2',
@@ -152,23 +164,31 @@ class TestParseConfigProperties(ProcessortTest):
     def test(self):
         properties = 'P136:genre,P404'
         result = self.processor.parse_config_properties(properties)
-        self.assertEqual(result, {'P136': 'genre', 'P404': None})
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            PropertyConfig(property='P404'),
+        ]
+        self.assertEqual(result, expected)
 
     def test_with_trail_comma(self):
         properties = 'P136:genre,P404,'
         result = self.processor.parse_config_properties(properties)
-        self.assertEqual(result, {'P136': 'genre', 'P404': None})
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            PropertyConfig(property='P404'),
+        ]
+        self.assertEqual(result, expected)
 
     def test_more_properties(self):
         properties = 'P136,P178,P123,P495,P577,P404,P437'
         result = self.processor.parse_config_properties(properties)
-        expected = OrderedDict([
-            ('P136', None),
-            ('P178', None),
-            ('P123', None),
-            ('P495', None),
-            ('P577', None),
-            ('P404', None),
-            ('P437', None),
-        ])
+        expected = [
+            PropertyConfig(property='P136'),
+            PropertyConfig(property='P178'),
+            PropertyConfig(property='P123'),
+            PropertyConfig(property='P495'),
+            PropertyConfig(property='P577'),
+            PropertyConfig(property='P404'),
+            PropertyConfig(property='P437'),
+        ]
         self.assertEqual(result, expected)

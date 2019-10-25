@@ -195,6 +195,14 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             return 0
         return round(1.0 * count / max(total, 1) * 100, 2)
 
+    @staticmethod
+    def make_column_header(prop_entry):
+        if prop_entry.title:
+            label = f('[[Property:{prop_entry.property}|{prop_entry.title}]]')
+        else:
+            label = f('{{{{Property|{prop_entry.property}}}}}')
+        return f('! data-sort-type="number"|{label}\n')
+
     def get_header(self):
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
@@ -208,11 +216,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'! Name\n'
         text += u'! Count\n'
         for prop_entry in self.properties:
-            if prop_entry.title:
-                label = f('[[Property:{prop_entry.property}|{prop_entry.title}]]')
-            else:
-                label = f('{{{{Property|{prop_entry.property}}}}}')
-            text += f('! data-sort-type="number"|{label}\n')
+            text += self.make_column_header(prop_entry)
+
         return text
 
     def format_higher_grouping_text(self, higher_grouping_value):

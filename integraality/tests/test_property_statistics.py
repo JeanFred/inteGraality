@@ -26,6 +26,21 @@ class PropertyStatisticsTest(unittest.TestCase):
         )
 
 
+class TestMakeColumnHeader(PropertyStatisticsTest):
+
+    def test_simple(self):
+        prop_entry = PropertyConfig('19')
+        result = self.stats.make_column_header(prop_entry)
+        expected = u'! data-sort-type="number"|{{Property|19}}\n'
+        self.assertEqual(result, expected)
+
+    def test_with_label(self):
+        prop_entry = PropertyConfig('P19', title="birth")
+        result = self.stats.make_column_header(prop_entry)
+        expected = u'! data-sort-type="number"|[[Property:P19|birth]]\n'
+        self.assertEqual(result, expected)
+
+
 class FormatHigherGroupingTextTest(PropertyStatisticsTest):
 
     def test_format_higher_grouping_text_default_qitem(self):

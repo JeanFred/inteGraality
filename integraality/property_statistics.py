@@ -6,6 +6,7 @@ Calculate and generate statistics
 """
 import collections
 import logging
+import re
 
 from ww import f
 
@@ -305,10 +306,18 @@ SELECT (COUNT(?item) as ?count) WHERE {{
     def format_higher_grouping_text(self, higher_grouping_value):
         type_mapping = {
             "country": "{{Flag|%s}}" % higher_grouping_value,
-            "string": "%s" % higher_grouping_value,
         }
-        default = f('{{{{Q|{higher_grouping_value}}}}}')
-        higher_grouping_text = type_mapping.get(self.higher_grouping_type, default)
+        if re.match(r"Q\d+", higher_grouping_value):
+            higher_grouping_text = f('{{{{Q|{higher_grouping_value}}}}}')
+        elif re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value):
+            match = re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value)
+            image_name = match.groups()[0]
+            higher_grouping_text = f('[[File:{image_name}|center|100px]]')
+            higher_grouping_value = image_name
+        elif self.higher_grouping_type in type_mapping:
+            higher_grouping_text = type_mapping.get(self.higher_grouping_type)
+        else:
+            higher_grouping_text = higher_grouping_value
         return f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
 
     def make_stats_for_no_group(self):

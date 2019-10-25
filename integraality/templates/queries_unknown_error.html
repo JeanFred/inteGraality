@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert alert-danger">
+<p>Something catastrophic happened when generating queries from page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>.</p>
+<p>Please report this on Phabricator.</p>
+<p>{{ error_type }}</p>
+<p>{{ error_message }}</p>
+</div>
+{% endblock %}

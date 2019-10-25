@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="alert">
+	<a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">All items with the property set</a>
+	<a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">All items without the property set</a>
+</div>
+{% endblock %}

@@ -192,3 +192,23 @@ class TestParseConfigProperties(ProcessortTest):
             PropertyConfig(property='P437'),
         ]
         self.assertEqual(result, expected)
+
+    def test_with_qualifier(self):
+        properties = 'P136:genre,P404,P669/P670'
+        result = self.processor.parse_config_properties(properties)
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            PropertyConfig(property='P404'),
+            PropertyConfig(property='P669', qualifier='P670'),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_with_qualifier_and_value(self):
+        properties = 'P136:genre,P404,P553/Q17459/P670'
+        result = self.processor.parse_config_properties(properties)
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            PropertyConfig(property='P404'),
+            PropertyConfig(property='P553', value='Q17459', qualifier='P670')
+        ]
+        self.assertEqual(result, expected)

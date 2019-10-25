@@ -15,15 +15,28 @@ import pywikibot.data.sparql
 
 class PropertyConfig:
 
-    def __init__(self, property, title=None):
+    def __init__(self, property, title=None, value=None, qualifier=None):
         self.property = property
         self.title = title
+        self.value = value
+        self.qualifier = qualifier
 
     def __eq__(self, other):
         return (
             self.property == other.property
             and self.title == other.title
+            and self.value == other.value
+            and self.qualifier == other.qualifier
         )
+
+    def get_key(self):
+        if self.qualifier:
+            if self.value:
+                return self.property + self.value + self.qualifier
+            else:
+                return self.property + self.qualifier
+        else:
+            return self.property
 
 
 class QueryException(Exception):
@@ -131,6 +144,36 @@ LIMIT 1000
             result[qid] = int(resultitem.get('count'))
         return result
 
+    def get_qualifier_info(self, property, qualifier, value="[]"):
+        """
+        Get the usage counts for a qulifier for the groupings
+
+        :param property: Wikidata Pid of the property
+        :param qualifier: Wikidata Pid of the qualifier
+        :return: (Ordered) dictionary with the counts per grouping
+        """
+        query = f("""
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+  ?entity {self.selector_sparql} .
+  ?entity wdt:{self.grouping_property} ?grouping .
+  FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
+}}
+GROUP BY ?grouping
+HAVING (?count > {self.grouping_threshold})
+ORDER BY DESC(?count)
+LIMIT 1000
+""")
+        print(query)
+        result = collections.OrderedDict()
+        sq = pywikibot.data.sparql.SparqlQuery()
+        queryresult = sq.select(query)
+        if not queryresult:
+            return None
+        for resultitem in queryresult:
+            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
+            result[qid] = int(resultitem.get('count'))
+        return result
+
     def get_property_info_no_grouping(self, property):
         """
         Get the usage counts for a property without a grouping
@@ -150,6 +193,26 @@ LIMIT 10
 """)
         return self._get_count_from_sparql(query)
 
+    def get_qualifier_info_no_grouping(self, property, qualifier, value='[]'):
+        """
+        Get the usage counts for a qualifier without a grouping
+
+        :param property: Wikidata Pid of the property
+        :param qualifier: Wikidata Pid of the qualifier
+        :return: (Ordered) dictionary with the counts per grouping
+        """
+        query = f("""
+SELECT (COUNT(?entity) AS ?count) WHERE {{
+    ?entity {self.selector_sparql} .
+    MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
+    FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
+}}
+GROUP BY ?grouping
+ORDER BY DESC (?count)
+LIMIT 10
+""")
+        return self._get_count_from_sparql(query)
+
     def get_totals_for_property(self, property):
         """
         Get the totals of entities with that property
@@ -160,6 +223,20 @@ LIMIT 10
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property}[] }} .
+}}
+""")
+        return self._get_count_from_sparql(query)
+
+    def get_totals_for_qualifier(self, property, qualifier, value="[]"):
+        """
+        Get the totals of entities with that property
+        :param prop:  Wikidata Pid of the property.
+        :return: number of games found
+        """
+        query = f("""
+SELECT (COUNT(?item) as ?count) WHERE {{
+  ?item {self.selector_sparql}
+  FILTER EXISTS {{ ?item p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -197,10 +274,15 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
     @staticmethod
     def make_column_header(prop_entry):
-        if prop_entry.title:
-            label = f('[[Property:{prop_entry.property}|{prop_entry.title}]]')
+        if prop_entry.qualifier:
+            property_link = prop_entry.qualifier
         else:
-            label = f('{{{{Property|{prop_entry.property}}}}}')
+            property_link = prop_entry.property
+
+        if prop_entry.title:
+            label = f('[[Property:{property_link}|{prop_entry.title}]]')
+        else:
+            label = f('{{{{Property|{property_link}}}}}')
         return f('! data-sort-type="number"|{label}\n')
 
     def get_header(self):
@@ -242,8 +324,11 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
         for prop_entry in self.properties:
-            prop_name = prop_entry.property
-            propcount = self.get_property_info_no_grouping(prop_name)
+            property_name = prop_entry.property
+            if prop_entry.qualifier:
+                propcount = self.get_qualifier_info_no_grouping(property_name, prop_entry.qualifier)
+            else:
+                propcount = self.get_property_info_no_grouping(property_name)
             percentage = self._get_percentage(propcount, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
         return text
@@ -271,9 +356,9 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += f('| {item_count} \n')
 
         for prop_entry in self.properties:
-            prop_name = prop_entry.property
+            prop_entry_key = prop_entry.get_key()
             try:
-                propcount = self.property_data.get(prop_name).get(grouping)
+                propcount = self.property_data.get(prop_entry_key).get(grouping)
             except AttributeError:
                 propcount = 0
             if not propcount:
@@ -297,7 +382,11 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
         for prop_entry in self.properties:
             property_name = prop_entry.property
-            self.property_data[property_name] = self.get_property_info(property_name)
+            prop_entry_key = prop_entry.get_key()
+            if prop_entry.qualifier:
+                self.property_data[prop_entry_key] = self.get_qualifier_info(property_name, prop_entry.qualifier)
+            else:
+                self.property_data[prop_entry_key] = self.get_property_info(property_name)
 
         text = self.get_header()
 
@@ -318,7 +407,10 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
         for prop_entry in self.properties:
             property_name = prop_entry.property
-            totalprop = self.get_totals_for_property(property=property_name)
+            if prop_entry.qualifier:
+                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=prop_entry.qualifier)
+            else:
+                totalprop = self.get_totals_for_property(property=property_name)
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
         text += u'|}\n'

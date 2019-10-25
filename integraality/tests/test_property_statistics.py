@@ -29,15 +29,27 @@ class PropertyStatisticsTest(unittest.TestCase):
 class TestMakeColumnHeader(PropertyStatisticsTest):
 
     def test_simple(self):
-        prop_entry = PropertyConfig('19')
+        prop_entry = PropertyConfig('P19')
         result = self.stats.make_column_header(prop_entry)
-        expected = u'! data-sort-type="number"|{{Property|19}}\n'
+        expected = u'! data-sort-type="number"|{{Property|P19}}\n'
         self.assertEqual(result, expected)
 
     def test_with_label(self):
         prop_entry = PropertyConfig('P19', title="birth")
         result = self.stats.make_column_header(prop_entry)
         expected = u'! data-sort-type="number"|[[Property:P19|birth]]\n'
+        self.assertEqual(result, expected)
+
+    def test_with_qualifier(self):
+        prop_entry = PropertyConfig('P669', qualifier='P670')
+        result = self.stats.make_column_header(prop_entry)
+        expected = u'! data-sort-type="number"|{{Property|P670}}\n'
+        self.assertEqual(result, expected)
+
+    def test_with_qualifier_and_label(self):
+        prop_entry = PropertyConfig('P669', title="street", qualifier='P670')
+        result = self.stats.make_column_header(prop_entry)
+        expected = u'! data-sort-type="number"|[[Property:P670|street]]\n'
         self.assertEqual(result, expected)
 
 
@@ -195,6 +207,22 @@ class SparqlCountTest(SparqlQueryTest):
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
+    def test_get_qualifier_info_no_grouping(self):
+        result = self.stats.get_qualifier_info_no_grouping('P1', 'P2')
+        query = (
+            "\n"
+            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "    ?entity wdt:P31 wd:Q41960 .\n"
+            "    MINUS { ?entity wdt:P551 _:b28. }\n"
+            "    FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, 18)
+
     def test_get_totals_for_property(self):
         result = self.stats.get_totals_for_property('P1')
         query = (
@@ -202,6 +230,18 @@ class SparqlCountTest(SparqlQueryTest):
             "SELECT (COUNT(?item) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER EXISTS { ?item p:P1[] } .\n"
+            "}\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, 18)
+
+    def test_get_totals_for_qualifier(self):
+        result = self.stats.get_totals_for_qualifier("P1", "P2")
+        query = (
+            "\n"
+            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "  ?item wdt:P31 wd:Q41960\n"
+            "  FILTER EXISTS { ?item p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
         )
         self.assert_query_called(query)
@@ -362,6 +402,33 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "HAVING (?count > 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+
+class GetQualifierInfoTest(SparqlQueryTest):
+
+    def test_get_qualifier_info(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        expected = OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)])
+
+        result = self.stats.get_qualifier_info('P1', qualifier="P2")
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
             "HAVING (?count > 20)\n"

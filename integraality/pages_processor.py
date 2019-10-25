@@ -95,11 +95,19 @@ class PagesProcessor:
         properties_data = []
         for prop in properties:
             try:
-                (key, value) = prop.split(':')
+                (key, title) = prop.split(':')
             except ValueError:
-                (key, value) = (prop, None)
+                (key, title) = (prop, None)
             if key:
-                properties_data.append(PropertyConfig(property=key, title=value))
+                splitted = key.split('/')
+                if len(splitted) == 3:
+                    (property_name, value, qualifier) = splitted
+                elif len(splitted) == 2:
+                    (property_name, value, qualifier) = (splitted[0], None, splitted[1])
+                else:
+                    (property_name, value, qualifier) = (key, None, None)
+                entry = PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
+                properties_data.append(entry)
         return properties_data
 
     def replace_in_page(self, output, page_text):

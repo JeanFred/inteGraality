@@ -29,6 +29,22 @@ def update():
         return render_template('update_unknown_error.html', page=page, error_type=type(e), error_message=e)
 
 
+@app.route('/queries')
+def queries():
+    page = request.args.get('page')
+    property = request.args.get('property')
+    grouping = request.args.get('grouping')
+    processor = PagesProcessor()
+    try:
+        stats = processor.make_stats_object_for_page_title(page)
+        positive_query = stats.get_query_for_items_for_property_positive(property, grouping)
+        negative_query = stats.get_query_for_items_for_property_negative(property, grouping)
+        return render_template('queries.html', page=page, positive_query=positive_query, negative_query=negative_query)
+    except Exception as e:
+        raise e
+        # return render_template('queries_unknown_error.html', page=page, error_type=type(e), error_message=e)
+
+
 @app.errorhandler(404)
 def page_not_found(error):
     return render_template('page_not_found.html', title=u'Page not found'), 404

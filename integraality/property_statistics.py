@@ -66,7 +66,7 @@ class PropertyStatistics:
 
         self.grouping_link = grouping_link
         self.property_data = {}
-        self.cell_template = 'Coloured cell'
+        self.cell_template = 'Integraality cell'
 
     def get_grouping_information(self):
         """
@@ -116,6 +116,31 @@ LIMIT 1000
                 grouping_groupings[qid] = value
 
         return (grouping_counts, grouping_groupings)
+
+    def get_query_for_items_for_property_positive(self, property, grouping):
+        query = f("""
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
+  ?entity {self.selector_sparql} .
+  ?entity wdt:{self.grouping_property} wd:{grouping} .
+  ?entity p:{property} ?prop . OPTIONAL {{ ?prop ps:{property} ?value }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+}}
+""")
+        return query
+
+    def get_query_for_items_for_property_negative(self, property, grouping):
+        query = f("""
+SELECT DISTINCT ?entity ?entityLabel WHERE {{
+  ?entity {self.selector_sparql} .
+  ?entity wdt:{self.grouping_property} wd:{grouping} .
+  MINUS {{
+    {{?entity a wdno:{property} .}} UNION
+    {{?entity wdt:{property} ?prop .}}
+  }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+}}
+""")
+        return query
 
     def get_property_info(self, property):
         """
@@ -373,7 +398,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             if not propcount:
                 propcount = 0
             percentage = self._get_percentage(propcount, item_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={grouping}}}}}\n')
         return text
 
     def retrieve_and_process_data(self):

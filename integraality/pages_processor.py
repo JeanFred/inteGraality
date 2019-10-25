@@ -137,6 +137,10 @@ class PagesProcessor:
         pywikibot.output("Processing page %s" % page.title())
         self.process_page(page)
 
+    def make_stats_object_for_page_title(self, page_title):
+        page = pywikibot.Page(self.repo, page_title)
+        return self.make_stats_object_for_page(page)
+
 
 def main(*args):
     """

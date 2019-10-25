@@ -39,7 +39,7 @@ def queries():
         stats = processor.make_stats_object_for_page_title(page)
         positive_query = stats.get_query_for_items_for_property_positive(property, grouping)
         negative_query = stats.get_query_for_items_for_property_negative(property, grouping)
-        return render_template('queries.html', page=page, positive_query=positive_query, negative_query=negative_query)
+        return render_template('queries.html', page=page, property=property, grouping=grouping, positive_query=positive_query, negative_query=negative_query)
     except Exception as e:
         raise e
         # return render_template('queries_unknown_error.html', page=page, error_type=type(e), error_message=e)

@@ -11,7 +11,7 @@ from ww import f
 import pywikibot
 from pywikibot import pagegenerators
 
-from property_statistics import PropertyConfig, PropertyStatistics
+from property_statistics import PropertyConfig, PropertyStatistics, QueryException
 
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
 
@@ -79,7 +79,10 @@ class PagesProcessor:
 
     def process_page(self, page):
         stats = self.make_stats_object_for_page(page)
-        output = stats.retrieve_and_process_data()
+        try:
+            output = stats.retrieve_and_process_data()
+        except QueryException as e:
+            raise ConfigException(e)
         new_text = self.replace_in_page(output, page.get())
         page.put(new_text, self.summary)
 

@@ -61,7 +61,7 @@ class UpdateTests(AppTests):
         response = self.app.get('/update?page=%s' % self.page_title)
         self.mock_pages_processor.assert_called_once_with()
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
-        message = '<p>Something went wrong when updating page {page}.</p>'.format(page=self.linked_page)
+        message = '<p>Something went wrong when updating page {page}. Please check your configuration.</p>'.format(page=self.linked_page)  # noqa
         self.assertErrorPage(response, message)
 
     def test_update_error_unknown_exception(self):

@@ -11,7 +11,11 @@ from ww import f
 import pywikibot
 from pywikibot import pagegenerators
 
-from property_statistics import PropertyConfig, PropertyStatistics, QueryException
+from property_statistics import (
+    PropertyConfig,
+    PropertyStatistics,
+    QueryException
+)
 
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
 

@@ -93,7 +93,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.mock_get_totals_no_grouping.return_value = 20
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
         result = self.stats.make_stats_for_no_group()
-        expected = "|-\n| No grouping \n| 20 \n| {{Coloured cell|10.0|2}}\n| {{Coloured cell|50.0|10}}\n"
+        expected = "|-\n| No grouping \n| 20 \n| {{Integraality cell|10.0|2}}\n| {{Integraality cell|50.0|10}}\n"
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         self.mock_get_property_info_no_grouping.assert_has_calls([
@@ -106,7 +106,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
         result = self.stats.make_stats_for_no_group()
-        expected = "|-\n|\n| No grouping \n| 20 \n| {{Coloured cell|10.0|2}}\n| {{Coloured cell|50.0|10}}\n"
+        expected = "|-\n|\n| No grouping \n| 20 \n| {{Integraality cell|10.0|2}}\n| {{Integraality cell|50.0|10}}\n"
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         self.mock_get_property_info_no_grouping.assert_has_calls([
@@ -130,8 +130,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '|-\n'
             '| {{Q|Q3115846}}\n'
             '| 10 \n'
-            '| {{Coloured cell|100.0|10}}\n'
-            '| {{Coloured cell|80.0|8}}\n'
+            '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -143,8 +143,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| data-sort-value="Q1"| {{Q|Q1}}\n'
             '| {{Q|Q3115846}}\n'
             '| 10 \n'
-            '| {{Coloured cell|100.0|10}}\n'
-            '| {{Coloured cell|80.0|8}}\n'
+            '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -157,8 +157,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '|-\n'
             '| {{Q|Q3115846}}\n'
             '| [[Foo/Bar|10]] \n'
-            '| {{Coloured cell|100.0|10}}\n'
-            '| {{Coloured cell|80.0|8}}\n'
+            '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 

@@ -398,7 +398,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             if not propcount:
                 propcount = 0
             percentage = self._get_percentage(propcount, item_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={grouping}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={grouping}}}}}\n')  # noqa
         return text
 
     def retrieve_and_process_data(self):

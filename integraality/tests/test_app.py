@@ -26,7 +26,7 @@ class BasicTests(AppTests):
         self.assertIn("This page does not exist.", response.get_data(as_text=True))
 
 
-class UpdateTests(AppTests):
+class PagesProcessorTests(AppTests):
 
     def setUp(self):
         super().setUp()
@@ -50,6 +50,9 @@ class UpdateTests(AppTests):
         self.assertIn("alert-danger", contents)
         self.assertIn(message, contents)
 
+
+class UpdateTests(PagesProcessorTests):
+
     def test_update_success(self):
         response = self.app.get('/update?page=%s' % self.page_title)
         self.mock_pages_processor.assert_called_once_with()
@@ -70,4 +73,40 @@ class UpdateTests(AppTests):
         self.mock_pages_processor.assert_called_once_with()
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
         message = '<p>Something catastrophic happened when processing page {page}.</p>'.format(page=self.linked_page)
+        self.assertErrorPage(response, message)
+
+
+class QueriesTests(PagesProcessorTests):
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch('pages_processor.PropertyStatistics', autospec=True)
+        self.mock_property_statistics = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_queries_success(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
+        self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
+        response = self.app.get('/queries?page=%s&property=P1&grouping=Q2' % self.page_title)
+        self.mock_pages_processor.assert_called_once_with()
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "Q2")
+        expected = (
+            '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
+            '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
+            '<a href="https://wikidata.org/wiki/Q2">Q2</a></p>\n\t'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(expected, response.get_data(as_text=True))
+
+    def test_queries_error_unknown_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ValueError
+        response = self.app.get('/queries?page=%s&property=P1&grouping=Q2' % self.page_title)
+        self.mock_pages_processor.assert_called_once_with()
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        message = '<p>Something catastrophic happened when generating queries from page {page}.</p>'.format(page=self.linked_page)  # noqa
         self.assertErrorPage(response, message)

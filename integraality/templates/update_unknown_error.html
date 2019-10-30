@@ -3,7 +3,8 @@
 {% block content %}
 <div class="alert alert-danger">
 <p>Something catastrophic happened when processing page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>.</p>
-<p>Please report this on Phabricator.</p>
+<p>This is very likely a bug in inteGraality itself, not a configuration issue.</p>
+<p>Please <a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=```{{ error_type }} {{error_message}}```">report this on Phabricator</a>.</p>
 <p>{{ error_type }}</p>
 <p>{{ error_message }}</p>
 </div>

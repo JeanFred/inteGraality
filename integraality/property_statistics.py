@@ -156,7 +156,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   FILTER EXISTS {{ ?entity p:{property} [] }} .
 }}
 GROUP BY ?grouping
-HAVING (?count > {self.grouping_threshold})
+HAVING (?count > {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
@@ -185,7 +185,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
 }}
 GROUP BY ?grouping
-HAVING (?count > {self.grouping_threshold})
+HAVING (?count > {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)

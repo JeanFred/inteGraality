@@ -390,7 +390,7 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count > 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -409,7 +409,7 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count > 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -436,7 +436,7 @@ class GetQualifierInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count > 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )

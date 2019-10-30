@@ -401,6 +401,24 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={grouping}}}}}\n')  # noqa
         return text
 
+    def make_footer(self):
+        total_items = self.get_totals()
+        text = u'|- class="sortbottom"\n|'
+        if self.higher_grouping:
+            text += u"|\n|"
+
+        text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
+        for prop_entry in self.properties:
+            property_name = prop_entry.property
+            if prop_entry.qualifier:
+                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=prop_entry.qualifier)
+            else:
+                totalprop = self.get_totals_for_property(property=property_name)
+            percentage = self._get_percentage(totalprop, total_items)
+            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
+        text += u'|}\n'
+        return text
+
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext
@@ -432,23 +450,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()
 
-        # Get the totals
-        total_items = self.get_totals()
+        text += self.make_footer()
 
-        text += u'|- class="sortbottom"\n|'
-        if self.higher_grouping:
-            text += u"|\n|"
-
-        text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
-        for prop_entry in self.properties:
-            property_name = prop_entry.property
-            if prop_entry.qualifier:
-                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=prop_entry.qualifier)
-            else:
-                totalprop = self.get_totals_for_property(property=property_name)
-            percentage = self._get_percentage(totalprop, total_items)
-            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
-        text += u'|}\n'
         return text
 
 

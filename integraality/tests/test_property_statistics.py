@@ -482,3 +482,30 @@ class GetQualifierInfoTest(SparqlQueryTest):
         )
         self.assert_query_called(query)
         self.assertEqual(result, expected)
+
+
+class MakeFooterTest(SparqlQueryTest):
+
+    def setUp(self):
+        super().setUp()
+        self.mock_sparql_query.return_value.select.side_effect = [
+            [{'count': '120'}],
+            [{'count': '30'}],
+            [{'count': '80'}],
+            [{'count': '10'}],
+            [{'count': '12'}]
+        ]
+
+    def test_make_footer(self):
+        result = self.stats.make_footer()
+        expected = (
+            '|- class="sortbottom"\n'
+            "|\'\'\'Totals\'\'\' <small>(all items)<small>:\n"
+            "| 120\n"
+            "| {{Integraality cell|25.0|30}}\n"
+            "| {{Integraality cell|66.67|80}}\n"
+            "| {{Integraality cell|8.33|10}}\n"
+            "| {{Integraality cell|10.0|12}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)

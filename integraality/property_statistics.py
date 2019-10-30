@@ -189,7 +189,6 @@ HAVING (?count > {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
-        print(query)
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)

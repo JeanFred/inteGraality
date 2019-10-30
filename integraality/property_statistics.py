@@ -465,7 +465,8 @@ def main(*args):
         selector_sparql=u'wdt:P31 wd:Q41960',
         grouping_property=u'P551',
         stats_for_no_group=True,
-        grouping_threshold=5
+        grouping_threshold=5,
+        property_threshold=1,
     )
     print(stats.retrieve_and_process_data())
 

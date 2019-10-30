@@ -18,6 +18,8 @@ class PropertyStatisticsTest(unittest.TestCase):
         properties = [
             PropertyConfig(property='P21'),
             PropertyConfig(property='P19'),
+            PropertyConfig(property='P1', qualifier='P2'),
+            PropertyConfig(property='P3', value='Q4', qualifier='P5'),
         ]
         self.stats = PropertyStatistics(
             properties=properties,
@@ -84,34 +86,64 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         super().setUp()
         patcher1 = patch('property_statistics.PropertyStatistics.get_totals_no_grouping', autospec=True)
         patcher2 = patch('property_statistics.PropertyStatistics.get_property_info_no_grouping', autospec=True)
+        patcher3 = patch('property_statistics.PropertyStatistics.get_qualifier_info_no_grouping', autospec=True)
         self.mock_get_totals_no_grouping = patcher1.start()
         self.mock_get_property_info_no_grouping = patcher2.start()
+        self.mock_get_qualifier_info_no_grouping = patcher3.start()
         self.addCleanup(patcher1.stop)
         self.addCleanup(patcher2.stop)
+        self.addCleanup(patcher3.stop)
 
     def test_make_stats_for_no_group(self):
         self.mock_get_totals_no_grouping.return_value = 20
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
+        self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
         result = self.stats.make_stats_for_no_group()
-        expected = "|-\n| No grouping \n| 20 \n| {{Integraality cell|10.0|2}}\n| {{Integraality cell|50.0|10}}\n"
+        expected = (
+            "|-\n"
+            "| No grouping \n"
+            "| 20 \n"
+            "| {{Integraality cell|10.0|2}}\n"
+            "| {{Integraality cell|50.0|10}}\n"
+            "| {{Integraality cell|75.0|15}}\n"
+            "| {{Integraality cell|25.0|5}}\n"
+        )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         self.mock_get_property_info_no_grouping.assert_has_calls([
             call(self.stats, "P21"),
             call(self.stats, "P19"),
         ])
+        self.mock_get_qualifier_info_no_grouping.assert_has_calls([
+            call(self.stats, 'P1', 'P2', '[]'),
+            call(self.stats, 'P3', 'P5', 'Q4'),
+        ])
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
         self.mock_get_totals_no_grouping.return_value = 20
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
+        self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
         result = self.stats.make_stats_for_no_group()
-        expected = "|-\n|\n| No grouping \n| 20 \n| {{Integraality cell|10.0|2}}\n| {{Integraality cell|50.0|10}}\n"
+        expected = (
+            "|-\n"
+            "|\n"
+            "| No grouping \n"
+            "| 20 \n"
+            "| {{Integraality cell|10.0|2}}\n"
+            "| {{Integraality cell|50.0|10}}\n"
+            "| {{Integraality cell|75.0|15}}\n"
+            "| {{Integraality cell|25.0|5}}\n"
+        )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         self.mock_get_property_info_no_grouping.assert_has_calls([
             call(self.stats, "P21"),
             call(self.stats, "P19"),
+        ])
+        self.mock_get_qualifier_info_no_grouping.assert_has_calls([
+            call(self.stats, 'P1', 'P2', '[]'),
+            call(self.stats, 'P3', 'P5', 'Q4'),
         ])
 
 
@@ -122,6 +154,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.stats.property_data = {
             'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6)]),
             'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
+            'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
+            'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
         }
 
     def test_make_stats_for_one_grouping(self):
@@ -132,6 +166,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| 10 \n'
             '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|property=P1|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|property=P3|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -145,6 +181,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| 10 \n'
             '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|property=P1|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|property=P3|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -159,6 +197,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| [[Foo/Bar|10]] \n'
             '| {{Integraality cell|100.0|10|property=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|property=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|property=P1|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|property=P3|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 

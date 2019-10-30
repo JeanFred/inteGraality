@@ -359,7 +359,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         for prop_entry in self.properties:
             property_name = prop_entry.property
             if prop_entry.qualifier:
-                propcount = self.get_qualifier_info_no_grouping(property_name, prop_entry.qualifier)
+                value = prop_entry.value or '[]'
+                propcount = self.get_qualifier_info_no_grouping(property_name, prop_entry.qualifier, value)
             else:
                 propcount = self.get_property_info_no_grouping(property_name)
             percentage = self._get_percentage(propcount, total_no_count)
@@ -417,7 +418,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             property_name = prop_entry.property
             prop_entry_key = prop_entry.get_key()
             if prop_entry.qualifier:
-                self.property_data[prop_entry_key] = self.get_qualifier_info(property_name, prop_entry.qualifier)
+                value = prop_entry.value or '[]'
+                self.property_data[prop_entry_key] = self.get_qualifier_info(property_name, prop_entry.qualifier, value)
             else:
                 self.property_data[prop_entry_key] = self.get_property_info(property_name)
 

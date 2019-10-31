@@ -25,6 +25,7 @@ class PropertyStatisticsTest(unittest.TestCase):
             properties=properties,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P551',
+            property_threshold=10
         )
 
 

@@ -49,7 +49,7 @@ class PropertyStatistics:
     Generate statitics
 
     """
-    def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=10):  # noqa
+    def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
         Set what to work on and other variables here.
         """

@@ -159,7 +159,8 @@ class TestParseParams(ProcessortTest):
         self.assertEqual(result, expected)
 
     def test_parse_config_from_params_with_escsped_pipe(self):
-        params = ['', 'grouping_property=P195', 'properties=P170:creator,P276', 'selector_sparql=REGEX(?id, "^(a{{!}}b)")']
+        params = ['grouping_property=P195', 'properties=P170:creator,P276',
+                  'selector_sparql=REGEX(?id, "^(a{{!}}b)")']
         expected = {
             'grouping_property': 'P195',
             'properties': 'P170:creator,P276',

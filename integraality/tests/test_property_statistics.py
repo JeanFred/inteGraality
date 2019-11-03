@@ -104,10 +104,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|-\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2}}\n"
-            "| {{Integraality cell|50.0|10}}\n"
-            "| {{Integraality cell|75.0|15}}\n"
-            "| {{Integraality cell|25.0|5}}\n"
+            "| {{Integraality cell|10.0|2|property=P21}}\n"
+            "| {{Integraality cell|50.0|10|property=P19}}\n"
+            "| {{Integraality cell|75.0|15|property=P1}}\n"
+            "| {{Integraality cell|25.0|5|property=P3}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -131,10 +131,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2}}\n"
-            "| {{Integraality cell|50.0|10}}\n"
-            "| {{Integraality cell|75.0|15}}\n"
-            "| {{Integraality cell|25.0|5}}\n"
+            "| {{Integraality cell|10.0|2|property=P21}}\n"
+            "| {{Integraality cell|50.0|10|property=P19}}\n"
+            "| {{Integraality cell|75.0|15|property=P1}}\n"
+            "| {{Integraality cell|25.0|5|property=P3}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)

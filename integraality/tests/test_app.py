@@ -103,6 +103,14 @@ class QueriesTests(PagesProcessorTests):
         self.assertEqual(response.status_code, 200)
         self.assertIn(expected, response.get_data(as_text=True))
 
+    def test_queries_error_processing_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ProcessingException
+        response = self.app.get('/queries?page=%s&property=P1&grouping=Q2' % self.page_title)
+        self.mock_pages_processor.assert_called_once_with()
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        message = '<p>Something went wrong when generating queries from page {page}.</p>'.format(page=self.linked_page)
+        self.assertErrorPage(response, message)
+
     def test_queries_error_unknown_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ValueError
         response = self.app.get('/queries?page=%s&property=P1&grouping=Q2' % self.page_title)

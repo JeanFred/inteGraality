@@ -485,6 +485,48 @@ class GetQualifierInfoTest(SparqlQueryTest):
         self.assertEqual(result, expected)
 
 
+class TestGetHeader(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        self.stats.grouping_threshold = 7
+        self.stats.property_threshold = 4
+
+    def test_get_header(self):
+        result = self.stats.get_header()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 7 items)\n'
+            '! colspan="4"|Top Properties (used at least 4 times per grouping)\n'
+            '|-\n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_header_with_higher_grouping(self):
+        self.stats.higher_grouping = 'wdt:P17/wdt:P298'
+        result = self.stats.get_header()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="3" |Top groupings (Minimum 7 items)\n'
+            '! colspan="4"|Top Properties (used at least 4 times per grouping)\n'
+            '|-\n'
+            '! \n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+        )
+        self.assertEqual(result, expected)
+
+
 class MakeFooterTest(SparqlQueryTest):
 
     def setUp(self):

@@ -51,7 +51,7 @@ class PagesProcessor:
     def extract_elements_from_template_param(template_param):
         """Extract and sanitize the contents of a parsed template param."""
         (field, _, value) = template_param.partition(u'=')
-        return (field.strip(), value)
+        return (field.strip(), value.replace('{{!}}', '|'))
 
     def parse_config_from_params(self, params):
         return {

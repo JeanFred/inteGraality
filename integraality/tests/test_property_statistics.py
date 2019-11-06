@@ -104,10 +104,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|-\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2}}\n"
-            "| {{Integraality cell|50.0|10}}\n"
-            "| {{Integraality cell|75.0|15}}\n"
-            "| {{Integraality cell|25.0|5}}\n"
+            "| {{Integraality cell|10.0|2|property=P21}}\n"
+            "| {{Integraality cell|50.0|10|property=P19}}\n"
+            "| {{Integraality cell|75.0|15|property=P1}}\n"
+            "| {{Integraality cell|25.0|5|property=P3}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -131,10 +131,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2}}\n"
-            "| {{Integraality cell|50.0|10}}\n"
-            "| {{Integraality cell|75.0|15}}\n"
-            "| {{Integraality cell|25.0|5}}\n"
+            "| {{Integraality cell|10.0|2|property=P21}}\n"
+            "| {{Integraality cell|50.0|10|property=P19}}\n"
+            "| {{Integraality cell|75.0|15|property=P1}}\n"
+            "| {{Integraality cell|25.0|5|property=P3}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -544,6 +544,48 @@ class GetQualifierInfoTest(SparqlQueryTest):
             "LIMIT 1000\n"
         )
         self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+
+class TestGetHeader(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        self.stats.grouping_threshold = 7
+        self.stats.property_threshold = 4
+
+    def test_get_header(self):
+        result = self.stats.get_header()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 7 items)\n'
+            '! colspan="4"|Top Properties (used at least 4 times per grouping)\n'
+            '|-\n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_header_with_higher_grouping(self):
+        self.stats.higher_grouping = 'wdt:P17/wdt:P298'
+        result = self.stats.get_header()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="3" |Top groupings (Minimum 7 items)\n'
+            '! colspan="4"|Top Properties (used at least 4 times per grouping)\n'
+            '|-\n'
+            '! \n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+        )
         self.assertEqual(result, expected)
 
 

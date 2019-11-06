@@ -379,7 +379,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             else:
                 propcount = self.get_property_info_no_grouping(property_name)
             percentage = self._get_percentage(propcount, total_no_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}}}}}\n')  # noqa
         return text
 
     def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):

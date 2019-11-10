@@ -81,7 +81,7 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT
   ?entity wdt:{self.grouping_property} ?grouping .
   OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
 }} GROUP BY ?grouping ?higher_grouping
-HAVING (?count > {self.grouping_threshold})
+HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
@@ -91,7 +91,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
 }} GROUP BY ?grouping
-HAVING (?count > {self.grouping_threshold})
+HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
@@ -156,7 +156,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   FILTER EXISTS {{ ?entity p:{property} [] }} .
 }}
 GROUP BY ?grouping
-HAVING (?count > {self.property_threshold})
+HAVING (?count >= {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
@@ -185,7 +185,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
 }}
 GROUP BY ?grouping
-HAVING (?count > {self.property_threshold})
+HAVING (?count >= {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)

@@ -368,7 +368,7 @@ class GetGroupingInformationTest(SparqlQueryTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count >= 20)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -393,7 +393,7 @@ class GetGroupingInformationTest(SparqlQueryTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
-            "HAVING (?count > 5)\n"
+            "HAVING (?count >= 5)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -420,7 +420,7 @@ class GetGroupingInformationTest(SparqlQueryTest):
             "  ?entity wdt:P551 ?grouping .\n"
             "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
             "} GROUP BY ?grouping ?higher_grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count >= 20)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -436,7 +436,7 @@ class GetGroupingInformationTest(SparqlQueryTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
-            "HAVING (?count > 20)\n"
+            "HAVING (?count >= 20)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -464,7 +464,7 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 10)\n"
+            "HAVING (?count >= 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -483,7 +483,7 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 10)\n"
+            "HAVING (?count >= 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
@@ -510,7 +510,7 @@ class GetQualifierInfoTest(SparqlQueryTest):
             "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
             "GROUP BY ?grouping\n"
-            "HAVING (?count > 10)\n"
+            "HAVING (?count >= 10)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )

@@ -16,9 +16,10 @@ class ProcessortTest(unittest.TestCase):
         self.processor = PagesProcessor()
 
 
-class Test(ProcessortTest):
+class TestReplaceInPage(ProcessortTest):
 
     def setUp(self):
+        self.processor = PagesProcessor()
         self.text = """
 Head
 {{Property dashboard start
@@ -48,10 +49,15 @@ bar
 Bottom
 """
 
-    def test(self):
-        processor = PagesProcessor()
-        result = processor.replace_in_page("bar", self.text)
+    def test_replace_in_page(self):
+        result = self.processor.replace_in_page("bar", self.text)
         self.assertEqual(result, self.final_text)
+
+    def test_replace_in_page_escaped_pipe(self):
+        text = self.text.replace('wd:Q7889', '{{!}}')
+        final_text = self.final_text.replace('wd:Q7889', '{{!}}')
+        result = self.processor.replace_in_page("bar", text)
+        self.assertEqual(result, final_text)
 
 
 class TestParseConfig(ProcessortTest):

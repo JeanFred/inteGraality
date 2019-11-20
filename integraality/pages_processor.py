@@ -121,7 +121,7 @@ class PagesProcessor:
         return properties_data
 
     def replace_in_page(self, output, page_text):
-        regex_text = f('({{{{{self.template_name}.*?}}}}).*?({{{{{self.end_template_name}}}}})')
+        regex_text = f('({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})')
         regex = re.compile(regex_text, re.MULTILINE | re.DOTALL)
         new_text = re.sub(regex, r'\1\n%s\n\2' % output, page_text, count=1)
         return new_text

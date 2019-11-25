@@ -12,6 +12,6 @@ source $VIRTUAL_ENV_PATH/bin/activate
 
 echo_time "Starting update."
 
-python pages_processor.py "$@"
+python integraality/pages_processor.py "$@"
 
 echo_time "Done with the update!"

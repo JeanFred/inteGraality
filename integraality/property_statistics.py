@@ -120,8 +120,16 @@ LIMIT 1000
     def get_query_for_items_for_property_positive(self, property, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} wd:{grouping} .
+  ?entity {self.selector_sparql} .""")
+        if grouping:
+            query += f("""
+  ?entity wdt:{self.grouping_property} wd:{grouping} .""")
+        else:
+            query += f("""
+  MINUS {{
+    ?entity wdt:{self.grouping_property} [] .
+  }}""")
+        query += f("""
   ?entity p:{property} ?prop . OPTIONAL {{ ?prop ps:{property} ?value }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
@@ -131,9 +139,16 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
     def get_query_for_items_for_property_negative(self, property, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
-  ?entity {self.selector_sparql} .
+  ?entity {self.selector_sparql} .""")
+        if grouping:
+            query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .
+  MINUS {{""")
+        else:
+            query += f("""
   MINUS {{
+    {{?entity wdt:{self.grouping_property} [] .}} UNION""")
+        query += f("""
     {{?entity a wdno:{property} .}} UNION
     {{?entity wdt:{property} ?prop .}}
   }}

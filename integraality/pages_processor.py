@@ -70,6 +70,14 @@ class PagesProcessor:
             (template, params) for (template, params) in all_templates_with_params if
             template.title(with_ns=False) == self.template_name
         ]
+
+        if not start_templates_with_params:
+            msg = (
+                "No start template '%s' found, which is an impossible situation. "
+                "This is potentially an upstream pywikibot issue." % self.template_name
+            )
+            raise ConfigException(msg)
+
         if len(start_templates_with_params) > 1:
             pywikibot.warn("More than one template on the page %s" % page.title())
 

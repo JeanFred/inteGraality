@@ -18,10 +18,10 @@
     "default": {
         "certifi": {
             "hashes": [
-                "sha256:59b7658e26ca9c7339e00f8f4636cdfe59d34fa37b9b04f6f9e9926b3cece1a5",
-                "sha256:b26104d6835d1f5e49452a26eb2ff87fe7090b89dfcaee5ea2212697e1e1d7ae"
+                "sha256:017c25db2a153ce562900032d5bc68e9f191e44e9a0f762f373977de9df1fbb3",
+                "sha256:25b64c7da4cd7479594d035c08c2d809eb4aab3a26e5a990ea98cc450c320f1f"
             ],
-            "version": "==2019.3.9"
+            "version": "==2019.11.28"
         },
         "chardet": {
             "hashes": [
@@ -113,10 +113,10 @@
         },
         "pywikibot": {
             "hashes": [
-                "sha256:f04306e0c9b460f5558826399c79dc7b1c9c13e97a20f6324cdfab04dea19e6e"
+                "sha256:a0388717038293202ea92eeb7099e8bd87f258304f371a8a8f87a74e233e9cd4"
             ],
             "index": "pypi",
-            "version": "==3.0.20190430"
+            "version": "==3.0.20190722"
         },
         "requests": {
             "hashes": [
@@ -134,10 +134,10 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:a53063d8b9210a7bdec15e7b272776b9d42b2fd6816401a0d43006ad2f9902db",
-                "sha256:d363e3607d8de0c220d31950a8f38b18d5ba7c0830facd71a1c6b1036b7ce06c"
+                "sha256:a8a318824cc77d1fd4b2bec2ded92646630d7fe8619497b142c84a9e6f5a7293",
+                "sha256:f3c5fd51747d450d4dcf6f923c81f78f811aab8205fda64b0aba34a4e48b0745"
             ],
-            "version": "==1.25.2"
+            "version": "==1.25.7"
         },
         "werkzeug": {
             "hashes": [

@@ -605,7 +605,7 @@ class MakeFooterTest(SparqlQueryTest):
         result = self.stats.make_footer()
         expected = (
             '|- class="sortbottom"\n'
-            "|\'\'\'Totals\'\'\' <small>(all items)<small>:\n"
+            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
             "| 120\n"
             "| {{Integraality cell|25.0|30}}\n"
             "| {{Integraality cell|66.67|80}}\n"

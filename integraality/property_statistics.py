@@ -422,7 +422,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         if self.higher_grouping:
             text += u"|\n|"
 
-        text += f('\'\'\'Totals\'\'\' <small>(all items)<small>:\n| {total_items}\n')
+        text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
         for prop_entry in self.properties:
             property_name = prop_entry.property
             if prop_entry.qualifier:

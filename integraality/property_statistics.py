@@ -7,6 +7,7 @@ Calculate and generate statistics
 import collections
 import logging
 import re
+from enum import Enum
 
 from ww import f
 
@@ -49,6 +50,8 @@ class PropertyStatistics:
     Generate statitics
 
     """
+    GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None'})
+
     def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
         Set what to work on and other variables here.
@@ -121,14 +124,16 @@ LIMIT 1000
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} .""")
-        if grouping:
-            query += f("""
-  ?entity wdt:{self.grouping_property} wd:{grouping} .""")
-        else:
+
+        if grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f("""
   MINUS {{
     ?entity wdt:{self.grouping_property} [] .
   }}""")
+        else:
+            query += f("""
+  ?entity wdt:{self.grouping_property} wd:{grouping} .""")
+
         query += f("""
   ?entity p:{property} ?prop . OPTIONAL {{ ?prop ps:{property} ?value }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
@@ -140,14 +145,16 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} .""")
-        if grouping:
-            query += f("""
-  ?entity wdt:{self.grouping_property} wd:{grouping} .
-  MINUS {{""")
-        else:
+
+        if grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f("""
   MINUS {{
     {{?entity wdt:{self.grouping_property} [] .}} UNION""")
+        else:
+            query += f("""
+  ?entity wdt:{self.grouping_property} wd:{grouping} .
+  MINUS {{""")
+
         query += f("""
     {{?entity a wdno:{property} .}} UNION
     {{?entity wdt:{property} ?prop .}}
@@ -379,7 +386,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             else:
                 propcount = self.get_property_info_no_grouping(property_name)
             percentage = self._get_percentage(propcount, total_no_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}}}}}\n')  # noqa
+            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
         return text
 
     def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):

@@ -104,10 +104,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|-\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2|property=P21}}\n"
-            "| {{Integraality cell|50.0|10|property=P19}}\n"
-            "| {{Integraality cell|75.0|15|property=P1}}\n"
-            "| {{Integraality cell|25.0|5|property=P3}}\n"
+            "| {{Integraality cell|10.0|2|property=P21|grouping=None}}\n"
+            "| {{Integraality cell|50.0|10|property=P19|grouping=None}}\n"
+            "| {{Integraality cell|75.0|15|property=P1|grouping=None}}\n"
+            "| {{Integraality cell|25.0|5|property=P3|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -131,10 +131,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "|\n"
             "| No grouping \n"
             "| 20 \n"
-            "| {{Integraality cell|10.0|2|property=P21}}\n"
-            "| {{Integraality cell|50.0|10|property=P19}}\n"
-            "| {{Integraality cell|75.0|15|property=P1}}\n"
-            "| {{Integraality cell|25.0|5|property=P3}}\n"
+            "| {{Integraality cell|10.0|2|property=P21|grouping=None}}\n"
+            "| {{Integraality cell|50.0|10|property=P19|grouping=None}}\n"
+            "| {{Integraality cell|75.0|15|property=P1|grouping=None}}\n"
+            "| {{Integraality cell|25.0|5|property=P3|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -219,7 +219,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_positive_no_grouping(self):
-        result = self.stats.get_query_for_items_for_property_positive('P21', '')
+        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.NO_GROUPING)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -251,7 +251,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative_no_grouping(self):
-        result = self.stats.get_query_for_items_for_property_negative('P21', '')
+        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.NO_GROUPING)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .

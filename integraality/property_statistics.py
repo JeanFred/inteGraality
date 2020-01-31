@@ -8,6 +8,7 @@ import collections
 import logging
 import re
 
+import opentracing
 from ww import f
 
 import pywikibot
@@ -53,8 +54,12 @@ class PropertyStatistics:
         """
         Set what to work on and other variables here.
         """
-        site = pywikibot.Site('en', 'wikipedia')
-        self.repo = site.data_repository()
+        with opentracing.tracer.start_active_span('property_statistics_pywikibot_site') as scope:
+            site = pywikibot.Site('en', 'wikipedia')
+            scope.span.log_kv({'event': 'Pywkibot site created', 'result': site})
+        with opentracing.tracer.start_active_span('property_statistics_data_repository') as scope:
+            self.repo = site.data_repository()
+            scope.span.log_kv({'event': 'data repository created', 'result': self.repo})
         self.properties = properties
         self.grouping_property = grouping_property
         self.higher_grouping = higher_grouping

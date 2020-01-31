@@ -7,6 +7,7 @@ Bot to generate statistics
 import re
 
 from ww import f
+import opentracing
 
 import pywikibot
 from pywikibot import pagegenerators
@@ -35,8 +36,12 @@ class NoEndTemplateException(ProcessingException):
 class PagesProcessor:
 
     def __init__(self):
-        site = pywikibot.Site('en', 'wikipedia')
-        self.repo = site.data_repository()
+        with opentracing.tracer.start_active_span('pages_processor_pywikibot_site') as scope:
+            site = pywikibot.Site('en', 'wikipedia')
+            scope.span.log_kv({'event': 'Pywkibot site created', 'result': site})
+        with opentracing.tracer.start_active_span('pages_processor_data_repository') as scope:
+            self.repo = site.data_repository()
+            scope.span.log_kv({'event': 'data repository created', 'result': self.repo})
         self.template_name = 'Property dashboard'
         self.end_template_name = 'Property dashboard end'
         self.summary = u'Update property usage stats'
@@ -61,15 +66,19 @@ class PagesProcessor:
         }
 
     def make_stats_object_for_page(self, page):
-        all_templates_with_params = page.templatesWithParams()
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_objects_templatesWithParams') as scope:
+            all_templates_with_params = page.templatesWithParams()
+            scope.span.log_kv({'event': 'templates retrieved', 'result': all_templates_with_params})
 
         if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
             raise NoEndTemplateException("No end template '%s' provided" % self.end_template_name)
 
-        start_templates_with_params = [
-            (template, params) for (template, params) in all_templates_with_params if
-            template.title(with_ns=False) == self.template_name
-        ]
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_objects_start_templates_with_params') as scope:
+            start_templates_with_params = [
+                (template, params) for (template, params) in all_templates_with_params if
+                template.title(with_ns=False) == self.template_name
+            ]
+            scope.span.log_kv({'event': 'start_templates_with_params retrieved', 'result': start_templates_with_params})
 
         if not start_templates_with_params:
             msg = (
@@ -82,10 +91,17 @@ class PagesProcessor:
             pywikibot.warn("More than one template on the page %s" % page.title())
 
         (template, params) = start_templates_with_params[0]
-        parsed_config = self.parse_config_from_params(params)
-        config = self.parse_config(parsed_config)
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_objects_parse_config_from_params') as scope:
+            parsed_config = self.parse_config_from_params(params)
+            scope.span.log_kv({'event': 'config parsed', 'result': parsed_config})
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_objects_parse_config') as scope:
+            config = self.parse_config(parsed_config)
+            scope.span.log_kv({'event': 'config created', 'result': config})
         try:
-            return PropertyStatistics(**config)
+            with opentracing.tracer.start_active_span('pages_processor_make_stats_objects_create_property_statistics') as scope:
+                property_statistics = PropertyStatistics(**config)
+                scope.span.log_kv({'event': 'PropertyStatistics object created', 'result': property_statistics})
+            return property_statistics
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
 
@@ -153,8 +169,13 @@ class PagesProcessor:
         self.process_page(page)
 
     def make_stats_object_for_page_title(self, page_title):
-        page = pywikibot.Page(self.repo, page_title)
-        return self.make_stats_object_for_page(page)
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_object_page_creation') as scope:
+            page = pywikibot.Page(self.repo, page_title)
+            scope.span.log_kv({'event': 'Pywikibot page created', 'result': page})
+        with opentracing.tracer.start_active_span('pages_processor_make_stats_object_object') as scope:
+            stats_object = self.make_stats_object_for_page(page)
+            scope.span.log_kv({'event': 'Stats object created', 'result': stats_object})
+        return stats_object
 
 
 def main(*args):

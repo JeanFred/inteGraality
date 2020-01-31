@@ -50,7 +50,7 @@ class PropertyStatistics:
     Generate statitics
 
     """
-    GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None'})
+    GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None', 'TOTALS': ''})
 
     def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
@@ -125,7 +125,10 @@ LIMIT 1000
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} .""")
 
-        if grouping == self.GROUP_MAPPING.NO_GROUPING:
+        if grouping == self.GROUP_MAPPING.TOTALS:
+            pass
+
+        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f("""
   MINUS {{
     ?entity wdt:{self.grouping_property} [] .
@@ -146,7 +149,11 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} .""")
 
-        if grouping == self.GROUP_MAPPING.NO_GROUPING:
+        if grouping == self.GROUP_MAPPING.TOTALS:
+            query += f("""
+  MINUS {{""")
+
+        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f("""
   MINUS {{
     {{?entity wdt:{self.grouping_property} [] .}} UNION""")
@@ -437,7 +444,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             else:
                 totalprop = self.get_totals_for_property(property=property_name)
             percentage = self._get_percentage(totalprop, total_items)
-            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|property={prop_entry.property}}}}}\n')
         text += u'|}\n'
         return text
 

@@ -9,9 +9,10 @@ idna==2.8
 itsdangerous==1.1.0
 jinja2==2.10.3
 markupsafe==1.1.1
-pywikibot==3.0.20190722
+pycparser==2.19
+pywikibot==3.0.20200111
 requests==2.22.0
 six==1.13.0
-urllib3==1.25.7
+urllib3==1.25.8
 werkzeug==0.16.0
 ww==0.2.1

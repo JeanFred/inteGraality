@@ -111,12 +111,18 @@
             ],
             "version": "==1.1.1"
         },
+        "pycparser": {
+            "hashes": [
+                "sha256:a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3"
+            ],
+            "version": "==2.19"
+        },
         "pywikibot": {
             "hashes": [
-                "sha256:a0388717038293202ea92eeb7099e8bd87f258304f371a8a8f87a74e233e9cd4"
+                "sha256:55cffa9133df0ffa6f30cedbdff34d76f61c314bf51e2b0f67755ec4da8d4c84"
             ],
             "index": "pypi",
-            "version": "==3.0.20190722"
+            "version": "==3.0.20200111"
         },
         "requests": {
             "hashes": [
@@ -134,10 +140,10 @@
         },
         "urllib3": {
             "hashes": [
-                "sha256:a8a318824cc77d1fd4b2bec2ded92646630d7fe8619497b142c84a9e6f5a7293",
-                "sha256:f3c5fd51747d450d4dcf6f923c81f78f811aab8205fda64b0aba34a4e48b0745"
+                "sha256:2f3db8b19923a873b3e5256dc9c2dedfa883e33d87c690d9c7913e1f40673cdc",
+                "sha256:87716c2d2a7121198ebcb7ce7cccf6ce5e9ba539041cfbaeecfb641dc0bf6acc"
             ],
-            "version": "==1.25.7"
+            "version": "==1.25.8"
         },
         "werkzeug": {
             "hashes": [

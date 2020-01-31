@@ -80,14 +80,18 @@ class QueriesTests(PagesProcessorTests):
 
     def setUp(self):
         super().setUp()
-        patcher = patch('pages_processor.PropertyStatistics', autospec=True)
-        self.mock_property_statistics = patcher.start()
-        self.addCleanup(patcher.stop)
+        patcher1 = patch('pages_processor.PropertyStatistics', autospec=True)
+        self.mock_property_statistics = patcher1.start()
+        self.addCleanup(patcher1.stop)
+        patcher2 = patch('pages_processor.PropertyStatistics.GROUP_MAPPING', autospec=True)
+        self.mock_group_mapping = patcher2.start()
+        self.addCleanup(patcher2.stop)
 
     def test_queries_success(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
+        self.mock_group_mapping.side_effect = KeyError
         response = self.app.get('/queries?page=%s&property=P1&grouping=Q2' % self.page_title)
         self.mock_pages_processor.assert_called_once_with()
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa

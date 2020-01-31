@@ -232,6 +232,17 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_totals(self):
+        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.TOTALS)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
 
@@ -257,6 +268,20 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   MINUS {
     {?entity wdt:P551 [] .} UNION
+    {?entity a wdno:P21 .} UNION
+    {?entity wdt:P21 ?prop .}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_totals(self):
+        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.TOTALS)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
@@ -607,10 +632,10 @@ class MakeFooterTest(SparqlQueryTest):
             '|- class="sortbottom"\n'
             "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
             "| 120\n"
-            "| {{Integraality cell|25.0|30}}\n"
-            "| {{Integraality cell|66.67|80}}\n"
-            "| {{Integraality cell|8.33|10}}\n"
-            "| {{Integraality cell|10.0|12}}\n"
+            "| {{Integraality cell|25.0|30|property=P21}}\n"
+            "| {{Integraality cell|66.67|80|property=P19}}\n"
+            "| {{Integraality cell|8.33|10|property=P1}}\n"
+            "| {{Integraality cell|10.0|12|property=P3}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)

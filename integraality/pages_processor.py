@@ -34,9 +34,8 @@ class NoEndTemplateException(ProcessingException):
 
 class PagesProcessor:
 
-    def __init__(self):
-        site = pywikibot.Site('en', 'wikipedia')
-        self.repo = site.data_repository()
+    def __init__(self, url="https://www.wikidata.org/wiki/"):
+        self.site = pywikibot.Site(url=url)
         self.template_name = 'Property dashboard'
         self.end_template_name = 'Property dashboard end'
         self.summary = u'Update property usage stats'
@@ -44,7 +43,7 @@ class PagesProcessor:
         self.outputs = []
 
     def get_all_pages(self):
-        template = pywikibot.Page(self.repo, self.template_name, ns=10)
+        template = pywikibot.Page(self.site, self.template_name, ns=10)
         return pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
 
     @staticmethod
@@ -148,12 +147,12 @@ class PagesProcessor:
                 pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
 
     def process_one_page(self, page_title):
-        page = pywikibot.Page(self.repo, page_title)
+        page = pywikibot.Page(self.site, page_title)
         pywikibot.output("Processing page %s" % page.title())
         self.process_page(page)
 
     def make_stats_object_for_page_title(self, page_title):
-        page = pywikibot.Page(self.repo, page_title)
+        page = pywikibot.Page(self.site, page_title)
         return self.make_stats_object_for_page(page)
 
 

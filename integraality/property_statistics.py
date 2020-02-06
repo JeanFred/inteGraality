@@ -328,8 +328,16 @@ SELECT (COUNT(?item) as ?count) WHERE {{
     def get_header(self):
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
-        text += f('! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n')
-        text += f('! colspan="{len(self.properties)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n')  # noqa
+        text += f('! colspan="{colspan}" | Top groupings')
+        if self.grouping_threshold > 0:
+            text += f('(Minimum {self.grouping_threshold} items)\n')
+        else:
+            text += f('\n')
+        text += f('! colspan="{len(self.properties)}"|Top Properties')
+        if self.property_threshold > 0:
+            text += f('(used at least {self.property_threshold} times per grouping)\n')
+        else:
+            text += f('\n')
         text += u'|-\n'
 
         if self.higher_grouping:

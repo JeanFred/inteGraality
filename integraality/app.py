@@ -42,7 +42,7 @@ def queries():
             grouping = request.args.get('grouping')
         positive_query = stats.get_query_for_items_for_property_positive(property, grouping)
         negative_query = stats.get_query_for_items_for_property_negative(property, grouping)
-        return render_template('queries.html', page=page, property=property, grouping=grouping,
+        return render_template('queries.html', page=page, property=property, grouping=request.args.get('grouping'),
                                positive_query=positive_query, negative_query=negative_query)
     except ProcessingException as e:
         return render_template('queries_error.html', page=page, error_message=e)

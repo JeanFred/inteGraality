@@ -2,7 +2,13 @@
 
 {% block content %}
 <div class="alert">
-	<p>From page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>, <a href="https://wikidata.org/wiki/Property:{{ property }}">{{ property }}</a>, <a href="https://wikidata.org/wiki/{{ grouping }}">{{ grouping }}</a></p>
+	<p>From page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>, <a href="https://wikidata.org/wiki/Property:{{ property }}">{{ property }}</a>, {% if grouping == 'None' -%}
+		without grouping
+	{%- elif grouping -%}
+		<a href="https://wikidata.org/wiki/{{ grouping }}">{{ grouping }}</a>
+	{%- else -%}
+		for the totals
+	{%- endif %}.</p>
 	<a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">All items with the property set</a>
 	<a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">All items without the property set</a>
 </div>

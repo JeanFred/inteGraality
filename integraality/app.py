@@ -38,7 +38,7 @@ def queries():
         stats = processor.make_stats_object_for_page_title(page)
         try:
             grouping = stats.GROUP_MAPPING(request.args.get('grouping'))
-        except KeyError:
+        except ValueError:
             grouping = request.args.get('grouping')
         positive_query = stats.get_query_for_items_for_property_positive(property, grouping)
         negative_query = stats.get_query_for_items_for_property_negative(property, grouping)

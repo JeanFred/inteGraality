@@ -57,7 +57,8 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get('/update?page=%s' % self.page_title)
         self.mock_pages_processor.assert_called_once_with()
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
-        self.assertSuccessPage(response, 'Updated page ')
+        message = 'Updated page {page}'.format(page=self.linked_page)
+        self.assertSuccessPage(response, message)
 
     def test_update_error_processing_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = ProcessingException

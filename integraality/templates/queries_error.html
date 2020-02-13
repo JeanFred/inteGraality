@@ -2,7 +2,7 @@
 
 {% block content %}
 <div class="alert alert-danger">
-<p>Something went wrong when generating queries from page <a href="https://wikidata.org/wiki/{{ page }}">{{ page }}</a>.</p>
+<p>Something went wrong when generating queries from page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
 <p>Please check your configuration.</p>
 <p>{{ error_type }}</p>
 <p>{{ error_message }}</p>

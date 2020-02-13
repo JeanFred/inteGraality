@@ -18,36 +18,43 @@ def index():
 
 @app.route('/update')
 def update():
-    page = request.args.get('page')
-    processor = PagesProcessor()
+    page_url = request.args.get('url')
+    page_title = request.args.get('page')
+    processor = PagesProcessor(page_url)
     try:
-        processor.process_one_page(page)
-        return render_template('update.html', page=page)
+        processor.process_one_page(page_title)
+        return render_template('update.html', page_title=page_title, page_url=page_url)
     except ProcessingException as e:
-        return render_template('update_error.html', page=page, error_message=e)
+        return render_template('update_error.html',
+                               page_title=page_title, page_url=page_url, error_message=e)
     except Exception as e:
-        return render_template('update_unknown_error.html', page=page, error_type=type(e), error_message=e)
+        return render_template('update_unknown_error.html',
+                               page_title=page_title, page_url=page_url, error_type=type(e), error_message=e)
 
 
 @app.route('/queries')
 def queries():
-    page = request.args.get('page')
+    page_url = request.args.get('url')
+    page_title = request.args.get('page')
     property = request.args.get('property')
-    processor = PagesProcessor()
+    processor = PagesProcessor(page_url)
     try:
-        stats = processor.make_stats_object_for_page_title(page)
+        stats = processor.make_stats_object_for_page_title(page_title)
         try:
             grouping = stats.GROUP_MAPPING(request.args.get('grouping'))
         except ValueError:
             grouping = request.args.get('grouping')
         positive_query = stats.get_query_for_items_for_property_positive(property, grouping)
         negative_query = stats.get_query_for_items_for_property_negative(property, grouping)
-        return render_template('queries.html', page=page, property=property, grouping=request.args.get('grouping'),
+        return render_template('queries.html', page_title=page_title, page_url=page_url,
+                               property=property, grouping=request.args.get('grouping'),
                                positive_query=positive_query, negative_query=negative_query)
     except ProcessingException as e:
-        return render_template('queries_error.html', page=page, error_message=e)
+        return render_template('queries_error.html',
+                               page_title=page_title, page_url=page_url, error_message=e)
     except Exception as e:
-        return render_template('queries_unknown_error.html', page=page, error_type=type(e), error_message=e)
+        return render_template('queries_unknown_error.html',
+                               page_title=page_title, page_url=page_url, error_type=type(e), error_message=e)
 
 
 @app.errorhandler(404)

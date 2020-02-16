@@ -1,12 +1,15 @@
 # -*- coding: utf-8  -*-
 """Unit tests for functions.py."""
 
+import argparse
 import unittest
+from unittest.mock import patch
 
 from integraality.pages_processor import (
     ConfigException,
     PagesProcessor,
-    PropertyConfig
+    PropertyConfig,
+    main
 )
 
 
@@ -229,3 +232,22 @@ class TestParseConfigProperties(ProcessortTest):
             PropertyConfig(property='P553', value='Q17459', qualifier='P670')
         ]
         self.assertEqual(result, expected)
+
+
+class TestMain(unittest.TestCase):
+
+    def setUp(self):
+        patcher1 = patch('integraality.pages_processor.PagesProcessor', autospec=True)
+        self.mock_pages_processor = patcher1.start()
+        self.addCleanup(patcher1.stop)
+
+        patcher2 = patch('argparse.ArgumentParser.parse_args', autospec=True)
+        self.mock_args = patcher2.start()
+        self.addCleanup(patcher2.stop)
+
+    def test_main_url_argument(self):
+        url = 'Foo'
+        self.mock_args.return_value = argparse.Namespace(url=url)
+        main()
+        self.mock_pages_processor.assert_called_once_with(url)
+        self.mock_pages_processor.return_value.process_all.assert_called_once_with()

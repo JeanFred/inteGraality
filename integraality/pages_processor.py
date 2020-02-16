@@ -135,6 +135,7 @@ class PagesProcessor:
 
     def process_all(self):
         self.summary = u'Weekly update of property usage stats'
+        pywikibot.output("Processing pages on site %s" % self.site.sitename)
         for page in self.get_all_pages():
             pywikibot.output("Processing page %s" % page.title())
             try:
@@ -156,11 +157,23 @@ class PagesProcessor:
         return self.make_stats_object_for_page(page)
 
 
-def main(*args):
+def args_parser():
+    import argparse
+    parser = argparse.ArgumentParser(description='Update Property dashboards on a wiki')
+    parser.add_argument("url",
+                        nargs='?',
+                        help="the URL of the wiki to update",
+                        default="https://www.wikidata.org/wiki/",
+                        )
+    return parser.parse_args()
+
+
+def main():
     """
     Main function. Bot does all the work.
     """
-    processor = PagesProcessor()
+    args = args_parser()
+    processor = PagesProcessor(url=args.url)
     processor.process_all()
 
 

@@ -9,8 +9,10 @@ python_version = "3.7"
 [dev-packages]
 pytest = "*"
 pytest-cov = "*"
+fakeredis = "*"
 
 [packages]
 pywikibot = "*"
 ww = "*"
 flask = "*"
+redis = "*"

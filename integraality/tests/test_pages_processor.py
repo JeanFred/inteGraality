@@ -5,6 +5,8 @@ import argparse
 import unittest
 from unittest.mock import patch
 
+import fakeredis
+
 from integraality.pages_processor import (
     ConfigException,
     DescriptionConfig,
@@ -18,7 +20,8 @@ from integraality.pages_processor import (
 class ProcessortTest(unittest.TestCase):
 
     def setUp(self):
-        self.processor = PagesProcessor()
+        fake_cache_client = fakeredis.FakeStrictRedis()
+        self.processor = PagesProcessor(cache_client=fake_cache_client)
 
 
 class TestReplaceInPage(ProcessortTest):

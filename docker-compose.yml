@@ -9,8 +9,14 @@ services:
       - FLASK_APP=integraality/app.py
       - FLASK_ENV=development
       - PYWIKIBOT_NO_USER_CONFIG=1
+      - REDIS_HOST=redis
       - PYTHONPATH=/code/integraality/
     ports:
      - 5000:5000
     volumes:
      - .:/code
+
+  redis:
+    image: redis:3.2.6
+    ports:
+     - 6379:6379

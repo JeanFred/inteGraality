@@ -4,13 +4,16 @@
 Bot to generate statistics
 
 """
+import os
 import re
 
+from redis import StrictRedis
 from ww import f
 
 import pywikibot
 from pywikibot import pagegenerators
 
+from cache import RedisCache
 from property_statistics import (
     DescriptionConfig,
     LabelConfig,
@@ -36,13 +39,21 @@ class NoEndTemplateException(ProcessingException):
 
 class PagesProcessor:
 
-    def __init__(self, url="https://www.wikidata.org/wiki/"):
+    def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.site = pywikibot.Site(url=url)
         self.template_name = 'Property dashboard'
         self.end_template_name = 'Property dashboard end'
         self.summary = u'Update property usage stats'
 
         self.outputs = []
+
+        if not cache_client:
+            host = os.getenv("REDIS_HOST", 'tools-redis.svc.eqiad.wmflabs')
+            cache_client = StrictRedis(host=host, decode_responses=False)
+        self.cache = RedisCache(cache_client=cache_client)
+
+    def make_cache_key(self, page_title):
+        return ":".join([self.site.code, page_title]).replace(" ", "_")
 
     def get_all_pages(self):
         template = pywikibot.Page(self.site, self.template_name, ns=10)
@@ -61,7 +72,7 @@ class PagesProcessor:
             if key
         }
 
-    def make_stats_object_for_page(self, page):
+    def make_stats_object_arguments_for_page(self, page):
         all_templates_with_params = page.templatesWithParams()
 
         if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
@@ -85,12 +96,19 @@ class PagesProcessor:
         (template, params) = start_templates_with_params[0]
         parsed_config = self.parse_config_from_params(params)
         config = self.parse_config(parsed_config)
+        key = self.make_cache_key(page.title())
+        self.cache.set_cache_value(key, config)
+        return config
+
+    def make_stats_object_for_page(self, page):
+        config = self.make_stats_object_arguments_for_page(page)
         try:
             return PropertyStatistics(**config)
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
 
     def process_page(self, page):
+        self.cache.invalidate(self.make_cache_key(page.title()))
         stats = self.make_stats_object_for_page(page)
         try:
             output = stats.retrieve_and_process_data()
@@ -161,8 +179,16 @@ class PagesProcessor:
         self.process_page(page)
 
     def make_stats_object_for_page_title(self, page_title):
-        page = pywikibot.Page(self.site, page_title)
-        return self.make_stats_object_for_page(page)
+        key = self.make_cache_key(page_title)
+        result = self.cache.get_cache_value(key)
+        if not result:
+            print("No result in cache for %s, computing..." % key)
+            page = pywikibot.Page(self.site, page_title)
+            result = self.make_stats_object_arguments_for_page(page)
+        try:
+            return PropertyStatistics(**result)
+        except TypeError:
+            raise ConfigException("The template parameters are incorrect.")
 
 
 def args_parser():

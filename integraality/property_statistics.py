@@ -32,13 +32,7 @@ class PropertyConfig:
         )
 
     def get_key(self):
-        if self.qualifier:
-            if self.value:
-                return self.property + self.value + self.qualifier
-            else:
-                return self.property + self.qualifier
-        else:
-            return self.property
+        return "".join([x for x in [self.property, self.value, self.qualifier] if x])
 
     def make_column_header(self):
         if self.qualifier:

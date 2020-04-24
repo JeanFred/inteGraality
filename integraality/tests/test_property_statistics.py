@@ -106,8 +106,8 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "| 20 \n"
             "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
-            "| {{Integraality cell|75.0|15|column=P1|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=P3|grouping=None}}\n"
+            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
+            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -133,8 +133,8 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "| 20 \n"
             "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
-            "| {{Integraality cell|75.0|15|column=P1|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=P3|grouping=None}}\n"
+            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
+            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -167,8 +167,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| 10 \n'
             '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n'
-            '| {{Integraality cell|20.0|2|column=P1|grouping=Q3115846}}\n'
-            '| {{Integraality cell|70.0|7|column=P3|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -182,8 +182,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| 10 \n'
             '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n'
-            '| {{Integraality cell|20.0|2|column=P1|grouping=Q3115846}}\n'
-            '| {{Integraality cell|70.0|7|column=P3|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -198,8 +198,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| [[Foo/Bar|10]] \n'
             '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
             '| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n'
-            '| {{Integraality cell|20.0|2|column=P1|grouping=Q3115846}}\n'
-            '| {{Integraality cell|70.0|7|column=P3|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -654,8 +654,8 @@ class MakeFooterTest(SparqlQueryTest):
             "| 120\n"
             "| {{Integraality cell|25.0|30|column=P21}}\n"
             "| {{Integraality cell|66.67|80|column=P19}}\n"
-            "| {{Integraality cell|8.33|10|column=P1}}\n"
-            "| {{Integraality cell|10.0|12|column=P3}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)

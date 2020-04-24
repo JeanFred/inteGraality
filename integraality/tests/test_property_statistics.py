@@ -318,6 +318,25 @@ class GetCountFromSparqlTest(SparqlQueryTest):
         self.assertEqual(result, None)
 
 
+class GetGroupingCountsFromSparqlTest(SparqlQueryTest):
+
+    def test_return_count(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q1', 'count': 10},
+            {'grouping': 'http://www.wikidata.org/entity/Q2', 'count': 5},
+        ]
+        result = self.stats._get_grouping_counts_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+        expected = OrderedDict([('Q1', 10), ('Q2', 5)])
+        self.assertEqual(result, expected)
+
+    def test_return_None(self):
+        self.mock_sparql_query.return_value.select.return_value = None
+        result = self.stats._get_grouping_counts_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+        self.assertEqual(result, None)
+
+
 class SparqlCountTest(SparqlQueryTest):
 
     def setUp(self):

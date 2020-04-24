@@ -189,15 +189,7 @@ HAVING (?count >= {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
-        result = collections.OrderedDict()
-        sq = pywikibot.data.sparql.SparqlQuery()
-        queryresult = sq.select(query)
-        if not queryresult:
-            return None
-        for resultitem in queryresult:
-            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-            result[qid] = int(resultitem.get('count'))
-        return result
+        return self._get_grouping_counts_from_sparql(query)
 
     def get_qualifier_info(self, property, qualifier, value="[]"):
         """
@@ -218,15 +210,7 @@ HAVING (?count >= {self.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """)
-        result = collections.OrderedDict()
-        sq = pywikibot.data.sparql.SparqlQuery()
-        queryresult = sq.select(query)
-        if not queryresult:
-            return None
-        for resultitem in queryresult:
-            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-            result[qid] = int(resultitem.get('count'))
-        return result
+        return self._get_grouping_counts_from_sparql(query)
 
     def get_property_info_no_grouping(self, property):
         """
@@ -319,6 +303,18 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         if not queryresult:
             return None
         return int(queryresult[0].get('count'))
+
+    @staticmethod
+    def _get_grouping_counts_from_sparql(query):
+        result = collections.OrderedDict()
+        sq = pywikibot.data.sparql.SparqlQuery()
+        queryresult = sq.select(query)
+        if not queryresult:
+            return None
+        for resultitem in queryresult:
+            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
+            result[qid] = int(resultitem.get('count'))
+        return result
 
     @staticmethod
     def _get_percentage(count, total):

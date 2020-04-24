@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from integraality.pages_processor import (
     ConfigException,
+    LabelConfig,
     PagesProcessor,
     PropertyConfig,
     main
@@ -81,7 +82,7 @@ class TestParseConfig(ProcessortTest):
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'grouping_property': 'P400',
             'stats_for_no_group': True,
-            'properties': [
+            'columns': [
                 PropertyConfig(property='P136', title='genre'),
                 PropertyConfig(property='P404'),
             ],
@@ -99,7 +100,7 @@ class TestParseConfig(ProcessortTest):
         expected = {
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
-            'properties': [
+            'columns': [
                 PropertyConfig(property='P136', title='genre'),
                 PropertyConfig(property='P404'),
             ],
@@ -122,7 +123,7 @@ class TestParseConfig(ProcessortTest):
             'grouping_link': 'Wikidata:WikiProject Video games/Reports/Platform',
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
-            'properties': [
+            'columns': [
                 PropertyConfig(property='P136', title='genre'),
                 PropertyConfig(property='P404'),
             ],
@@ -230,6 +231,16 @@ class TestParseConfigProperties(ProcessortTest):
             PropertyConfig(property='P136', title='genre'),
             PropertyConfig(property='P404'),
             PropertyConfig(property='P553', value='Q17459', qualifier='P670')
+        ]
+        self.assertEqual(result, expected)
+
+    def test_with_label(self):
+        properties = 'P136:genre,Lbr,P553'
+        result = self.processor.parse_config_properties(properties)
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            LabelConfig(language='br'),
+            PropertyConfig(property='P553')
         ]
         self.assertEqual(result, expected)
 

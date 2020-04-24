@@ -15,7 +15,11 @@ import pywikibot
 import pywikibot.data.sparql
 
 
-class PropertyConfig:
+class ColumnConfig:
+    pass
+
+
+class PropertyConfig(ColumnConfig):
 
     def __init__(self, property, title=None, value=None, qualifier=None):
         self.property = property
@@ -47,6 +51,32 @@ class PropertyConfig:
             label = f('[[Property:{property_link}|{self.title}]]')
         else:
             label = f('{{{{Property|{property_link}}}}}')
+        return f('! data-sort-type="number"|{label}\n')
+
+
+class LabelConfig(ColumnConfig):
+
+    def __init__(self, language, title=None):
+        self.language = language
+        self.title = title
+
+    def __eq__(self, other):
+        return (
+            self.language == other.language
+            and self.title == other.title
+        )
+
+    def get_title(self):
+        return self.get_key()
+
+    def get_key(self):
+        return 'L%s' % self.language
+
+    def make_column_header(self):
+        if self.title:
+            label = f('{self.title}')
+        else:
+            label = f('{{{{#language:{self.language}}}}}')
         return f('! data-sort-type="number"|{label}\n')
 
 
@@ -221,6 +251,29 @@ LIMIT 1000
 """)
         return self._get_grouping_counts_from_sparql(query)
 
+    def get_label_info(self, language):
+        """
+        Get the usage counts for a label for the groupings
+
+        :param prop: language of the label
+        :return: (Ordered) dictionary with the counts per grouping
+        """
+        query = f("""
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+  ?entity {self.selector_sparql} .
+  ?entity wdt:{self.grouping_property} ?grouping .
+  FILTER(EXISTS {{
+    ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = '{language}').
+  }})
+}}
+GROUP BY ?grouping
+HAVING (?count >= {self.property_threshold})
+ORDER BY DESC(?count)
+LIMIT 1000
+""")
+        return self._get_grouping_counts_from_sparql(query)
+
     def get_property_info_no_grouping(self, property):
         """
         Get the usage counts for a property without a grouping
@@ -260,6 +313,28 @@ LIMIT 10
 """)
         return self._get_count_from_sparql(query)
 
+    def get_label_info_no_grouping(self, language):
+        """
+        Get the usage counts for a label without a grouping
+
+        :param language: language code for the label
+        :return: (Ordered) dictionary with the counts per grouping
+        """
+        query = f("""
+SELECT (COUNT(?entity) AS ?count) WHERE {{
+    ?entity {self.selector_sparql} .
+    MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
+    FILTER(EXISTS {{
+      ?entity rdfs:label ?lang_label.
+      FILTER((LANG(?lang_label)) = '{language}').
+    }})
+}}
+GROUP BY ?grouping
+ORDER BY DESC (?count)
+LIMIT 10
+""")
+        return self._get_count_from_sparql(query)
+
     def get_totals_for_property(self, property):
         """
         Get the totals of entities with that property
@@ -284,6 +359,23 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
+}}
+""")
+        return self._get_count_from_sparql(query)
+
+    def get_totals_for_label(self, language):
+        """
+        Get the totals of entities with a label in the given language
+        :param language:  language code of the labels
+        :return: number of entities found
+        """
+        query = f("""
+SELECT (COUNT(?item) as ?count) WHERE {{
+  ?item {self.selector_sparql}
+  FILTER(EXISTS {{
+      ?item rdfs:label ?lang_label.
+      FILTER((LANG(?lang_label)) = '{language}').
+  }})
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -378,12 +470,18 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
         for column_entry in self.columns:
-            property_name = column_entry.property
-            if column_entry.qualifier:
-                value = column_entry.value or '[]'
-                column_count = self.get_qualifier_info_no_grouping(property_name, column_entry.qualifier, value)
-            else:
-                column_count = self.get_property_info_no_grouping(property_name)
+
+            if isinstance(column_entry, PropertyConfig):
+                property_name = column_entry.property
+
+                if column_entry.qualifier:
+                    value = column_entry.value or '[]'
+                    column_count = self.get_qualifier_info_no_grouping(property_name, column_entry.qualifier, value)
+                else:
+                    column_count = self.get_property_info_no_grouping(property_name)
+            elif isinstance(column_entry, LabelConfig):
+                column_count = self.get_label_info_no_grouping(column_entry.language)
+
             percentage = self._get_percentage(column_count, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
         return text
@@ -430,11 +528,15 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
         text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
         for column_entry in self.columns:
-            property_name = column_entry.property
-            if column_entry.qualifier:
-                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=column_entry.qualifier)
-            else:
-                totalprop = self.get_totals_for_property(property=property_name)
+
+            if isinstance(column_entry, PropertyConfig):
+                property_name = column_entry.property
+                if column_entry.qualifier:
+                    totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=column_entry.qualifier)
+                else:
+                    totalprop = self.get_totals_for_property(property=property_name)
+            elif isinstance(column_entry, LabelConfig):
+                totalprop = self.get_totals_for_label(column_entry.language)
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n')
         text += u'|}\n'
@@ -454,13 +556,17 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
         for column_entry in self.columns:
-            property_name = column_entry.property
             column_entry_key = column_entry.get_key()
-            if column_entry.qualifier:
-                value = column_entry.value or '[]'
-                self.column_data[column_entry_key] = self.get_qualifier_info(property_name, column_entry.qualifier, value)
-            else:
-                self.column_data[column_entry_key] = self.get_property_info(property_name)
+
+            if isinstance(column_entry, PropertyConfig):
+                property_name = column_entry.property
+                if column_entry.qualifier:
+                    value = column_entry.value or '[]'
+                    self.column_data[column_entry_key] = self.get_qualifier_info(property_name, column_entry.qualifier, value)
+                else:
+                    self.column_data[column_entry_key] = self.get_property_info(property_name)
+            elif isinstance(column_entry, LabelConfig):
+                self.column_data[column_entry_key] = self.get_label_info(column_entry.language)
 
         text = self.get_header()
 
@@ -483,6 +589,7 @@ def main(*args):
     columns = [
         PropertyConfig('P21'),
         PropertyConfig('P19'),
+        LabelConfig('de'),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(

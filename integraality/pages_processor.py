@@ -12,6 +12,7 @@ import pywikibot
 from pywikibot import pagegenerators
 
 from property_statistics import (
+    LabelConfig,
     PropertyConfig,
     PropertyStatistics,
     QueryException
@@ -102,7 +103,8 @@ class PagesProcessor:
             if field not in config:
                 pywikibot.output("Missing required field %s" % field)
                 raise ConfigException("A required field is missing: %s" % field)
-        config['properties'] = self.parse_config_properties(config['properties'])
+        config['columns'] = self.parse_config_properties(config['properties'])
+        del config['properties']
         config['stats_for_no_group'] = bool(config.get('stats_for_no_group', False))
         return config
 
@@ -116,14 +118,17 @@ class PagesProcessor:
             except ValueError:
                 (key, title) = (prop, None)
             if key:
-                splitted = key.split('/')
-                if len(splitted) == 3:
-                    (property_name, value, qualifier) = splitted
-                elif len(splitted) == 2:
-                    (property_name, value, qualifier) = (splitted[0], None, splitted[1])
-                else:
-                    (property_name, value, qualifier) = (key, None, None)
-                entry = PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
+                if key.startswith('P'):
+                    splitted = key.split('/')
+                    if len(splitted) == 3:
+                        (property_name, value, qualifier) = splitted
+                    elif len(splitted) == 2:
+                        (property_name, value, qualifier) = (splitted[0], None, splitted[1])
+                    else:
+                        (property_name, value, qualifier) = (key, None, None)
+                    entry = PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
+                elif key.startswith('L'):
+                    entry = LabelConfig(language=key[1:])
                 properties_data.append(entry)
         return properties_data
 

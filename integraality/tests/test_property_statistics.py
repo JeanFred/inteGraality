@@ -12,6 +12,33 @@ from property_statistics import (
 )
 
 
+class TestPropertyConfig(unittest.TestCase):
+
+    def test_simple(self):
+        prop_entry = PropertyConfig('P19')
+        result = prop_entry.make_column_header()
+        expected = u'! data-sort-type="number"|{{Property|P19}}\n'
+        self.assertEqual(result, expected)
+
+    def test_with_label(self):
+        prop_entry = PropertyConfig('P19', title="birth")
+        result = prop_entry.make_column_header()
+        expected = u'! data-sort-type="number"|[[Property:P19|birth]]\n'
+        self.assertEqual(result, expected)
+
+    def test_with_qualifier(self):
+        prop_entry = PropertyConfig('P669', qualifier='P670')
+        result = prop_entry.make_column_header()
+        expected = u'! data-sort-type="number"|{{Property|P670}}\n'
+        self.assertEqual(result, expected)
+
+    def test_with_qualifier_and_label(self):
+        prop_entry = PropertyConfig('P669', title="street", qualifier='P670')
+        result = prop_entry.make_column_header()
+        expected = u'! data-sort-type="number"|[[Property:P670|street]]\n'
+        self.assertEqual(result, expected)
+
+
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
@@ -27,33 +54,6 @@ class PropertyStatisticsTest(unittest.TestCase):
             grouping_property=u'P551',
             property_threshold=10
         )
-
-
-class TestMakeColumnHeader(PropertyStatisticsTest):
-
-    def test_simple(self):
-        prop_entry = PropertyConfig('P19')
-        result = self.stats.make_column_header(prop_entry)
-        expected = u'! data-sort-type="number"|{{Property|P19}}\n'
-        self.assertEqual(result, expected)
-
-    def test_with_label(self):
-        prop_entry = PropertyConfig('P19', title="birth")
-        result = self.stats.make_column_header(prop_entry)
-        expected = u'! data-sort-type="number"|[[Property:P19|birth]]\n'
-        self.assertEqual(result, expected)
-
-    def test_with_qualifier(self):
-        prop_entry = PropertyConfig('P669', qualifier='P670')
-        result = self.stats.make_column_header(prop_entry)
-        expected = u'! data-sort-type="number"|{{Property|P670}}\n'
-        self.assertEqual(result, expected)
-
-    def test_with_qualifier_and_label(self):
-        prop_entry = PropertyConfig('P669', title="street", qualifier='P670')
-        result = self.stats.make_column_header(prop_entry)
-        expected = u'! data-sort-type="number"|[[Property:P670|street]]\n'
-        self.assertEqual(result, expected)
 
 
 class FormatHigherGroupingTextTest(PropertyStatisticsTest):

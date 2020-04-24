@@ -40,6 +40,18 @@ class PropertyConfig:
         else:
             return self.property
 
+    def make_column_header(self):
+        if self.qualifier:
+            property_link = self.qualifier
+        else:
+            property_link = self.property
+
+        if self.title:
+            label = f('[[Property:{property_link}|{self.title}]]')
+        else:
+            label = f('{{{{Property|{property_link}}}}}')
+        return f('! data-sort-type="number"|{label}\n')
+
 
 class QueryException(Exception):
     pass
@@ -322,19 +334,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             return 0
         return round(1.0 * count / max(total, 1) * 100, 2)
 
-    @staticmethod
-    def make_column_header(column_entry):
-        if column_entry.qualifier:
-            property_link = column_entry.qualifier
-        else:
-            property_link = column_entry.property
-
-        if column_entry.title:
-            label = f('[[Property:{property_link}|{column_entry.title}]]')
-        else:
-            label = f('{{{{Property|{property_link}}}}}')
-        return f('! data-sort-type="number"|{label}\n')
-
     def get_header(self):
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
@@ -348,7 +347,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'! Name\n'
         text += u'! Count\n'
         for column_entry in self.columns:
-            text += self.make_column_header(column_entry)
+            text += column_entry.make_column_header()
 
         return text
 

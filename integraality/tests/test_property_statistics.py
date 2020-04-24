@@ -518,16 +518,22 @@ class GetGroupingInformationTest(SparqlQueryTest):
         self.assert_query_called(query)
 
 
-class GetPropertyInfoTest(SparqlQueryTest):
+class GetInfoTest(SparqlQueryTest):
 
-    def test_get_property_info(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+    def setUp(self):
+        super().setUp()
+        self.sparql_return_value = [
             {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
             {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
         ]
-        expected = OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)])
+        self.expected = OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)])
 
+
+class GetPropertyInfoTest(GetInfoTest):
+
+    def test_get_property_info(self):
+        self.mock_sparql_query.return_value.select.return_value = self.sparql_return_value
         result = self.stats.get_property_info('P1')
         query = (
             "\n"
@@ -542,7 +548,7 @@ class GetPropertyInfoTest(SparqlQueryTest):
             "LIMIT 1000\n"
         )
         self.assert_query_called(query)
-        self.assertEqual(result, expected)
+        self.assertEqual(result, self.expected)
 
     def test_get_property_info_empty_result(self):
         self.mock_sparql_query.return_value.select.return_value = None
@@ -564,15 +570,10 @@ class GetPropertyInfoTest(SparqlQueryTest):
         self.assertEqual(result, expected)
 
 
-class GetQualifierInfoTest(SparqlQueryTest):
+class GetQualifierInfoTest(GetInfoTest):
 
     def test_get_qualifier_info(self):
-        self.mock_sparql_query.return_value.select.return_value = [
-            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
-            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
-            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
-        ]
-        expected = OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)])
+        self.mock_sparql_query.return_value.select.return_value = self.sparql_return_value
 
         result = self.stats.get_qualifier_info('P1', qualifier="P2")
         query = (
@@ -588,7 +589,7 @@ class GetQualifierInfoTest(SparqlQueryTest):
             "LIMIT 1000\n"
         )
         self.assert_query_called(query)
-        self.assertEqual(result, expected)
+        self.assertEqual(result, self.expected)
 
 
 class TestGetHeader(PropertyStatisticsTest):

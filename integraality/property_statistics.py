@@ -52,13 +52,13 @@ class PropertyStatistics:
     """
     GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None', 'TOTALS': ''})
 
-    def __init__(self, selector_sparql, properties, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
+    def __init__(self, selector_sparql, columns, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
         Set what to work on and other variables here.
         """
         site = pywikibot.Site('en', 'wikipedia')
         self.repo = site.data_repository()
-        self.properties = properties
+        self.columns = columns
         self.grouping_property = grouping_property
         self.higher_grouping = higher_grouping
         self.higher_grouping_type = higher_grouping_type
@@ -68,7 +68,7 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
 
         self.grouping_link = grouping_link
-        self.property_data = {}
+        self.column_data = {}
         self.cell_template = 'Integraality cell'
 
     def get_grouping_information(self):
@@ -323,14 +323,14 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         return round(1.0 * count / max(total, 1) * 100, 2)
 
     @staticmethod
-    def make_column_header(prop_entry):
-        if prop_entry.qualifier:
-            property_link = prop_entry.qualifier
+    def make_column_header(column_entry):
+        if column_entry.qualifier:
+            property_link = column_entry.qualifier
         else:
-            property_link = prop_entry.property
+            property_link = column_entry.property
 
-        if prop_entry.title:
-            label = f('[[Property:{property_link}|{prop_entry.title}]]')
+        if column_entry.title:
+            label = f('[[Property:{property_link}|{column_entry.title}]]')
         else:
             label = f('{{{{Property|{property_link}}}}}')
         return f('! data-sort-type="number"|{label}\n')
@@ -339,7 +339,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
         text += f('! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n')
-        text += f('! colspan="{len(self.properties)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n')  # noqa
+        text += f('! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n')  # noqa
         text += u'|-\n'
 
         if self.higher_grouping:
@@ -347,8 +347,8 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
         text += u'! Name\n'
         text += u'! Count\n'
-        for prop_entry in self.properties:
-            text += self.make_column_header(prop_entry)
+        for column_entry in self.columns:
+            text += self.make_column_header(column_entry)
 
         return text
 
@@ -381,15 +381,15 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         total_no_count = self.get_totals_no_grouping()
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
-        for prop_entry in self.properties:
-            property_name = prop_entry.property
-            if prop_entry.qualifier:
-                value = prop_entry.value or '[]'
-                propcount = self.get_qualifier_info_no_grouping(property_name, prop_entry.qualifier, value)
+        for column_entry in self.columns:
+            property_name = column_entry.property
+            if column_entry.qualifier:
+                value = column_entry.value or '[]'
+                column_count = self.get_qualifier_info_no_grouping(property_name, column_entry.qualifier, value)
             else:
-                propcount = self.get_property_info_no_grouping(property_name)
-            percentage = self._get_percentage(propcount, total_no_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
+                column_count = self.get_property_info_no_grouping(property_name)
+            percentage = self._get_percentage(column_count, total_no_count)
+            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|property={column_entry.property}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
         return text
 
     def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):
@@ -414,16 +414,16 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         else:
             text += f('| {item_count} \n')
 
-        for prop_entry in self.properties:
-            prop_entry_key = prop_entry.get_key()
+        for column_entry in self.columns:
+            column_entry_key = column_entry.get_key()
             try:
-                propcount = self.property_data.get(prop_entry_key).get(grouping)
+                column_count = self.column_data.get(column_entry_key).get(grouping)
             except AttributeError:
-                propcount = 0
-            if not propcount:
-                propcount = 0
-            percentage = self._get_percentage(propcount, item_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{propcount}|property={prop_entry.property}|grouping={grouping}}}}}\n')  # noqa
+                column_count = 0
+            if not column_count:
+                column_count = 0
+            percentage = self._get_percentage(column_count, item_count)
+            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|property={column_entry.property}|grouping={grouping}}}}}\n')  # noqa
         return text
 
     def make_footer(self):
@@ -433,14 +433,14 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             text += u"|\n|"
 
         text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
-        for prop_entry in self.properties:
-            property_name = prop_entry.property
-            if prop_entry.qualifier:
-                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=prop_entry.qualifier)
+        for column_entry in self.columns:
+            property_name = column_entry.property
+            if column_entry.qualifier:
+                totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=column_entry.qualifier)
             else:
                 totalprop = self.get_totals_for_property(property=property_name)
             percentage = self._get_percentage(totalprop, total_items)
-            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|property={prop_entry.property}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|property={column_entry.property}}}}}\n')
         text += u'|}\n'
         return text
 
@@ -457,14 +457,14 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             raise e
 
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
-        for prop_entry in self.properties:
-            property_name = prop_entry.property
-            prop_entry_key = prop_entry.get_key()
-            if prop_entry.qualifier:
-                value = prop_entry.value or '[]'
-                self.property_data[prop_entry_key] = self.get_qualifier_info(property_name, prop_entry.qualifier, value)
+        for column_entry in self.columns:
+            property_name = column_entry.property
+            column_entry_key = column_entry.get_key()
+            if column_entry.qualifier:
+                value = column_entry.value or '[]'
+                self.column_data[column_entry_key] = self.get_qualifier_info(property_name, column_entry.qualifier, value)
             else:
-                self.property_data[prop_entry_key] = self.get_property_info(property_name)
+                self.column_data[column_entry_key] = self.get_property_info(property_name)
 
         text = self.get_header()
 
@@ -484,13 +484,13 @@ def main(*args):
     """
     Main function.
     """
-    properties = [
+    columns = [
         PropertyConfig('P21'),
         PropertyConfig('P19'),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(
-        properties=properties,
+        columns=columns,
         selector_sparql=u'wdt:P31 wd:Q41960',
         grouping_property=u'P551',
         stats_for_no_group=True,

@@ -15,14 +15,14 @@ from property_statistics import (
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
-        properties = [
+        columns = [
             PropertyConfig(property='P21'),
             PropertyConfig(property='P19'),
             PropertyConfig(property='P1', qualifier='P2'),
             PropertyConfig(property='P3', value='Q4', qualifier='P5'),
         ]
         self.stats = PropertyStatistics(
-            properties=properties,
+            columns=columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P551',
             property_threshold=10
@@ -152,7 +152,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.stats.property_data = {
+        self.stats.column_data = {
             'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6)]),
             'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
             'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),

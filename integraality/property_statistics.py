@@ -382,7 +382,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             else:
                 column_count = self.get_property_info_no_grouping(property_name)
             percentage = self._get_percentage(column_count, total_no_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|property={column_entry.property}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
+            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.property}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
         return text
 
     def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):
@@ -416,7 +416,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             if not column_count:
                 column_count = 0
             percentage = self._get_percentage(column_count, item_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|property={column_entry.property}|grouping={grouping}}}}}\n')  # noqa
+            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.property}|grouping={grouping}}}}}\n')  # noqa
         return text
 
     def make_footer(self):
@@ -433,7 +433,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
             else:
                 totalprop = self.get_totals_for_property(property=property_name)
             percentage = self._get_percentage(totalprop, total_items)
-            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|property={column_entry.property}}}}}\n')
+            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.property}}}}}\n')
         text += u'|}\n'
         return text
 

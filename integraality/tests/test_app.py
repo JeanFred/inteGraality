@@ -102,7 +102,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
         self.mock_group_mapping.side_effect = ValueError
-        response = self.app.get('/queries?page=%s&url=%s&property=P1&grouping=Q2' % (self.page_title, self.page_url))
+        response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
         self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "Q2")
@@ -122,7 +122,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
         self.mock_group_mapping.return_value = "No"
-        response = self.app.get('/queries?page=%s&url=%s&property=P1&grouping=None' % (self.page_title, self.page_url))
+        response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=None' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
         self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "No")

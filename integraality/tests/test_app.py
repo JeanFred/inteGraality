@@ -137,6 +137,46 @@ class QueriesTests(PagesProcessorTests):
         self.assertEqual(response.status_code, 200)
         self.assertIn(expected, response.get_data(as_text=True))
 
+    def test_queries_success_labels(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
+        self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
+        self.mock_group_mapping.side_effect = ValueError
+        response = self.app.get('/queries?page=%s&url=%s&column=Lbr&grouping=Q2' % (self.page_title, self.page_url))
+        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("Lbr", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("Lbr", "Q2")
+        expected = (
+            '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
+            'br label, '
+            '<a href="https://wikidata.org/wiki/Q2">Q2</a>.</p>\n\t'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the label set</a>\n\t'  # noqa
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the label set</a>'  # noqa
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(expected, response.get_data(as_text=True))
+
+    def test_queries_success_descriptions(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
+        self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
+        self.mock_group_mapping.side_effect = ValueError
+        response = self.app.get('/queries?page=%s&url=%s&column=Dbr&grouping=Q2' % (self.page_title, self.page_url))
+        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("Dbr", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("Dbr", "Q2")
+        expected = (
+            '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
+            'br description, '
+            '<a href="https://wikidata.org/wiki/Q2">Q2</a>.</p>\n\t'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the description set</a>\n\t'  # noqa
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the description set</a>'  # noqa
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(expected, response.get_data(as_text=True))
+
     def test_queries_success_totals(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"

@@ -159,7 +159,7 @@ LIMIT 1000
 
         return (grouping_counts, grouping_groupings)
 
-    def get_query_for_items_for_property_positive(self, property, grouping):
+    def get_query_for_items_for_property_positive(self, column, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} .""")
@@ -176,14 +176,25 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .""")
 
-        query += f("""
-  ?entity p:{property} ?prop . OPTIONAL {{ ?prop ps:{property} ?value }}
+        if column.startswith('P'):
+            query += f("""
+  ?entity p:{column} ?prop . OPTIONAL {{ ?prop ps:{column} ?value }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
+        elif column.startswith('L'):
+            query += f("""
+  FILTER(EXISTS {{
+    ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = "{column[1:]}").
+  }})
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{column[1:]}". }}
+}}
+""")
+
         return query
 
-    def get_query_for_items_for_property_negative(self, property, grouping):
+    def get_query_for_items_for_property_negative(self, column, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} .""")
@@ -201,13 +212,23 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity wdt:{self.grouping_property} wd:{grouping} .
   MINUS {{""")
 
-        query += f("""
-    {{?entity a wdno:{property} .}} UNION
-    {{?entity wdt:{property} ?prop .}}
+        if column.startswith('P'):
+            query += f("""
+    {{?entity a wdno:{column} .}} UNION
+    {{?entity wdt:{column} ?prop .}}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
+        elif column.startswith('L'):
+            query += f("""
+    {{ ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = "{column[1:]}") }}
+  }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+}}
+""")
+
         return query
 
     def get_property_info(self, property):

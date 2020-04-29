@@ -1,15 +1,27 @@
 {% extends "base.html" %}
-
+{% if column.startswith("P") -%}
+	{% set name = 'property' %}
+{%- elif column.startswith("L") -%}
+	{% set name = 'label' %}
+{%- elif column.startswith("D") -%}
+	{% set name = 'description' %}
+{%- endif -%}
 {% block content %}
 <div class="alert">
-	<p>From page <a href="{{ page_url }}">{{ page_title }}</a>, <a href="https://wikidata.org/wiki/Property:{{ column }}">{{ column }}</a>, {% if grouping == 'None' -%}
+	<p>From page <a href="{{ page_url }}">{{ page_title }}</a>, {% if column.startswith("P") -%}
+		<a href="https://wikidata.org/wiki/Property:{{ column }}">{{ column }}</a>
+	{%- elif column.startswith("L") -%}
+		{{ column[1:] }} label
+	{%- elif column.startswith("D") -%}
+		{{ column[1:] }} description
+	{%- endif %}, {% if grouping == 'None' -%}
 		without grouping
 	{%- elif grouping -%}
 		<a href="https://wikidata.org/wiki/{{ grouping }}">{{ grouping }}</a>
 	{%- else -%}
 		for the totals
 	{%- endif %}.</p>
-	<a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">All items with the property set</a>
-	<a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">All items without the property set</a>
+	<a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">All items with the {{ name }} set</a>
+	<a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">All items without the {{ name }} set</a>
 </div>
 {% endblock %}

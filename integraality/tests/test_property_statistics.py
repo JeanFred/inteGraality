@@ -99,11 +99,11 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         patcher1 = patch('property_statistics.PropertyStatistics.get_totals_no_grouping', autospec=True)
         patcher2 = patch('property_statistics.PropertyStatistics.get_property_info_no_grouping', autospec=True)
         patcher3 = patch('property_statistics.PropertyStatistics.get_qualifier_info_no_grouping', autospec=True)
-        patcher4 = patch('property_statistics.PropertyStatistics.get_label_info_no_grouping', autospec=True)
+        patcher4 = patch('property_statistics.PropertyStatistics.get_text_info_no_grouping', autospec=True)
         self.mock_get_totals_no_grouping = patcher1.start()
         self.mock_get_property_info_no_grouping = patcher2.start()
         self.mock_get_qualifier_info_no_grouping = patcher3.start()
-        self.mock_get_label_info_no_grouping = patcher4.start()
+        self.mock_get_text_info_no_grouping = patcher4.start()
         self.addCleanup(patcher1.stop)
         self.addCleanup(patcher2.stop)
         self.addCleanup(patcher3.stop)
@@ -113,7 +113,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.mock_get_totals_no_grouping.return_value = 20
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
         self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
-        self.mock_get_label_info_no_grouping.side_effect = [5]
+        self.mock_get_text_info_no_grouping.side_effect = [5]
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
@@ -140,7 +140,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.mock_get_totals_no_grouping.return_value = 20
         self.mock_get_property_info_no_grouping.side_effect = [2, 10]
         self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
-        self.mock_get_label_info_no_grouping.side_effect = [5]
+        self.mock_get_text_info_no_grouping.side_effect = [5]
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
         result = self.stats.make_stats_for_no_group()
         expected = (
@@ -427,8 +427,8 @@ class SparqlCountTest(SparqlQueryTest):
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
-    def test_get_label_info_no_grouping(self):
-        result = self.stats.get_label_info_no_grouping('br')
+    def test_get_text_info_no_grouping(self):
+        result = self.stats.get_text_info_no_grouping('br')
         query = (
             "\n"
             "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
@@ -471,8 +471,8 @@ class SparqlCountTest(SparqlQueryTest):
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
-    def test_get_totals_for_label(self):
-        result = self.stats.get_totals_for_label('br')
+    def test_get_totals_for_text(self):
+        result = self.stats.get_totals_for_text('br')
         query = (
             "\n"
             "SELECT (COUNT(?item) as ?count) WHERE {\n"
@@ -679,12 +679,12 @@ class GetQualifierInfoTest(GetInfoTest):
         self.assertEqual(result, self.expected)
 
 
-class GetLabelInfoTest(GetInfoTest):
+class GetTextInfoTest(GetInfoTest):
 
-    def test_get_label_info(self):
+    def test_get_text_info(self):
         self.mock_sparql_query.return_value.select.return_value = self.sparql_return_value
 
-        result = self.stats.get_label_info('br')
+        result = self.stats.get_text_info('br')
 
         query = (
             "\n"

@@ -76,11 +76,76 @@ class TextConfig(ColumnConfig):
             text = f('{{{{#language:{self.language}}}}}')
         return f('! data-sort-type="number"|{text}\n')
 
+    def get_info_query(self, property_statistics):
+        """
+        Get the usage counts for a label for the groupings
+
+        :param prop: sparql fragment
+        :return: (str) SPARQL query
+        """
+        query = f("""
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+  ?entity {property_statistics.selector_sparql} .
+  ?entity wdt:{property_statistics.grouping_property} ?grouping .
+  FILTER(EXISTS {{
+    ?entity {self.get_selector()} ?lang_label.
+    FILTER((LANG(?lang_label)) = '{self.language}').
+  }})
+}}
+GROUP BY ?grouping
+HAVING (?count >= {property_statistics.property_threshold})
+ORDER BY DESC(?count)
+LIMIT 1000
+""")
+        return query
+
+    def get_totals_query(self, property_statistics):
+        """
+        Get the totals of entities with a label/description in the given language
+        :param language:  language code of the labels
+        :return: number of entities found
+        """
+        query = f("""
+SELECT (COUNT(?item) as ?count) WHERE {{
+  ?item {property_statistics.selector_sparql}
+  FILTER(EXISTS {{
+      ?item {self.get_selector()} ?lang_label.
+      FILTER((LANG(?lang_label)) = '{self.language}').
+  }})
+}}
+""")
+        return query
+
+    def get_info_no_grouping_query(self, property_statistics):
+        """
+        Get the usage counts for a label without a grouping
+
+        :param language: language code for the label
+        :return: (Ordered) dictionary with the counts per grouping
+        """
+        query = f("""
+SELECT (COUNT(?entity) AS ?count) WHERE {{
+    ?entity {property_statistics.selector_sparql} .
+    MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
+    FILTER(EXISTS {{
+      ?entity {self.get_selector()} ?lang_label.
+      FILTER((LANG(?lang_label)) = '{self.language}').
+    }})
+}}
+GROUP BY ?grouping
+ORDER BY DESC (?count)
+LIMIT 10
+""")
+        return query
+
 
 class LabelConfig(TextConfig):
 
     def get_key(self):
         return 'L%s' % self.language
+
+    def get_selector(self):
+        return 'rdfs:label'
 
 
 class QueryException(Exception):
@@ -275,29 +340,6 @@ LIMIT 1000
 """)
         return self._get_grouping_counts_from_sparql(query)
 
-    def get_text_info(self, language):
-        """
-        Get the usage counts for a label for the groupings
-
-        :param prop: language of the label
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?grouping .
-  FILTER(EXISTS {{
-    ?entity rdfs:label ?lang_label.
-    FILTER((LANG(?lang_label)) = '{language}').
-  }})
-}}
-GROUP BY ?grouping
-HAVING (?count >= {self.property_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-""")
-        return self._get_grouping_counts_from_sparql(query)
-
     def get_property_info_no_grouping(self, property):
         """
         Get the usage counts for a property without a grouping
@@ -337,28 +379,6 @@ LIMIT 10
 """)
         return self._get_count_from_sparql(query)
 
-    def get_text_info_no_grouping(self, language):
-        """
-        Get the usage counts for a label without a grouping
-
-        :param language: language code for the label
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT (COUNT(?entity) AS ?count) WHERE {{
-    ?entity {self.selector_sparql} .
-    MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
-    FILTER(EXISTS {{
-      ?entity rdfs:label ?lang_label.
-      FILTER((LANG(?lang_label)) = '{language}').
-    }})
-}}
-GROUP BY ?grouping
-ORDER BY DESC (?count)
-LIMIT 10
-""")
-        return self._get_count_from_sparql(query)
-
     def get_totals_for_property(self, property):
         """
         Get the totals of entities with that property
@@ -383,23 +403,6 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 SELECT (COUNT(?item) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
-}}
-""")
-        return self._get_count_from_sparql(query)
-
-    def get_totals_for_text(self, language):
-        """
-        Get the totals of entities with a label in the given language
-        :param language:  language code of the labels
-        :return: number of entities found
-        """
-        query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
-  ?item {self.selector_sparql}
-  FILTER(EXISTS {{
-      ?item rdfs:label ?lang_label.
-      FILTER((LANG(?lang_label)) = '{language}').
-  }})
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -504,7 +507,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 else:
                     column_count = self.get_property_info_no_grouping(property_name)
             elif isinstance(column_entry, TextConfig):
-                column_count = self.get_text_info_no_grouping(column_entry.language)
+                column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
 
             percentage = self._get_percentage(column_count, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
@@ -560,7 +563,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 else:
                     totalprop = self.get_totals_for_property(property=property_name)
             elif isinstance(column_entry, TextConfig):
-                totalprop = self.get_totals_for_text(column_entry.language)
+                totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n')
         text += u'|}\n'
@@ -590,7 +593,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 else:
                     self.column_data[column_entry_key] = self.get_property_info(property_name)
             elif isinstance(column_entry, TextConfig):
-                self.column_data[column_entry_key] = self.get_text_info(column_entry.language)
+                self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
         text = self.get_header()
 

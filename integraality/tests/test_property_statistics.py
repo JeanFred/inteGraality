@@ -40,15 +40,6 @@ class TestPropertyConfig(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class TestLabelConfig(unittest.TestCase):
-
-    def test_simple(self):
-        prop_entry = LabelConfig('br')
-        result = prop_entry.make_column_header()
-        expected = u'! data-sort-type="number"|{{#language:br}}\n'
-        self.assertEqual(result, expected)
-
-
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
@@ -77,6 +68,70 @@ class SparqlQueryTest(unittest.TestCase):
 
     def assert_query_called(self, query):
         self.mock_sparql_query.return_value.select.assert_called_once_with(query)
+
+
+class TestLabelConfig(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        self.column = LabelConfig('br')
+
+    def test_simple(self):
+        result = self.column.make_column_header()
+        expected = u'! data-sort-type="number"|{{#language:br}}\n'
+        self.assertEqual(result, expected)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        query = (
+            "\n"
+            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "  ?item wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "      ?item rdfs:label ?lang_label.\n"
+            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, query)
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity rdfs:label ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "HAVING (?count >= 10)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, query)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        query = (
+            "\n"
+            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "    ?entity wdt:P31 wd:Q41960 .\n"
+            "    MINUS { ?entity wdt:P551 _:b28. }\n"
+            "    FILTER(EXISTS {\n"
+            "      ?entity rdfs:label ?lang_label.\n"
+            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "    })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+
+        self.assertEqual(result, query)
 
 
 class FormatHigherGroupingTextTest(SparqlQueryTest, PropertyStatisticsTest):
@@ -404,26 +459,6 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
-    def test_get_text_info_no_grouping(self):
-        result = self.stats.get_text_info_no_grouping('br')
-        query = (
-            "\n"
-            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
-            "    ?entity wdt:P31 wd:Q41960 .\n"
-            "    MINUS { ?entity wdt:P551 _:b28. }\n"
-            "    FILTER(EXISTS {\n"
-            "      ?entity rdfs:label ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
-            "    })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
-        )
-
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
     def test_get_totals_for_property(self):
         result = self.stats.get_totals_for_property('P1')
         query = (
@@ -443,21 +478,6 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
             "SELECT (COUNT(?item) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER EXISTS { ?item p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
-            "}\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
-    def test_get_totals_for_text(self):
-        result = self.stats.get_totals_for_text('br')
-        query = (
-            "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "      ?item rdfs:label ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
             "}\n"
         )
         self.assert_query_called(query)
@@ -646,32 +666,6 @@ class GetQualifierInfoTest(GetInfoTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, self.expected)
-
-
-class GetTextInfoTest(GetInfoTest):
-
-    def test_get_text_info(self):
-        self.mock_sparql_query.return_value.select.return_value = self.sparql_return_value
-
-        result = self.stats.get_text_info('br')
-
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity rdfs:label ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
             "}\n"
             "GROUP BY ?grouping\n"
             "HAVING (?count >= 10)\n"

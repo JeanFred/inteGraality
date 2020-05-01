@@ -3,7 +3,7 @@
 
 import unittest
 from collections import OrderedDict
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from property_statistics import (
     LabelConfig,
@@ -67,7 +67,19 @@ class PropertyStatisticsTest(unittest.TestCase):
         )
 
 
-class FormatHigherGroupingTextTest(PropertyStatisticsTest):
+class SparqlQueryTest(unittest.TestCase):
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch('pywikibot.data.sparql.SparqlQuery', autospec=True)
+        self.mock_sparql_query = patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def assert_query_called(self, query):
+        self.mock_sparql_query.return_value.select.assert_called_once_with(query)
+
+
+class FormatHigherGroupingTextTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_format_higher_grouping_text_default_qitem(self):
         result = self.stats.format_higher_grouping_text("Q1")
@@ -92,28 +104,23 @@ class FormatHigherGroupingTextTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class MakeStatsForNoGroupTest(PropertyStatisticsTest):
+class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
         patcher1 = patch('property_statistics.PropertyStatistics.get_totals_no_grouping', autospec=True)
-        patcher2 = patch('property_statistics.PropertyStatistics.get_property_info_no_grouping', autospec=True)
-        patcher3 = patch('property_statistics.PropertyStatistics.get_qualifier_info_no_grouping', autospec=True)
-        patcher4 = patch('property_statistics.PropertyStatistics.get_text_info_no_grouping', autospec=True)
         self.mock_get_totals_no_grouping = patcher1.start()
-        self.mock_get_property_info_no_grouping = patcher2.start()
-        self.mock_get_qualifier_info_no_grouping = patcher3.start()
-        self.mock_get_text_info_no_grouping = patcher4.start()
         self.addCleanup(patcher1.stop)
-        self.addCleanup(patcher2.stop)
-        self.addCleanup(patcher3.stop)
-        self.addCleanup(patcher4.stop)
+        self.mock_get_totals_no_grouping.return_value = 20
+        self.mock_sparql_query.return_value.select.side_effect = [
+            [{'count': '2'}],
+            [{'count': '10'}],
+            [{'count': '15'}],
+            [{'count': '5'}],
+            [{'count': '4'}],
+        ]
 
     def test_make_stats_for_no_group(self):
-        self.mock_get_totals_no_grouping.return_value = 20
-        self.mock_get_property_info_no_grouping.side_effect = [2, 10]
-        self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
-        self.mock_get_text_info_no_grouping.side_effect = [5]
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
@@ -123,24 +130,13 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
             "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
             "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=Lbr|grouping=None}}\n"
+            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.mock_get_property_info_no_grouping.assert_has_calls([
-            call(self.stats, "P21"),
-            call(self.stats, "P19"),
-        ])
-        self.mock_get_qualifier_info_no_grouping.assert_has_calls([
-            call(self.stats, 'P1', 'P2', '[]'),
-            call(self.stats, 'P3', 'P5', 'Q4'),
-        ])
+        self.assertEqual(self.mock_sparql_query.call_count, 5)
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
-        self.mock_get_totals_no_grouping.return_value = 20
-        self.mock_get_property_info_no_grouping.side_effect = [2, 10]
-        self.mock_get_qualifier_info_no_grouping.side_effect = [15, 5]
-        self.mock_get_text_info_no_grouping.side_effect = [5]
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
         result = self.stats.make_stats_for_no_group()
         expected = (
@@ -152,18 +148,11 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
             "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
             "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=Lbr|grouping=None}}\n"
+            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.mock_get_property_info_no_grouping.assert_has_calls([
-            call(self.stats, "P21"),
-            call(self.stats, "P19"),
-        ])
-        self.mock_get_qualifier_info_no_grouping.assert_has_calls([
-            call(self.stats, 'P1', 'P2', '[]'),
-            call(self.stats, 'P3', 'P5', 'Q4'),
-        ])
+        self.assertEqual(self.mock_sparql_query.call_count, 5)
 
 
 class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
@@ -343,19 +332,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
 
-class SparqlQueryTest(PropertyStatisticsTest):
-
-    def setUp(self):
-        super().setUp()
-        patcher = patch('pywikibot.data.sparql.SparqlQuery', autospec=True)
-        self.mock_sparql_query = patcher.start()
-        self.addCleanup(patcher.stop)
-
-    def assert_query_called(self, query):
-        self.mock_sparql_query.return_value.select.assert_called_once_with(query)
-
-
-class GetCountFromSparqlTest(SparqlQueryTest):
+class GetCountFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_return_count(self):
         self.mock_sparql_query.return_value.select.return_value = [{'count': '18'}]
@@ -370,7 +347,7 @@ class GetCountFromSparqlTest(SparqlQueryTest):
         self.assertEqual(result, None)
 
 
-class GetGroupingCountsFromSparqlTest(SparqlQueryTest):
+class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_return_count(self):
         self.mock_sparql_query.return_value.select.return_value = [
@@ -389,7 +366,7 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest):
         self.assertEqual(result, None)
 
 
-class SparqlCountTest(SparqlQueryTest):
+class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -510,7 +487,7 @@ class SparqlCountTest(SparqlQueryTest):
         self.assertEqual(result, 18)
 
 
-class GetGroupingInformationTest(SparqlQueryTest):
+class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_get_grouping_information(self):
         self.mock_sparql_query.return_value.select.return_value = [
@@ -605,7 +582,7 @@ class GetGroupingInformationTest(SparqlQueryTest):
         self.assert_query_called(query)
 
 
-class GetInfoTest(SparqlQueryTest):
+class GetInfoTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -749,7 +726,7 @@ class TestGetHeader(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class MakeFooterTest(SparqlQueryTest):
+class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()

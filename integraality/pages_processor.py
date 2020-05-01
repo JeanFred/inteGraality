@@ -12,6 +12,7 @@ import pywikibot
 from pywikibot import pagegenerators
 
 from property_statistics import (
+    DescriptionConfig,
     LabelConfig,
     PropertyConfig,
     PropertyStatistics,
@@ -129,6 +130,8 @@ class PagesProcessor:
                     entry = PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
                 elif key.startswith('L'):
                     entry = LabelConfig(language=key[1:])
+                elif key.startswith('D'):
+                    entry = DescriptionConfig(language=key[1:])
                 properties_data.append(entry)
         return properties_data
 

@@ -148,6 +148,15 @@ class LabelConfig(TextConfig):
         return 'rdfs:label'
 
 
+class DescriptionConfig(TextConfig):
+
+    def get_key(self):
+        return 'D%s' % self.language
+
+    def get_selector(self):
+        return 'schema:description'
+
+
 class QueryException(Exception):
     pass
 
@@ -158,6 +167,8 @@ class PropertyStatistics:
 
     """
     GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None', 'TOTALS': ''})
+
+    TEXT_SELECTOR_MAPPING = {'L': 'rdfs:label', 'D': 'schema:description'}
 
     def __init__(self, selector_sparql, columns, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
@@ -250,10 +261,11 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
-        elif column.startswith('L'):
+        elif column.startswith('L') or column.startswith('D'):
+
             query += f("""
   FILTER(EXISTS {{
-    ?entity rdfs:label ?lang_label.
+    ?entity {self.TEXT_SELECTOR_MAPPING[column[:1]]} ?lang_label.
     FILTER((LANG(?lang_label)) = "{column[1:]}").
   }})
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{column[1:]}". }}
@@ -288,9 +300,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
-        elif column.startswith('L'):
+        elif column.startswith('L') or column.startswith('D'):
             query += f("""
-    {{ ?entity rdfs:label ?lang_label.
+    {{ ?entity {self.TEXT_SELECTOR_MAPPING[column[:1]]} ?lang_label.
     FILTER((LANG(?lang_label)) = "{column[1:]}") }}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
@@ -617,6 +629,7 @@ def main(*args):
         PropertyConfig('P21'),
         PropertyConfig('P19'),
         LabelConfig('de'),
+        DescriptionConfig('de'),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(

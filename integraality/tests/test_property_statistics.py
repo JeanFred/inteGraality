@@ -6,6 +6,7 @@ from collections import OrderedDict
 from unittest.mock import patch
 
 from property_statistics import (
+    DescriptionConfig,
     LabelConfig,
     PropertyConfig,
     PropertyStatistics,
@@ -123,6 +124,70 @@ class TestLabelConfig(PropertyStatisticsTest):
             "    MINUS { ?entity wdt:P551 _:b28. }\n"
             "    FILTER(EXISTS {\n"
             "      ?entity rdfs:label ?lang_label.\n"
+            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "    })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+
+        self.assertEqual(result, query)
+
+
+class TestDescriptionConfig(PropertyStatisticsTest):
+
+    def setUp(self):
+        super().setUp()
+        self.column = DescriptionConfig('br')
+
+    def test_simple(self):
+        result = self.column.make_column_header()
+        expected = u'! data-sort-type="number"|{{#language:br}}\n'
+        self.assertEqual(result, expected)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        query = (
+            "\n"
+            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "  ?item wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "      ?item schema:description ?lang_label.\n"
+            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, query)
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity schema:description ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "HAVING (?count >= 10)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, query)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        query = (
+            "\n"
+            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "    ?entity wdt:P31 wd:Q41960 .\n"
+            "    MINUS { ?entity wdt:P551 _:b28. }\n"
+            "    FILTER(EXISTS {\n"
+            "      ?entity schema:description ?lang_label.\n"
             "      FILTER((LANG(?lang_label)) = 'br').\n"
             "    })\n"
             "}\n"

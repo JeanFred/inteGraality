@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from integraality.pages_processor import (
     ConfigException,
+    DescriptionConfig,
     LabelConfig,
     PagesProcessor,
     PropertyConfig,
@@ -240,6 +241,16 @@ class TestParseConfigProperties(ProcessortTest):
         expected = [
             PropertyConfig(property='P136', title='genre'),
             LabelConfig(language='br'),
+            PropertyConfig(property='P553')
+        ]
+        self.assertEqual(result, expected)
+
+    def test_with_description(self):
+        properties = 'P136:genre,Lxy,P553'
+        result = self.processor.parse_config_properties(properties)
+        expected = [
+            PropertyConfig(property='P136', title='genre'),
+            DescriptionConfig(language='xy'),
             PropertyConfig(property='P553')
         ]
         self.assertEqual(result, expected)

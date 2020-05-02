@@ -50,6 +50,7 @@ class PropertyStatisticsTest(unittest.TestCase):
             PropertyConfig(property='P1', qualifier='P2'),
             PropertyConfig(property='P3', value='Q4', qualifier='P5'),
             LabelConfig(language='br'),
+            DescriptionConfig(language='xy'),
         ]
         self.stats = PropertyStatistics(
             columns=columns,
@@ -81,6 +82,10 @@ class TestLabelConfig(PropertyStatisticsTest):
         result = self.column.make_column_header()
         expected = u'! data-sort-type="number"|{{#language:br}}\n'
         self.assertEqual(result, expected)
+
+    def test_get_key(self):
+        result = self.column.get_key()
+        self.assertEqual(result, 'Lbr')
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
@@ -145,6 +150,10 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         result = self.column.make_column_header()
         expected = u'! data-sort-type="number"|{{#language:br}}\n'
         self.assertEqual(result, expected)
+
+    def test_get_key(self):
+        result = self.column.get_key()
+        self.assertEqual(result, 'Dbr')
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
@@ -238,6 +247,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
             [{'count': '15'}],
             [{'count': '5'}],
             [{'count': '4'}],
+            [{'count': '8'}],
         ]
 
     def test_make_stats_for_no_group(self):
@@ -251,10 +261,11 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
             "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
             "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
+            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.assertEqual(self.mock_sparql_query.call_count, 5)
+        self.assertEqual(self.mock_sparql_query.call_count, 6)
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
@@ -269,10 +280,11 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
             "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
             "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
+            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.assertEqual(self.mock_sparql_query.call_count, 5)
+        self.assertEqual(self.mock_sparql_query.call_count, 6)
 
 
 class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
@@ -285,6 +297,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
             'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
             'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
+            'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
         }
 
     def test_make_stats_for_one_grouping(self):
@@ -298,6 +311,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
             '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
             '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -314,6 +328,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
             '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
             '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -331,6 +346,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
             '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
             '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -753,7 +769,7 @@ class TestGetHeader(PropertyStatisticsTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 7 items)\n'
-            '! colspan="5"|Top Properties (used at least 4 times per grouping)\n'
+            '! colspan="6"|Top Properties (used at least 4 times per grouping)\n'
             '|-\n'
             '! Name\n'
             '! Count\n'
@@ -762,6 +778,7 @@ class TestGetHeader(PropertyStatisticsTest):
             '! data-sort-type="number"|{{Property|P2}}\n'
             '! data-sort-type="number"|{{Property|P5}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -771,7 +788,7 @@ class TestGetHeader(PropertyStatisticsTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="3" |Top groupings (Minimum 7 items)\n'
-            '! colspan="5"|Top Properties (used at least 4 times per grouping)\n'
+            '! colspan="6"|Top Properties (used at least 4 times per grouping)\n'
             '|-\n'
             '! \n'
             '! Name\n'
@@ -781,6 +798,7 @@ class TestGetHeader(PropertyStatisticsTest):
             '! data-sort-type="number"|{{Property|P2}}\n'
             '! data-sort-type="number"|{{Property|P5}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
         )
         self.assertEqual(result, expected)
 
@@ -796,6 +814,7 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             [{'count': '10'}],
             [{'count': '12'}],
             [{'count': '24'}],
+            [{'count': '36'}],
         ]
 
     def test_make_footer(self):
@@ -809,6 +828,7 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
             "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
             "| {{Integraality cell|20.0|24|column=Lbr}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)

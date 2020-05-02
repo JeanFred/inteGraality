@@ -1,6 +1,16 @@
 language: python
 
-matrix:
+install:
+  - pip install tox
+  - pip install codecov
+
+script:
+  - tox -e $TOX_ENV
+
+after_success:
+  - codecov
+
+jobs:
   include:
     - python: 3.5
       env: TOX_ENV=py35
@@ -15,12 +25,13 @@ matrix:
     - python: 3.5
       env: TOX_ENV=bashate
 
-install:
-  - pip install tox
-  - pip install codecov
-
-script:
-  - tox -e $TOX_ENV
-
-after_success:
-  - codecov
+    - services: docker
+      env:
+      install:
+      script:
+        - docker-compose up -d
+        - sleep 15
+        - >
+          curl --silent localhost:5000/ \
+           | grep --quiet "<h1>InteGraality</h1>"
+        - docker-compose down

@@ -540,9 +540,12 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'| {{Q|%s}}\n' % (grouping,)
 
         if self.grouping_link:
-            group_item = pywikibot.ItemPage(self.repo, grouping)
-            group_item.get()
-            label = group_item.labels["en"]
+            try:
+                group_item = pywikibot.ItemPage(self.repo, grouping)
+                group_item.get()
+                label = group_item.labels["en"]
+            except pywikibot.exceptions.InvalidTitle:
+                label = grouping
             text += f('| [[{self.grouping_link}/{label}|{item_count}]] \n')
         else:
             text += f('| {item_count} \n')

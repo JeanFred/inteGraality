@@ -135,7 +135,7 @@
                 "sha256:a5b0e25890d216d8189636742c50ab992e42eea699bcc1b08cc2d6bf3adff52a"
             ],
             "index": "pypi",
-            "version": "==3.5.1"
+            "version": "==3.5.3"
         },
         "requests": {
             "hashes": [
@@ -302,7 +302,7 @@
                 "sha256:a5b0e25890d216d8189636742c50ab992e42eea699bcc1b08cc2d6bf3adff52a"
             ],
             "index": "pypi",
-            "version": "==3.5.1"
+            "version": "==3.5.3"
         },
         "six": {
             "hashes": [

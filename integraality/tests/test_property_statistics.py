@@ -91,7 +91,7 @@ class TestLabelConfig(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER(EXISTS {\n"
             "      ?item rdfs:label ?lang_label.\n"
@@ -105,7 +105,7 @@ class TestLabelConfig(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -124,7 +124,7 @@ class TestLabelConfig(PropertyStatisticsTest):
         result = self.column.get_info_no_grouping_query(self.stats)
         query = (
             "\n"
-            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
             "    ?entity wdt:P31 wd:Q41960 .\n"
             "    MINUS { ?entity wdt:P551 _:b28. }\n"
             "    FILTER(EXISTS {\n"
@@ -159,7 +159,7 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER(EXISTS {\n"
             "      ?item schema:description ?lang_label.\n"
@@ -173,7 +173,7 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -192,7 +192,7 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         result = self.column.get_info_no_grouping_query(self.stats)
         query = (
             "\n"
-            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
             "    ?entity wdt:P31 wd:Q41960 .\n"
             "    MINUS { ?entity wdt:P551 _:b28. }\n"
             "    FILTER(EXISTS {\n"
@@ -512,7 +512,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_property_info_no_grouping('P1')
         query = (
             "\n"
-            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
             "    ?entity wdt:P31 wd:Q41960 .\n"
             "    MINUS { ?entity wdt:P551 _:b28. }\n"
             "    FILTER(EXISTS { ?entity p:P1 _:b29. })\n"
@@ -528,7 +528,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_qualifier_info_no_grouping('P1', 'P2')
         query = (
             "\n"
-            "SELECT (COUNT(?entity) AS ?count) WHERE {\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
             "    ?entity wdt:P31 wd:Q41960 .\n"
             "    MINUS { ?entity wdt:P551 _:b28. }\n"
             "    FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
@@ -544,7 +544,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_totals_for_property('P1')
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER EXISTS { ?item p:P1[] } .\n"
             "}\n"
@@ -556,7 +556,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_totals_for_qualifier("P1", "P2")
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  FILTER EXISTS { ?item p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
@@ -568,7 +568,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_totals_no_grouping()
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "  MINUS { ?item wdt:P551 _:b28. }\n"
             "}\n"
@@ -580,7 +580,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.get_totals()
         query = (
             "\n"
-            "SELECT (COUNT(?item) as ?count) WHERE {\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?item wdt:P31 wd:Q41960\n"
             "}\n"
         )
@@ -602,7 +602,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -627,7 +627,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.stats.grouping_threshold = 5
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -653,7 +653,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) "
-            "(COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "(COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
@@ -670,7 +670,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_sparql_query.return_value.select.return_value = None
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -702,7 +702,7 @@ class GetPropertyInfoTest(GetInfoTest):
         result = self.stats.get_property_info('P1')
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
@@ -721,7 +721,7 @@ class GetPropertyInfoTest(GetInfoTest):
         result = self.stats.get_property_info('P1')
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER EXISTS { ?entity p:P1 [] } .\n"
@@ -743,7 +743,7 @@ class GetQualifierInfoTest(GetInfoTest):
         result = self.stats.get_qualifier_info('P1', qualifier="P2")
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"

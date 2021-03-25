@@ -105,7 +105,7 @@ class TextConfig(ColumnConfig):
         :return: (str) SPARQL query
         """
         query = f("""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
   ?entity wdt:{property_statistics.grouping_property} ?grouping .
   FILTER(EXISTS {{
@@ -127,7 +127,7 @@ LIMIT 1000
         :return: number of entities found
         """
         query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
+SELECT (COUNT(*) as ?count) WHERE {{
   ?item {property_statistics.selector_sparql}
   FILTER(EXISTS {{
       ?item {self.get_selector()} ?lang_label.
@@ -145,7 +145,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT (COUNT(?entity) AS ?count) WHERE {{
+SELECT (COUNT(*) AS ?count) WHERE {{
     ?entity {property_statistics.selector_sparql} .
     MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
     FILTER(EXISTS {{
@@ -219,7 +219,7 @@ class PropertyStatistics:
         """
         if self.higher_grouping:
             query = f("""
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT *) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
@@ -230,7 +230,7 @@ LIMIT 1000
 """)
         else:
             query = f("""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
 }} GROUP BY ?grouping
@@ -341,7 +341,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   FILTER EXISTS {{ ?entity p:{property} [] }} .
@@ -362,7 +362,7 @@ LIMIT 1000
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
@@ -382,7 +382,7 @@ LIMIT 1000
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT (COUNT(?entity) AS ?count) WHERE {{
+SELECT (COUNT(*) AS ?count) WHERE {{
     ?entity {self.selector_sparql} .
     MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
     FILTER(EXISTS {{ ?entity p:{property} _:b29. }})
@@ -402,7 +402,7 @@ LIMIT 10
         :return: (Ordered) dictionary with the counts per grouping
         """
         query = f("""
-SELECT (COUNT(?entity) AS ?count) WHERE {{
+SELECT (COUNT(*) AS ?count) WHERE {{
     ?entity {self.selector_sparql} .
     MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
     FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
@@ -420,7 +420,7 @@ LIMIT 10
         :return: number of games found
         """
         query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
+SELECT (COUNT(*) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property}[] }} .
 }}
@@ -434,7 +434,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         :return: number of games found
         """
         query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
+SELECT (COUNT(*) as ?count) WHERE {{
   ?item {self.selector_sparql}
   FILTER EXISTS {{ ?item p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
 }}
@@ -443,7 +443,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
     def get_totals_no_grouping(self):
         query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
+SELECT (COUNT(*) as ?count) WHERE {{
   ?item {self.selector_sparql}
   MINUS {{ ?item wdt:{self.grouping_property} _:b28. }}
 }}
@@ -452,7 +452,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
 
     def get_totals(self):
         query = f("""
-SELECT (COUNT(?item) as ?count) WHERE {{
+SELECT (COUNT(*) as ?count) WHERE {{
   ?item {self.selector_sparql}
 }}
 """)

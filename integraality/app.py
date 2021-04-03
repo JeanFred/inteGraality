@@ -2,6 +2,7 @@
 # -*- coding: utf-8  -*-
 
 import os
+from time import perf_counter
 
 from flask import Flask, render_template, request
 
@@ -18,12 +19,14 @@ def index():
 
 @app.route('/update')
 def update():
+    start_time = perf_counter()
     page_url = request.args.get('url')
     page_title = request.args.get('page')
     processor = PagesProcessor(page_url)
     try:
         processor.process_one_page(page_title)
-        return render_template('update.html', page_title=page_title, page_url=page_url)
+        elapsed_time = (perf_counter() - start_time)
+        return render_template('update.html', page_title=page_title, page_url=page_url, elapsed_time=elapsed_time)
     except ProcessingException as e:
         return render_template('update_error.html',
                                page_title=page_title, page_url=page_url, error_message=e)

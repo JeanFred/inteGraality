@@ -2,6 +2,6 @@
 
 {% block content %}
 <div class="alert alert-success">
-	<p>Updated page <a href="{{ page_url }}">{{ page_title }}</a></p>
+	<p>Updated page <a href="{{ page_url }}">{{ page_title }}</a> (in {{ "%.2f"|format(elapsed_time) }}s)</p>
 </div>
 {% endblock %}

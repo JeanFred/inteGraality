@@ -12,6 +12,11 @@ source $VIRTUAL_ENV_PATH/bin/activate
 
 echo_time "Starting update."
 
+start_time="$(date -u +%s)"
+
 python integraality/pages_processor.py "$@"
 
-echo_time "Done with the update!"
+end_time="$(date -u +%s)"
+elapsed_time="$(($end_time-$start_time))"
+
+echo_time "Done with the update! (`TZ=UTC0 printf '%(%H:%M:%S)T\n' $elapsed_time`s)"

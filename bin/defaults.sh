@@ -5,5 +5,5 @@ echo_time() {
 # Paths
 : ${SOURCE_PATH:=$HOME/integraality}
 : ${TOOLFORGE_PATH:=$HOME/www/python/}
-: ${VIRTUAL_ENV_PATH:=$TOOLFORGE_PATH/venv}
+: ${VIRTUAL_ENV_PATH:=$TOOLFORGE_PATH/venv35}
 : ${APP_PATH:=$TOOLFORGE_PATH/src}

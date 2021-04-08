@@ -17,6 +17,6 @@ start_time="$(date -u +%s)"
 python integraality/pages_processor.py "$@"
 
 end_time="$(date -u +%s)"
-elapsed_time="$(($end_time-$start_time))"
+elapsed_time="$((end_time-start_time))"
 
-echo_time "Done with the update! (`TZ=UTC0 printf '%(%H:%M:%S)T\n' $elapsed_time`s)"
+echo_time "Done with the update! ($(TZ=UTC0 printf '%(%H:%M:%S)T\n' $elapsed_time)s)"

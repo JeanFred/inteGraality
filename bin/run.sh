@@ -1,6 +1,13 @@
 #!/bin/bash
 #
-# Script to update the JSON database
+# Script to update all dashboards on a given wiki
+#
+# How to use
+# ./bin/run.sh <arguments>
+# All arguments are passed through to the Python script
+#
+# Example
+# ./bin/run.sh https://meta.wikimedia.org
 
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . $CURRENT_DIR/defaults.sh

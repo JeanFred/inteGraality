@@ -7,6 +7,7 @@ from time import perf_counter
 from flask import Flask, render_template, request
 
 from pages_processor import PagesProcessor, ProcessingException
+from statsd.defaults.env import statsd
 
 app = Flask(__name__)
 app.debug = True

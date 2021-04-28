@@ -14,6 +14,8 @@ from ww import f
 import pywikibot
 import pywikibot.data.sparql
 
+from statsd.defaults.env import statsd
+
 
 class ColumnConfig:
     pass
@@ -189,6 +191,7 @@ class PropertyStatistics:
         self.column_data = {}
         self.cell_template = 'Integraality cell'
 
+    @statsd.timer('property_statistics.sparql.groupings')
     def get_grouping_information(self):
         """
         Get the information for a single grouping.
@@ -437,6 +440,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         return self._get_count_from_sparql(query)
 
     @staticmethod
+    @statsd.timer('property_statistics.sparql.count')
     def _get_count_from_sparql(query):
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
@@ -445,6 +449,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         return int(queryresult[0].get('count'))
 
     @staticmethod
+    @statsd.timer('property_statistics.sparql.grouping_counts')
     def _get_grouping_counts_from_sparql(query):
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
@@ -585,6 +590,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
         text += u'|}\n'
         return text
 
+    @statsd.timer('property_statistics.processing')
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext

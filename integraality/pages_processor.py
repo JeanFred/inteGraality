@@ -8,6 +8,7 @@ import os
 import re
 
 from redis import StrictRedis
+from statsd.defaults.env import statsd
 from ww import f
 
 import pywikibot

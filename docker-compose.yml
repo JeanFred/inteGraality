@@ -11,6 +11,9 @@ services:
       - PYWIKIBOT_NO_USER_CONFIG=1
       - REDIS_HOST=redis
       - PYTHONPATH=/code/integraality/
+      - STATSD_HOST=statsd
+      - STATSD_PORT=8125
+      - STATSD_PREFIX=toolforge.integraality
     ports:
      - 5000:5000
     volumes:
@@ -20,3 +23,10 @@ services:
     image: redis:3.2.6
     ports:
      - 6379:6379
+
+  statsd:
+    image: graphiteapp/graphite-statsd
+    ports:
+      - 8125:8125/udp
+      - 8126:8126
+      - 80:80

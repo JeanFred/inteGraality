@@ -1,3 +1,7 @@
 [uwsgi]
 workers = 10
 lazy-apps = true
+
+env=STATSD_HOST={{ statsd_host }}
+env=STATSD_PORT={{ statsd_port }}
+env=STATSD_PREFIX={{ statsd_prefix }}

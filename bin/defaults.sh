@@ -7,6 +7,6 @@ echo_time() {
 : ${TOOLFORGE_PATH:=$HOME/www/python/}
 : ${VIRTUAL_ENV_PATH:=$TOOLFORGE_PATH/venv35}
 : ${APP_PATH:=$TOOLFORGE_PATH/src}
-: ${STATSD_HOST:=cloudmetrics1002.eqiad.wmnet}
+: ${STATSD_HOST:=cloudmetrics1001.eqiad.wmnet}
 : ${STATSD_PORT:=2003}
 : ${STATSD_PREFIX:=toolforge.integraality}

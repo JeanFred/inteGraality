@@ -51,6 +51,13 @@
     #   tags:
     #     - requirements
 
+    - name: Deploy uwsgi configuration file
+      template:
+        src: 'uwsgi.ini.j2'
+        dest: '{{ toolforge_path }}/uwsgi.ini'
+      tags:
+        - config
+
     - name: Symlink src directory
       file:
         src: '{{ checkout_path }}/integraality/'

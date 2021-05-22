@@ -19,7 +19,9 @@ CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $SOURCE_PATH || exit
 
 # Use a virtual environment with our requirements
+set +u
 source $VIRTUAL_ENV_PATH/bin/activate
+set -u
 
 WIKI="$1"
 shift

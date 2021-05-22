@@ -3,5 +3,5 @@ login-stretch.tools.wmflabs.org
 
 [toolforge:vars]
 statsd_host=cloudmetrics1001.eqiad.wmnet
-statsd_port=2003
+statsd_port=8125
 statsd_prefix=toolforge.integraality

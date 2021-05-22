@@ -8,5 +8,5 @@ echo_time() {
 : ${VIRTUAL_ENV_PATH:=$TOOLFORGE_PATH/venv35}
 : ${APP_PATH:=$TOOLFORGE_PATH/src}
 : ${STATSD_HOST:=cloudmetrics1001.eqiad.wmnet}
-: ${STATSD_PORT:=2003}
+: ${STATSD_PORT:=8125}
 : ${STATSD_PREFIX:=toolforge.integraality}

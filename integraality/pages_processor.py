@@ -38,6 +38,10 @@ class NoEndTemplateException(ProcessingException):
     pass
 
 
+class NoStartTemplateException(ProcessingException):
+    pass
+
+
 class PagesProcessor:
 
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
@@ -76,6 +80,14 @@ class PagesProcessor:
     def make_stats_object_arguments_for_page(self, page):
         all_templates_with_params = page.templatesWithParams()
 
+        if self.template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
+            msg = (
+                "No start template '%s' found."
+                "The likely explanation is that inteGraality was invoked from a page that transcludes the page with the template. "
+                "Please invoke inteGraality directly from the page with the template." % self.template_name
+            )
+            raise NoStartTemplateException(msg)
+
         if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
             raise NoEndTemplateException("No end template '%s' provided" % self.end_template_name)
 
@@ -83,13 +95,6 @@ class PagesProcessor:
             (template, params) for (template, params) in all_templates_with_params if
             template.title(with_ns=False) == self.template_name
         ]
-
-        if not start_templates_with_params:
-            msg = (
-                "No start template '%s' found, which is an impossible situation. "
-                "This is potentially an upstream pywikibot issue." % self.template_name
-            )
-            raise ConfigException(msg)
 
         if len(start_templates_with_params) > 1:
             pywikibot.warn("More than one template on the page %s" % page.title())
@@ -167,6 +172,8 @@ class PagesProcessor:
             pywikibot.output("Processing page %s" % page.title())
             try:
                 self.process_page(page)
+            except NoStartTemplateException:
+                pywikibot.output("No start template on page %s, skipping" % page.title())
             except NoEndTemplateException:
                 pywikibot.output("No end template on page %s, skipping" % page.title())
             except ConfigException:

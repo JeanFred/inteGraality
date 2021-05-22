@@ -82,7 +82,7 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get('/update?page=%s&url=%s' % (self.page_title, page_url))
         self.mock_pages_processor.assert_called_once_with(page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
-        message = 'Updated page <a href="%s">%s</a></p>' % (page_url, self.page_title)
+        message = 'Updated page <a href="%s">%s</a>' % (page_url, self.page_title)
         self.assertSuccessPage(response, message)
 
 

@@ -15,9 +15,7 @@ from pywikibot import pagegenerators
 
 from cache import RedisCache
 from property_statistics import (
-    DescriptionConfig,
-    LabelConfig,
-    PropertyConfig,
+    ColumnConfigMaker,
     PropertyStatistics,
     QueryException
 )
@@ -142,20 +140,7 @@ class PagesProcessor:
             except ValueError:
                 (key, title) = (prop, None)
             if key:
-                if key.startswith('P'):
-                    splitted = key.split('/')
-                    if len(splitted) == 3:
-                        (property_name, value, qualifier) = splitted
-                    elif len(splitted) == 2:
-                        (property_name, value, qualifier) = (splitted[0], None, splitted[1])
-                    else:
-                        (property_name, value, qualifier) = (key, None, None)
-                    entry = PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
-                elif key.startswith('L'):
-                    entry = LabelConfig(language=key[1:])
-                elif key.startswith('D'):
-                    entry = DescriptionConfig(language=key[1:])
-                properties_data.append(entry)
+                properties_data.append(ColumnConfigMaker.make(key, title))
         return properties_data
 
     def replace_in_page(self, output, page_text):

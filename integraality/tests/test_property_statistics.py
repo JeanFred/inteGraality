@@ -6,6 +6,7 @@ from collections import OrderedDict
 from unittest.mock import patch
 
 from property_statistics import (
+    ColumnConfigMaker,
     DescriptionConfig,
     LabelConfig,
     PropertyConfig,
@@ -38,6 +39,53 @@ class TestPropertyConfig(unittest.TestCase):
         prop_entry = PropertyConfig('P669', title="street", qualifier='P670')
         result = prop_entry.make_column_header()
         expected = u'! data-sort-type="number"|[[Property:P670|street]]\n'
+        self.assertEqual(result, expected)
+
+
+class TestColumnConfigMaker(unittest.TestCase):
+
+    def test_property_without_title(self):
+        result = ColumnConfigMaker.make('P136', None)
+        expected = PropertyConfig(property='P136')
+        self.assertEqual(result, expected)
+
+    def test_property_with_title(self):
+        result = ColumnConfigMaker.make('P136', 'genre')
+        expected = PropertyConfig(property='P136', title='genre')
+        self.assertEqual(result, expected)
+
+    def test_property_with_qualifier(self):
+        key = 'P669/P670'
+        result = ColumnConfigMaker.make(key, None)
+        expected = PropertyConfig(property='P669', qualifier='P670')
+        self.assertEqual(result, expected)
+
+    def test_property_with_qualifier_and_title(self):
+        key = 'P669/P670'
+        result = ColumnConfigMaker.make(key, 'street number')
+        expected = PropertyConfig(property='P669', qualifier='P670', title="street number")
+        self.assertEqual(result, expected)
+
+    def test_property_with_qualifier_and_value(self):
+        key = 'P553/Q17459/P670'
+        result = ColumnConfigMaker.make(key, None)
+        expected = PropertyConfig(property='P553', value='Q17459', qualifier='P670')
+        self.assertEqual(result, expected)
+
+    def test_property_with_qualifier_and_value_and_title(self):
+        key = 'P553/Q17459/P670'
+        result = ColumnConfigMaker.make(key, 'street number')
+        expected = PropertyConfig(property='P553', value='Q17459', qualifier='P670', title='street number')
+        self.assertEqual(result, expected)
+
+    def test_label(self):
+        result = ColumnConfigMaker.make('Lxy', None)
+        expected = LabelConfig(language='xy')
+        self.assertEqual(result, expected)
+
+    def test_description(self):
+        result = ColumnConfigMaker.make('Dxy', None)
+        expected = DescriptionConfig(language='xy')
         self.assertEqual(result, expected)
 
 

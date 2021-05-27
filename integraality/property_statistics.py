@@ -21,6 +21,25 @@ class ColumnConfig:
     pass
 
 
+class ColumnConfigMaker:
+
+    @staticmethod
+    def make(key, title):
+        if key.startswith('P'):
+            splitted = key.split('/')
+            if len(splitted) == 3:
+                (property_name, value, qualifier) = splitted
+            elif len(splitted) == 2:
+                (property_name, value, qualifier) = (splitted[0], None, splitted[1])
+            else:
+                (property_name, value, qualifier) = (key, None, None)
+            return PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
+        elif key.startswith('L'):
+            return LabelConfig(language=key[1:])
+        elif key.startswith('D'):
+            return DescriptionConfig(language=key[1:])
+
+
 class PropertyConfig(ColumnConfig):
 
     def __init__(self, property, title=None, value=None, qualifier=None):

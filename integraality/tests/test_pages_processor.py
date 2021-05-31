@@ -256,6 +256,15 @@ class TestParseConfigProperties(ProcessortTest):
         ]
         self.assertEqual(result, expected)
 
+    def test_with_space(self):
+        properties = 'P131, P17'
+        result = self.processor.parse_config_properties(properties)
+        expected = [
+            PropertyConfig(property='P131'),
+            PropertyConfig(property='P17')
+        ]
+        self.assertEqual(result, expected)
+
 
 class TestMain(unittest.TestCase):
 

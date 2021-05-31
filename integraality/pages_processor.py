@@ -132,7 +132,7 @@ class PagesProcessor:
 
     @staticmethod
     def parse_config_properties(properties_string):
-        properties = properties_string.split(',')
+        properties = [x.strip() for x in properties_string.split(',')]
         properties_data = []
         for prop in properties:
             try:

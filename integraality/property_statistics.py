@@ -569,7 +569,7 @@ SELECT (COUNT(?item) as ?count) WHERE {{
                 group_item.get()
                 label = group_item.labels["en"]
             except (pywikibot.exceptions.InvalidTitle, KeyError):
-                logging.info(f"Could not retrieve label for {grouping}")
+                logging.info(f("Could not retrieve label for {grouping}"))
                 label = grouping
             text += f('| [[{self.grouping_link}/{label}|{item_count}]] \n')
         else:

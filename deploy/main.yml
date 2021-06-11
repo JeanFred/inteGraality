@@ -84,7 +84,7 @@
       cron:
         name: Weekly update
         special_time: weekly
-        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_META -N weekly-update $UPDATE_SCRIPT wikidata >> $CRONTAB_LOG_FILE
+        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_WIKIDATA -N weekly-update $UPDATE_SCRIPT wikidata >> $CRONTAB_LOG_FILE
       tags:
         - crontab
 
@@ -92,6 +92,6 @@
       cron:
         name: Daily Meta update
         special_time: daily
-        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_WIKIDATA -N daily-update-meta $UPDATE_SCRIPT meta https://meta.wikimedia.org/wiki/ >> $CRONTAB_LOG_FILE
+        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_META -N daily-update-meta $UPDATE_SCRIPT meta https://meta.wikimedia.org/wiki/ >> $CRONTAB_LOG_FILE
       tags:
         - crontab

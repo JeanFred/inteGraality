@@ -140,10 +140,10 @@ class TestLabelConfig(PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
             "  FILTER(EXISTS {\n"
-            "      ?item rdfs:label ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "    ?entity rdfs:label ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
             "  })\n"
             "}\n"
         )
@@ -173,12 +173,12 @@ class TestLabelConfig(PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "    ?entity wdt:P31 wd:Q41960 .\n"
-            "    MINUS { ?entity wdt:P551 _:b28. }\n"
-            "    FILTER(EXISTS {\n"
-            "      ?entity rdfs:label ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
-            "    })\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity rdfs:label ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
             "}\n"
             "GROUP BY ?grouping\n"
             "ORDER BY DESC (?count)\n"
@@ -208,10 +208,10 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
             "  FILTER(EXISTS {\n"
-            "      ?item schema:description ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
+            "    ?entity schema:description ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
             "  })\n"
             "}\n"
         )
@@ -241,12 +241,12 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "    ?entity wdt:P31 wd:Q41960 .\n"
-            "    MINUS { ?entity wdt:P551 _:b28. }\n"
-            "    FILTER(EXISTS {\n"
-            "      ?entity schema:description ?lang_label.\n"
-            "      FILTER((LANG(?lang_label)) = 'br').\n"
-            "    })\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity schema:description ?lang_label.\n"
+            "    FILTER((LANG(?lang_label)) = 'br').\n"
+            "  })\n"
             "}\n"
             "GROUP BY ?grouping\n"
             "ORDER BY DESC (?count)\n"
@@ -561,9 +561,9 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "    ?entity wdt:P31 wd:Q41960 .\n"
-            "    MINUS { ?entity wdt:P551 _:b28. }\n"
-            "    FILTER(EXISTS { ?entity p:P1 _:b29. })\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS { ?entity p:P1 _:b29. })\n"
             "}\n"
             "GROUP BY ?grouping\n"
             "ORDER BY DESC (?count)\n"
@@ -593,8 +593,8 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
-            "  FILTER EXISTS { ?item p:P1[] } .\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER EXISTS { ?entity p:P1[] } .\n"
             "}\n"
         )
         self.assert_query_called(query)
@@ -605,8 +605,8 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
-            "  FILTER EXISTS { ?item p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
             "}\n"
         )
         self.assert_query_called(query)
@@ -617,8 +617,8 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
-            "  MINUS { ?item wdt:P551 _:b28. }\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
             "}\n"
         )
         self.assert_query_called(query)
@@ -629,7 +629,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?item wdt:P31 wd:Q41960\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
             "}\n"
         )
         self.assert_query_called(query)

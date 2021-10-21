@@ -128,10 +128,10 @@ LIMIT 1000
         """
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
-  ?item {property_statistics.selector_sparql}
+  ?entity {property_statistics.selector_sparql}
   FILTER(EXISTS {{
-      ?item {self.get_selector()} ?lang_label.
-      FILTER((LANG(?lang_label)) = '{self.language}').
+    ?entity {self.get_selector()} ?lang_label.
+    FILTER((LANG(?lang_label)) = '{self.language}').
   }})
 }}
 """)
@@ -146,12 +146,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         query = f("""
 SELECT (COUNT(*) AS ?count) WHERE {{
-    ?entity {property_statistics.selector_sparql} .
-    MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
-    FILTER(EXISTS {{
-      ?entity {self.get_selector()} ?lang_label.
-      FILTER((LANG(?lang_label)) = '{self.language}').
-    }})
+  ?entity {property_statistics.selector_sparql} .
+  MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
+  FILTER(EXISTS {{
+    ?entity {self.get_selector()} ?lang_label.
+    FILTER((LANG(?lang_label)) = '{self.language}').
+  }})
 }}
 GROUP BY ?grouping
 ORDER BY DESC (?count)
@@ -383,9 +383,9 @@ LIMIT 1000
         """
         query = f("""
 SELECT (COUNT(*) AS ?count) WHERE {{
-    ?entity {self.selector_sparql} .
-    MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
-    FILTER(EXISTS {{ ?entity p:{property} _:b29. }})
+  ?entity {self.selector_sparql} .
+  MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
+  FILTER(EXISTS {{ ?entity p:{property} _:b29. }})
 }}
 GROUP BY ?grouping
 ORDER BY DESC (?count)
@@ -421,8 +421,8 @@ LIMIT 10
         """
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
-  ?item {self.selector_sparql}
-  FILTER EXISTS {{ ?item p:{property}[] }} .
+  ?entity {self.selector_sparql}
+  FILTER EXISTS {{ ?entity p:{property}[] }} .
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -435,8 +435,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
-  ?item {self.selector_sparql}
-  FILTER EXISTS {{ ?item p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
+  ?entity {self.selector_sparql}
+  FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -444,8 +444,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def get_totals_no_grouping(self):
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
-  ?item {self.selector_sparql}
-  MINUS {{ ?item wdt:{self.grouping_property} _:b28. }}
+  ?entity {self.selector_sparql}
+  MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
 }}
 """)
         return self._get_count_from_sparql(query)
@@ -453,7 +453,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def get_totals(self):
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
-  ?item {self.selector_sparql}
+  ?entity {self.selector_sparql}
 }}
 """)
         return self._get_count_from_sparql(query)

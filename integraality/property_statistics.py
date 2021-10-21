@@ -17,10 +17,6 @@ import pywikibot.data.sparql
 from statsd.defaults.env import statsd
 
 
-class ColumnConfig:
-    pass
-
-
 class ColumnConfigMaker:
 
     @staticmethod
@@ -38,6 +34,62 @@ class ColumnConfigMaker:
             return LabelConfig(language=key[1:])
         elif key.startswith('D'):
             return DescriptionConfig(language=key[1:])
+
+
+class ColumnConfig:
+
+    def get_info_query(self, property_statistics):
+        """
+        Get the usage counts for a column for the groupings
+
+        :return: (str) SPARQL query
+        """
+        query = f("""
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
+  ?entity {property_statistics.selector_sparql} .
+  ?entity wdt:{property_statistics.grouping_property} ?grouping .
+  FILTER(EXISTS {{{self.get_filter_for_info()}
+  }})
+}}
+GROUP BY ?grouping
+HAVING (?count >= {property_statistics.property_threshold})
+ORDER BY DESC(?count)
+LIMIT 1000
+""")
+        return query
+
+    def get_totals_query(self, property_statistics):
+        """
+        Get the totals of entities with the column set.
+        :return: (str) SPARQL query
+        """
+        query = f("""
+SELECT (COUNT(*) as ?count) WHERE {{
+  ?entity {property_statistics.selector_sparql}
+  FILTER(EXISTS {{{self.get_filter_for_info()}
+  }})
+}}
+""")
+        return query
+
+    def get_info_no_grouping_query(self, property_statistics):
+        """
+        Get the usage counts for a column without a grouping
+
+        :return: (str) SPARQL query
+        """
+        query = f("""
+SELECT (COUNT(*) AS ?count) WHERE {{
+  ?entity {property_statistics.selector_sparql} .
+  MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
+  FILTER(EXISTS {{{self.get_filter_for_info()}
+  }})
+}}
+GROUP BY ?grouping
+ORDER BY DESC (?count)
+LIMIT 10
+""")
+        return query
 
 
 class PropertyConfig(ColumnConfig):
@@ -97,67 +149,10 @@ class TextConfig(ColumnConfig):
             text = f('{{{{#language:{self.language}}}}}')
         return f('! data-sort-type="number"|{text}\n')
 
-    def get_info_query(self, property_statistics):
-        """
-        Get the usage counts for a label for the groupings
-
-        :param prop: sparql fragment
-        :return: (str) SPARQL query
-        """
-        query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql} .
-  ?entity wdt:{property_statistics.grouping_property} ?grouping .
-  FILTER(EXISTS {{
+    def get_filter_for_info(self):
+        return f("""
     ?entity {self.get_selector()} ?lang_label.
-    FILTER((LANG(?lang_label)) = '{self.language}').
-  }})
-}}
-GROUP BY ?grouping
-HAVING (?count >= {property_statistics.property_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-""")
-        return query
-
-    def get_totals_query(self, property_statistics):
-        """
-        Get the totals of entities with a label/description in the given language
-        :param language:  language code of the labels
-        :return: number of entities found
-        """
-        query = f("""
-SELECT (COUNT(*) as ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql}
-  FILTER(EXISTS {{
-    ?entity {self.get_selector()} ?lang_label.
-    FILTER((LANG(?lang_label)) = '{self.language}').
-  }})
-}}
-""")
-        return query
-
-    def get_info_no_grouping_query(self, property_statistics):
-        """
-        Get the usage counts for a label without a grouping
-
-        :param language: language code for the label
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT (COUNT(*) AS ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql} .
-  MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
-  FILTER(EXISTS {{
-    ?entity {self.get_selector()} ?lang_label.
-    FILTER((LANG(?lang_label)) = '{self.language}').
-  }})
-}}
-GROUP BY ?grouping
-ORDER BY DESC (?count)
-LIMIT 10
-""")
-        return query
+    FILTER((LANG(?lang_label)) = '{self.language}').""")
 
 
 class LabelConfig(TextConfig):

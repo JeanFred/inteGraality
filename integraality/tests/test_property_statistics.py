@@ -229,7 +229,8 @@ class TestLabelConfig(PropertyStatisticsTest):
             "ORDER BY DESC (?count)\n"
             "LIMIT 10\n"
         )
-
+        print(result)
+        print(query)
         self.assertEqual(result, query)
 
 

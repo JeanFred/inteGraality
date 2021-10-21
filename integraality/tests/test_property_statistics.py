@@ -15,7 +15,26 @@ from property_statistics import (
 )
 
 
-class TestPropertyConfig(unittest.TestCase):
+class PropertyStatisticsTest(unittest.TestCase):
+
+    def setUp(self):
+        columns = [
+            PropertyConfig(property='P21'),
+            PropertyConfig(property='P19'),
+            PropertyConfig(property='P1', qualifier='P2'),
+            PropertyConfig(property='P3', value='Q4', qualifier='P5'),
+            LabelConfig(language='br'),
+            DescriptionConfig(language='xy'),
+        ]
+        self.stats = PropertyStatistics(
+            columns=columns,
+            selector_sparql=u'wdt:P31 wd:Q41960',
+            grouping_property=u'P551',
+            property_threshold=10
+        )
+
+
+class TestPropertyConfig(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -26,8 +45,21 @@ class TestPropertyConfig(unittest.TestCase):
         expected = u'! data-sort-type="number"|{{Property|P19}}\n'
         self.assertEqual(result, expected)
 
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P19[]\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, expected)
 
-class TestPropertyConfigWithTitle(unittest.TestCase):
+
+class TestPropertyConfigWithTitle(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -39,7 +71,7 @@ class TestPropertyConfigWithTitle(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifier(unittest.TestCase):
+class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -50,8 +82,21 @@ class TestPropertyConfigWithQualifier(unittest.TestCase):
         expected = u'! data-sort-type="number"|{{Property|P670}}\n'
         self.assertEqual(result, expected)
 
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, expected)
 
-class TestPropertyConfigWithQualifierAndLabel(unittest.TestCase):
+
+class TestPropertyConfigWithQualifierAndLabel(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -63,7 +108,7 @@ class TestPropertyConfigWithQualifierAndLabel(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifierAndValue(unittest.TestCase):
+class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -74,8 +119,21 @@ class TestPropertyConfigWithQualifierAndValue(unittest.TestCase):
         expected = u'! data-sort-type="number"|{{Property|P5}}\n'
         self.assertEqual(result, expected)
 
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, expected)
 
-class TestPropertyConfigWithQualifierAndValueAndTitle(unittest.TestCase):
+
+class TestPropertyConfigWithQualifierAndValueAndTitle(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -132,25 +190,6 @@ class TestColumnConfigMaker(unittest.TestCase):
         result = ColumnConfigMaker.make('Dxy', None)
         expected = DescriptionConfig(language='xy')
         self.assertEqual(result, expected)
-
-
-class PropertyStatisticsTest(unittest.TestCase):
-
-    def setUp(self):
-        columns = [
-            PropertyConfig(property='P21'),
-            PropertyConfig(property='P19'),
-            PropertyConfig(property='P1', qualifier='P2'),
-            PropertyConfig(property='P3', value='Q4', qualifier='P5'),
-            LabelConfig(language='br'),
-            DescriptionConfig(language='xy'),
-        ]
-        self.stats = PropertyStatistics(
-            columns=columns,
-            selector_sparql=u'wdt:P31 wd:Q41960',
-            grouping_property=u'P551',
-            property_threshold=10
-        )
 
 
 class SparqlQueryTest(unittest.TestCase):
@@ -630,30 +669,6 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
             "GROUP BY ?grouping\n"
             "ORDER BY DESC (?count)\n"
             "LIMIT 10\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
-    def test_get_totals_for_property(self):
-        result = self.stats.get_totals_for_property('P1')
-        query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER EXISTS { ?entity p:P1[] } .\n"
-            "}\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
-    def test_get_totals_for_qualifier(self):
-        result = self.stats.get_totals_for_qualifier("P1", "P2")
-        query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
-            "}\n"
         )
         self.assert_query_called(query)
         self.assertEqual(result, 18)

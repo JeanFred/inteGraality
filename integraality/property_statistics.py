@@ -126,6 +126,14 @@ class PropertyConfig(ColumnConfig):
             label = f('{{{{Property|{property_link}}}}}')
         return f('! data-sort-type="number"|{label}\n')
 
+    def get_filter_for_info(self):
+        if self.qualifier:
+            return f("""
+    ?entity p:{self.property} [ ps:{self.property} {self.value or '[]'} ; pq:{self.qualifier} [] ]""")
+        else:
+            return f("""
+    ?entity p:{self.property}[]""")
+
 
 class TextConfig(ColumnConfig):
 
@@ -408,34 +416,6 @@ LIMIT 10
 """)
         return self._get_count_from_sparql(query)
 
-    def get_totals_for_property(self, property):
-        """
-        Get the totals of entities with that property
-        :param prop:  Wikidata Pid of the property.
-        :return: number of games found
-        """
-        query = f("""
-SELECT (COUNT(*) as ?count) WHERE {{
-  ?entity {self.selector_sparql}
-  FILTER EXISTS {{ ?entity p:{property}[] }} .
-}}
-""")
-        return self._get_count_from_sparql(query)
-
-    def get_totals_for_qualifier(self, property, qualifier, value="[]"):
-        """
-        Get the totals of entities with that property
-        :param prop:  Wikidata Pid of the property.
-        :return: number of games found
-        """
-        query = f("""
-SELECT (COUNT(*) as ?count) WHERE {{
-  ?entity {self.selector_sparql}
-  FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
-}}
-""")
-        return self._get_count_from_sparql(query)
-
     def get_totals_no_grouping(self):
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
@@ -590,15 +570,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
         for column_entry in self.columns:
-
-            if isinstance(column_entry, PropertyConfig):
-                property_name = column_entry.property
-                if column_entry.qualifier:
-                    totalprop = self.get_totals_for_qualifier(property=property_name, qualifier=column_entry.qualifier)
-                else:
-                    totalprop = self.get_totals_for_property(property=property_name)
-            elif isinstance(column_entry, TextConfig):
-                totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
+            totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n')
         text += u'|}\n'

@@ -377,45 +377,6 @@ LIMIT 1000
 """)
         return self._get_grouping_counts_from_sparql(query)
 
-    def get_property_info_no_grouping(self, property):
-        """
-        Get the usage counts for a property without a grouping
-
-        :param property: Wikidata Pid of the property
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT (COUNT(*) AS ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
-  FILTER(EXISTS {{ ?entity p:{property} _:b29. }})
-}}
-GROUP BY ?grouping
-ORDER BY DESC (?count)
-LIMIT 10
-""")
-        return self._get_count_from_sparql(query)
-
-    def get_qualifier_info_no_grouping(self, property, qualifier, value='[]'):
-        """
-        Get the usage counts for a qualifier without a grouping
-
-        :param property: Wikidata Pid of the property
-        :param qualifier: Wikidata Pid of the qualifier
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT (COUNT(*) AS ?count) WHERE {{
-    ?entity {self.selector_sparql} .
-    MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
-    FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
-}}
-GROUP BY ?grouping
-ORDER BY DESC (?count)
-LIMIT 10
-""")
-        return self._get_count_from_sparql(query)
-
     def get_totals_no_grouping(self):
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
@@ -507,21 +468,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
         total_no_count = self.get_totals_no_grouping()
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
+
         for column_entry in self.columns:
-
-            if isinstance(column_entry, PropertyConfig):
-                property_name = column_entry.property
-
-                if column_entry.qualifier:
-                    value = column_entry.value or '[]'
-                    column_count = self.get_qualifier_info_no_grouping(property_name, column_entry.qualifier, value)
-                else:
-                    column_count = self.get_property_info_no_grouping(property_name)
-            elif isinstance(column_entry, TextConfig):
-                column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
-
+            column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
             percentage = self._get_percentage(column_count, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
+
         return text
 
     def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):

@@ -58,6 +58,23 @@ class TestPropertyConfig(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P19[]\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+        self.assertEqual(result, expected)
+
 
 class TestPropertyConfigWithTitle(PropertyStatisticsTest):
 
@@ -92,6 +109,23 @@ class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
             "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
             "  })\n"
             "}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
         )
         self.assertEqual(result, expected)
 
@@ -130,6 +164,25 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "  })\n"
             "}\n"
         )
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "ORDER BY DESC (?count)\n"
+            "LIMIT 10\n"
+        )
+        print(result)
+        print(expected)
         self.assertEqual(result, expected)
 
 
@@ -641,38 +694,6 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
         super().setUp()
         self.mock_sparql_query.return_value.select.return_value = [{'count': '18'}]
 
-    def test_get_property_info_no_grouping(self):
-        result = self.stats.get_property_info_no_grouping('P1')
-        query = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS { ?entity p:P1 _:b29. })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
-    def test_get_qualifier_info_no_grouping(self):
-        result = self.stats.get_qualifier_info_no_grouping('P1', 'P2')
-        query = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "    ?entity wdt:P31 wd:Q41960 .\n"
-            "    MINUS { ?entity wdt:P551 _:b28. }\n"
-            "    FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, 18)
-
     def test_get_totals_no_grouping(self):
         result = self.stats.get_totals_no_grouping()
         query = (
@@ -842,28 +863,6 @@ class GetPropertyInfoTest(GetInfoTest):
         )
         self.assert_query_called(query)
         self.assertEqual(result, expected)
-
-
-class GetQualifierInfoTest(GetInfoTest):
-
-    def test_get_qualifier_info(self):
-        self.mock_sparql_query.return_value.select.return_value = self.sparql_return_value
-
-        result = self.stats.get_qualifier_info('P1', qualifier="P2")
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER EXISTS { ?entity p:P1 [ ps:P1 [] ; pq:P2 [] ] } .\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
-        self.assert_query_called(query)
-        self.assertEqual(result, self.expected)
 
 
 class TestGetHeader(PropertyStatisticsTest):

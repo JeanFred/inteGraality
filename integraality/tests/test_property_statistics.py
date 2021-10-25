@@ -305,6 +305,10 @@ class TestColumnConfigMaker(unittest.TestCase):
         expected = DescriptionConfig(language='xy')
         self.assertEqual(result, expected)
 
+    def test_aliases(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnConfigMaker.make('Axy', None)
+
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnConfigMaker.make('SomethingSomething', None)

@@ -265,6 +265,11 @@ class TestParseConfigProperties(ProcessortTest):
         ]
         self.assertEqual(result, expected)
 
+    def test_with_incorrect_syntax(self):
+        properties = 'P131,Something'
+        with self.assertRaises(ConfigException):
+            result = self.processor.parse_config_properties(properties)
+
 
 class TestMain(unittest.TestCase):
 

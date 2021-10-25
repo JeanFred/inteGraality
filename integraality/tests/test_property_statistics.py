@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from property_statistics import (
     ColumnConfigMaker,
+    ColumnSyntaxException,
     DescriptionConfig,
     LabelConfig,
     PropertyConfig,
@@ -303,6 +304,10 @@ class TestColumnConfigMaker(unittest.TestCase):
         result = ColumnConfigMaker.make('Dxy', None)
         expected = DescriptionConfig(language='xy')
         self.assertEqual(result, expected)
+
+    def test_unknown_syntax(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnConfigMaker.make('SomethingSomething', None)
 
 
 class SparqlQueryTest(unittest.TestCase):

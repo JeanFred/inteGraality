@@ -16,6 +16,7 @@ from pywikibot import pagegenerators
 from cache import RedisCache
 from property_statistics import (
     ColumnConfigMaker,
+    ColumnSyntaxException,
     PropertyStatistics,
     QueryException
 )
@@ -140,7 +141,10 @@ class PagesProcessor:
             except ValueError:
                 (key, title) = (prop, None)
             if key:
-                properties_data.append(ColumnConfigMaker.make(key, title))
+                try:
+                    properties_data.append(ColumnConfigMaker.make(key, title))
+                except ColumnSyntaxException as e:
+                    raise ConfigException(e)
         return properties_data
 
     def replace_in_page(self, output, page_text):

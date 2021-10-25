@@ -17,6 +17,10 @@ import pywikibot.data.sparql
 from statsd.defaults.env import statsd
 
 
+class ColumnSyntaxException(Exception):
+    pass
+
+
 class ColumnConfigMaker:
 
     @staticmethod
@@ -34,6 +38,8 @@ class ColumnConfigMaker:
             return LabelConfig(language=key[1:])
         elif key.startswith('D'):
             return DescriptionConfig(language=key[1:])
+        else:
+            raise ColumnSyntaxException("Unknown column syntax %s" % key)
 
 
 class ColumnConfig:

@@ -336,47 +336,6 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
 
         return query
 
-    def get_property_info(self, property):
-        """
-        Get the usage counts for a property for the groupings
-
-        :param prop: Wikidata Pid of the property
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?grouping .
-  FILTER EXISTS {{ ?entity p:{property} [] }} .
-}}
-GROUP BY ?grouping
-HAVING (?count >= {self.property_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-""")
-        return self._get_grouping_counts_from_sparql(query)
-
-    def get_qualifier_info(self, property, qualifier, value="[]"):
-        """
-        Get the usage counts for a qulifier for the groupings
-
-        :param property: Wikidata Pid of the property
-        :param qualifier: Wikidata Pid of the qualifier
-        :return: (Ordered) dictionary with the counts per grouping
-        """
-        query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?grouping .
-  FILTER EXISTS {{ ?entity p:{property} [ ps:{property} {value} ; pq:{qualifier} [] ] }} .
-}}
-GROUP BY ?grouping
-HAVING (?count >= {self.property_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-""")
-        return self._get_grouping_counts_from_sparql(query)
-
     def get_totals_no_grouping(self):
         query = f("""
 SELECT (COUNT(*) as ?count) WHERE {{
@@ -544,16 +503,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
         for column_entry in self.columns:
             column_entry_key = column_entry.get_key()
-
-            if isinstance(column_entry, PropertyConfig):
-                property_name = column_entry.property
-                if column_entry.qualifier:
-                    value = column_entry.value or '[]'
-                    self.column_data[column_entry_key] = self.get_qualifier_info(property_name, column_entry.qualifier, value)
-                else:
-                    self.column_data[column_entry_key] = self.get_property_info(property_name)
-            elif isinstance(column_entry, TextConfig):
-                self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
+            self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
         text = self.get_header()
 

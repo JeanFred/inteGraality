@@ -251,11 +251,23 @@ LIMIT 1000
 
         grouping_groupings = collections.OrderedDict()
 
-        sq = pywikibot.data.sparql.SparqlQuery()
-        queryresult = sq.select(query)
+        try:
+            sq = pywikibot.data.sparql.SparqlQuery()
+            queryresult = sq.select(query)
 
-        if not queryresult:
-            raise QueryException("No result when querying groupings.")
+            if not queryresult:
+                raise QueryException(
+                    "No result when querying groupings."
+                    "Please investigate the 'all groupings' debug query in the dashboard header."
+                )
+
+        except pywikibot.exceptions.TimeoutError:
+
+            raise QueryException(
+                "The Wikidata Query Service timed out when fetching groupings."
+                "You might be trying to do something too expensive."
+                "Please investigate the 'all groupings' debug query in the dashboard header."
+            )
 
         for resultitem in queryresult:
             qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')

@@ -5,6 +5,8 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import patch
 
+import pywikibot
+
 from property_statistics import (
     ColumnConfigMaker,
     ColumnSyntaxException,
@@ -867,6 +869,22 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_get_grouping_information_empty_result(self):
         self.mock_sparql_query.return_value.select.return_value = None
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        with self.assertRaises(QueryException):
+            self.stats.get_grouping_information()
+        self.assert_query_called(query)
+
+    def test_get_grouping_information_timeout(self):
+        self.mock_sparql_query.return_value.select.side_effect = pywikibot.exceptions.TimeoutError("Error")
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"

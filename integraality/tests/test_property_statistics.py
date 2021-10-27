@@ -899,6 +899,35 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
 
+    def test_get_grouping_information_unknown_value(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 'count': '2'},
+            {'grouping': 'http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 'count': '1'}
+        ]
+        expected = (
+            OrderedDict([
+                ('Q3115846', 10), ('Q5087901', 6),
+                ('http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 2),
+                ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 1)
+            ]),
+            OrderedDict()
+        )
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
 
 class TestGetHeader(PropertyStatisticsTest):
 

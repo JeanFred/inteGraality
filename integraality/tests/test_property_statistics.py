@@ -758,6 +758,23 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assert_query_called("SELECT X")
         self.assertEqual(result, None)
 
+    def test_return_count_with_unknown(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q1', 'count': 10},
+            {'grouping': 'http://www.wikidata.org/entity/Q2', 'count': 5},
+            {'grouping': 'http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 'count': 2},
+            {'grouping': 'http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 'count': 1}
+
+        ]
+        result = self.stats._get_grouping_counts_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+        expected = OrderedDict([
+            ('Q1', 10), ('Q2', 5),
+            ('http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 2),
+            ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 1)
+        ])
+        self.assertEqual(result, expected)
+
 
 class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
 

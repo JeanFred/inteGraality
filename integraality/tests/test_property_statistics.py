@@ -549,7 +549,10 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.stats.column_data = {
-            'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6)]),
+            'P21': OrderedDict([
+                ('Q3115846', 10), ('Q5087901', 6),
+                ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 4)
+            ]),
             'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
             'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
             'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
@@ -570,6 +573,23 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
             '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
         )
+        self.assertEqual(result, expected)
+
+    def test_make_stats_for_unknown_grouping(self):
+        result = self.stats.make_stats_for_one_grouping("http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b", 10, None)
+        expected = (
+            '|-\n'
+            '| {{Q|http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| 10 \n'
+            '| {{Integraality cell|40.0|4|column=P21|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+        )
+        print(result)
+        print(expected)
         self.assertEqual(result, expected)
 
     def test_make_stats_for_one_grouping_with_higher_grouping(self):

@@ -196,7 +196,13 @@ class PropertyStatistics:
     Generate statitics
 
     """
-    GROUP_MAPPING = Enum('GROUP_MAPPING', {'NO_GROUPING': 'None', 'TOTALS': ''})
+    UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
+
+    GROUP_MAPPING = Enum('GROUP_MAPPING', {
+        'NO_GROUPING': 'None',
+        'TOTALS': '',
+        'UNKNOWN_VALUE': '{{int:wikibase-snakview-variations-somevalue-label}}'
+    })
 
     TEXT_SELECTOR_MAPPING = {'L': 'rdfs:label', 'D': 'schema:description'}
 
@@ -270,8 +276,13 @@ LIMIT 1000
             )
 
         for resultitem in queryresult:
-            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-            grouping_counts[qid] = int(resultitem.get('count'))
+            if resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
+                if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in grouping_counts.keys():
+                    grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
+                grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))
+            else:
+                qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
+                grouping_counts[qid] = int(resultitem.get('count'))
 
             if self.higher_grouping:
                 value = resultitem.get('higher_grouping')
@@ -294,6 +305,12 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   MINUS {{
     ?entity wdt:{self.grouping_property} [] .
   }}""")
+
+        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
+            query += f("""
+  ?entity wdt:{self.grouping_property} ?grouping.
+  FILTER wikibase:isSomeValue(?grouping).""")
+
         else:
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .""")
@@ -330,6 +347,13 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
             query += f("""
   MINUS {{
     {{?entity wdt:{self.grouping_property} [] .}} UNION""")
+
+        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
+            query += f("""
+  ?entity wdt:{self.grouping_property} ?grouping.
+  FILTER wikibase:isSomeValue(?grouping).
+  MINUS {{""")
+
         else:
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .
@@ -380,17 +404,23 @@ SELECT (COUNT(*) as ?count) WHERE {{
             return None
         return int(queryresult[0].get('count'))
 
-    @staticmethod
     @statsd.timer('property_statistics.sparql.grouping_counts')
-    def _get_grouping_counts_from_sparql(query):
+    def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
         if not queryresult:
             return None
         for resultitem in queryresult:
-            qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-            result[qid] = int(resultitem.get('count'))
+
+            if resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
+                if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in result.keys():
+                    result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
+                result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))
+            else:
+                qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
+                result[qid] = int(resultitem.get('count'))
+
         return result
 
     @staticmethod
@@ -465,7 +495,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
             else:
                 text += u'|\n'
 
-        text += u'| {{Q|%s}}\n' % (grouping,)
+        if grouping in self.GROUP_MAPPING.__members__:
+            text += u'| %s\n' % (self.GROUP_MAPPING.__members__.get(grouping).value,)
+        else:
+            text += u'| {{Q|%s}}\n' % (grouping,)
 
         if self.grouping_link:
             try:
@@ -525,7 +558,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         text = self.get_header()
 
-        for (grouping, item_count) in groupings_counts.items():
+        for (grouping, item_count) in sorted(groupings_counts.items(), key=lambda t: t[1], reverse=True):
             higher_grouping = groupings_groupings.get(grouping)
             text += self.make_stats_for_one_grouping(grouping, item_count, higher_grouping)
 

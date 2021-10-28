@@ -103,6 +103,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
         self.mock_group_mapping.side_effect = ValueError
+        self.mock_group_mapping.__members__.get.return_value = 'Q2'
         response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
@@ -143,6 +144,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
         self.mock_group_mapping.side_effect = ValueError
+        self.mock_group_mapping.__members__.get.return_value = 'Q2'
         response = self.app.get('/queries?page=%s&url=%s&column=Lbr&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
@@ -163,6 +165,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
         self.mock_group_mapping.side_effect = ValueError
+        self.mock_group_mapping.__members__.get.return_value = 'Q2'
         response = self.app.get('/queries?page=%s&url=%s&column=Dbr&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
@@ -213,3 +216,24 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
         message = '<p>Something catastrophic happened when generating queries from page {page}.</p>'.format(page=self.linked_page)  # noqa
         self.assertErrorPage(response, message)
+
+    def test_queries_success_unknown_value_grouping(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.return_value = "X"
+        self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = "Z"
+        self.mock_group_mapping.side_effect = ValueError
+        self.mock_group_mapping.__members__.get.return_value = 'UNKNOWN_VALUE'
+        response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=UNKNOWN_VALUE' % (self.page_title, self.page_url))
+        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "UNKNOWN_VALUE")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "UNKNOWN_VALUE")
+        expected = (
+            '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
+            '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
+            'with unknown value as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(expected, response.get_data(as_text=True))

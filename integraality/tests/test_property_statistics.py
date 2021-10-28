@@ -551,7 +551,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.stats.column_data = {
             'P21': OrderedDict([
                 ('Q3115846', 10), ('Q5087901', 6),
-                ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 4)
+                ('UNKNOWN_VALUE', 4)
             ]),
             'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
             'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
@@ -576,17 +576,17 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_stats_for_unknown_grouping(self):
-        result = self.stats.make_stats_for_one_grouping("http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b", 10, None)
+        result = self.stats.make_stats_for_one_grouping("UNKNOWN_VALUE", 10, None)
         expected = (
             '|-\n'
-            '| {{Q|http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{int:wikibase-snakview-variations-somevalue-label}}\n'
             '| 10 \n'
-            '| {{Integraality cell|40.0|4|column=P21|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
-            '| {{Integraality cell|0|0|column=P19|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
-            '| {{Integraality cell|0|0|column=P1/P2|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
-            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
-            '| {{Integraality cell|0|0|column=Lbr|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
-            '| {{Integraality cell|0|0|column=Dxy|grouping=http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b}}\n'
+            '| {{Integraality cell|40.0|4|column=P21|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=UNKNOWN_VALUE}}\n'
         )
         print(result)
         print(expected)
@@ -682,6 +682,19 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_unknown_value_grouping(self):
+        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping.
+  FILTER wikibase:isSomeValue(?grouping).
+  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
 
@@ -744,6 +757,22 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_negative_unknown_value_grouping(self):
+        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping.
+  FILTER wikibase:isSomeValue(?grouping).
+  MINUS {
+    {?entity a wdno:P21 .} UNION
+    {?entity wdt:P21 ?prop .}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
 
 class GetCountFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
 
@@ -788,11 +817,7 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
         ]
         result = self.stats._get_grouping_counts_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
-        expected = OrderedDict([
-            ('Q1', 10), ('Q2', 5),
-            ('http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 2),
-            ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 1)
-        ])
+        expected = OrderedDict([('Q1', 10), ('Q2', 5), ('UNKNOWN_VALUE', 3)])
         self.assertEqual(result, expected)
 
 
@@ -944,11 +969,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 'count': '1'}
         ]
         expected = (
-            OrderedDict([
-                ('Q3115846', 10), ('Q5087901', 6),
-                ('http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 2),
-                ('http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 1)
-            ]),
+            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('UNKNOWN_VALUE', 3)]),
             OrderedDict()
         )
         query = (

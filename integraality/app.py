@@ -8,6 +8,7 @@ from time import perf_counter
 from flask import Flask, render_template, request
 
 from pages_processor import PagesProcessor, ProcessingException
+from property_statistics import QueryException
 
 app = Flask(__name__)
 app.debug = True
@@ -28,6 +29,9 @@ def update():
         processor.process_one_page(page_title)
         elapsed_time = (perf_counter() - start_time)
         return render_template('update.html', page_title=page_title, page_url=page_url, elapsed_time=elapsed_time)
+    except QueryException as e:
+        return render_template('update_query_error.html',
+                               page_title=page_title, page_url=page_url, error_message=e, query=e.query)
     except ProcessingException as e:
         return render_template('update_error.html',
                                page_title=page_title, page_url=page_url, error_message=e)

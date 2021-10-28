@@ -784,9 +784,9 @@ class GetCountFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_return_None(self):
         self.mock_sparql_query.return_value.select.return_value = None
-        result = self.stats._get_count_from_sparql("SELECT X")
+        with self.assertRaises(QueryException):
+            self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
-        self.assertEqual(result, None)
 
 
 class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):

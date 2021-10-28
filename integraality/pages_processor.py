@@ -114,10 +114,7 @@ class PagesProcessor:
     def process_page(self, page):
         self.cache.invalidate(self.make_cache_key(page.title()))
         stats = self.make_stats_object_for_page(page)
-        try:
-            output = stats.retrieve_and_process_data()
-        except QueryException as e:
-            raise ConfigException(e)
+        output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page.get())
         page.put(new_text, self.summary)
 
@@ -166,6 +163,8 @@ class PagesProcessor:
                 pywikibot.output("No end template on page %s, skipping" % page.title())
             except ConfigException:
                 pywikibot.output("Bad configuration on page %s, skipping" % page.title())
+            except QueryException:
+                pywikibot.output("A SPARQL query went wrong on page %s, skipping" % page.title())
             except Exception as e:
                 pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
 

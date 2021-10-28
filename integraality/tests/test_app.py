@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from app import app
 from pages_processor import ProcessingException
+from property_statistics import QueryException
 
 
 class AppTests(unittest.TestCase):
@@ -76,6 +77,19 @@ class UpdateTests(PagesProcessorTests):
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
         message = '<p>Something catastrophic happened when processing page {page}.</p>'.format(page=self.linked_page)
         self.assertErrorPage(response, message)
+
+    def test_update_error_query_exception(self):
+        self.mock_pages_processor.return_value.process_one_page.side_effect = QueryException("Error", "SELECT X")
+        response = self.app.get('/update?page=%s&url=%s' % (self.page_title, self.page_url))
+        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(page_title=self.page_title)
+        expected = (
+            '<p>Something went wrong when updating page <a href="https://wikidata.org/wiki/Foo">Foo</a>.</p>\n'
+            '<p>The following SPARQL query timed out or returned no result:</p>\n'
+            '<pre><code>SELECT X</code></pre>\n'
+            '<p><a class="btn btn-primary" href="https://query.wikidata.org/#SELECT X">Try it in Wikidata Query Service</a></p>'  # noqa
+        )
+        self.assertErrorPage(response, expected)
 
     def test_update_success_meta(self):
         page_url = 'https://meta.wikimedia.org/wiki/%s' % self.page_title

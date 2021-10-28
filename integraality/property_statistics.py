@@ -188,7 +188,10 @@ class DescriptionConfig(TextConfig):
 
 
 class QueryException(Exception):
-    pass
+
+    def __init__(self, message, query):
+        super().__init__(message)
+        self.query = query
 
 
 class PropertyStatistics:
@@ -264,7 +267,8 @@ LIMIT 1000
             if not queryresult:
                 raise QueryException(
                     "No result when querying groupings."
-                    "Please investigate the 'all groupings' debug query in the dashboard header."
+                    "Please investigate the 'all groupings' debug query in the dashboard header.",
+                    query=query
                 )
 
         except pywikibot.exceptions.TimeoutError:
@@ -272,7 +276,8 @@ LIMIT 1000
             raise QueryException(
                 "The Wikidata Query Service timed out when fetching groupings."
                 "You might be trying to do something too expensive."
-                "Please investigate the 'all groupings' debug query in the dashboard header."
+                "Please investigate the 'all groupings' debug query in the dashboard header.",
+                query=query
             )
 
         for resultitem in queryresult:
@@ -401,7 +406,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
         if not queryresult:
-            return None
+            raise QueryException("No result when running a SPARQL query.", query=query)
+
         return int(queryresult[0].get('count'))
 
     @statsd.timer('property_statistics.sparql.grouping_counts')

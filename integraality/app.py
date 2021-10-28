@@ -2,6 +2,7 @@
 # -*- coding: utf-8  -*-
 
 import os
+import traceback
 from time import perf_counter
 
 from flask import Flask, render_template, request
@@ -32,7 +33,7 @@ def update():
                                page_title=page_title, page_url=page_url, error_message=e)
     except Exception as e:
         return render_template('update_unknown_error.html',
-                               page_title=page_title, page_url=page_url, error_type=type(e), error_message=e)
+                               page_title=page_title, page_url=page_url, error_message=traceback.format_exception(type(e), e, e.__traceback__))
 
 
 @app.route('/queries')
@@ -59,7 +60,7 @@ def queries():
                                page_title=page_title, page_url=page_url, error_message=e)
     except Exception as e:
         return render_template('queries_unknown_error.html',
-                               page_title=page_title, page_url=page_url, error_type=type(e), error_message=e)
+                               page_title=page_title, page_url=page_url, error_message=traceback.format_exception(type(e), e, e.__traceback__))
 
 
 @app.errorhandler(404)

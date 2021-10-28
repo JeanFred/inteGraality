@@ -695,6 +695,29 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_year_grouping(self):
+        stats = PropertyStatistics(
+            columns=self.stats.columns,
+            selector_sparql=u'wdt:P31 wd:Q41960',
+            grouping_property=u'P577',
+            grouping_type='year',
+            property_threshold=10
+        )
+        result = stats.get_query_for_items_for_property_positive('P21', 2006)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P577 ?date.
+  BIND(YEAR(?date) as ?year).
+  FILTER(?year = 2006).
+  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        print(result)
+        print(expected)
+        self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
 
@@ -764,6 +787,30 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
   FILTER wikibase:isSomeValue(?grouping).
+  MINUS {
+    {?entity a wdno:P21 .} UNION
+    {?entity wdt:P21 ?prop .}
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_year_grouping(self):
+        stats = PropertyStatistics(
+            columns=self.stats.columns,
+            selector_sparql=u'wdt:P31 wd:Q41960',
+            grouping_property=u'P577',
+            grouping_type='year',
+            property_threshold=10
+        )
+        result = stats.get_query_for_items_for_property_negative('P21', 2006)
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P577 ?date.
+  BIND(YEAR(?date) as ?year).
+  FILTER(?year = 2006).
   MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
@@ -983,6 +1030,38 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "LIMIT 1000\n"
         )
         result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_year(self):
+        stats = PropertyStatistics(
+            columns=self.stats.columns,
+            selector_sparql=u'wdt:P31 wd:Q41960',
+            grouping_property=u'P577',
+            grouping_type='year',
+            property_threshold=10
+        )
+
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': '2001', 'count': '10'},
+            {'grouping': '2002', 'count': '6'},
+        ]
+        expected = (
+            OrderedDict([('2001', 10), ('2002', 6)]),
+            OrderedDict()
+        )
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P577 ?date .\n"
+            "  BIND(YEAR(?date) as ?grouping) .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
 

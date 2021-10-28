@@ -52,8 +52,18 @@ class ColumnConfig:
         """
         query = f("""
 SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql} .
-  ?entity wdt:{property_statistics.grouping_property} ?grouping .
+  ?entity {property_statistics.selector_sparql} .""")
+
+        if property_statistics.grouping_type == GroupingType.YEAR:
+            query += f("""
+  ?entity wdt:{property_statistics.grouping_property} ?date .
+  BIND(YEAR(?date) as ?grouping).""")
+
+        else:
+            query += f("""
+  ?entity wdt:{property_statistics.grouping_property} ?grouping .""")
+
+        query += f("""
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}
@@ -194,6 +204,10 @@ class QueryException(Exception):
         self.query = query
 
 
+class GroupingType(Enum):
+    YEAR = "year"
+
+
 class PropertyStatistics:
     """
     Generate statitics
@@ -209,7 +223,7 @@ class PropertyStatistics:
 
     TEXT_SELECTOR_MAPPING = {'L': 'rdfs:label', 'D': 'schema:description'}
 
-    def __init__(self, selector_sparql, columns, grouping_property, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
+    def __init__(self, selector_sparql, columns, grouping_property, grouping_type=None, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
         Set what to work on and other variables here.
         """
@@ -217,6 +231,10 @@ class PropertyStatistics:
         self.repo = site.data_repository()
         self.columns = columns
         self.grouping_property = grouping_property
+        if grouping_type:
+            self.grouping_type = GroupingType(grouping_type)
+        else:
+            self.grouping_type = None
         self.higher_grouping = higher_grouping
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
@@ -242,6 +260,17 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT
   ?entity wdt:{self.grouping_property} ?grouping .
   OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
 }} GROUP BY ?grouping ?higher_grouping
+HAVING (?count >= {self.grouping_threshold})
+ORDER BY DESC(?count)
+LIMIT 1000
+""")
+        elif self.grouping_type == GroupingType.YEAR:
+            query = f("""
+SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
+  ?entity {self.selector_sparql} .
+  ?entity wdt:{self.grouping_property} ?date .
+  BIND(YEAR(?date) as ?grouping) .
+}} GROUP BY ?grouping
 HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
@@ -316,6 +345,12 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity wdt:{self.grouping_property} ?grouping.
   FILTER wikibase:isSomeValue(?grouping).""")
 
+        elif self.grouping_type == GroupingType.YEAR:
+            query += f("""
+  ?entity wdt:{self.grouping_property} ?date.
+  BIND(YEAR(?date) as ?year).
+  FILTER(?year = {grouping}).""")
+
         else:
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .""")
@@ -357,6 +392,13 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
             query += f("""
   ?entity wdt:{self.grouping_property} ?grouping.
   FILTER wikibase:isSomeValue(?grouping).
+  MINUS {{""")
+
+        elif self.grouping_type == GroupingType.YEAR:
+            query += f("""
+  ?entity wdt:{self.grouping_property} ?date.
+  BIND(YEAR(?date) as ?year).
+  FILTER(?year = {grouping}).
   MINUS {{""")
 
         else:
@@ -503,6 +545,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         if grouping in self.GROUP_MAPPING.__members__:
             text += u'| %s\n' % (self.GROUP_MAPPING.__members__.get(grouping).value,)
+        elif self.grouping_type == GroupingType.YEAR:
+            text += u'| %s\n' % (grouping,)
         else:
             text += u'| {{Q|%s}}\n' % (grouping,)
 

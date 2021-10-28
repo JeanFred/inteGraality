@@ -92,6 +92,7 @@ class QueriesTests(PagesProcessorTests):
         super().setUp()
         patcher1 = patch('pages_processor.PropertyStatistics', autospec=True)
         self.mock_property_statistics = patcher1.start()
+        self.mock_property_statistics.grouping_property = 'P495'
         self.addCleanup(patcher1.stop)
         patcher2 = patch('pages_processor.PropertyStatistics.GROUP_MAPPING', autospec=True)
         self.mock_group_mapping = patcher2.start()
@@ -110,7 +111,7 @@ class QueriesTests(PagesProcessorTests):
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
-            '<a href="https://wikidata.org/wiki/Q2">Q2</a>.</p>\n\t'
+            'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
             '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
@@ -130,7 +131,7 @@ class QueriesTests(PagesProcessorTests):
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
-            'without grouping.</p>\n\t'
+            'without <a href="https://wikidata.org/wiki/Property:P495">P495</a> grouping.</p>\n\t'
             '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
@@ -150,7 +151,7 @@ class QueriesTests(PagesProcessorTests):
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             'br label, '
-            '<a href="https://wikidata.org/wiki/Q2">Q2</a>.</p>\n\t'
+            'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
             '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the label set</a>\n\t'  # noqa
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the label set</a>'  # noqa
         )
@@ -170,7 +171,7 @@ class QueriesTests(PagesProcessorTests):
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             'br description, '
-            '<a href="https://wikidata.org/wiki/Q2">Q2</a>.</p>\n\t'
+            'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
             '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the description set</a>\n\t'  # noqa
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the description set</a>'  # noqa
         )

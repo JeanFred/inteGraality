@@ -60,7 +60,7 @@ class PagesProcessor:
 
     def get_all_pages(self):
         template = pywikibot.Page(self.site, self.template_name, ns=10)
-        return pagegenerators.ReferringPageGenerator(template, onlyTemplateInclusion=True)
+        return template.getReferences(only_template_inclusion=True)
 
     @staticmethod
     def extract_elements_from_template_param(template_param):

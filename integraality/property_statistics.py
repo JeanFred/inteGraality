@@ -310,7 +310,7 @@ LIMIT 1000
             )
 
         for resultitem in queryresult:
-            if resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
+            if not resultitem.get('grouping') or resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
                 if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in grouping_counts.keys():
                     grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
                 grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))
@@ -461,7 +461,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             return None
         for resultitem in queryresult:
 
-            if resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
+            if not resultitem.get('grouping') or resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
                 if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in result.keys():
                     result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
                 result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))

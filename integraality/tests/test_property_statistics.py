@@ -1065,6 +1065,39 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assert_query_called(query)
         self.assertEqual(result, expected)
 
+    def test_get_grouping_information_year_unknown_value(self):
+        stats = PropertyStatistics(
+            columns=self.stats.columns,
+            selector_sparql=u'wdt:P31 wd:Q41960',
+            grouping_property=u'P577',
+            grouping_type='year',
+            property_threshold=10
+        )
+
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': '2001', 'count': '10'},
+            {'grouping': '2002', 'count': '6'},
+            {'grouping': '', 'count': '4'},
+        ]
+        expected = (
+            OrderedDict([('2001', 10), ('2002', 6), ('UNKNOWN_VALUE', 4)]),
+            OrderedDict()
+        )
+        query = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P577 ?date .\n"
+            "  BIND(YEAR(?date) as ?grouping) .\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        result = stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
 
 class TestGetHeader(PropertyStatisticsTest):
 

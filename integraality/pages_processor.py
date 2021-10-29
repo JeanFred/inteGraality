@@ -11,7 +11,6 @@ from redis import StrictRedis
 from ww import f
 
 import pywikibot
-from pywikibot import pagegenerators
 
 from cache import RedisCache
 from property_statistics import (

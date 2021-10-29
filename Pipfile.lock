@@ -181,14 +181,14 @@
                 "sha256:eb47d8cb09fc6fcd343204d575cb1a82b3664fc5797c8054f1d7286ba96fadd9"
             ],
             "index": "pypi",
-            "version": "==0.6"
+            "version": "==0.6.3"
         },
         "pywikibot": {
             "hashes": [
                 "sha256:c8d3b744c1cfe7cc49169ee6f5287acd65e9f587670fe55cb886374c46a03651"
             ],
             "index": "pypi",
-            "version": "==6.0.1"
+            "version": "==6.6.1"
         },
         "redis": {
             "hashes": [

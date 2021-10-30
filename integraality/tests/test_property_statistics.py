@@ -72,9 +72,6 @@ class TestPropertyConfig(PropertyStatisticsTest):
             "    ?entity p:P19[]\n"
             "  })\n"
             "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
         )
         self.assertEqual(result, expected)
 
@@ -144,9 +141,6 @@ class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
             "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
             "  })\n"
             "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
         )
         self.assertEqual(result, expected)
 
@@ -216,9 +210,6 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
             "  })\n"
             "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
         )
         self.assertEqual(result, expected)
 
@@ -380,9 +371,6 @@ class TestLabelConfig(PropertyStatisticsTest):
             "    FILTER((LANG(?lang_label)) = 'br').\n"
             "  })\n"
             "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
         )
         self.assertEqual(result, query)
 
@@ -447,9 +435,6 @@ class TestDescriptionConfig(PropertyStatisticsTest):
             "    FILTER((LANG(?lang_label)) = 'br').\n"
             "  })\n"
             "}\n"
-            "GROUP BY ?grouping\n"
-            "ORDER BY DESC (?count)\n"
-            "LIMIT 10\n"
         )
 
         self.assertEqual(result, query)

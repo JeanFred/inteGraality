@@ -101,9 +101,6 @@ SELECT (COUNT(*) AS ?count) WHERE {{
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}
-GROUP BY ?grouping
-ORDER BY DESC (?count)
-LIMIT 10
 """)
         return query
 

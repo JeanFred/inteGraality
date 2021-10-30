@@ -94,8 +94,6 @@ class TestPropertyConfig(PropertyStatisticsTest):
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
 
@@ -168,8 +166,6 @@ class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
 
@@ -224,8 +220,6 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "ORDER BY DESC (?count)\n"
             "LIMIT 10\n"
         )
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
     def test_get_info_query(self):
@@ -244,8 +238,6 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"
         )
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
 
@@ -392,8 +384,6 @@ class TestLabelConfig(PropertyStatisticsTest):
             "ORDER BY DESC (?count)\n"
             "LIMIT 10\n"
         )
-        print(result)
-        print(query)
         self.assertEqual(result, query)
 
 
@@ -588,8 +578,6 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '| {{Integraality cell|0|0|column=Lbr|grouping=UNKNOWN_VALUE}}\n'
             '| {{Integraality cell|0|0|column=Dxy|grouping=UNKNOWN_VALUE}}\n'
         )
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
     def test_make_stats_for_one_grouping_with_higher_grouping(self):
@@ -714,8 +702,6 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 """
-        print(result)
-        print(expected)
         self.assertEqual(result, expected)
 
 

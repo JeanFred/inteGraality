@@ -51,7 +51,7 @@ class ColumnConfig:
         :return: (str) SPARQL query
         """
         query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .""")
 
         if property_statistics.grouping_type == GroupingType.YEAR:
@@ -252,7 +252,7 @@ class PropertyStatistics:
         """
         if self.higher_grouping:
             query = f("""
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT *) as ?count) WHERE {{
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
   OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
@@ -263,7 +263,7 @@ LIMIT 1000
 """)
         elif self.grouping_type == GroupingType.YEAR:
             query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?date .
   BIND(YEAR(?date) as ?grouping) .
@@ -274,7 +274,7 @@ LIMIT 1000
 """)
         else:
             query = f("""
-SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {{
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
 }} GROUP BY ?grouping

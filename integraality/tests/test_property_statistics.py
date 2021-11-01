@@ -79,7 +79,7 @@ class TestPropertyConfig(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         expected = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -148,7 +148,7 @@ class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         expected = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -217,7 +217,7 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         expected = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -344,7 +344,7 @@ class TestLabelConfig(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -408,7 +408,7 @@ class TestDescriptionConfig(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
@@ -883,7 +883,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -908,7 +908,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.stats.grouping_threshold = 5
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -934,7 +934,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         query = (
             "\n"
             "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) "
-            "(COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "(COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
@@ -951,7 +951,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_sparql_query.return_value.select.return_value = None
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -967,7 +967,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_sparql_query.return_value.select.side_effect = pywikibot.exceptions.TimeoutError("Error")
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -992,7 +992,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "} GROUP BY ?grouping\n"
@@ -1023,7 +1023,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P577 ?date .\n"
             "  BIND(YEAR(?date) as ?grouping) .\n"
@@ -1056,7 +1056,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         query = (
             "\n"
-            "SELECT ?grouping (COUNT(DISTINCT *) as ?count) WHERE {\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P577 ?date .\n"
             "  BIND(YEAR(?date) as ?grouping) .\n"

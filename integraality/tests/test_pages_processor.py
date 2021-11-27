@@ -7,12 +7,12 @@ from unittest.mock import patch
 
 import fakeredis
 
-from integraality.pages_processor import ConfigException, PagesProcessor, main
-from integraality.property_statistics import (
+from integraality.column_config import (
     DescriptionConfig,
     LabelConfig,
     PropertyConfig
 )
+from integraality.pages_processor import ConfigException, PagesProcessor, main
 
 
 class ProcessortTest(unittest.TestCase):

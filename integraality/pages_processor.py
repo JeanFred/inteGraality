@@ -13,12 +13,8 @@ from ww import f
 import pywikibot
 
 from cache import RedisCache
-from property_statistics import (
-    ColumnConfigMaker,
-    ColumnSyntaxException,
-    PropertyStatistics,
-    QueryException
-)
+from column_config import ColumnConfigMaker, ColumnSyntaxException
+from property_statistics import PropertyStatistics, QueryException
 
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
 

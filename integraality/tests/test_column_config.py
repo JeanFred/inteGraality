@@ -187,7 +187,7 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "SELECT (COUNT(*) as ?count) WHERE {\n"
             "  ?entity wdt:P31 wd:Q41960\n"
             "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
+            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
             "  })\n"
             "}\n"
         )
@@ -201,7 +201,7 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  MINUS { ?entity wdt:P551 _:b28. }\n"
             "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
+            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
             "  })\n"
             "}\n"
         )
@@ -215,7 +215,7 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 Q4 ; pq:P5 [] ]\n"
+            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
             "  })\n"
             "}\n"
             "GROUP BY ?grouping\n"

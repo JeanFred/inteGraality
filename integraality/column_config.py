@@ -137,8 +137,9 @@ class PropertyConfig(ColumnConfig):
 
     def get_filter_for_info(self):
         if self.qualifier:
+            property_value = f'wd:{self.value}' if self.value else '[]'
             return f("""
-    ?entity p:{self.property} [ ps:{self.property} {self.value or '[]'} ; pq:{self.qualifier} [] ]""")
+    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]""")
         else:
             return f("""
     ?entity p:{self.property}[]""")

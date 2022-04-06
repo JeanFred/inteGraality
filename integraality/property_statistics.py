@@ -38,8 +38,6 @@ class PropertyStatistics:
         'UNKNOWN_VALUE': '{{int:wikibase-snakview-variations-somevalue-label}}'
     })
 
-    TEXT_SELECTOR_MAPPING = {'L': 'rdfs:label', 'D': 'schema:description'}
-
     def __init__(self, selector_sparql, columns, grouping_property, grouping_type=None, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
         """
         Set what to work on and other variables here.
@@ -173,23 +171,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .""")
 
-        if column_key.startswith('P'):
-            query += f("""
-  ?entity p:{column_key} ?prop . OPTIONAL {{ ?prop ps:{column_key} ?value }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-}}
-""")
-        elif column_key.startswith('L') or column_key.startswith('D'):
-
-            query += f("""
-  FILTER(EXISTS {{
-    ?entity {self.TEXT_SELECTOR_MAPPING[column_key[:1]]} ?lang_label.
-    FILTER((LANG(?lang_label)) = "{column_key[1:]}").
-  }})
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{column_key[1:]}". }}
-}}
-""")
-
+        query += column.get_filter_for_positive_query()
+        query += """}
+"""
         return query
 
     def get_query_for_items_for_property_negative(self, column, grouping):
@@ -225,23 +209,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity wdt:{self.grouping_property} wd:{grouping} .
   MINUS {{""")
 
-        if column_key.startswith('P'):
-            query += f("""
-    {{?entity a wdno:{column_key} .}} UNION
-    {{?entity wdt:{column_key} ?prop .}}
-  }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-}}
-""")
-        elif column_key.startswith('L') or column_key.startswith('D'):
-            query += f("""
-    {{ ?entity {self.TEXT_SELECTOR_MAPPING[column_key[:1]]} ?lang_label.
-    FILTER((LANG(?lang_label)) = "{column_key[1:]}") }}
-  }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-}}
-""")
-
+        query += column.get_filter_for_negative_query()
+        query += """}
+"""
         return query
 
     def get_totals_no_grouping(self):

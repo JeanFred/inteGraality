@@ -144,6 +144,20 @@ class PropertyConfig(ColumnConfig):
             return f("""
     ?entity p:{self.property}[]""")
 
+    def get_filter_for_positive_query(self):
+        return f("""
+  ?entity p:{self.property} ?prop . OPTIONAL {{ ?prop ps:{self.property} ?value }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+""")
+
+    def get_filter_for_negative_query(self):
+        return f("""
+    {{?entity a wdno:{self.property} .}} UNION
+    {{?entity wdt:{self.property} ?prop .}}
+  }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+""")
+
 
 class TextConfig(ColumnConfig):
 
@@ -171,6 +185,23 @@ class TextConfig(ColumnConfig):
         return f("""
     ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = '{self.language}').""")
+
+    def get_filter_for_positive_query(self):
+        return f("""
+  FILTER(EXISTS {{
+    ?entity {self.get_selector()} ?lang_label.
+    FILTER((LANG(?lang_label)) = "{self.language}").
+  }})
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.language}". }}
+""")
+
+    def get_filter_for_negative_query(self):
+        return f("""
+    {{ ?entity {self.get_selector()} ?lang_label.
+    FILTER((LANG(?lang_label)) = "{self.language}") }}
+  }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
+""")
 
 
 class LabelConfig(TextConfig):

@@ -46,7 +46,7 @@ class PropertyStatistics:
         """
         site = pywikibot.Site('en', 'wikipedia')
         self.repo = site.data_repository()
-        self.columns = columns
+        self.columns = {column.get_key(): column for column in columns}
         self.grouping_property = grouping_property
         if grouping_type:
             self.grouping_type = GroupingType(grouping_type)
@@ -306,7 +306,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         text += u'! Name\n'
         text += u'! Count\n'
-        for column_entry in self.columns:
+        for column_entry in self.columns.values():
             text += column_entry.make_column_header()
 
         return text
@@ -341,7 +341,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text += u'| No grouping \n'
         text += f('| {total_no_count} \n')
 
-        for column_entry in self.columns:
+        for column_entry in self.columns.values():
             column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
             percentage = self._get_percentage(column_count, total_no_count)
             text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
@@ -379,8 +379,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         else:
             text += f('| {item_count} \n')
 
-        for column_entry in self.columns:
-            column_entry_key = column_entry.get_key()
+        for (column_entry_key, column_entry) in self.columns.items():
             try:
                 column_count = self.column_data.get(column_entry_key).get(grouping)
             except AttributeError:
@@ -398,7 +397,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             text += u"|\n|"
 
         text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
-        for column_entry in self.columns:
+        for column_entry in self.columns.values():
             totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
             percentage = self._get_percentage(totalprop, total_items)
             text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n')
@@ -419,8 +418,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             raise e
 
         logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
-        for column_entry in self.columns:
-            column_entry_key = column_entry.get_key()
+        for (column_entry_key, column_entry) in self.columns.items():
             self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
         text = self.get_header()

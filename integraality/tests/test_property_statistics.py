@@ -14,7 +14,7 @@ from property_statistics import PropertyStatistics, QueryException
 class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
-        columns = [
+        self.columns = [
             PropertyConfig(property='P21'),
             PropertyConfig(property='P19'),
             PropertyConfig(property='P1', qualifier='P2'),
@@ -23,7 +23,7 @@ class PropertyStatisticsTest(unittest.TestCase):
             DescriptionConfig(language='xy'),
         ]
         self.stats = PropertyStatistics(
-            columns=columns,
+            columns=self.columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P551',
             property_threshold=10
@@ -401,7 +401,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_year_grouping(self):
         stats = PropertyStatistics(
-            columns=self.stats.columns,
+            columns=self.columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P577',
             grouping_type='year',
@@ -500,7 +500,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_year_grouping(self):
         stats = PropertyStatistics(
-            columns=self.stats.columns,
+            columns=self.columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P577',
             grouping_type='year',
@@ -737,7 +737,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_get_grouping_information_year(self):
         stats = PropertyStatistics(
-            columns=self.stats.columns,
+            columns=self.columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P577',
             grouping_type='year',
@@ -769,7 +769,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_get_grouping_information_year_unknown_value(self):
         stats = PropertyStatistics(
-            columns=self.stats.columns,
+            columns=self.columns,
             selector_sparql=u'wdt:P31 wd:Q41960',
             grouping_property=u'P577',
             grouping_type='year',

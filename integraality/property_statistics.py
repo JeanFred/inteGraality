@@ -143,7 +143,8 @@ LIMIT 1000
 
         return (grouping_counts, grouping_groupings)
 
-    def get_query_for_items_for_property_positive(self, column_key, grouping):
+    def get_query_for_items_for_property_positive(self, column, grouping):
+        column_key = column.get_key()
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} .""")
@@ -191,7 +192,8 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
 
         return query
 
-    def get_query_for_items_for_property_negative(self, column_key, grouping):
+    def get_query_for_items_for_property_negative(self, column, grouping):
+        column_key = column.get_key()
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} .""")

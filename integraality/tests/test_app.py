@@ -104,9 +104,23 @@ class QueriesTests(PagesProcessorTests):
 
     def setUp(self):
         super().setUp()
+        patcher01 = patch('column_config.PropertyConfig', autospec=True)
+        self.mock_column_P1 = patcher01.start()
+        self.addCleanup(patcher01.stop)
+        patcher02 = patch('column_config.LabelConfig', autospec=True)
+        self.mock_column_Lbr = patcher02.start()
+        self.addCleanup(patcher02.stop)
+        patcher03 = patch('column_config.DescriptionConfig', autospec=True)
+        self.mock_column_Dbr = patcher03.start()
+        self.addCleanup(patcher03.stop)
         patcher1 = patch('pages_processor.PropertyStatistics', autospec=True)
         self.mock_property_statistics = patcher1.start()
         self.mock_property_statistics.grouping_property = 'P495'
+        self.mock_property_statistics.columns = {
+            'P1': self.mock_column_P1,
+            'Lbr': self.mock_column_Lbr,
+            'Dbr': self.mock_column_Dbr,
+        }
         self.addCleanup(patcher1.stop)
         patcher2 = patch('pages_processor.PropertyStatistics.GROUP_MAPPING', autospec=True)
         self.mock_group_mapping = patcher2.start()
@@ -121,8 +135,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "Q2")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_P1, "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_P1, "Q2")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
@@ -141,8 +155,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=None' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "No")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "No")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_P1, "No")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_P1, "No")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
@@ -162,8 +176,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&column=Lbr&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("Lbr", "Q2")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("Lbr", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_Lbr, "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_Lbr, "Q2")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             'br label, '
@@ -183,8 +197,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&column=Dbr&grouping=Q2' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("Dbr", "Q2")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("Dbr", "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_Dbr, "Q2")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_Dbr, "Q2")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             'br description, '
@@ -203,8 +217,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&property=P1&grouping=' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "Totals")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "Totals")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_P1, "Totals")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_P1, "Totals")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
@@ -240,8 +254,8 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get('/queries?page=%s&url=%s&column=P1&grouping=UNKNOWN_VALUE' % (self.page_title, self.page_url))
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(page_title=self.page_title)  # noqa
-        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with("P1", "UNKNOWN_VALUE")
-        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with("P1", "UNKNOWN_VALUE")
+        self.mock_property_statistics.get_query_for_items_for_property_positive.assert_called_once_with(self.mock_column_P1, "UNKNOWN_VALUE")
+        self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(self.mock_column_P1, "UNKNOWN_VALUE")
         expected = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '

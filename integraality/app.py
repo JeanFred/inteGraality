@@ -44,7 +44,7 @@ def update():
 def queries():
     page_url = request.args.get('url')
     page_title = request.args.get('page')
-    column = request.args.get('column') or request.args.get('property')
+    column_key = request.args.get('column') or request.args.get('property')
     processor = PagesProcessor(page_url)
     try:
         stats = processor.make_stats_object_for_page_title(page_title)
@@ -53,10 +53,11 @@ def queries():
             grouping = stats.GROUP_MAPPING(grouping_arg)
         except ValueError:
             grouping = stats.GROUP_MAPPING.__members__.get(grouping_arg, grouping_arg)
+        column = stats.columns.get(column_key)
         positive_query = stats.get_query_for_items_for_property_positive(column, grouping)
         negative_query = stats.get_query_for_items_for_property_negative(column, grouping)
         return render_template('queries.html', page_title=page_title, page_url=page_url,
-                               column=column, grouping=request.args.get('grouping'),
+                               column=column_key, grouping=request.args.get('grouping'),
                                grouping_property=stats.grouping_property,
                                positive_query=positive_query, negative_query=negative_query)
     except ProcessingException as e:

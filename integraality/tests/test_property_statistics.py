@@ -335,7 +335,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
 
     def test_get_query_for_items_for_property_positive(self):
-        result = self.stats.get_query_for_items_for_property_positive('P21', 'Q3115846')
+        result = self.stats.get_query_for_items_for_property_positive(self.stats.columns.get('P21'), 'Q3115846')
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -347,7 +347,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_positive_no_grouping(self):
-        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.NO_GROUPING)
+        result = self.stats.get_query_for_items_for_property_positive(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.NO_GROUPING)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -361,7 +361,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_positive_totals(self):
-        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.TOTALS)
+        result = self.stats.get_query_for_items_for_property_positive(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.TOTALS)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -372,7 +372,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_positive_label(self):
-        result = self.stats.get_query_for_items_for_property_positive('Lbr', 'Q3115846')
+        result = self.stats.get_query_for_items_for_property_positive(self.stats.columns.get('Lbr'), 'Q3115846')
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -387,7 +387,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_positive_unknown_value_grouping(self):
-        result = self.stats.get_query_for_items_for_property_positive('P21', self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
+        result = self.stats.get_query_for_items_for_property_positive(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -407,7 +407,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             grouping_type='year',
             property_threshold=10
         )
-        result = stats.get_query_for_items_for_property_positive('P21', 2006)
+        result = stats.get_query_for_items_for_property_positive(self.stats.columns.get('P21'), 2006)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -424,7 +424,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
 
     def test_get_query_for_items_for_property_negative(self):
-        result = self.stats.get_query_for_items_for_property_negative('P21', 'Q3115846')
+        result = self.stats.get_query_for_items_for_property_negative(self.stats.columns.get('P21'), 'Q3115846')
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -439,7 +439,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative_no_grouping(self):
-        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.NO_GROUPING)
+        result = self.stats.get_query_for_items_for_property_negative(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.NO_GROUPING)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -454,7 +454,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative_totals(self):
-        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.TOTALS)
+        result = self.stats.get_query_for_items_for_property_negative(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.TOTALS)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -468,7 +468,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative_label(self):
-        result = self.stats.get_query_for_items_for_property_negative('Lbr', 'Q3115846')
+        result = self.stats.get_query_for_items_for_property_negative(self.stats.columns.get('Lbr'), 'Q3115846')
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -483,7 +483,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative_unknown_value_grouping(self):
-        result = self.stats.get_query_for_items_for_property_negative('P21', self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
+        result = self.stats.get_query_for_items_for_property_negative(self.stats.columns.get('P21'), self.stats.GROUP_MAPPING.UNKNOWN_VALUE)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
@@ -506,7 +506,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             grouping_type='year',
             property_threshold=10
         )
-        result = stats.get_query_for_items_for_property_negative('P21', 2006)
+        result = stats.get_query_for_items_for_property_negative(self.stats.columns.get('P21'), 2006)
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .

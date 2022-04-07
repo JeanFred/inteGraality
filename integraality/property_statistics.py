@@ -143,7 +143,7 @@ LIMIT 1000
 
         return (grouping_counts, grouping_groupings)
 
-    def get_query_for_items_for_property_positive(self, column, grouping):
+    def get_query_for_items_for_property_positive(self, column_key, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} .""")
@@ -172,26 +172,26 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
             query += f("""
   ?entity wdt:{self.grouping_property} wd:{grouping} .""")
 
-        if column.startswith('P'):
+        if column_key.startswith('P'):
             query += f("""
-  ?entity p:{column} ?prop . OPTIONAL {{ ?prop ps:{column} ?value }}
+  ?entity p:{column_key} ?prop . OPTIONAL {{ ?prop ps:{column_key} ?value }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
-        elif column.startswith('L') or column.startswith('D'):
+        elif column_key.startswith('L') or column_key.startswith('D'):
 
             query += f("""
   FILTER(EXISTS {{
-    ?entity {self.TEXT_SELECTOR_MAPPING[column[:1]]} ?lang_label.
-    FILTER((LANG(?lang_label)) = "{column[1:]}").
+    ?entity {self.TEXT_SELECTOR_MAPPING[column_key[:1]]} ?lang_label.
+    FILTER((LANG(?lang_label)) = "{column_key[1:]}").
   }})
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{column[1:]}". }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{column_key[1:]}". }}
 }}
 """)
 
         return query
 
-    def get_query_for_items_for_property_negative(self, column, grouping):
+    def get_query_for_items_for_property_negative(self, column_key, grouping):
         query = f("""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} .""")
@@ -223,18 +223,18 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity wdt:{self.grouping_property} wd:{grouping} .
   MINUS {{""")
 
-        if column.startswith('P'):
+        if column_key.startswith('P'):
             query += f("""
-    {{?entity a wdno:{column} .}} UNION
-    {{?entity wdt:{column} ?prop .}}
+    {{?entity a wdno:{column_key} .}} UNION
+    {{?entity wdt:{column_key} ?prop .}}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}
 """)
-        elif column.startswith('L') or column.startswith('D'):
+        elif column_key.startswith('L') or column_key.startswith('D'):
             query += f("""
-    {{ ?entity {self.TEXT_SELECTOR_MAPPING[column[:1]]} ?lang_label.
-    FILTER((LANG(?lang_label)) = "{column[1:]}") }}
+    {{ ?entity {self.TEXT_SELECTOR_MAPPING[column_key[:1]]} ?lang_label.
+    FILTER((LANG(?lang_label)) = "{column_key[1:]}") }}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 }}

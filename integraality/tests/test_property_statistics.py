@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pywikibot
 
-from column_config import DescriptionConfig, LabelConfig, PropertyConfig
+from column import DescriptionColumn, LabelColumn, PropertyColumn
 from property_statistics import PropertyStatistics, QueryException
 
 
@@ -15,12 +15,12 @@ class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
         self.columns = [
-            PropertyConfig(property='P21'),
-            PropertyConfig(property='P19'),
-            PropertyConfig(property='P1', qualifier='P2'),
-            PropertyConfig(property='P3', value='Q4', qualifier='P5'),
-            LabelConfig(language='br'),
-            DescriptionConfig(language='xy'),
+            PropertyColumn(property='P21'),
+            PropertyColumn(property='P19'),
+            PropertyColumn(property='P1', qualifier='P2'),
+            PropertyColumn(property='P3', value='Q4', qualifier='P5'),
+            LabelColumn(language='br'),
+            DescriptionColumn(language='xy'),
         ]
         self.stats = PropertyStatistics(
             columns=self.columns,
@@ -42,11 +42,11 @@ class SparqlQueryTest(unittest.TestCase):
         self.mock_sparql_query.return_value.select.assert_called_once_with(query)
 
 
-class TestLabelConfig(PropertyStatisticsTest):
+class TestLabelColumn(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = LabelConfig('br')
+        self.column = LabelColumn('br')
 
     def test_simple(self):
         result = self.column.make_column_header()
@@ -106,11 +106,11 @@ class TestLabelConfig(PropertyStatisticsTest):
         self.assertEqual(result, query)
 
 
-class TestDescriptionConfig(PropertyStatisticsTest):
+class TestDescriptionColumn(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = DescriptionConfig('br')
+        self.column = DescriptionColumn('br')
 
     def test_simple(self):
         result = self.column.make_column_header()

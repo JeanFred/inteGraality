@@ -14,7 +14,7 @@ from ww import f
 import pywikibot
 import pywikibot.data.sparql
 
-from column_config import ColumnConfigMaker, GroupingType
+from column import ColumnMaker, GroupingType
 from statsd.defaults.env import statsd
 
 
@@ -412,10 +412,10 @@ def main(*args):
     Main function.
     """
     columns = [
-        ColumnConfigMaker.make('P21'),
-        ColumnConfigMaker.make('P19'),
-        ColumnConfigMaker.make('de'),
-        ColumnConfigMaker.make('de'),
+        ColumnMaker.make('P21'),
+        ColumnMaker.make('P19'),
+        ColumnMaker.make('de'),
+        ColumnMaker.make('de'),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(

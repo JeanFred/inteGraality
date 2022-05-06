@@ -2,12 +2,12 @@
 
 import unittest
 
-from column_config import (
-    ColumnConfigMaker,
+from column import (
+    ColumnMaker,
     ColumnSyntaxException,
-    DescriptionConfig,
-    LabelConfig,
-    PropertyConfig
+    DescriptionColumn,
+    LabelColumn,
+    PropertyColumn
 )
 from property_statistics import PropertyStatistics
 
@@ -16,12 +16,12 @@ class PropertyStatisticsTest(unittest.TestCase):
 
     def setUp(self):
         columns = [
-            PropertyConfig(property='P21'),
-            PropertyConfig(property='P19'),
-            PropertyConfig(property='P1', qualifier='P2'),
-            PropertyConfig(property='P3', value='Q4', qualifier='P5'),
-            LabelConfig(language='br'),
-            DescriptionConfig(language='xy'),
+            PropertyColumn(property='P21'),
+            PropertyColumn(property='P19'),
+            PropertyColumn(property='P1', qualifier='P2'),
+            PropertyColumn(property='P3', value='Q4', qualifier='P5'),
+            LabelColumn(language='br'),
+            DescriptionColumn(language='xy'),
         ]
         self.stats = PropertyStatistics(
             columns=columns,
@@ -31,11 +31,11 @@ class PropertyStatisticsTest(unittest.TestCase):
         )
 
 
-class TestPropertyConfig(PropertyStatisticsTest):
+class TestPropertyColumn(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig('P19')
+        self.column = PropertyColumn('P19')
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -88,11 +88,11 @@ class TestPropertyConfig(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithTitle(PropertyStatisticsTest):
+class TestPropertyColumnWithTitle(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig('P19', title="birth")
+        self.column = PropertyColumn('P19', title="birth")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -100,11 +100,11 @@ class TestPropertyConfigWithTitle(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
+class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig('P669', qualifier='P670')
+        self.column = PropertyColumn('P669', qualifier='P670')
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -157,11 +157,11 @@ class TestPropertyConfigWithQualifier(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifierAndLabel(PropertyStatisticsTest):
+class TestPropertyColumnWithQualifierAndLabel(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig('P669', title="street", qualifier='P670')
+        self.column = PropertyColumn('P669', title="street", qualifier='P670')
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -169,11 +169,11 @@ class TestPropertyConfigWithQualifierAndLabel(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
+class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig(property='P3', value='Q4', qualifier='P5')
+        self.column = PropertyColumn(property='P3', value='Q4', qualifier='P5')
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -226,11 +226,11 @@ class TestPropertyConfigWithQualifierAndValue(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestPropertyConfigWithQualifierAndValueAndTitle(PropertyStatisticsTest):
+class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.column = PropertyConfig(property='P3', title="Some property", value='Q4', qualifier='P5')
+        self.column = PropertyColumn(property='P3', title="Some property", value='Q4', qualifier='P5')
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -238,56 +238,56 @@ class TestPropertyConfigWithQualifierAndValueAndTitle(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class TestColumnConfigMaker(PropertyStatisticsTest):
+class TestColumnMaker(PropertyStatisticsTest):
 
     def test_property_without_title(self):
-        result = ColumnConfigMaker.make('P136', None)
-        expected = PropertyConfig(property='P136')
+        result = ColumnMaker.make('P136', None)
+        expected = PropertyColumn(property='P136')
         self.assertEqual(result, expected)
 
     def test_property_with_title(self):
-        result = ColumnConfigMaker.make('P136', 'genre')
-        expected = PropertyConfig(property='P136', title='genre')
+        result = ColumnMaker.make('P136', 'genre')
+        expected = PropertyColumn(property='P136', title='genre')
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier(self):
         key = 'P669/P670'
-        result = ColumnConfigMaker.make(key, None)
-        expected = PropertyConfig(property='P669', qualifier='P670')
+        result = ColumnMaker.make(key, None)
+        expected = PropertyColumn(property='P669', qualifier='P670')
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_title(self):
         key = 'P669/P670'
-        result = ColumnConfigMaker.make(key, 'street number')
-        expected = PropertyConfig(property='P669', qualifier='P670', title="street number")
+        result = ColumnMaker.make(key, 'street number')
+        expected = PropertyColumn(property='P669', qualifier='P670', title="street number")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value(self):
         key = 'P553/Q17459/P670'
-        result = ColumnConfigMaker.make(key, None)
-        expected = PropertyConfig(property='P553', value='Q17459', qualifier='P670')
+        result = ColumnMaker.make(key, None)
+        expected = PropertyColumn(property='P553', value='Q17459', qualifier='P670')
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value_and_title(self):
         key = 'P553/Q17459/P670'
-        result = ColumnConfigMaker.make(key, 'street number')
-        expected = PropertyConfig(property='P553', value='Q17459', qualifier='P670', title='street number')
+        result = ColumnMaker.make(key, 'street number')
+        expected = PropertyColumn(property='P553', value='Q17459', qualifier='P670', title='street number')
         self.assertEqual(result, expected)
 
     def test_label(self):
-        result = ColumnConfigMaker.make('Lxy', None)
-        expected = LabelConfig(language='xy')
+        result = ColumnMaker.make('Lxy', None)
+        expected = LabelColumn(language='xy')
         self.assertEqual(result, expected)
 
     def test_description(self):
-        result = ColumnConfigMaker.make('Dxy', None)
-        expected = DescriptionConfig(language='xy')
+        result = ColumnMaker.make('Dxy', None)
+        expected = DescriptionColumn(language='xy')
         self.assertEqual(result, expected)
 
     def test_aliases(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnConfigMaker.make('Axy', None)
+            ColumnMaker.make('Axy', None)
 
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnConfigMaker.make('SomethingSomething', None)
+            ColumnMaker.make('SomethingSomething', None)

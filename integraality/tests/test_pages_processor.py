@@ -7,11 +7,7 @@ from unittest.mock import patch
 
 import fakeredis
 
-from integraality.column_config import (
-    DescriptionConfig,
-    LabelConfig,
-    PropertyConfig
-)
+from integraality.column import DescriptionColumn, LabelColumn, PropertyColumn
 from integraality.pages_processor import ConfigException, PagesProcessor, main
 
 
@@ -85,8 +81,8 @@ class TestParseConfig(ProcessortTest):
             'grouping_property': 'P400',
             'stats_for_no_group': True,
             'columns': [
-                PropertyConfig(property='P136', title='genre'),
-                PropertyConfig(property='P404'),
+                PropertyColumn(property='P136', title='genre'),
+                PropertyColumn(property='P404'),
             ],
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889'
         }
@@ -103,8 +99,8 @@ class TestParseConfig(ProcessortTest):
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
             'columns': [
-                PropertyConfig(property='P136', title='genre'),
-                PropertyConfig(property='P404'),
+                PropertyColumn(property='P136', title='genre'),
+                PropertyColumn(property='P404'),
             ],
             'stats_for_no_group': False,
         }
@@ -126,8 +122,8 @@ class TestParseConfig(ProcessortTest):
             'selector_sparql': 'wdt:P31/wdt:P279* wd:Q7889',
             'grouping_property': 'P400',
             'columns': [
-                PropertyConfig(property='P136', title='genre'),
-                PropertyConfig(property='P404'),
+                PropertyColumn(property='P136', title='genre'),
+                PropertyColumn(property='P404'),
             ],
             'stats_for_no_group': True,
             'grouping_threshold': '1',
@@ -188,8 +184,8 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,P404'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            PropertyConfig(property='P404'),
+            PropertyColumn(property='P136', title='genre'),
+            PropertyColumn(property='P404'),
         ]
         self.assertEqual(result, expected)
 
@@ -197,8 +193,8 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,P404,'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            PropertyConfig(property='P404'),
+            PropertyColumn(property='P136', title='genre'),
+            PropertyColumn(property='P404'),
         ]
         self.assertEqual(result, expected)
 
@@ -206,13 +202,13 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136,P178,P123,P495,P577,P404,P437'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136'),
-            PropertyConfig(property='P178'),
-            PropertyConfig(property='P123'),
-            PropertyConfig(property='P495'),
-            PropertyConfig(property='P577'),
-            PropertyConfig(property='P404'),
-            PropertyConfig(property='P437'),
+            PropertyColumn(property='P136'),
+            PropertyColumn(property='P178'),
+            PropertyColumn(property='P123'),
+            PropertyColumn(property='P495'),
+            PropertyColumn(property='P577'),
+            PropertyColumn(property='P404'),
+            PropertyColumn(property='P437'),
         ]
         self.assertEqual(result, expected)
 
@@ -220,9 +216,9 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,P404,P669/P670'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            PropertyConfig(property='P404'),
-            PropertyConfig(property='P669', qualifier='P670'),
+            PropertyColumn(property='P136', title='genre'),
+            PropertyColumn(property='P404'),
+            PropertyColumn(property='P669', qualifier='P670'),
         ]
         self.assertEqual(result, expected)
 
@@ -230,9 +226,9 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,P404,P553/Q17459/P670'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            PropertyConfig(property='P404'),
-            PropertyConfig(property='P553', value='Q17459', qualifier='P670')
+            PropertyColumn(property='P136', title='genre'),
+            PropertyColumn(property='P404'),
+            PropertyColumn(property='P553', value='Q17459', qualifier='P670')
         ]
         self.assertEqual(result, expected)
 
@@ -240,9 +236,9 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,Lbr,P553'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            LabelConfig(language='br'),
-            PropertyConfig(property='P553')
+            PropertyColumn(property='P136', title='genre'),
+            LabelColumn(language='br'),
+            PropertyColumn(property='P553')
         ]
         self.assertEqual(result, expected)
 
@@ -250,9 +246,9 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P136:genre,Lxy,P553'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P136', title='genre'),
-            DescriptionConfig(language='xy'),
-            PropertyConfig(property='P553')
+            PropertyColumn(property='P136', title='genre'),
+            DescriptionColumn(language='xy'),
+            PropertyColumn(property='P553')
         ]
         self.assertEqual(result, expected)
 
@@ -260,8 +256,8 @@ class TestParseConfigProperties(ProcessortTest):
         properties = 'P131, P17'
         result = self.processor.parse_config_properties(properties)
         expected = [
-            PropertyConfig(property='P131'),
-            PropertyConfig(property='P17')
+            PropertyColumn(property='P131'),
+            PropertyColumn(property='P17')
         ]
         self.assertEqual(result, expected)
 

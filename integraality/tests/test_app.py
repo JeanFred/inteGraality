@@ -104,13 +104,13 @@ class QueriesTests(PagesProcessorTests):
 
     def setUp(self):
         super().setUp()
-        patcher01 = patch('column_config.PropertyConfig', autospec=True)
+        patcher01 = patch('column.PropertyColumn', autospec=True)
         self.mock_column_P1 = patcher01.start()
         self.addCleanup(patcher01.stop)
-        patcher02 = patch('column_config.LabelConfig', autospec=True)
+        patcher02 = patch('column.LabelColumn', autospec=True)
         self.mock_column_Lbr = patcher02.start()
         self.addCleanup(patcher02.stop)
-        patcher03 = patch('column_config.DescriptionConfig', autospec=True)
+        patcher03 = patch('column.DescriptionColumn', autospec=True)
         self.mock_column_Dbr = patcher03.start()
         self.addCleanup(patcher03.stop)
         patcher1 = patch('pages_processor.PropertyStatistics', autospec=True)

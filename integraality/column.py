@@ -17,7 +17,7 @@ class ColumnSyntaxException(Exception):
     pass
 
 
-class ColumnConfigMaker:
+class ColumnMaker:
 
     @staticmethod
     def make(key, title):
@@ -29,16 +29,16 @@ class ColumnConfigMaker:
                 (property_name, value, qualifier) = (splitted[0], None, splitted[1])
             else:
                 (property_name, value, qualifier) = (key, None, None)
-            return PropertyConfig(property=property_name, title=title, qualifier=qualifier, value=value)
+            return PropertyColumn(property=property_name, title=title, qualifier=qualifier, value=value)
         elif key.startswith('L'):
-            return LabelConfig(language=key[1:])
+            return LabelColumn(language=key[1:])
         elif key.startswith('D'):
-            return DescriptionConfig(language=key[1:])
+            return DescriptionColumn(language=key[1:])
         else:
             raise ColumnSyntaxException("Unknown column syntax %s" % key)
 
 
-class ColumnConfig:
+class AbstractColumn:
 
     def get_info_query(self, property_statistics):
         """
@@ -101,7 +101,7 @@ SELECT (COUNT(*) AS ?count) WHERE {{
         return query
 
 
-class PropertyConfig(ColumnConfig):
+class PropertyColumn(AbstractColumn):
 
     def __init__(self, property, title=None, value=None, qualifier=None):
         self.property = property
@@ -159,7 +159,7 @@ class PropertyConfig(ColumnConfig):
 """)
 
 
-class TextConfig(ColumnConfig):
+class TextColumn(AbstractColumn):
 
     def __init__(self, language, title=None):
         self.language = language
@@ -204,7 +204,7 @@ class TextConfig(ColumnConfig):
 """)
 
 
-class LabelConfig(TextConfig):
+class LabelColumn(TextColumn):
 
     def get_key(self):
         return 'L%s' % self.language
@@ -213,7 +213,7 @@ class LabelConfig(TextConfig):
         return 'rdfs:label'
 
 
-class DescriptionConfig(TextConfig):
+class DescriptionColumn(TextColumn):
 
     def get_key(self):
         return 'D%s' % self.language

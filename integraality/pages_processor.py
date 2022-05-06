@@ -13,7 +13,7 @@ from ww import f
 import pywikibot
 
 from cache import RedisCache
-from column_config import ColumnConfigMaker, ColumnSyntaxException
+from column import ColumnMaker, ColumnSyntaxException
 from property_statistics import PropertyStatistics, QueryException
 
 REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
@@ -134,7 +134,7 @@ class PagesProcessor:
                 (key, title) = (prop, None)
             if key:
                 try:
-                    properties_data.append(ColumnConfigMaker.make(key, title))
+                    properties_data.append(ColumnMaker.make(key, title))
                 except ColumnSyntaxException as e:
                     raise ConfigException(e)
         return properties_data

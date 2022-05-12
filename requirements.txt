@@ -23,7 +23,7 @@ setuptools==62.2.0
 six==1.15.0
 statsd==3.3.0
 typing-extensions==3.10.0.2
-urllib3==1.26.4
+urllib3==1.26.5
 werkzeug==1.0.1
 wrapt==1.14.1
 ww==0.2.1

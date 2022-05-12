@@ -1,13 +1,15 @@
 -i https://pypi.org/simple
+async-timeout==4.0.2
 attrs==20.3.0
 coverage[toml]==5.5
+deprecated==1.2.13
 fakeredis==1.5.0
 importlib-metadata==4.8.1
 iniconfig==1.1.1
-packaging==20.9
+packaging==21.3
 pluggy==0.13.1
 py==1.10.0
-pyparsing==2.4.7
+pyparsing==3.0.9
 pytest==6.2.2
 pytest-cov==2.11.1
 redis==3.5.3
@@ -16,4 +18,5 @@ sortedcontainers==2.3.0
 toml==0.10.2
 tomli==1.2.2
 typing-extensions==3.10.0.2
+wrapt==1.14.1
 zipp==3.6.0

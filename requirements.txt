@@ -1,8 +1,10 @@
 -i https://pypi.org/simple
+async-timeout==4.0.2
 certifi==2020.12.5
 chardet==4.0.0
 charset-normalizer==2.0.7
 click==7.1.2
+deprecated==1.2.13
 flask==1.1.2
 formatizer==0.1.1
 future==0.18.2
@@ -12,13 +14,17 @@ itsdangerous==1.1.0
 jinja2==2.11.3
 markupsafe==1.1.1
 mwparserfromhell==0.6.3
+packaging==21.3
+pyparsing==3.0.9
 pywikibot==6.6.1
 redis==3.5.3
 requests==2.25.1
+setuptools==62.2.0
 six==1.15.0
 statsd==3.3.0
 typing-extensions==3.10.0.2
 urllib3==1.26.4
 werkzeug==1.0.1
+wrapt==1.14.1
 ww==0.2.1
 zipp==3.6.0

@@ -8,6 +8,17 @@ Generate dashboards of property coverage for a given part of Wikidata.
 
 Lives on [Toolforge].
 
+Testing
+-------
+
+Unit tests are executed through `tox`.
+
+For a quick functional test:
+```
+docker-compose up -d
+docker-compose run --rm web python3 integraality/property_statistics.py
+```
+
 
 Authors
 -------

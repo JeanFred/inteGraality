@@ -1,5 +1,5 @@
 [toolforge]
-login-stretch.tools.wmflabs.org
+login-buster.toolforge.org
 
 [toolforge:vars]
 statsd_host=cloudmetrics1001.eqiad.wmnet

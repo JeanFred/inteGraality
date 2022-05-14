@@ -412,15 +412,15 @@ def main(*args):
     Main function.
     """
     columns = [
-        ColumnMaker.make('P21'),
-        ColumnMaker.make('P19'),
-        ColumnMaker.make('de'),
-        ColumnMaker.make('de'),
+        ColumnMaker.make('P21', None),
+        ColumnMaker.make('P19', None),
+        ColumnMaker.make('Lde', None),
+        ColumnMaker.make('Dde', None),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(
         columns=columns,
-        selector_sparql=u'wdt:P31 wd:Q41960',
+        selector_sparql=u'wdt:P10241 wd:Q41960',
         grouping_property=u'P551',
         stats_for_no_group=True,
         grouping_threshold=5,

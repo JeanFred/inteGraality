@@ -182,7 +182,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
 
         if grouping == self.GROUP_MAPPING.TOTALS:
             query += """
-  MINUS {{"""
+  MINUS {"""
 
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f"""

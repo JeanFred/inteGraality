@@ -379,6 +379,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data, output wikitext
         """
+        ((groupings_counts, groupings_groupings), column_data) = self.retrieve_data()
+        self.column_data = column_data
+        text = self.process_data(groupings_counts, groupings_groupings)
+        return text
+
+    def retrieve_data(self):
         logging.info("Retrieving grouping information...")
 
         try:
@@ -387,10 +393,15 @@ SELECT (COUNT(*) as ?count) WHERE {{
             logging.error('No groupings found.')
             raise e
 
+        column_data = {}
+
         logging.info(f'Grouping retrieved: {len(groupings_counts)}')
         for (column_entry_key, column_entry) in self.columns.items():
-            self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
+            column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
+        return ((groupings_counts, groupings_groupings), column_data)
+
+    def process_data(self, groupings_counts, groupings_groupings):
         text = self.get_header()
 
         for (grouping, item_count) in sorted(groupings_counts.items(), key=lambda t: t[1], reverse=True):

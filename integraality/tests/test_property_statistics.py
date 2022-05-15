@@ -876,3 +876,51 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             "|}\n"
         )
         self.assertEqual(result, expected)
+
+
+class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
+
+    def test_retrieve_data_empty(self):
+        result = self.stats.retrieve_data()
+        expected_grouping_data = ((OrderedDict(), OrderedDict()))
+        expected_column_data = {
+            'Dxy': OrderedDict(),
+            'Lbr': OrderedDict(),
+            'P19': OrderedDict(),
+            'P1P2': OrderedDict(),
+            'P21': OrderedDict(),
+            'P3Q4P5': OrderedDict()
+        }
+        expected = (expected_grouping_data, expected_column_data)
+        self.assertEqual(result, expected)
+
+
+class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
+
+    def test_process_data_empty(self):
+        result = self.stats.process_data(OrderedDict(), OrderedDict())
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="6"|Top Properties (used at least 10 times per grouping)\n'
+            '|-\n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
+            '|- class="sortbottom"\n'
+            "|'''Totals''' <small>(all items)</small>:\n"
+            '| 1\n'
+            '| {{Integraality cell|100.0|1|column=P21}}\n'
+            '| {{Integraality cell|100.0|1|column=P19}}\n'
+            '| {{Integraality cell|100.0|1|column=P1/P2}}\n'
+            '| {{Integraality cell|100.0|1|column=P3/Q4/P5}}\n'
+            '| {{Integraality cell|100.0|1|column=Lbr}}\n'
+            '| {{Integraality cell|100.0|1|column=Dxy}}\n'
+            '|}\n'
+        )
+        self.assertEqual(result, expected)

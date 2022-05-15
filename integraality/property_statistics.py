@@ -9,8 +9,6 @@ import logging
 import re
 from enum import Enum
 
-from ww import f
-
 import pywikibot
 import pywikibot.data.sparql
 
@@ -69,7 +67,7 @@ class PropertyStatistics:
         :return: Tuple of two (ordered) dictionaries.
         """
         if self.higher_grouping:
-            query = f("""
+            query = f"""
 SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
@@ -78,9 +76,9 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT
 HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
-""")
+"""
         elif self.grouping_type == GroupingType.YEAR:
-            query = f("""
+            query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?date .
@@ -89,9 +87,9 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
 HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
-""")
+"""
         else:
-            query = f("""
+            query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {self.selector_sparql} .
   ?entity wdt:{self.grouping_property} ?grouping .
@@ -99,7 +97,7 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
 HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
-""")
+"""
         grouping_counts = collections.OrderedDict()
 
         grouping_groupings = collections.OrderedDict()
@@ -143,33 +141,33 @@ LIMIT 1000
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
-        query = f("""
+        query = f"""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
-  ?entity {self.selector_sparql} .""")
+  ?entity {self.selector_sparql} ."""
 
         if grouping == self.GROUP_MAPPING.TOTALS:
             pass
 
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            query += f("""
+            query += f"""
   MINUS {{
     ?entity wdt:{self.grouping_property} [] .
-  }}""")
+  }}"""
 
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            query += f("""
+            query += f"""
   ?entity wdt:{self.grouping_property} ?grouping.
-  FILTER wikibase:isSomeValue(?grouping).""")
+  FILTER wikibase:isSomeValue(?grouping)."""
 
         elif self.grouping_type == GroupingType.YEAR:
-            query += f("""
+            query += f"""
   ?entity wdt:{self.grouping_property} ?date.
   BIND(YEAR(?date) as ?year).
-  FILTER(?year = {grouping}).""")
+  FILTER(?year = {grouping})."""
 
         else:
-            query += f("""
-  ?entity wdt:{self.grouping_property} wd:{grouping} .""")
+            query += f"""
+  ?entity wdt:{self.grouping_property} wd:{grouping} ."""
 
         query += column.get_filter_for_positive_query()
         query += """}
@@ -178,36 +176,36 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         column_key = column.get_key()
-        query = f("""
+        query = f"""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
-  ?entity {self.selector_sparql} .""")
+  ?entity {self.selector_sparql} ."""
 
         if grouping == self.GROUP_MAPPING.TOTALS:
-            query += f("""
-  MINUS {{""")
+            query += """
+  MINUS {{"""
 
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            query += f("""
+            query += f"""
   MINUS {{
-    {{?entity wdt:{self.grouping_property} [] .}} UNION""")
+    {{?entity wdt:{self.grouping_property} [] .}} UNION"""
 
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            query += f("""
+            query += f"""
   ?entity wdt:{self.grouping_property} ?grouping.
   FILTER wikibase:isSomeValue(?grouping).
-  MINUS {{""")
+  MINUS {{"""
 
         elif self.grouping_type == GroupingType.YEAR:
-            query += f("""
+            query += f"""
   ?entity wdt:{self.grouping_property} ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = {grouping}).
-  MINUS {{""")
+  MINUS {{"""
 
         else:
-            query += f("""
+            query += f"""
   ?entity wdt:{self.grouping_property} wd:{grouping} .
-  MINUS {{""")
+  MINUS {{"""
 
         query += column.get_filter_for_negative_query()
         query += """}
@@ -215,20 +213,20 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
         return query
 
     def get_totals_no_grouping(self):
-        query = f("""
+        query = f"""
 SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {self.selector_sparql}
   MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
 }}
-""")
+"""
         return self._get_count_from_sparql(query)
 
     def get_totals(self):
-        query = f("""
+        query = f"""
 SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {self.selector_sparql}
 }}
-""")
+"""
         return self._get_count_from_sparql(query)
 
     @staticmethod
@@ -269,8 +267,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def get_header(self):
         text = u'{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
-        text += f('! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n')
-        text += f('! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n')  # noqa
+        text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n'
+        text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'  # noqa
         text += u'|-\n'
 
         if self.higher_grouping:
@@ -288,17 +286,17 @@ SELECT (COUNT(*) as ?count) WHERE {{
             "country": "{{Flag|%s}}" % higher_grouping_value,
         }
         if re.match(r"Q\d+", higher_grouping_value):
-            higher_grouping_text = f('{{{{Q|{higher_grouping_value}}}}}')
+            higher_grouping_text = f'{{{{Q|{higher_grouping_value}}}}}'
         elif re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value):
             match = re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value)
             image_name = match.groups()[0]
-            higher_grouping_text = f('[[File:{image_name}|center|100px]]')
+            higher_grouping_text = f'[[File:{image_name}|center|100px]]'
             higher_grouping_value = image_name
         elif self.higher_grouping_type in type_mapping:
             higher_grouping_text = type_mapping.get(self.higher_grouping_type)
         else:
             higher_grouping_text = higher_grouping_value
-        return f('| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n')
+        return f'| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n'
 
     def make_stats_for_no_group(self):
         """
@@ -311,12 +309,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         total_no_count = self.get_totals_no_grouping()
         text += u'| No grouping \n'
-        text += f('| {total_no_count} \n')
+        text += f'| {total_no_count} \n'
 
         for column_entry in self.columns.values():
             column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
             percentage = self._get_percentage(column_count, total_no_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n')  # noqa
+            text += f'| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n'  # noqa
 
         return text
 
@@ -345,11 +343,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
                 group_item.get()
                 label = group_item.labels["en"]
             except (pywikibot.exceptions.InvalidTitle, KeyError):
-                logging.info(f("Could not retrieve label for {grouping}"))
+                logging.info(f"Could not retrieve label for {grouping}")
                 label = grouping
-            text += f('| [[{self.grouping_link}/{label}|{item_count}]] \n')
+            text += f'| [[{self.grouping_link}/{label}|{item_count}]] \n'
         else:
-            text += f('| {item_count} \n')
+            text += f'| {item_count} \n'
 
         for (column_entry_key, column_entry) in self.columns.items():
             try:
@@ -359,7 +357,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             if not column_count:
                 column_count = 0
             percentage = self._get_percentage(column_count, item_count)
-            text += f('| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={grouping}}}}}\n')  # noqa
+            text += f'| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={grouping}}}}}\n'  # noqa
         return text
 
     def make_footer(self):
@@ -368,11 +366,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
         if self.higher_grouping:
             text += u"|\n|"
 
-        text += f('\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n')
+        text += f'\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n'
         for column_entry in self.columns.values():
             totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
             percentage = self._get_percentage(totalprop, total_items)
-            text += f('| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n')
+            text += f'| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n'
         text += u'|}\n'
         return text
 
@@ -386,10 +384,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
         try:
             (groupings_counts, groupings_groupings) = self.get_grouping_information()
         except QueryException as e:
-            logging.error(f('No groupings found.'))
+            logging.error('No groupings found.')
             raise e
 
-        logging.info(f('Grouping retrieved: {len(groupings_counts)}'))
+        logging.info(f'Grouping retrieved: {len(groupings_counts)}')
         for (column_entry_key, column_entry) in self.columns.items():
             self.column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 

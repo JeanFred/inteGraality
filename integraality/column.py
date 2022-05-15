@@ -6,8 +6,6 @@ Column configuration classes
 
 from enum import Enum
 
-from ww import f
-
 
 class GroupingType(Enum):
     YEAR = "year"
@@ -46,20 +44,20 @@ class AbstractColumn:
 
         :return: (str) SPARQL query
         """
-        query = f("""
+        query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql} .""")
+  ?entity {property_statistics.selector_sparql} ."""
 
         if property_statistics.grouping_type == GroupingType.YEAR:
-            query += f("""
+            query += f"""
   ?entity wdt:{property_statistics.grouping_property} ?date .
-  BIND(YEAR(?date) as ?grouping).""")
+  BIND(YEAR(?date) as ?grouping)."""
 
         else:
-            query += f("""
-  ?entity wdt:{property_statistics.grouping_property} ?grouping .""")
+            query += f"""
+  ?entity wdt:{property_statistics.grouping_property} ?grouping ."""
 
-        query += f("""
+        query += f"""
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}
@@ -67,7 +65,7 @@ GROUP BY ?grouping
 HAVING (?count >= {property_statistics.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
-""")
+"""
         return query
 
     def get_totals_query(self, property_statistics):
@@ -75,13 +73,13 @@ LIMIT 1000
         Get the totals of entities with the column set.
         :return: (str) SPARQL query
         """
-        query = f("""
+        query = f"""
 SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {property_statistics.selector_sparql}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}
-""")
+"""
         return query
 
     def get_info_no_grouping_query(self, property_statistics):
@@ -90,14 +88,14 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         :return: (str) SPARQL query
         """
-        query = f("""
+        query = f"""
 SELECT (COUNT(*) AS ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
   MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}
-""")
+"""
         return query
 
 
@@ -130,33 +128,33 @@ class PropertyColumn(AbstractColumn):
             property_link = self.property
 
         if self.title:
-            label = f('[[Property:{property_link}|{self.title}]]')
+            label = f'[[Property:{property_link}|{self.title}]]'
         else:
-            label = f('{{{{Property|{property_link}}}}}')
-        return f('! data-sort-type="number"|{label}\n')
+            label = f'{{{{Property|{property_link}}}}}'
+        return f'! data-sort-type="number"|{label}\n'
 
     def get_filter_for_info(self):
         if self.qualifier:
             property_value = f'wd:{self.value}' if self.value else '[]'
-            return f("""
-    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]""")
+            return f"""
+    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
         else:
-            return f("""
-    ?entity p:{self.property}[]""")
+            return f"""
+    ?entity p:{self.property}[]"""
 
     def get_filter_for_positive_query(self):
-        return f("""
+        return f"""
   ?entity p:{self.property} ?prop . OPTIONAL {{ ?prop ps:{self.property} ?value }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-""")
+"""
 
     def get_filter_for_negative_query(self):
-        return f("""
+        return f"""
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?prop .}}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-""")
+"""
 
 
 class TextColumn(AbstractColumn):
@@ -176,32 +174,32 @@ class TextColumn(AbstractColumn):
 
     def make_column_header(self):
         if self.title:
-            text = f('{self.title}')
+            text = f'{self.title}'
         else:
-            text = f('{{{{#language:{self.language}}}}}')
-        return f('! data-sort-type="number"|{text}\n')
+            text = f'{{{{#language:{self.language}}}}}'
+        return f'! data-sort-type="number"|{text}\n'
 
     def get_filter_for_info(self):
-        return f("""
+        return f"""
     ?entity {self.get_selector()} ?lang_label.
-    FILTER((LANG(?lang_label)) = '{self.language}').""")
+    FILTER((LANG(?lang_label)) = '{self.language}')."""
 
     def get_filter_for_positive_query(self):
-        return f("""
+        return f"""
   FILTER(EXISTS {{
     ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}").
   }})
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.language}". }}
-""")
+"""
 
     def get_filter_for_negative_query(self):
-        return f("""
+        return f"""
     {{ ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}") }}
   }}
   SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
-""")
+"""
 
 
 class LabelColumn(TextColumn):

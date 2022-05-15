@@ -8,6 +8,7 @@ from unittest.mock import patch
 import pywikibot
 
 from column import DescriptionColumn, LabelColumn, PropertyColumn
+from line import PropertyGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics, QueryException
 
 
@@ -628,10 +629,11 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
         ]
-        expected = (
-            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            OrderedDict()
-        )
+        expected = [
+            PropertyGrouping(title='Q3115846', count=10),
+            PropertyGrouping(title='Q5087901', count=6),
+            PropertyGrouping(title='Q623333', count=6)
+        ]
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
@@ -652,10 +654,11 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
         ]
-        expected = (
-            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            OrderedDict()
-        )
+        expected = [
+            PropertyGrouping(title='Q3115846', count=10),
+            PropertyGrouping(title='Q5087901', count=6),
+            PropertyGrouping(title='Q623333', count=6)
+        ]
         self.stats.grouping_threshold = 5
         query = (
             "\n"
@@ -677,10 +680,11 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'higher_grouping': 'USA', 'count': '6'},
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'higher_grouping': 'USA', 'count': '6'}
         ]
-        expected = (
-            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            OrderedDict([('Q3115846', 'NZL'), ('Q5087901', 'USA'), ('Q623333', 'USA')])
-        )
+        expected = [
+            PropertyGrouping(title='Q3115846', count=10, higher_grouping='NZL'),
+            PropertyGrouping(title='Q5087901', count=6, higher_grouping='USA'),
+            PropertyGrouping(title='Q623333', count=6, higher_grouping='USA')
+        ]
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
         query = (
             "\n"
@@ -737,10 +741,11 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7', 'count': '2'},
             {'grouping': 'http://www.wikidata.org/.well-known/genid/1469448a291c6fbe5df8306cb52ef18b', 'count': '1'}
         ]
-        expected = (
-            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('UNKNOWN_VALUE', 3)]),
-            OrderedDict()
-        )
+        expected = [
+            PropertyGrouping(title='Q3115846', count=10),
+            PropertyGrouping(title='Q5087901', count=6),
+            UnknownValueGrouping(count=3)
+        ]
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
@@ -768,10 +773,10 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': '2001', 'count': '10'},
             {'grouping': '2002', 'count': '6'},
         ]
-        expected = (
-            OrderedDict([('2001', 10), ('2002', 6)]),
-            OrderedDict()
-        )
+        expected = [
+            YearGrouping(title='2001', count=10),
+            YearGrouping(title='2002', count=6)
+        ]
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
@@ -801,10 +806,11 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': '2002', 'count': '6'},
             {'grouping': '', 'count': '4'},
         ]
-        expected = (
-            OrderedDict([('2001', 10), ('2002', 6), ('UNKNOWN_VALUE', 4)]),
-            OrderedDict()
-        )
+        expected = [
+            YearGrouping(title='2001', count=10),
+            YearGrouping(title='2002', count=6),
+            UnknownValueGrouping(count=4)
+        ]
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
@@ -902,7 +908,7 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_retrieve_data_empty(self):
         result = self.stats.retrieve_data()
-        expected_grouping_data = ((OrderedDict(), OrderedDict()))
+        expected_grouping_data = []
         expected_column_data = {
             'Dxy': OrderedDict(),
             'Lbr': OrderedDict(),
@@ -921,11 +927,11 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
         ]
         (result_grouping_data, result_column_data) = self.stats.retrieve_data()
-        expected_grouping_data = (
-            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            OrderedDict()
-        )
-
+        expected_grouping_data = [
+            PropertyGrouping(title='Q3115846', count=10),
+            PropertyGrouping(title='Q5087901', count=6),
+            PropertyGrouping(title='Q623333', count=6)
+        ]
         expected_column_data = {
             'Dxy': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
             'Lbr': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
@@ -941,7 +947,7 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
 class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_process_data_empty(self):
-        result = self.stats.process_data(OrderedDict(), OrderedDict())
+        result = self.stats.process_data([])
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
@@ -970,8 +976,10 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_process_data(self):
 
-        groupings_counts = OrderedDict([('Q3115846', 10), ('Q5087901', 6)])
-        groupings_groupings = OrderedDict()
+        grouping_data = [
+            PropertyGrouping(title='Q3115846', count=10),
+            PropertyGrouping(title='Q5087901', count=6),
+        ]
 
         self.stats.column_data = {
             'P21': OrderedDict([
@@ -984,7 +992,7 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
             'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
         }
-        result = self.stats.process_data(groupings_counts, groupings_groupings)
+        result = self.stats.process_data(grouping_data)
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'

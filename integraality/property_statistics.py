@@ -13,6 +13,7 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
+from line import PropertyGrouping, UnknownValueGrouping
 from statsd.defaults.env import statsd
 
 
@@ -62,9 +63,9 @@ class PropertyStatistics:
     @statsd.timer('property_statistics.sparql.groupings')
     def get_grouping_information(self):
         """
-        Get the information for a single grouping.
+        Get all groupings and their counts.
 
-        :return: Tuple of two (ordered) dictionaries.
+        :return: List of Grouping objects
         """
         if self.higher_grouping:
             query = f"""
@@ -98,9 +99,7 @@ HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """
-        grouping_counts = collections.OrderedDict()
-
-        grouping_groupings = collections.OrderedDict()
+        groupings = []
 
         try:
             sq = pywikibot.data.sparql.SparqlQuery()
@@ -122,22 +121,29 @@ LIMIT 1000
                 query=query
             )
 
+        unknown_value_count = 0
+
         for resultitem in queryresult:
+
             if not resultitem.get('grouping') or resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
-                if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in grouping_counts.keys():
-                    grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
-                grouping_counts[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))
+                unknown_value_count += int(resultitem.get('count'))
+
             else:
                 qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-                grouping_counts[qid] = int(resultitem.get('count'))
+                if self.higher_grouping:
+                    value = resultitem.get('higher_grouping')
+                    if value:
+                        value = value.replace(u'http://www.wikidata.org/entity/', u'')
+                    higher_grouping = value
+                else:
+                    higher_grouping = None
+                property_grouping = PropertyGrouping(title=qid, count=int(resultitem.get('count')), higher_grouping=higher_grouping)
+                groupings.append(property_grouping)
 
-            if self.higher_grouping:
-                value = resultitem.get('higher_grouping')
-                if value:
-                    value = value.replace(u'http://www.wikidata.org/entity/', u'')
-                grouping_groupings[qid] = value
+        if unknown_value_count:
+            groupings.append(UnknownValueGrouping(unknown_value_count))
 
-        return (grouping_counts, grouping_groupings)
+        return groupings
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
@@ -379,34 +385,33 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data, output wikitext
         """
-        ((groupings_counts, groupings_groupings), column_data) = self.retrieve_data()
+        (groupings, column_data) = self.retrieve_data()
         self.column_data = column_data
-        text = self.process_data(groupings_counts, groupings_groupings)
+        text = self.process_data(groupings)
         return text
 
     def retrieve_data(self):
         logging.info("Retrieving grouping information...")
 
         try:
-            (groupings_counts, groupings_groupings) = self.get_grouping_information()
+            groupings = self.get_grouping_information()
         except QueryException as e:
             logging.error('No groupings found.')
             raise e
 
         column_data = {}
 
-        logging.info(f'Grouping retrieved: {len(groupings_counts)}')
+        logging.info(f'Grouping retrieved: {len(groupings)}')
         for (column_entry_key, column_entry) in self.columns.items():
             column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
-        return ((groupings_counts, groupings_groupings), column_data)
+        return (groupings, column_data)
 
-    def process_data(self, groupings_counts, groupings_groupings):
+    def process_data(self, groupings):
         text = self.get_header()
 
-        for (grouping, item_count) in sorted(groupings_counts.items(), key=lambda t: t[1], reverse=True):
-            higher_grouping = groupings_groupings.get(grouping)
-            text += self.make_stats_for_one_grouping(grouping, item_count, higher_grouping)
+        for grouping in sorted(groupings, key=lambda t: t.count, reverse=True):
+            text += self.make_stats_for_one_grouping(grouping.title, grouping.count, grouping.higher_grouping)
 
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()

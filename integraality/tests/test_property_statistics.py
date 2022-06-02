@@ -914,6 +914,29 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
         expected = (expected_grouping_data, expected_column_data)
         self.assertEqual(result, expected)
 
+    def test_retrieve_data(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        (result_grouping_data, result_column_data) = self.stats.retrieve_data()
+        expected_grouping_data = (
+            OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            OrderedDict()
+        )
+
+        expected_column_data = {
+            'Dxy': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            'Lbr': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            'P19': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            'P1P2': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+            'P3Q4P5': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
+        }
+        self.assertEqual(result_grouping_data, expected_grouping_data)
+        self.assertEqual(result_column_data, expected_column_data)
+
 
 class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
@@ -943,4 +966,66 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             '| {{Integraality cell|100.0|1|column=Dxy}}\n'
             '|}\n'
         )
+        self.assertEqual(result, expected)
+
+    def test_process_data(self):
+
+        groupings_counts = OrderedDict([('Q3115846', 10), ('Q5087901', 6)])
+        groupings_groupings = OrderedDict()
+
+        self.stats.column_data = {
+            'P21': OrderedDict([
+                ('Q3115846', 10), ('Q5087901', 6),
+                ('UNKNOWN_VALUE', 4)
+            ]),
+            'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
+            'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
+            'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
+            'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
+            'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
+        }
+        result = self.stats.process_data(groupings_counts, groupings_groupings)
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="6"|Top Properties (used at least 10 times per grouping)\n'
+            '|-\n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
+            '|-\n'
+            '| {{Q|Q3115846}}\n'
+            '| 10 \n'
+            '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
+            '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
+            '|-\n'
+            '| {{Q|Q5087901}}\n'
+            '| 6 \n'
+            '| {{Integraality cell|100.0|6|column=P21|grouping=Q5087901}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=Q5087901}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=Q5087901}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=Q5087901}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=Q5087901}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=Q5087901}}\n'
+            '|- class="sortbottom"\n'
+            "|'''Totals''' <small>(all items)</small>:\n"
+            '| 1\n'
+            '| {{Integraality cell|100.0|1|column=P21}}\n'
+            '| {{Integraality cell|100.0|1|column=P19}}\n'
+            '| {{Integraality cell|100.0|1|column=P1/P2}}\n'
+            '| {{Integraality cell|100.0|1|column=P3/Q4/P5}}\n'
+            '| {{Integraality cell|100.0|1|column=Lbr}}\n'
+            '| {{Integraality cell|100.0|1|column=Dxy}}\n'
+            '|}\n'
+        )
+
         self.assertEqual(result, expected)

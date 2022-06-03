@@ -331,6 +331,26 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
+    @patch('pywikibot.ItemPage', autospec=True)
+    def test_make_stats_for_one_grouping_with_grouping_link_failure(self, mock_item_page):
+        mock_item_page.side_effect = pywikibot.exceptions.InvalidTitleError('Error')
+        self.stats.grouping_link = "Foo"
+        with self.assertLogs(level='INFO') as cm:
+            result = self.stats.make_stats_for_one_grouping("Q3115846", 10, None)
+        expected = (
+            '|-\n'
+            '| {{Q|Q3115846}}\n'
+            '| [[Foo/Q3115846|10]] \n'
+            '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n'
+            '| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n'
+        )
+        self.assertEqual(result, expected)
+        self.assertEqual(cm.output, ['INFO:root:Could not retrieve label for Q3115846'])
+
 
 class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
 

@@ -33,14 +33,21 @@ class Grouping(AbstractLine):
 
 
 class PropertyGrouping(Grouping):
-    pass
+
+    def heading(self):
+        return f"{{{{Q|{self.title}}}}}"
 
 
 class YearGrouping(PropertyGrouping):
-    pass
+
+    def heading(self):
+        return f"{self.title}"
 
 
 class UnknownValueGrouping(Grouping):
 
     def get_key(self):
         return 'UNKNOWN_VALUE'
+
+    def heading(self):
+        return '{{int:wikibase-snakview-variations-somevalue-label}}'

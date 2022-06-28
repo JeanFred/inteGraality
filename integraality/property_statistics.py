@@ -340,12 +340,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             else:
                 text += u'|\n'
 
-        if grouping in self.GROUP_MAPPING.__members__:
-            text += u'| %s\n' % (self.GROUP_MAPPING.__members__.get(grouping).value,)
-        elif self.grouping_type == GroupingType.YEAR:
-            text += u'| %s\n' % (grouping,)
-        else:
-            text += u'| {{Q|%s}}\n' % (grouping,)
+        text += f'| {grouping_object.heading()}\n'
 
         if self.grouping_link:
             try:

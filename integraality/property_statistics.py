@@ -325,11 +325,14 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return text
 
-    def make_stats_for_one_grouping(self, grouping, item_count, higher_grouping):
+    def make_stats_for_one_grouping(self, grouping_object):
         """
         Query the data for one group, return the wikitext.
         """
         text = u'|-\n'
+        grouping = grouping_object.title
+        item_count = grouping_object.count
+        higher_grouping = grouping_object.higher_grouping
 
         if self.higher_grouping:
             if higher_grouping:
@@ -412,7 +415,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text = self.get_header()
 
         for grouping in sorted(groupings.values(), key=lambda t: t.count, reverse=True):
-            text += self.make_stats_for_one_grouping(grouping.title, grouping.count, grouping.higher_grouping)
+            text += self.make_stats_for_one_grouping(grouping)
 
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()

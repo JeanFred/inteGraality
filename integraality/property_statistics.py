@@ -99,7 +99,7 @@ HAVING (?count >= {self.grouping_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """
-        groupings = []
+        groupings = collections.OrderedDict()
 
         try:
             sq = pywikibot.data.sparql.SparqlQuery()
@@ -138,10 +138,11 @@ LIMIT 1000
                 else:
                     higher_grouping = None
                 property_grouping = PropertyGrouping(title=qid, count=int(resultitem.get('count')), higher_grouping=higher_grouping)
-                groupings.append(property_grouping)
+                groupings[property_grouping.get_key()] = property_grouping
 
         if unknown_value_count:
-            groupings.append(UnknownValueGrouping(unknown_value_count))
+            unknown_value_grouping = UnknownValueGrouping(unknown_value_count)
+            groupings[unknown_value_grouping.get_key()] = unknown_value_grouping
 
         return groupings
 
@@ -410,7 +411,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def process_data(self, groupings):
         text = self.get_header()
 
-        for grouping in sorted(groupings, key=lambda t: t.count, reverse=True):
+        for grouping in sorted(groupings.values(), key=lambda t: t.count, reverse=True):
             text += self.make_stats_for_one_grouping(grouping.title, grouping.count, grouping.higher_grouping)
 
         if self.stats_for_no_group:

@@ -28,6 +28,9 @@ class Grouping(AbstractLine):
     def __repr__(self):
         return f'{self.title}:{self.count}'
 
+    def get_key(self):
+        return self.title
+
 
 class PropertyGrouping(Grouping):
     pass
@@ -38,4 +41,6 @@ class YearGrouping(PropertyGrouping):
 
 
 class UnknownValueGrouping(Grouping):
-    pass
+
+    def get_key(self):
+        return 'UNKNOWN_VALUE'

@@ -1,5 +1,6 @@
 # -*- coding: utf-8  -*-
 
+import collections
 import unittest
 
 import line
@@ -9,6 +10,8 @@ class AbstractLineTest(unittest.TestCase):
 
     def test(self):
         abstract_line = line.AbstractLine(count=1)
+        expected = collections.OrderedDict()
+        self.assertEqual(abstract_line.cells, expected)
 
 
 class GroupingTest(unittest.TestCase):

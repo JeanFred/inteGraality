@@ -255,20 +255,28 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
-        self.stats.column_data = {
-            'P21': OrderedDict([
-                ('Q3115846', 10), ('Q5087901', 6),
-                ('UNKNOWN_VALUE', 4)
-            ]),
-            'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
-            'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
-            'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
-            'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
-            'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
-        }
+        # self.stats.column_data = {
+        #     'P21': OrderedDict([
+        #         ('Q3115846', 10), ('Q5087901', 6),
+        #         ('UNKNOWN_VALUE', 4)
+        #     ]),
+        #     'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
+        #     'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
+        #     'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
+        #     'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
+        #     'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
+        # }
 
     def test_make_stats_for_one_grouping(self):
         grouping = PropertyGrouping(title='Q3115846', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 10),
+            ('P19', 8),
+            ('P1P2', 2),
+            ('P3Q4P5', 7),
+            ('Lbr', 1),
+            ('Dxy', 2),
+        ])
         result = self.stats.make_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
@@ -285,6 +293,9 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def test_make_stats_for_unknown_grouping(self):
         grouping = UnknownValueGrouping(title='UNKNOWN_VALUE', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 4),
+        ])
         result = self.stats.make_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
@@ -302,6 +313,14 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
     def test_make_stats_for_one_grouping_with_higher_grouping(self):
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
         grouping = PropertyGrouping(title='Q3115846', count=10, higher_grouping="Q1")
+        grouping.cells = OrderedDict([
+            ('P21', 10),
+            ('P19', 8),
+            ('P1P2', 2),
+            ('P3Q4P5', 7),
+            ('Lbr', 1),
+            ('Dxy', 2),
+        ])
         result = self.stats.make_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
@@ -322,6 +341,14 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         mock_item_page.return_value.labels = {'en': 'Bar'}
         self.stats.grouping_link = "Foo"
         grouping = PropertyGrouping(title='Q3115846', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 10),
+            ('P19', 8),
+            ('P1P2', 2),
+            ('P3Q4P5', 7),
+            ('Lbr', 1),
+            ('Dxy', 2),
+        ])
         result = self.stats.make_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
@@ -341,6 +368,14 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         mock_item_page.side_effect = pywikibot.exceptions.InvalidTitleError('Error')
         self.stats.grouping_link = "Foo"
         grouping = PropertyGrouping(title='Q3115846', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 10),
+            ('P19', 8),
+            ('P1P2', 2),
+            ('P3Q4P5', 7),
+            ('Lbr', 1),
+            ('Dxy', 2),
+        ])
         with self.assertLogs(level='INFO') as cm:
             result = self.stats.make_stats_for_one_grouping(grouping)
         expected = (
@@ -913,16 +948,7 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_retrieve_data_empty(self):
         result = self.stats.retrieve_data()
-        expected_grouping_data = {}
-        expected_column_data = {
-            'Dxy': OrderedDict(),
-            'Lbr': OrderedDict(),
-            'P19': OrderedDict(),
-            'P1P2': OrderedDict(),
-            'P21': OrderedDict(),
-            'P3Q4P5': OrderedDict()
-        }
-        expected = (expected_grouping_data, expected_column_data)
+        expected = {}
         self.assertEqual(result, expected)
 
     def test_retrieve_data(self):
@@ -931,22 +957,13 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
             {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
             {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
         ]
-        (result_grouping_data, result_column_data) = self.stats.retrieve_data()
-        expected_grouping_data = {
+        result = self.stats.retrieve_data()
+        expected = {
             'Q3115846': PropertyGrouping(title='Q3115846', count=10),
             'Q5087901': PropertyGrouping(title='Q5087901', count=6),
             'Q623333': PropertyGrouping(title='Q623333', count=6)
         }
-        expected_column_data = {
-            'Dxy': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            'Lbr': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            'P19': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            'P1P2': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            'P21': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-            'P3Q4P5': OrderedDict([('Q3115846', 10), ('Q5087901', 6), ('Q623333', 6)]),
-        }
-        self.assertEqual(result_grouping_data, expected_grouping_data)
-        self.assertEqual(result_column_data, expected_column_data)
+        self.assertEqual(result, expected)
 
 
 class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
@@ -982,21 +999,26 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_process_data(self):
 
         grouping_data = {
-            'Q3115846': PropertyGrouping(title='Q3115846', count=10),
-            'Q5087901': PropertyGrouping(title='Q5087901', count=6),
+            'Q3115846': PropertyGrouping(title='Q3115846', count=10, cells=OrderedDict([
+                ('P21', 10),
+                ('P19', 8),
+                ('P1P2', 2),
+                ('P3Q4P5', 7),
+                ('Lbr', 1),
+                ('Dxy', 2)
+            ])
+            ),
+            'Q5087901': PropertyGrouping(title='Q5087901', count=6, cells=OrderedDict([
+                ('P21', 6),
+                ('P19', 0),
+                ('P1P2', 0),
+                ('P3Q4P5', 0),
+                ('Lbr', 0),
+                ('Dxy', 0)
+            ])
+            ),
         }
 
-        self.stats.column_data = {
-            'P21': OrderedDict([
-                ('Q3115846', 10), ('Q5087901', 6),
-                ('UNKNOWN_VALUE', 4)
-            ]),
-            'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
-            'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
-            'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
-            'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
-            'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
-        }
         result = self.stats.process_data(grouping_data)
         expected = (
             '{| class="wikitable sortable"\n'

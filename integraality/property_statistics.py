@@ -57,7 +57,6 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
 
         self.grouping_link = grouping_link
-        self.column_data = {}
         self.cell_template = 'Integraality cell'
 
     @statsd.timer('property_statistics.sparql.groupings')
@@ -356,8 +355,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         for (column_entry_key, column_entry) in self.columns.items():
             try:
-                column_count = self.column_data.get(column_entry_key).get(grouping)
-            except AttributeError:
+                column_count = grouping_object.cells[column_entry_key]
+            except KeyError:
                 column_count = 0
             if not column_count:
                 column_count = 0
@@ -384,8 +383,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data, output wikitext
         """
-        (groupings, column_data) = self.retrieve_data()
-        self.column_data = column_data
+        groupings = self.retrieve_data()
         text = self.process_data(groupings)
         return text
 
@@ -398,13 +396,18 @@ SELECT (COUNT(*) as ?count) WHERE {{
             logging.error('No groupings found.')
             raise e
 
-        column_data = {}
-
         logging.info(f'Grouping retrieved: {len(groupings)}')
-        for (column_entry_key, column_entry) in self.columns.items():
-            column_data[column_entry_key] = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
 
-        return (groupings, column_data)
+        for (column_entry_key, column_entry) in self.columns.items():
+            data = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
+            for (grouping_item, value) in data.items():
+                grouping = groupings.get(grouping_item)
+                if grouping:
+                    grouping.cells[column_entry_key] = value
+                else:
+                    logging.debug(f'Discarding data on {grouping_item}, not in the groupings')
+
+        return groupings
 
     def process_data(self, groupings):
         text = self.get_header()

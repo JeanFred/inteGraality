@@ -4,17 +4,22 @@
 Line configuration classes
 """
 
+import collections
+
 
 class AbstractLine:
 
-    def __init__(self, count):
+    def __init__(self, count, cells=None):
         self.count = count
+        if not cells:
+            cells = collections.OrderedDict()
+        self.cells = cells
 
 
 class Grouping(AbstractLine):
 
-    def __init__(self, count, title=None, higher_grouping=None):
-        super().__init__(count)
+    def __init__(self, count, cells=None, title=None, higher_grouping=None):
+        super().__init__(count, cells)
         self.title = title
         self.higher_grouping = higher_grouping
 

@@ -15,6 +15,11 @@ class AbstractLine:
             cells = collections.OrderedDict()
         self.cells = cells
 
+    def get_percentage(self, value):
+        if not value:
+            return 0
+        return round(1.0 * value / max(self.count, 1) * 100, 2)
+
 
 class Grouping(AbstractLine):
 

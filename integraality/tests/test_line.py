@@ -13,6 +13,18 @@ class AbstractLineTest(unittest.TestCase):
         expected = collections.OrderedDict()
         self.assertEqual(abstract_line.cells, expected)
 
+    def test_percentage_exact(self):
+        abstract_line = line.AbstractLine(count=10)
+        result = abstract_line.get_percentage(2)
+        expected = 20.0
+        self.assertEqual(result, expected)
+
+    def test_percentage_rounded(self):
+        abstract_line = line.AbstractLine(count=3)
+        result = abstract_line.get_percentage(1)
+        expected = 33.33
+        self.assertEqual(result, expected)
+
 
 class GroupingTest(unittest.TestCase):
 

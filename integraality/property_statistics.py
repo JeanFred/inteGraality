@@ -353,15 +353,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         else:
             text += f'| {item_count} \n'
 
-        for (column_entry_key, column_entry) in self.columns.items():
-            try:
-                column_count = grouping_object.cells[column_entry_key]
-            except KeyError:
-                column_count = 0
-            if not column_count:
-                column_count = 0
-            percentage = self._get_percentage(column_count, item_count)
-            text += f'| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={grouping}}}}}\n'  # noqa
+        for column_entry in self.columns.values():
+            text += grouping_object.format_cell(column_entry, self.cell_template)
         return text
 
     def make_footer(self):

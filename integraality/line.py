@@ -41,6 +41,18 @@ class Grouping(AbstractLine):
     def get_key(self):
         return self.title
 
+    def format_cell(self, column_entry, cell_template):
+        column_count = self.cells.get(column_entry.get_key(), 0)
+        percentage = self.get_percentage(column_count)
+        fields = [
+            cell_template,
+            str(percentage),
+            str(column_count),
+            f"column={column_entry.get_title()}",
+            f"grouping={self.title}"
+        ]
+        return f'| {{{{{"|".join(fields)}}}}}\n'
+
 
 class PropertyGrouping(Grouping):
 

@@ -40,6 +40,18 @@ class PropertyGroupingTest(unittest.TestCase):
         expected = "{{Q|Q1}}"
         self.assertEqual(result, expected)
 
+    def test_format_header_cell(self):
+        grouping = line.PropertyGrouping(count=1, title='Q1')
+        result = grouping.format_header_cell(None)
+        expected = '| {{Q|Q1}}\n'
+        self.assertEqual(result, expected)
+
+    def test_format_header_cell_with_higher_grouping(self):
+        grouping = line.PropertyGrouping(count=1, title='Q1', higher_grouping="Q2")
+        result = grouping.format_header_cell(None)
+        expected = '| data-sort-value="Q2"| {{Q|Q2}}\n| {{Q|Q1}}\n'
+        self.assertEqual(result, expected)
+
 
 class YearGroupingTest(unittest.TestCase):
 
@@ -56,4 +68,35 @@ class UnknownValueGroupingTest(unittest.TestCase):
         grouping = line.UnknownValueGrouping(count=1)
         result = grouping.heading()
         expected = "{{int:wikibase-snakview-variations-somevalue-label}}"
+        self.assertEqual(result, expected)
+
+
+class FormatHigherGroupingTextTest(unittest.TestCase):
+
+    def test_format_higher_grouping_text_default_qitem(self):
+        higher_grouping = 'Q1'
+        grouping = line.PropertyGrouping(count=1, higher_grouping=higher_grouping)
+        result = grouping.format_higher_grouping_text(None)
+        expected = '| data-sort-value="Q1"| {{Q|Q1}}\n'
+        self.assertEqual(result, expected)
+
+    def test_format_higher_grouping_text_string(self):
+        higher_grouping = 'foo'
+        grouping = line.PropertyGrouping(count=1, higher_grouping=higher_grouping)
+        result = grouping.format_higher_grouping_text(None)
+        expected = '| data-sort-value="foo"| foo\n'
+        self.assertEqual(result, expected)
+
+    def test_format_higher_grouping_text_country(self):
+        higher_grouping = 'AT'
+        grouping = line.PropertyGrouping(count=1, higher_grouping=higher_grouping)
+        result = grouping.format_higher_grouping_text("country")
+        expected = '| data-sort-value="AT"| {{Flag|AT}}\n'
+        self.assertEqual(result, expected)
+
+    def test_format_higher_grouping_text_image(self):
+        higher_grouping = "http://commons.wikimedia.org/wiki/Special:FilePath/US%20CDC%20logo.svg"
+        grouping = line.PropertyGrouping(count=1, higher_grouping=higher_grouping)
+        result = grouping.format_higher_grouping_text(None)
+        expected = '| data-sort-value="US%20CDC%20logo.svg"| [[File:US%20CDC%20logo.svg|center|100px]]\n'
         self.assertEqual(result, expected)

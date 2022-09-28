@@ -5,6 +5,7 @@ Line configuration classes
 """
 
 import collections
+import re
 
 
 class AbstractLine:
@@ -41,6 +42,14 @@ class Grouping(AbstractLine):
     def get_key(self):
         return self.title
 
+    def format_header_cell(self, grouping_type):
+        text = ''
+        if self.higher_grouping:
+            text += self.format_higher_grouping_text(grouping_type)
+
+        text += f'| {self.heading()}\n'
+        return text
+
     def format_cell(self, column_entry, cell_template):
         column_count = self.cells.get(column_entry.get_key(), 0)
         percentage = self.get_percentage(column_count)
@@ -55,6 +64,24 @@ class Grouping(AbstractLine):
 
 
 class PropertyGrouping(Grouping):
+
+    def format_higher_grouping_text(self, grouping_type):
+        higher_grouping_value = self.higher_grouping
+        type_mapping = {
+            "country": "{{Flag|%s}}" % higher_grouping_value,
+        }
+        if re.match(r"Q\d+", higher_grouping_value):
+            higher_grouping_text = f'{{{{Q|{higher_grouping_value}}}}}'
+        elif re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value):
+            match = re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value)
+            image_name = match.groups()[0]
+            higher_grouping_text = f'[[File:{image_name}|center|100px]]'
+            higher_grouping_value = image_name
+        elif grouping_type in type_mapping:
+            higher_grouping_text = type_mapping.get(grouping_type)
+        else:
+            higher_grouping_text = higher_grouping_value
+        return f'| data-sort-value="{higher_grouping_value}"| {higher_grouping_text}\n'
 
     def heading(self):
         return f"{{{{Q|{self.title}}}}}"

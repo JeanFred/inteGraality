@@ -64,6 +64,17 @@ class Grouping(AbstractLine):
         return f'| {{{{{"|".join(fields)}}}}}\n'
 
 
+class NoGroupGrouping(Grouping):
+
+    """Group for items that do not belong to any group."""
+
+    def heading(self):
+        return 'No grouping'
+
+    def format_higher_grouping_text(self, grouping_type=None):
+        return u'|\n'
+
+
 class PropertyGrouping(Grouping):
 
     def format_higher_grouping_text(self, grouping_type):

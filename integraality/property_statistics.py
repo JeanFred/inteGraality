@@ -12,7 +12,7 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
-from line import PropertyGrouping, UnknownValueGrouping
+from line import NoGroupGrouping, PropertyGrouping, UnknownValueGrouping
 from statsd.defaults.env import statsd
 
 
@@ -290,20 +290,19 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data for no_group, return the wikitext
         """
+        total_no_count = self.get_totals_no_grouping()
+        grouping_object = NoGroupGrouping(count=total_no_count, higher_grouping=self.higher_grouping)
+
+        for (column_entry_key, column_entry) in self.columns.items():
+            value = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
+            grouping_object.cells[column_entry_key] = value
+
         text = u'|-\n'
 
-        if self.higher_grouping:
-            text += u'|\n'
-
-        total_no_count = self.get_totals_no_grouping()
-        text += u'| No grouping \n'
+        text += grouping_object.format_header_cell(self.grouping_type)
         text += f'| {total_no_count} \n'
-
         for column_entry in self.columns.values():
-            column_count = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
-            percentage = self._get_percentage(column_count, total_no_count)
-            text += f'| {{{{{self.cell_template}|{percentage}|{column_count}|column={column_entry.get_title()}|grouping={self.GROUP_MAPPING.NO_GROUPING.value}}}}}\n'  # noqa
-
+            text += grouping_object.format_cell(column_entry, self.cell_template)
         return text
 
     def format_stats_for_one_grouping(self, grouping_object):

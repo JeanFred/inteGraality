@@ -193,7 +193,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
-            "| No grouping \n"
+            "| No grouping\n"
             "| 20 \n"
             "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
@@ -212,7 +212,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         expected = (
             "|-\n"
             "|\n"
-            "| No grouping \n"
+            "| No grouping\n"
             "| 20 \n"
             "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
             "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"

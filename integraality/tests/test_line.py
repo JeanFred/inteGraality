@@ -32,6 +32,15 @@ class GroupingTest(unittest.TestCase):
         grouping = line.Grouping(count=1)
 
 
+class NoGroupGroupingTest(unittest.TestCase):
+
+    def test_heading(self):
+        grouping = line.NoGroupGrouping(count=1)
+        result = grouping.heading()
+        expected = "No grouping"
+        self.assertEqual(result, expected)
+
+
 class PropertyGroupingTest(unittest.TestCase):
 
     def test_heading(self):

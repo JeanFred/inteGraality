@@ -37,7 +37,8 @@ class Grouping(AbstractLine):
         )
 
     def __repr__(self):
-        return f'{self.title}:{self.count}'
+        cell = ",".join(["%s:%s" % (key, value) for (key, value) in self.cells.items()])
+        return f'{self.title}:{self.count} - {cell}'
 
     def get_key(self):
         return self.title

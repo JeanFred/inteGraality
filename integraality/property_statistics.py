@@ -306,7 +306,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return text
 
-    def make_stats_for_one_grouping(self, grouping_object):
+    def format_stats_for_one_grouping(self, grouping_object):
         """
         Query the data for one group, return the wikitext.
         """
@@ -381,7 +381,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text = self.get_header()
 
         for grouping in sorted(groupings.values(), key=lambda t: t.count, reverse=True):
-            text += self.make_stats_for_one_grouping(grouping)
+            text += self.format_stats_for_one_grouping(grouping)
 
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()

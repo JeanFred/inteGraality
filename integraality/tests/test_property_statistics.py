@@ -242,7 +242,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         #     'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
         # }
 
-    def test_make_stats_for_one_grouping(self):
+    def test_format_stats_for_one_grouping(self):
         grouping = PropertyGrouping(title='Q3115846', count=10)
         grouping.cells = OrderedDict([
             ('P21', 10),
@@ -252,7 +252,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             ('Lbr', 1),
             ('Dxy', 2),
         ])
-        result = self.stats.make_stats_for_one_grouping(grouping)
+        result = self.stats.format_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
             '| {{Q|Q3115846}}\n'
@@ -271,7 +271,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         grouping.cells = OrderedDict([
             ('P21', 4),
         ])
-        result = self.stats.make_stats_for_one_grouping(grouping)
+        result = self.stats.format_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
             '| {{int:wikibase-snakview-variations-somevalue-label}}\n'
@@ -285,7 +285,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
-    def test_make_stats_for_one_grouping_with_higher_grouping(self):
+    def test_format_stats_for_one_grouping_with_higher_grouping(self):
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
         grouping = PropertyGrouping(title='Q3115846', count=10, higher_grouping="Q1")
         grouping.cells = OrderedDict([
@@ -296,7 +296,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             ('Lbr', 1),
             ('Dxy', 2),
         ])
-        result = self.stats.make_stats_for_one_grouping(grouping)
+        result = self.stats.format_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
             '| data-sort-value="Q1"| {{Q|Q1}}\n'
@@ -312,7 +312,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     @patch('pywikibot.ItemPage', autospec=True)
-    def test_make_stats_for_one_grouping_with_grouping_link(self, mock_item_page):
+    def test_format_stats_for_one_grouping_with_grouping_link(self, mock_item_page):
         mock_item_page.return_value.labels = {'en': 'Bar'}
         self.stats.grouping_link = "Foo"
         grouping = PropertyGrouping(title='Q3115846', count=10)
@@ -324,7 +324,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             ('Lbr', 1),
             ('Dxy', 2),
         ])
-        result = self.stats.make_stats_for_one_grouping(grouping)
+        result = self.stats.format_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
             '| {{Q|Q3115846}}\n'
@@ -339,7 +339,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     @patch('pywikibot.ItemPage', autospec=True)
-    def test_make_stats_for_one_grouping_with_grouping_link_failure(self, mock_item_page):
+    def test_format_stats_for_one_grouping_with_grouping_link_failure(self, mock_item_page):
         mock_item_page.side_effect = pywikibot.exceptions.InvalidTitleError('Error')
         self.stats.grouping_link = "Foo"
         grouping = PropertyGrouping(title='Q3115846', count=10)
@@ -352,7 +352,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             ('Dxy', 2),
         ])
         with self.assertLogs(level='INFO') as cm:
-            result = self.stats.make_stats_for_one_grouping(grouping)
+            result = self.stats.format_stats_for_one_grouping(grouping)
         expected = (
             '|-\n'
             '| {{Q|Q3115846}}\n'

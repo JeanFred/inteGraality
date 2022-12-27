@@ -16,7 +16,7 @@ pyparsing==3.0.9
 pywikibot==7.6.0
 redis==4.3.4
 requests==2.28.1
-setuptools==65.3.0
+setuptools==65.5.1
 statsd==3.3.0
 typing-extensions==4.3.0
 urllib3==1.26.12

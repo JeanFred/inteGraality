@@ -983,14 +983,14 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.make_footer()
         expected = (
             '|- class="sortbottom"\n'
-            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
-            "| 120\n"
-            "| {{Integraality cell|25.0|30|column=P21}}\n"
-            "| {{Integraality cell|66.67|80|column=P19}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
+            "| \'\'\'Totals\'\'\' <small>(all items)</small>\n"
+            "| 120 \n"
+            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
+            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)
@@ -1001,14 +1001,14 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
         expected = (
             '|- class="sortbottom"\n'
             '||\n'
-            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
-            "| 120\n"
-            "| {{Integraality cell|25.0|30|column=P21}}\n"
-            "| {{Integraality cell|66.67|80|column=P19}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
+            "| \'\'\'Totals\'\'\' <small>(all items)</small>\n"
+            "| 120 \n"
+            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
+            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)
@@ -1018,14 +1018,14 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats.make_footer()
         expected = (
             '|- class="sortbottom"\n'
-            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
-            "| 120\n"
-            "| {{Integraality cell|25.0|30|column=P21}}\n"
-            "| {{Integraality cell|66.67|80|column=P19}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
+            "| \'\'\'Totals\'\'\' <small>(all items)</small>\n"
+            "| 120 \n"
+            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
+            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)
@@ -1071,14 +1071,14 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '|- class="sortbottom"\n'
-            "|'''Totals''' <small>(all items)</small>:\n"
-            '| 1\n'
-            '| {{Integraality cell|100.0|1|column=P21}}\n'
-            '| {{Integraality cell|100.0|1|column=P19}}\n'
-            '| {{Integraality cell|100.0|1|column=P1/P2}}\n'
-            '| {{Integraality cell|100.0|1|column=P3/Q4/P5}}\n'
-            '| {{Integraality cell|100.0|1|column=Lbr}}\n'
-            '| {{Integraality cell|100.0|1|column=Dxy}}\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            '| 1 \n'
+            '| {{Integraality cell|100.0|1|column=P21|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P19|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n'
             '|}\n'
         )
         self.assertEqual(result, expected)
@@ -1139,14 +1139,14 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             '| {{Integraality cell|0|0|column=Lbr|grouping=Q5087901}}\n'
             '| {{Integraality cell|0|0|column=Dxy|grouping=Q5087901}}\n'
             '|- class="sortbottom"\n'
-            "|'''Totals''' <small>(all items)</small>:\n"
-            '| 1\n'
-            '| {{Integraality cell|100.0|1|column=P21}}\n'
-            '| {{Integraality cell|100.0|1|column=P19}}\n'
-            '| {{Integraality cell|100.0|1|column=P1/P2}}\n'
-            '| {{Integraality cell|100.0|1|column=P3/Q4/P5}}\n'
-            '| {{Integraality cell|100.0|1|column=Lbr}}\n'
-            '| {{Integraality cell|100.0|1|column=Dxy}}\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            '| 1 \n'
+            '| {{Integraality cell|100.0|1|column=P21|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P19|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n'
+            '| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n'
             '|}\n'
         )
 
@@ -1203,14 +1203,14 @@ class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             '| {{Integraality cell|100.0|6|column=Lbr|grouping=Q623333}}\n'
             '| {{Integraality cell|100.0|6|column=Dxy|grouping=Q623333}}\n'
             '|- class="sortbottom"\n'
-            "|'''Totals''' <small>(all items)</small>:\n"
-            '| 10\n'
-            '| {{Integraality cell|100.0|10|column=P21}}\n'
-            '| {{Integraality cell|100.0|10|column=P19}}\n'
-            '| {{Integraality cell|100.0|10|column=P1/P2}}\n'
-            '| {{Integraality cell|100.0|10|column=P3/Q4/P5}}\n'
-            '| {{Integraality cell|100.0|10|column=Lbr}}\n'
-            '| {{Integraality cell|100.0|10|column=Dxy}}\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            '| 10 \n'
+            '| {{Integraality cell|100.0|10|column=P21|grouping=}}\n'
+            '| {{Integraality cell|100.0|10|column=P19|grouping=}}\n'
+            '| {{Integraality cell|100.0|10|column=P1/P2|grouping=}}\n'
+            '| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=}}\n'
+            '| {{Integraality cell|100.0|10|column=Lbr|grouping=}}\n'
+            '| {{Integraality cell|100.0|10|column=Dxy|grouping=}}\n'
             '|}\n'
         )
         self.assertEqual(result, expected)

@@ -337,11 +337,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
         if self.higher_grouping:
             text += u"|\n|"
 
-        text += f'\'\'\'Totals\'\'\' <small>(all items)</small>:\n| {total_items}\n'
+        text += f' \'\'\'Totals\'\'\' <small>(all items)</small>\n| {total_items} \n'
         for column_entry in self.columns.values():
             totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
             percentage = self._get_percentage(totalprop, total_items)
-            text += f'| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}}}}}\n'
+            text += f'| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}|grouping=}}}}\n'
         text += u'|}\n'
         return text
 

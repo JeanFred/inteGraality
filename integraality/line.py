@@ -112,3 +112,12 @@ class UnknownValueGrouping(Grouping):
 
     def heading(self):
         return '{{int:wikibase-snakview-variations-somevalue-label}}'
+
+
+class TotalsGrouping(Grouping):
+
+    def heading(self):
+        return "'''Totals''' <small>(all items)</small>"
+
+    def format_higher_grouping_text(self, grouping_type=None):
+        return u'||\n'

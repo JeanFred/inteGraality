@@ -12,7 +12,12 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
-from line import NoGroupGrouping, PropertyGrouping, UnknownValueGrouping
+from line import (
+    NoGroupGrouping,
+    PropertyGrouping,
+    TotalsGrouping,
+    UnknownValueGrouping
+)
 from statsd.defaults.env import statsd
 
 
@@ -333,15 +338,20 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def make_footer(self):
         total_items = self.get_totals()
-        text = u'|- class="sortbottom"\n|'
-        if self.higher_grouping:
-            text += u"|\n|"
 
-        text += f' \'\'\'Totals\'\'\' <small>(all items)</small>\n| {total_items} \n'
+        grouping_object = TotalsGrouping(count=total_items, title='', higher_grouping=self.higher_grouping)
+
+        for (column_entry_key, column_entry) in self.columns.items():
+            value = self._get_count_from_sparql(column_entry.get_totals_query(self))
+            grouping_object.cells[column_entry_key] = value
+
+        text = u'|- class="sortbottom"\n'
+
+        text += grouping_object.format_header_cell(self.grouping_type)
+        text += f'| {total_items} \n'
         for column_entry in self.columns.values():
-            totalprop = self._get_count_from_sparql(column_entry.get_totals_query(self))
-            percentage = self._get_percentage(totalprop, total_items)
-            text += f'| {{{{{self.cell_template}|{percentage}|{totalprop}|column={column_entry.get_title()}|grouping=}}}}\n'
+            text += grouping_object.format_cell(column_entry, self.cell_template)
+
         text += u'|}\n'
         return text
 

@@ -80,6 +80,15 @@ class UnknownValueGroupingTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class TotalsGroupingTest(unittest.TestCase):
+
+    def test_heading(self):
+        grouping = line.TotalsGrouping(count=1)
+        result = grouping.heading()
+        expected = "'''Totals''' <small>(all items)</small>"
+        self.assertEqual(result, expected)
+
+
 class FormatHigherGroupingTextTest(unittest.TestCase):
 
     def test_format_higher_grouping_text_default_qitem(self):

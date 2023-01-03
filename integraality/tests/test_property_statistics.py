@@ -225,6 +225,24 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
         self.assertEqual(self.mock_sparql_query.call_count, 6)
 
+    def test_make_stats_for_no_group_with_grouping_link(self):
+        self.stats.grouping_link = "Foo"
+        result = self.stats.make_stats_for_no_group()
+        expected = (
+            "|-\n"
+            "| No grouping\n"
+            "| 20 \n"
+            "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
+            "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
+            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
+            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
+            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
+            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
+        )
+        self.assertEqual(result, expected)
+        self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
+        self.assertEqual(self.mock_sparql_query.call_count, 6)
+
 
 class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
@@ -276,6 +294,26 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             '|-\n'
             '| {{int:wikibase-snakview-variations-somevalue-label}}\n'
             '| 10 \n'
+            '| {{Integraality cell|40.0|4|column=P21|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=UNKNOWN_VALUE}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=UNKNOWN_VALUE}}\n'
+        )
+        self.assertEqual(result, expected)
+
+    def test_make_stats_for_unknown_grouping_with_grouping_link(self):
+        self.stats.grouping_link = "Foo"
+        grouping = UnknownValueGrouping(title='UNKNOWN_VALUE', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 4),
+        ])
+        result = self.stats.format_stats_for_one_grouping(grouping)
+        expected = (
+            '|-\n'
+            '| {{int:wikibase-snakview-variations-somevalue-label}}\n'
+            '| [[Foo/UNKNOWN_VALUE|10]] \n'
             '| {{Integraality cell|40.0|4|column=P21|grouping=UNKNOWN_VALUE}}\n'
             '| {{Integraality cell|0|0|column=P19|grouping=UNKNOWN_VALUE}}\n'
             '| {{Integraality cell|0|0|column=P1/P2|grouping=UNKNOWN_VALUE}}\n'
@@ -903,6 +941,41 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
         ]
 
     def test_make_footer(self):
+        result = self.stats.make_footer()
+        expected = (
+            '|- class="sortbottom"\n'
+            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
+            "| 120\n"
+            "| {{Integraality cell|25.0|30|column=P21}}\n"
+            "| {{Integraality cell|66.67|80|column=P19}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
+            "| {{Integraality cell|20.0|24|column=Lbr}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_make_footer_with_higher_grouping(self):
+        self.stats.higher_grouping = 'wdt:P17/wdt:P298'
+        result = self.stats.make_footer()
+        expected = (
+            '|- class="sortbottom"\n'
+            '||\n'
+            "|\'\'\'Totals\'\'\' <small>(all items)</small>:\n"
+            "| 120\n"
+            "| {{Integraality cell|25.0|30|column=P21}}\n"
+            "| {{Integraality cell|66.67|80|column=P19}}\n"
+            "| {{Integraality cell|8.33|10|column=P1/P2}}\n"
+            "| {{Integraality cell|10.0|12|column=P3/Q4/P5}}\n"
+            "| {{Integraality cell|20.0|24|column=Lbr}}\n"
+            "| {{Integraality cell|30.0|36|column=Dxy}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_make_footer_with_grouping_link(self):
+        self.stats.grouping_link = "Foo"
         result = self.stats.make_footer()
         expected = (
             '|- class="sortbottom"\n'

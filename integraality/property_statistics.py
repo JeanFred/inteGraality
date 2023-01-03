@@ -295,8 +295,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data for no_group, return the wikitext
         """
-        total_no_count = self.get_totals_no_grouping()
-        grouping_object = NoGroupGrouping(count=total_no_count, higher_grouping=self.higher_grouping)
+        count = self.get_totals_no_grouping()
+        grouping_object = NoGroupGrouping(count=count, higher_grouping=self.higher_grouping)
 
         for (column_entry_key, column_entry) in self.columns.items():
             value = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
@@ -305,7 +305,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text = u'|-\n'
 
         text += grouping_object.format_header_cell(self.grouping_type)
-        text += f'| {total_no_count} \n'
+        text += f'| {count} \n'
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
         return text
@@ -337,9 +337,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return text
 
     def make_footer(self):
-        total_items = self.get_totals()
-
-        grouping_object = TotalsGrouping(count=total_items, title='', higher_grouping=self.higher_grouping)
+        count = self.get_totals()
+        grouping_object = TotalsGrouping(count=count, title='', higher_grouping=self.higher_grouping)
 
         for (column_entry_key, column_entry) in self.columns.items():
             value = self._get_count_from_sparql(column_entry.get_totals_query(self))
@@ -348,7 +347,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text = u'|- class="sortbottom"\n'
 
         text += grouping_object.format_header_cell(self.grouping_type)
-        text += f'| {total_items} \n'
+        text += f'| {count} \n'
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
 

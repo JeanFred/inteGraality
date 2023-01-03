@@ -31,6 +31,18 @@ class GroupingTest(unittest.TestCase):
     def test(self):
         grouping = line.Grouping(count=1)
 
+    def test_format_count_cell(self):
+        grouping = line.Grouping(count=1, title="smth")
+        result = grouping.format_count_cell(None, None)
+        expected = '| 1 \n'
+        self.assertEquals(result, expected)
+
+    def test_format_count_cell_with_grouping_link(self):
+        grouping = line.Grouping(count=1, title="smth")
+        result = grouping.format_count_cell("Foo", None)
+        expected = '| [[Foo/smth|1]] \n'
+        self.assertEquals(result, expected)
+
 
 class NoGroupGroupingTest(unittest.TestCase):
 

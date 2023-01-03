@@ -315,23 +315,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
         Query the data for one group, return the wikitext.
         """
         text = grouping_object.row_opener()
-        grouping = grouping_object.title
-        item_count = grouping_object.count
 
         text += grouping_object.format_header_cell(self.grouping_type)
-
-        if self.grouping_link:
-            try:
-                group_item = pywikibot.ItemPage(self.repo, grouping)
-                group_item.get()
-                label = group_item.labels["en"]
-            except (pywikibot.exceptions.InvalidTitleError, KeyError):
-                logging.info(f"Could not retrieve label for {grouping}")
-                label = grouping
-            text += f'| [[{self.grouping_link}/{label}|{item_count}]] \n'
-        else:
-            text += f'| {item_count} \n'
-
+        text += grouping_object.format_count_cell(self.grouping_link, self.repo)
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
         return text

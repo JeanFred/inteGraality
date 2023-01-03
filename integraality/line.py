@@ -5,7 +5,10 @@ Line configuration classes
 """
 
 import collections
+import logging
 import re
+
+import pywikibot
 
 
 class AbstractLine:
@@ -66,6 +69,15 @@ class Grouping(AbstractLine):
     def row_opener(self):
         return u'|-\n'
 
+    def format_count_cell(self, grouping_link, repo):
+        if grouping_link:
+            return self.format_grouping_link(grouping_link, repo)
+        else:
+            return f'| {self.count} \n'
+
+    def format_grouping_link(self, grouping_link, repo=None):
+        return f'| [[{grouping_link}/{self.title}|{self.count}]] \n'
+
 
 class NoGroupGrouping(Grouping):
 
@@ -79,6 +91,16 @@ class NoGroupGrouping(Grouping):
 
 
 class PropertyGrouping(Grouping):
+
+    def format_grouping_link(self, grouping_link, repo):
+        try:
+            group_item = pywikibot.ItemPage(repo, self.title)
+            group_item.get()
+            label = group_item.labels["en"]
+        except (pywikibot.exceptions.InvalidTitleError, pywikibot.exceptions.NoPageError, KeyError):
+            logging.info(f"Could not retrieve label for {self.title}")
+            label = self.title
+        return f'| [[{grouping_link}/{label}|{self.count}]] \n'
 
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping

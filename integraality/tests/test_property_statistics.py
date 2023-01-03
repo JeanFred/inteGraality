@@ -965,7 +965,7 @@ class TestGetHeader(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
+class MakeTotalsTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def setUp(self):
         super().setUp()
@@ -979,8 +979,8 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             [{'count': '36'}],
         ]
 
-    def test_make_footer(self):
-        result = self.stats.make_footer()
+    def test_make_totals(self):
+        result = self.stats.make_totals()
         expected = (
             '|- class="sortbottom"\n'
             "| \'\'\'Totals\'\'\' <small>(all items)</small>\n"
@@ -991,13 +991,12 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
             "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "|}\n"
         )
         self.assertEqual(result, expected)
 
-    def test_make_footer_with_higher_grouping(self):
+    def test_make_totals_with_higher_grouping(self):
         self.stats.higher_grouping = 'wdt:P17/wdt:P298'
-        result = self.stats.make_footer()
+        result = self.stats.make_totals()
         expected = (
             '|- class="sortbottom"\n'
             '||\n'
@@ -1009,13 +1008,12 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
             "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "|}\n"
         )
         self.assertEqual(result, expected)
 
-    def test_make_footer_with_grouping_link(self):
+    def test_make_totals_with_grouping_link(self):
         self.stats.grouping_link = "Foo"
-        result = self.stats.make_footer()
+        result = self.stats.make_totals()
         expected = (
             '|- class="sortbottom"\n'
             "| \'\'\'Totals\'\'\' <small>(all items)</small>\n"
@@ -1026,7 +1024,6 @@ class MakeFooterTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
             "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "|}\n"
         )
         self.assertEqual(result, expected)
 

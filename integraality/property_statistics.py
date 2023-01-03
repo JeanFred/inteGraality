@@ -336,7 +336,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             text += grouping_object.format_cell(column_entry, self.cell_template)
         return text
 
-    def make_footer(self):
+    def make_totals(self):
         count = self.get_totals()
         grouping_object = TotalsGrouping(count=count, title='', higher_grouping=self.higher_grouping)
 
@@ -350,8 +350,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text += f'| {count} \n'
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
-
-        text += u'|}\n'
         return text
 
     @statsd.timer('property_statistics.processing')
@@ -394,7 +392,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
         if self.stats_for_no_group:
             text += self.make_stats_for_no_group()
 
-        text += self.make_footer()
+        text += self.make_totals()
+        text += u'|}\n'
 
         return text
 

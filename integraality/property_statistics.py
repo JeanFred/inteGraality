@@ -302,7 +302,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             value = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
             grouping_object.cells[column_entry_key] = value
 
-        text = u'|-\n'
+        text = grouping_object.row_opener()
 
         text += grouping_object.format_header_cell(self.grouping_type)
         text += f'| {count} \n'
@@ -314,7 +314,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         Query the data for one group, return the wikitext.
         """
-        text = u'|-\n'
+        text = grouping_object.row_opener()
         grouping = grouping_object.title
         item_count = grouping_object.count
 
@@ -344,7 +344,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             value = self._get_count_from_sparql(column_entry.get_totals_query(self))
             grouping_object.cells[column_entry_key] = value
 
-        text = u'|- class="sortbottom"\n'
+        text = grouping_object.row_opener()
 
         text += grouping_object.format_header_cell(self.grouping_type)
         text += f'| {count} \n'

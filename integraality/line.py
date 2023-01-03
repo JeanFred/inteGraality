@@ -63,6 +63,9 @@ class Grouping(AbstractLine):
         ]
         return f'| {{{{{"|".join(fields)}}}}}\n'
 
+    def row_opener(self):
+        return u'|-\n'
+
 
 class NoGroupGrouping(Grouping):
 
@@ -121,3 +124,6 @@ class TotalsGrouping(Grouping):
 
     def format_higher_grouping_text(self, grouping_type=None):
         return u'||\n'
+
+    def row_opener(self):
+        return u'|- class="sortbottom"\n'

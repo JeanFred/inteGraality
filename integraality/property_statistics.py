@@ -302,13 +302,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             value = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
             grouping_object.cells[column_entry_key] = value
 
-        text = grouping_object.row_opener()
-
-        text += grouping_object.format_header_cell(self.grouping_type)
-        text += f'| {count} \n'
-        for column_entry in self.columns.values():
-            text += grouping_object.format_cell(column_entry, self.cell_template)
-        return text
+        return self.format_stats_for_one_grouping(grouping_object)
 
     def format_stats_for_one_grouping(self, grouping_object):
         """
@@ -330,13 +324,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             value = self._get_count_from_sparql(column_entry.get_totals_query(self))
             grouping_object.cells[column_entry_key] = value
 
-        text = grouping_object.row_opener()
-
-        text += grouping_object.format_header_cell(self.grouping_type)
-        text += f'| {count} \n'
-        for column_entry in self.columns.values():
-            text += grouping_object.format_cell(column_entry, self.cell_template)
-        return text
+        return self.format_stats_for_one_grouping(grouping_object)
 
     @statsd.timer('property_statistics.processing')
     def retrieve_and_process_data(self):

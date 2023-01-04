@@ -27,6 +27,8 @@ class AbstractLine:
 
 class Grouping(AbstractLine):
 
+    is_linkable = True
+
     def __init__(self, count, cells=None, title=None, higher_grouping=None):
         super().__init__(count, cells)
         self.title = title
@@ -70,7 +72,7 @@ class Grouping(AbstractLine):
         return u'|-\n'
 
     def format_count_cell(self, grouping_link, repo):
-        if grouping_link:
+        if grouping_link and self.is_linkable:
             return self.format_grouping_link(grouping_link, repo)
         else:
             return f'| {self.count} \n'
@@ -82,6 +84,8 @@ class Grouping(AbstractLine):
 class NoGroupGrouping(Grouping):
 
     """Group for items that do not belong to any group."""
+
+    is_linkable = False
 
     def heading(self):
         return 'No grouping'
@@ -140,6 +144,8 @@ class UnknownValueGrouping(Grouping):
 
 
 class TotalsGrouping(Grouping):
+
+    is_linkable = False
 
     def heading(self):
         return "'''Totals''' <small>(all items)</small>"

@@ -405,6 +405,45 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
         self.assertEqual(cm.output, ['INFO:root:Could not retrieve label for Q3115846'])
 
+    def test_make_stats_for_year_grouping(self):
+        grouping = YearGrouping(title='2001', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 4),
+        ])
+        result = self.stats.format_stats_for_one_grouping(grouping)
+        expected = (
+            '|-\n'
+            '| 2001\n'
+            '| 10 \n'
+            '| {{Integraality cell|40.0|4|column=P21|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=2001}}\n'
+        )
+        self.assertEqual(result, expected)
+
+    def test_make_stats_for_year_grouping_with_grouping_link(self):
+        self.stats.grouping_link = "Foo"
+        grouping = YearGrouping(title='2001', count=10)
+        grouping.cells = OrderedDict([
+            ('P21', 4),
+        ])
+        result = self.stats.format_stats_for_one_grouping(grouping)
+        expected = (
+            '|-\n'
+            '| 2001\n'
+            '| [[Foo/2001|10]] \n'
+            '| {{Integraality cell|40.0|4|column=P21|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P19|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P1/P2|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=Lbr|grouping=2001}}\n'
+            '| {{Integraality cell|0|0|column=Dxy|grouping=2001}}\n'
+        )
+        self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
 

@@ -20,6 +20,6 @@ setuptools==65.3.0
 statsd==3.3.0
 typing-extensions==4.3.0
 urllib3==1.26.12
-werkzeug==2.2.2
+werkzeug==2.2.3
 wrapt==1.14.1
 zipp==3.8.1

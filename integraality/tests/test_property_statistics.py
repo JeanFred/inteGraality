@@ -1029,3 +1029,66 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
         )
 
         self.assertEqual(result, expected)
+
+
+class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
+
+    def test_retrieve_and_process_data(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {'grouping': 'http://www.wikidata.org/entity/Q3115846', 'count': '10'},
+            {'grouping': 'http://www.wikidata.org/entity/Q5087901', 'count': '6'},
+            {'grouping': 'http://www.wikidata.org/entity/Q623333', 'count': '6'}
+        ]
+        result = self.stats.retrieve_and_process_data()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="6"|Top Properties (used at least 10 times per grouping)\n'
+            '|-\n'
+            '! Name\n'
+            '! Count\n'
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
+            '|-\n'
+            '| {{Q|Q3115846}}\n'
+            '| 10 \n'
+            '| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n'
+            '| {{Integraality cell|100.0|10|column=P19|grouping=Q3115846}}\n'
+            '| {{Integraality cell|100.0|10|column=P1/P2|grouping=Q3115846}}\n'
+            '| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=Q3115846}}\n'
+            '| {{Integraality cell|100.0|10|column=Lbr|grouping=Q3115846}}\n'
+            '| {{Integraality cell|100.0|10|column=Dxy|grouping=Q3115846}}\n'
+            '|-\n'
+            '| {{Q|Q5087901}}\n'
+            '| 6 \n'
+            '| {{Integraality cell|100.0|6|column=P21|grouping=Q5087901}}\n'
+            '| {{Integraality cell|100.0|6|column=P19|grouping=Q5087901}}\n'
+            '| {{Integraality cell|100.0|6|column=P1/P2|grouping=Q5087901}}\n'
+            '| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=Q5087901}}\n'
+            '| {{Integraality cell|100.0|6|column=Lbr|grouping=Q5087901}}\n'
+            '| {{Integraality cell|100.0|6|column=Dxy|grouping=Q5087901}}\n'
+            '|-\n'
+            '| {{Q|Q623333}}\n'
+            '| 6 \n'
+            '| {{Integraality cell|100.0|6|column=P21|grouping=Q623333}}\n'
+            '| {{Integraality cell|100.0|6|column=P19|grouping=Q623333}}\n'
+            '| {{Integraality cell|100.0|6|column=P1/P2|grouping=Q623333}}\n'
+            '| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=Q623333}}\n'
+            '| {{Integraality cell|100.0|6|column=Lbr|grouping=Q623333}}\n'
+            '| {{Integraality cell|100.0|6|column=Dxy|grouping=Q623333}}\n'
+            '|- class="sortbottom"\n'
+            "|'''Totals''' <small>(all items)</small>:\n"
+            '| 10\n'
+            '| {{Integraality cell|100.0|10|column=P21}}\n'
+            '| {{Integraality cell|100.0|10|column=P19}}\n'
+            '| {{Integraality cell|100.0|10|column=P1/P2}}\n'
+            '| {{Integraality cell|100.0|10|column=P3/Q4/P5}}\n'
+            '| {{Integraality cell|100.0|10|column=Lbr}}\n'
+            '| {{Integraality cell|100.0|10|column=Dxy}}\n'
+            '|}\n'
+        )
+        self.assertEqual(result, expected)

@@ -12,7 +12,6 @@ import pywikibot
 
 
 class AbstractLine:
-
     def __init__(self, count, cells=None):
         self.count = count
         if not cells:
@@ -26,7 +25,6 @@ class AbstractLine:
 
 
 class Grouping(AbstractLine):
-
     is_linkable = True
 
     def __init__(self, count, cells=None, title=None, higher_grouping=None):
@@ -43,17 +41,17 @@ class Grouping(AbstractLine):
 
     def __repr__(self):
         cell = ",".join(["%s:%s" % (key, value) for (key, value) in self.cells.items()])
-        return f'{self.title}:{self.count} - {cell}'
+        return f"{self.title}:{self.count} - {cell}"
 
     def get_key(self):
         return self.title
 
     def format_header_cell(self, grouping_type):
-        text = ''
+        text = ""
         if self.higher_grouping:
             text += self.format_higher_grouping_text(grouping_type)
 
-        text += f'| {self.heading()}\n'
+        text += f"| {self.heading()}\n"
         return text
 
     def format_cell(self, column_entry, cell_template):
@@ -64,21 +62,21 @@ class Grouping(AbstractLine):
             str(percentage),
             str(column_count),
             f"column={column_entry.get_title()}",
-            f"grouping={self.title}"
+            f"grouping={self.title}",
         ]
         return f'| {{{{{"|".join(fields)}}}}}\n'
 
     def row_opener(self):
-        return u'|-\n'
+        return "|-\n"
 
     def format_count_cell(self, grouping_link, repo):
         if grouping_link and self.is_linkable:
             return self.format_grouping_link(grouping_link, repo)
         else:
-            return f'| {self.count} \n'
+            return f"| {self.count} \n"
 
     def format_grouping_link(self, grouping_link, repo=None):
-        return f'| [[{grouping_link}/{self.title}|{self.count}]] \n'
+        return f"| [[{grouping_link}/{self.title}|{self.count}]] \n"
 
 
 class NoGroupGrouping(Grouping):
@@ -88,23 +86,26 @@ class NoGroupGrouping(Grouping):
     is_linkable = False
 
     def heading(self):
-        return 'No grouping'
+        return "No grouping"
 
     def format_higher_grouping_text(self, grouping_type=None):
-        return u'|\n'
+        return "|\n"
 
 
 class PropertyGrouping(Grouping):
-
     def format_grouping_link(self, grouping_link, repo):
         try:
             group_item = pywikibot.ItemPage(repo, self.title)
             group_item.get()
             label = group_item.labels["en"]
-        except (pywikibot.exceptions.InvalidTitleError, pywikibot.exceptions.NoPageError, KeyError):
+        except (
+            pywikibot.exceptions.InvalidTitleError,
+            pywikibot.exceptions.NoPageError,
+            KeyError,
+        ):
             logging.info(f"Could not retrieve label for {self.title}")
             label = self.title
-        return f'| [[{grouping_link}/{label}|{self.count}]] \n'
+        return f"| [[{grouping_link}/{label}|{self.count}]] \n"
 
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping
@@ -112,11 +113,17 @@ class PropertyGrouping(Grouping):
             "country": "{{Flag|%s}}" % higher_grouping_value,
         }
         if re.match(r"Q\d+", higher_grouping_value):
-            higher_grouping_text = f'{{{{Q|{higher_grouping_value}}}}}'
-        elif re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value):
-            match = re.match(r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$", higher_grouping_value)
+            higher_grouping_text = f"{{{{Q|{higher_grouping_value}}}}}"
+        elif re.match(
+            r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$",
+            higher_grouping_value,
+        ):
+            match = re.match(
+                r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$",
+                higher_grouping_value,
+            )
             image_name = match.groups()[0]
-            higher_grouping_text = f'[[File:{image_name}|center|100px]]'
+            higher_grouping_text = f"[[File:{image_name}|center|100px]]"
             higher_grouping_value = image_name
         elif grouping_type in type_mapping:
             higher_grouping_text = type_mapping.get(grouping_type)
@@ -129,29 +136,26 @@ class PropertyGrouping(Grouping):
 
 
 class YearGrouping(PropertyGrouping):
-
     def heading(self):
         return f"{self.title}"
 
 
 class UnknownValueGrouping(Grouping):
-
     def get_key(self):
-        return 'UNKNOWN_VALUE'
+        return "UNKNOWN_VALUE"
 
     def heading(self):
-        return '{{int:wikibase-snakview-variations-somevalue-label}}'
+        return "{{int:wikibase-snakview-variations-somevalue-label}}"
 
 
 class TotalsGrouping(Grouping):
-
     is_linkable = False
 
     def heading(self):
         return "'''Totals''' <small>(all items)</small>"
 
     def format_higher_grouping_text(self, grouping_type=None):
-        return u'||\n'
+        return "||\n"
 
     def row_opener(self):
-        return u'|- class="sortbottom"\n'
+        return '|- class="sortbottom"\n'

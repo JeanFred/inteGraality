@@ -6,7 +6,6 @@ DEFAULT_TTL = 604800  # 1 week
 
 
 class RedisCache:
-
     def __init__(self, cache_client, prefix="integraality"):
         self.prefix = prefix
         self.client = cache_client

@@ -7,39 +7,37 @@ from column import (
     ColumnSyntaxException,
     DescriptionColumn,
     LabelColumn,
-    PropertyColumn
+    PropertyColumn,
 )
 from property_statistics import PropertyStatistics
 
 
 class PropertyStatisticsTest(unittest.TestCase):
-
     def setUp(self):
         columns = [
-            PropertyColumn(property='P21'),
-            PropertyColumn(property='P19'),
-            PropertyColumn(property='P1', qualifier='P2'),
-            PropertyColumn(property='P3', value='Q4', qualifier='P5'),
-            LabelColumn(language='br'),
-            DescriptionColumn(language='xy'),
+            PropertyColumn(property="P21"),
+            PropertyColumn(property="P19"),
+            PropertyColumn(property="P1", qualifier="P2"),
+            PropertyColumn(property="P3", value="Q4", qualifier="P5"),
+            LabelColumn(language="br"),
+            DescriptionColumn(language="xy"),
         ]
         self.stats = PropertyStatistics(
             columns=columns,
-            selector_sparql=u'wdt:P31 wd:Q41960',
-            grouping_property=u'P551',
-            property_threshold=10
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_property="P551",
+            property_threshold=10,
         )
 
 
 class TestPropertyColumn(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn('P19')
+        self.column = PropertyColumn("P19")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|{{Property|P19}}\n'
+        expected = '! data-sort-type="number"|{{Property|P19}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
@@ -89,26 +87,24 @@ class TestPropertyColumn(PropertyStatisticsTest):
 
 
 class TestPropertyColumnWithTitle(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn('P19', title="birth")
+        self.column = PropertyColumn("P19", title="birth")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|[[Property:P19|birth]]\n'
+        expected = '! data-sort-type="number"|[[Property:P19|birth]]\n'
         self.assertEqual(result, expected)
 
 
 class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn('P669', qualifier='P670')
+        self.column = PropertyColumn("P669", qualifier="P670")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|{{Property|P670}}\n'
+        expected = '! data-sort-type="number"|{{Property|P670}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
@@ -158,26 +154,24 @@ class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
 
 
 class TestPropertyColumnWithQualifierAndLabel(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn('P669', title="street", qualifier='P670')
+        self.column = PropertyColumn("P669", title="street", qualifier="P670")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|[[Property:P670|street]]\n'
+        expected = '! data-sort-type="number"|[[Property:P670|street]]\n'
         self.assertEqual(result, expected)
 
 
 class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn(property='P3', value='Q4', qualifier='P5')
+        self.column = PropertyColumn(property="P3", value="Q4", qualifier="P5")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|{{Property|P5}}\n'
+        expected = '! data-sort-type="number"|{{Property|P5}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
@@ -227,67 +221,71 @@ class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
 
 
 class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
-
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn(property='P3', title="Some property", value='Q4', qualifier='P5')
+        self.column = PropertyColumn(
+            property="P3", title="Some property", value="Q4", qualifier="P5"
+        )
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = u'! data-sort-type="number"|[[Property:P5|Some property]]\n'
+        expected = '! data-sort-type="number"|[[Property:P5|Some property]]\n'
         self.assertEqual(result, expected)
 
 
 class TestColumnMaker(PropertyStatisticsTest):
-
     def test_property_without_title(self):
-        result = ColumnMaker.make('P136', None)
-        expected = PropertyColumn(property='P136')
+        result = ColumnMaker.make("P136", None)
+        expected = PropertyColumn(property="P136")
         self.assertEqual(result, expected)
 
     def test_property_with_title(self):
-        result = ColumnMaker.make('P136', 'genre')
-        expected = PropertyColumn(property='P136', title='genre')
+        result = ColumnMaker.make("P136", "genre")
+        expected = PropertyColumn(property="P136", title="genre")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier(self):
-        key = 'P669/P670'
+        key = "P669/P670"
         result = ColumnMaker.make(key, None)
-        expected = PropertyColumn(property='P669', qualifier='P670')
+        expected = PropertyColumn(property="P669", qualifier="P670")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_title(self):
-        key = 'P669/P670'
-        result = ColumnMaker.make(key, 'street number')
-        expected = PropertyColumn(property='P669', qualifier='P670', title="street number")
+        key = "P669/P670"
+        result = ColumnMaker.make(key, "street number")
+        expected = PropertyColumn(
+            property="P669", qualifier="P670", title="street number"
+        )
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value(self):
-        key = 'P553/Q17459/P670'
+        key = "P553/Q17459/P670"
         result = ColumnMaker.make(key, None)
-        expected = PropertyColumn(property='P553', value='Q17459', qualifier='P670')
+        expected = PropertyColumn(property="P553", value="Q17459", qualifier="P670")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value_and_title(self):
-        key = 'P553/Q17459/P670'
-        result = ColumnMaker.make(key, 'street number')
-        expected = PropertyColumn(property='P553', value='Q17459', qualifier='P670', title='street number')
+        key = "P553/Q17459/P670"
+        result = ColumnMaker.make(key, "street number")
+        expected = PropertyColumn(
+            property="P553", value="Q17459", qualifier="P670", title="street number"
+        )
         self.assertEqual(result, expected)
 
     def test_label(self):
-        result = ColumnMaker.make('Lxy', None)
-        expected = LabelColumn(language='xy')
+        result = ColumnMaker.make("Lxy", None)
+        expected = LabelColumn(language="xy")
         self.assertEqual(result, expected)
 
     def test_description(self):
-        result = ColumnMaker.make('Dxy', None)
-        expected = DescriptionColumn(language='xy')
+        result = ColumnMaker.make("Dxy", None)
+        expected = DescriptionColumn(language="xy")
         self.assertEqual(result, expected)
 
     def test_aliases(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make('Axy', None)
+            ColumnMaker.make("Axy", None)
 
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make('SomethingSomething', None)
+            ColumnMaker.make("SomethingSomething", None)

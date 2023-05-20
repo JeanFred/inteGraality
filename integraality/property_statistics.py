@@ -12,17 +12,11 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
-from line import (
-    NoGroupGrouping,
-    PropertyGrouping,
-    TotalsGrouping,
-    UnknownValueGrouping
-)
+from line import NoGroupGrouping, PropertyGrouping, TotalsGrouping, UnknownValueGrouping
 from statsd.defaults.env import statsd
 
 
 class QueryException(Exception):
-
     def __init__(self, message, query):
         super().__init__(message)
         self.query = query
@@ -33,19 +27,35 @@ class PropertyStatistics:
     Generate statitics
 
     """
+
     UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
 
-    GROUP_MAPPING = Enum('GROUP_MAPPING', {
-        'NO_GROUPING': 'None',
-        'TOTALS': '',
-        'UNKNOWN_VALUE': '{{int:wikibase-snakview-variations-somevalue-label}}'
-    })
+    GROUP_MAPPING = Enum(
+        "GROUP_MAPPING",
+        {
+            "NO_GROUPING": "None",
+            "TOTALS": "",
+            "UNKNOWN_VALUE": "{{int:wikibase-snakview-variations-somevalue-label}}",
+        },
+    )
 
-    def __init__(self, selector_sparql, columns, grouping_property, grouping_type=None, higher_grouping=None, higher_grouping_type=None, stats_for_no_group=False, grouping_link=None, grouping_threshold=20, property_threshold=0):  # noqa
+    def __init__(
+        self,
+        selector_sparql,
+        columns,
+        grouping_property,
+        grouping_type=None,
+        higher_grouping=None,
+        higher_grouping_type=None,
+        stats_for_no_group=False,
+        grouping_link=None,
+        grouping_threshold=20,
+        property_threshold=0,
+    ):
         """
         Set what to work on and other variables here.
         """
-        site = pywikibot.Site('en', 'wikipedia')
+        site = pywikibot.Site("en", "wikipedia")
         self.repo = site.data_repository()
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_property = grouping_property
@@ -61,9 +71,9 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
 
         self.grouping_link = grouping_link
-        self.cell_template = 'Integraality cell'
+        self.cell_template = "Integraality cell"
 
-    @statsd.timer('property_statistics.sparql.groupings')
+    @statsd.timer("property_statistics.sparql.groupings")
     def get_grouping_information(self):
         """
         Get all groupings and their counts.
@@ -112,35 +122,41 @@ LIMIT 1000
                 raise QueryException(
                     "No result when querying groupings."
                     "Please investigate the 'all groupings' debug query in the dashboard header.",
-                    query=query
+                    query=query,
                 )
 
         except pywikibot.exceptions.TimeoutError:
-
             raise QueryException(
                 "The Wikidata Query Service timed out when fetching groupings."
                 "You might be trying to do something too expensive."
                 "Please investigate the 'all groupings' debug query in the dashboard header.",
-                query=query
+                query=query,
             )
 
         unknown_value_count = 0
 
         for resultitem in queryresult:
-
-            if not resultitem.get('grouping') or resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
-                unknown_value_count += int(resultitem.get('count'))
+            if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
+                self.UNKNOWN_VALUE_PREFIX
+            ):
+                unknown_value_count += int(resultitem.get("count"))
 
             else:
-                qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
+                qid = resultitem.get("grouping").replace(
+                    "http://www.wikidata.org/entity/", ""
+                )
                 if self.higher_grouping:
-                    value = resultitem.get('higher_grouping')
+                    value = resultitem.get("higher_grouping")
                     if value:
-                        value = value.replace(u'http://www.wikidata.org/entity/', u'')
+                        value = value.replace("http://www.wikidata.org/entity/", "")
                     higher_grouping = value
                 else:
                     higher_grouping = None
-                property_grouping = PropertyGrouping(title=qid, count=int(resultitem.get('count')), higher_grouping=higher_grouping)
+                property_grouping = PropertyGrouping(
+                    title=qid,
+                    count=int(resultitem.get("count")),
+                    higher_grouping=higher_grouping,
+                )
                 groupings[property_grouping.get_key()] = property_grouping
 
         if unknown_value_count:
@@ -240,16 +256,16 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return self._get_count_from_sparql(query)
 
     @staticmethod
-    @statsd.timer('property_statistics.sparql.count')
+    @statsd.timer("property_statistics.sparql.count")
     def _get_count_from_sparql(query):
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
         if not queryresult:
             raise QueryException("No result when running a SPARQL query.", query=query)
 
-        return int(queryresult[0].get('count'))
+        return int(queryresult[0].get("count"))
 
-    @statsd.timer('property_statistics.sparql.grouping_counts')
+    @statsd.timer("property_statistics.sparql.grouping_counts")
     def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
@@ -257,14 +273,19 @@ SELECT (COUNT(*) as ?count) WHERE {{
         if not queryresult:
             return None
         for resultitem in queryresult:
-
-            if not resultitem.get('grouping') or resultitem.get('grouping').startswith(self.UNKNOWN_VALUE_PREFIX):
+            if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
+                self.UNKNOWN_VALUE_PREFIX
+            ):
                 if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in result.keys():
                     result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
-                result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(resultitem.get('count'))
+                result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(
+                    resultitem.get("count")
+                )
             else:
-                qid = resultitem.get('grouping').replace(u'http://www.wikidata.org/entity/', u'')
-                result[qid] = int(resultitem.get('count'))
+                qid = resultitem.get("grouping").replace(
+                    "http://www.wikidata.org/entity/", ""
+                )
+                result[qid] = int(resultitem.get("count"))
 
         return result
 
@@ -275,17 +296,17 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return round(1.0 * count / max(total, 1) * 100, 2)
 
     def get_header(self):
-        text = u'{| class="wikitable sortable"\n'
+        text = '{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2
         text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n'
         text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'  # noqa
-        text += u'|-\n'
+        text += "|-\n"
 
         if self.higher_grouping:
-            text += u'! \n'
+            text += "! \n"
 
-        text += u'! Name\n'
-        text += u'! Count\n'
+        text += "! Name\n"
+        text += "! Count\n"
         for column_entry in self.columns.values():
             text += column_entry.make_column_header()
 
@@ -296,10 +317,14 @@ SELECT (COUNT(*) as ?count) WHERE {{
         Query the data for no_group, return the wikitext
         """
         count = self.get_totals_no_grouping()
-        grouping_object = NoGroupGrouping(count=count, higher_grouping=self.higher_grouping)
+        grouping_object = NoGroupGrouping(
+            count=count, higher_grouping=self.higher_grouping
+        )
 
-        for (column_entry_key, column_entry) in self.columns.items():
-            value = self._get_count_from_sparql(column_entry.get_info_no_grouping_query(self))
+        for column_entry_key, column_entry in self.columns.items():
+            value = self._get_count_from_sparql(
+                column_entry.get_info_no_grouping_query(self)
+            )
             grouping_object.cells[column_entry_key] = value
 
         return self.format_stats_for_one_grouping(grouping_object)
@@ -318,15 +343,17 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def make_totals(self):
         count = self.get_totals()
-        grouping_object = TotalsGrouping(count=count, title='', higher_grouping=self.higher_grouping)
+        grouping_object = TotalsGrouping(
+            count=count, title="", higher_grouping=self.higher_grouping
+        )
 
-        for (column_entry_key, column_entry) in self.columns.items():
+        for column_entry_key, column_entry in self.columns.items():
             value = self._get_count_from_sparql(column_entry.get_totals_query(self))
             grouping_object.cells[column_entry_key] = value
 
         return self.format_stats_for_one_grouping(grouping_object)
 
-    @statsd.timer('property_statistics.processing')
+    @statsd.timer("property_statistics.processing")
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext
@@ -341,19 +368,23 @@ SELECT (COUNT(*) as ?count) WHERE {{
         try:
             groupings = self.get_grouping_information()
         except QueryException as e:
-            logging.error('No groupings found.')
+            logging.error("No groupings found.")
             raise e
 
-        logging.info(f'Grouping retrieved: {len(groupings)}')
+        logging.info(f"Grouping retrieved: {len(groupings)}")
 
-        for (column_entry_key, column_entry) in self.columns.items():
-            data = self._get_grouping_counts_from_sparql(column_entry.get_info_query(self))
-            for (grouping_item, value) in data.items():
+        for column_entry_key, column_entry in self.columns.items():
+            data = self._get_grouping_counts_from_sparql(
+                column_entry.get_info_query(self)
+            )
+            for grouping_item, value in data.items():
                 grouping = groupings.get(grouping_item)
                 if grouping:
                     grouping.cells[column_entry_key] = value
                 else:
-                    logging.debug(f'Discarding data on {grouping_item}, not in the groupings')
+                    logging.debug(
+                        f"Discarding data on {grouping_item}, not in the groupings"
+                    )
 
         return groupings
 
@@ -367,7 +398,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             text += self.make_stats_for_no_group()
 
         text += self.make_totals()
-        text += u'|}\n'
+        text += "|}\n"
 
         return text
 
@@ -377,16 +408,16 @@ def main(*args):
     Main function.
     """
     columns = [
-        ColumnMaker.make('P21', None),
-        ColumnMaker.make('P19', None),
-        ColumnMaker.make('Lde', None),
-        ColumnMaker.make('Dde', None),
+        ColumnMaker.make("P21", None),
+        ColumnMaker.make("P19", None),
+        ColumnMaker.make("Lde", None),
+        ColumnMaker.make("Dde", None),
     ]
     logging.info("Main function...")
     stats = PropertyStatistics(
         columns=columns,
-        selector_sparql=u'wdt:P10241 wd:Q41960',
-        grouping_property=u'P551',
+        selector_sparql="wdt:P10241 wd:Q41960",
+        grouping_property="P551",
         stats_for_no_group=True,
         grouping_threshold=5,
         property_threshold=1,

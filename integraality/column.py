@@ -16,28 +16,28 @@ class ColumnSyntaxException(Exception):
 
 
 class ColumnMaker:
-
     @staticmethod
     def make(key, title):
-        if key.startswith('P'):
-            splitted = key.split('/')
+        if key.startswith("P"):
+            splitted = key.split("/")
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
             elif len(splitted) == 2:
                 (property_name, value, qualifier) = (splitted[0], None, splitted[1])
             else:
                 (property_name, value, qualifier) = (key, None, None)
-            return PropertyColumn(property=property_name, title=title, qualifier=qualifier, value=value)
-        elif key.startswith('L'):
+            return PropertyColumn(
+                property=property_name, title=title, qualifier=qualifier, value=value
+            )
+        elif key.startswith("L"):
             return LabelColumn(language=key[1:])
-        elif key.startswith('D'):
+        elif key.startswith("D"):
             return DescriptionColumn(language=key[1:])
         else:
             raise ColumnSyntaxException("Unknown column syntax %s" % key)
 
 
 class AbstractColumn:
-
     def get_info_query(self, property_statistics):
         """
         Get the usage counts for a column for the groupings
@@ -100,7 +100,6 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 
 
 class PropertyColumn(AbstractColumn):
-
     def __init__(self, property, title=None, value=None, qualifier=None):
         self.property = property
         self.title = title
@@ -128,14 +127,14 @@ class PropertyColumn(AbstractColumn):
             property_link = self.property
 
         if self.title:
-            label = f'[[Property:{property_link}|{self.title}]]'
+            label = f"[[Property:{property_link}|{self.title}]]"
         else:
-            label = f'{{{{Property|{property_link}}}}}'
+            label = f"{{{{Property|{property_link}}}}}"
         return f'! data-sort-type="number"|{label}\n'
 
     def get_filter_for_info(self):
         if self.qualifier:
-            property_value = f'wd:{self.value}' if self.value else '[]'
+            property_value = f"wd:{self.value}" if self.value else "[]"
             return f"""
     ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
         else:
@@ -158,25 +157,21 @@ class PropertyColumn(AbstractColumn):
 
 
 class TextColumn(AbstractColumn):
-
     def __init__(self, language, title=None):
         self.language = language
         self.title = title
 
     def __eq__(self, other):
-        return (
-            self.language == other.language
-            and self.title == other.title
-        )
+        return self.language == other.language and self.title == other.title
 
     def get_title(self):
         return self.get_key()
 
     def make_column_header(self):
         if self.title:
-            text = f'{self.title}'
+            text = f"{self.title}"
         else:
-            text = f'{{{{#language:{self.language}}}}}'
+            text = f"{{{{#language:{self.language}}}}}"
         return f'! data-sort-type="number"|{text}\n'
 
     def get_filter_for_info(self):
@@ -203,18 +198,16 @@ class TextColumn(AbstractColumn):
 
 
 class LabelColumn(TextColumn):
-
     def get_key(self):
-        return 'L%s' % self.language
+        return "L%s" % self.language
 
     def get_selector(self):
-        return 'rdfs:label'
+        return "rdfs:label"
 
 
 class DescriptionColumn(TextColumn):
-
     def get_key(self):
-        return 'D%s' % self.language
+        return "D%s" % self.language
 
     def get_selector(self):
-        return 'schema:description'
+        return "schema:description"

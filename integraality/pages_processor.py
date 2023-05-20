@@ -15,7 +15,7 @@ from cache import RedisCache
 from column import ColumnMaker, ColumnSyntaxException
 from property_statistics import PropertyStatistics, QueryException
 
-REQUIRED_CONFIG_FIELDS = ['selector_sparql', 'grouping_property', 'properties']
+REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 
 
 class ProcessingException(Exception):
@@ -35,17 +35,16 @@ class NoStartTemplateException(ProcessingException):
 
 
 class PagesProcessor:
-
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.site = pywikibot.Site(url=url)
-        self.template_name = 'Property dashboard'
-        self.end_template_name = 'Property dashboard end'
-        self.summary = u'Update property usage stats'
+        self.template_name = "Property dashboard"
+        self.end_template_name = "Property dashboard end"
+        self.summary = "Update property usage stats"
 
         self.outputs = []
 
         if not cache_client:
-            host = os.getenv("REDIS_HOST", 'tools-redis.svc.eqiad.wmflabs')
+            host = os.getenv("REDIS_HOST", "tools-redis.svc.eqiad.wmflabs")
             cache_client = StrictRedis(host=host, decode_responses=False)
         self.cache = RedisCache(cache_client=cache_client)
 
@@ -59,33 +58,43 @@ class PagesProcessor:
     @staticmethod
     def extract_elements_from_template_param(template_param):
         """Extract and sanitize the contents of a parsed template param."""
-        (field, _, value) = template_param.partition(u'=')
-        return (field.strip(), value.replace('{{!}}', '|'))
+        (field, _, value) = template_param.partition("=")
+        return (field.strip(), value.replace("{{!}}", "|"))
 
     def parse_config_from_params(self, params):
         return {
-            key: value for (key, value) in
-            [self.extract_elements_from_template_param(param) for param in params]
+            key: value
+            for (key, value) in [
+                self.extract_elements_from_template_param(param) for param in params
+            ]
             if key
         }
 
     def make_stats_object_arguments_for_page(self, page):
         all_templates_with_params = page.templatesWithParams()
 
-        if self.template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
+        if self.template_name not in [
+            template.title(with_ns=False) for (template, _) in all_templates_with_params
+        ]:
             msg = (
                 "No start template '%s' found."
                 "The likely explanation is that inteGraality was invoked from a page that transcludes the page with the template. "
-                "Please invoke inteGraality directly from the page with the template." % self.template_name
+                "Please invoke inteGraality directly from the page with the template."
+                % self.template_name
             )
             raise NoStartTemplateException(msg)
 
-        if self.end_template_name not in [template.title(with_ns=False) for (template, _) in all_templates_with_params]:
-            raise NoEndTemplateException("No end template '%s' provided" % self.end_template_name)
+        if self.end_template_name not in [
+            template.title(with_ns=False) for (template, _) in all_templates_with_params
+        ]:
+            raise NoEndTemplateException(
+                "No end template '%s' provided" % self.end_template_name
+            )
 
         start_templates_with_params = [
-            (template, params) for (template, params) in all_templates_with_params if
-            template.title(with_ns=False) == self.template_name
+            (template, params)
+            for (template, params) in all_templates_with_params
+            if template.title(with_ns=False) == self.template_name
         ]
 
         if len(start_templates_with_params) > 1:
@@ -117,18 +126,18 @@ class PagesProcessor:
             if field not in config:
                 pywikibot.output("Missing required field %s" % field)
                 raise ConfigException("A required field is missing: %s" % field)
-        config['columns'] = self.parse_config_properties(config['properties'])
-        del config['properties']
-        config['stats_for_no_group'] = bool(config.get('stats_for_no_group', False))
+        config["columns"] = self.parse_config_properties(config["properties"])
+        del config["properties"]
+        config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         return config
 
     @staticmethod
     def parse_config_properties(properties_string):
-        properties = [x.strip() for x in properties_string.split(',')]
+        properties = [x.strip() for x in properties_string.split(",")]
         properties_data = []
         for prop in properties:
             try:
-                (key, title) = prop.split(':')
+                (key, title) = prop.split(":")
             except ValueError:
                 (key, title) = (prop, None)
             if key:
@@ -139,26 +148,32 @@ class PagesProcessor:
         return properties_data
 
     def replace_in_page(self, output, page_text):
-        regex_text = f'({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})'
+        regex_text = f"({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})"
         regex = re.compile(regex_text, re.MULTILINE | re.DOTALL)
-        new_text = re.sub(regex, r'\1\n%s\n\2' % output, page_text, count=1)
+        new_text = re.sub(regex, r"\1\n%s\n\2" % output, page_text, count=1)
         return new_text
 
     def process_all(self):
-        self.summary = u'Weekly update of property usage stats'
+        self.summary = "Weekly update of property usage stats"
         pywikibot.output("Processing pages on site %s" % self.site.sitename)
         for page in self.get_all_pages():
             pywikibot.output("Processing page %s" % page.title())
             try:
                 self.process_page(page)
             except NoStartTemplateException:
-                pywikibot.output("No start template on page %s, skipping" % page.title())
+                pywikibot.output(
+                    "No start template on page %s, skipping" % page.title()
+                )
             except NoEndTemplateException:
                 pywikibot.output("No end template on page %s, skipping" % page.title())
             except ConfigException:
-                pywikibot.output("Bad configuration on page %s, skipping" % page.title())
+                pywikibot.output(
+                    "Bad configuration on page %s, skipping" % page.title()
+                )
             except QueryException:
-                pywikibot.output("A SPARQL query went wrong on page %s, skipping" % page.title())
+                pywikibot.output(
+                    "A SPARQL query went wrong on page %s, skipping" % page.title()
+                )
             except Exception as e:
                 pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
 
@@ -182,12 +197,14 @@ class PagesProcessor:
 
 def args_parser():
     import argparse
-    parser = argparse.ArgumentParser(description='Update Property dashboards on a wiki')
-    parser.add_argument("url",
-                        nargs='?',
-                        help="the URL of the wiki to update",
-                        default="https://www.wikidata.org/wiki/",
-                        )
+
+    parser = argparse.ArgumentParser(description="Update Property dashboards on a wiki")
+    parser.add_argument(
+        "url",
+        nargs="?",
+        help="the URL of the wiki to update",
+        default="https://www.wikidata.org/wiki/",
+    )
     return parser.parse_args()
 
 

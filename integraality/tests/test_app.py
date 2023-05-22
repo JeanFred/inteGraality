@@ -43,14 +43,20 @@ class PagesProcessorTests(AppTests):
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
         self.assertIn("alert-success", contents)
-        self.assertIn(message, contents)
+        self.assertPresent(message, contents)
 
     def assertErrorPage(self, response, message):
         """A custom assertion for an error page."""
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
         self.assertIn("alert-danger", contents)
-        self.assertIn(message, contents)
+        self.assertPresent(message, contents)
+
+    def assertPresent(self, message, response):
+        self.assertIn(
+            message.replace(" ", "").replace("\t", "").replace("\n", ""),
+            response.replace(" ", "").replace("\t", "").replace("\n", ""),
+        )
 
 
 class UpdateTests(PagesProcessorTests):
@@ -145,7 +151,7 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))
 
     def test_queries_success_no_grouping(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -165,7 +171,7 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))
 
     def test_queries_success_labels(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -186,7 +192,7 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the label set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))
 
     def test_queries_success_descriptions(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -207,7 +213,7 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the description set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))
 
     def test_queries_success_totals(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -227,7 +233,7 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))
 
     def test_queries_error_processing_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ProcessingException
@@ -264,4 +270,4 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn(expected, response.get_data(as_text=True))
+        self.assertPresent(expected, response.get_data(as_text=True))

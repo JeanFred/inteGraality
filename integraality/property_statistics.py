@@ -155,6 +155,8 @@ LIMIT 1000
                     value = resultitem.get("higher_grouping")
                     if value:
                         value = value.replace("http://www.wikidata.org/entity/", "")
+                    else:
+                        value = ""
                     higher_grouping = value
                 else:
                     higher_grouping = None

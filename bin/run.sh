@@ -13,7 +13,7 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+CURRENT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . $CURRENT_DIR/defaults.sh
 
 cd $SOURCE_PATH || exit
@@ -33,7 +33,7 @@ start_time="$(date -u +%s)"
 python integraality/pages_processor.py "$@"
 
 end_time="$(date -u +%s)"
-elapsed_time="$((end_time-start_time))"
+elapsed_time="$((end_time - start_time))"
 elapsed_time_ms=$(($elapsed_time * 1000))
 
 metric="$STATSD_PREFIX.periodic_update.$WIKI"

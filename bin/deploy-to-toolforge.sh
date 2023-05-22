@@ -1,5 +1,5 @@
 #!/bin/bash
-user="";
+user=""
 if [ -n "$1" ]; then
     user="$1"
 fi

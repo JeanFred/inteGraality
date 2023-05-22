@@ -12,7 +12,13 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
-from line import NoGroupGrouping, PropertyGrouping, TotalsGrouping, UnknownValueGrouping
+from line import (
+    NoGroupGrouping,
+    PropertyGrouping,
+    TotalsGrouping,
+    UnknownValueGrouping,
+    YearGrouping,
+)
 from statsd.defaults.env import statsd
 
 
@@ -152,7 +158,11 @@ LIMIT 1000
                     higher_grouping = value
                 else:
                     higher_grouping = None
-                property_grouping = PropertyGrouping(
+                if self.grouping_type == GroupingType.YEAR:
+                    line_type = YearGrouping
+                else:
+                    line_type = PropertyGrouping
+                property_grouping = line_type(
                     title=qid,
                     count=int(resultitem.get("count")),
                     higher_grouping=higher_grouping,

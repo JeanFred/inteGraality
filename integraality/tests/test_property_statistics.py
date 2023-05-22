@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pywikibot
 
-from column import DescriptionColumn, LabelColumn, PropertyColumn
+from column import DescriptionColumn, GroupingType, LabelColumn, PropertyColumn
 from line import PropertyGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics, QueryException
 
@@ -1218,6 +1218,84 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
         self.assertEqual(result, expected)
 
+    def test_process_data_year_grouping(self):
+        grouping_data = {
+            "2001": YearGrouping(
+                title="2001",
+                count=10,
+                cells=OrderedDict(
+                    [
+                        ("P21", 10),
+                        ("P19", 8),
+                        ("P1P2", 2),
+                        ("P3Q4P5", 7),
+                        ("Lbr", 1),
+                        ("Dxy", 2),
+                    ]
+                ),
+            ),
+            "2018": YearGrouping(
+                title="2018",
+                count=6,
+                cells=OrderedDict(
+                    [
+                        ("P21", 6),
+                        ("P19", 0),
+                        ("P1P2", 0),
+                        ("P3Q4P5", 0),
+                        ("Lbr", 0),
+                        ("Dxy", 0),
+                    ]
+                ),
+            ),
+        }
+
+        result = self.stats.process_data(grouping_data)
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="6"|Top Properties (used at least 10 times per grouping)\n'
+            "|-\n"
+            "! Name\n"
+            "! Count\n"
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
+            "|-\n"
+            "| 2001\n"
+            "| 10 \n"
+            "| {{Integraality cell|100.0|10|column=P21|grouping=2001}}\n"
+            "| {{Integraality cell|80.0|8|column=P19|grouping=2001}}\n"
+            "| {{Integraality cell|20.0|2|column=P1/P2|grouping=2001}}\n"
+            "| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=2001}}\n"
+            "| {{Integraality cell|10.0|1|column=Lbr|grouping=2001}}\n"
+            "| {{Integraality cell|20.0|2|column=Dxy|grouping=2001}}\n"
+            "|-\n"
+            "| 2018\n"
+            "| 6 \n"
+            "| {{Integraality cell|100.0|6|column=P21|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P19|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P1/P2|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=Lbr|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=Dxy|grouping=2018}}\n"
+            '|- class="sortbottom"\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            "| 1 \n"
+            "| {{Integraality cell|100.0|1|column=P21|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P19|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
+            "|}\n"
+        )
+
+        self.assertEqual(result, expected)
+
 
 class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_retrieve_and_process_data(self):
@@ -1267,6 +1345,67 @@ class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=Q623333}}\n"
             "| {{Integraality cell|100.0|6|column=Lbr|grouping=Q623333}}\n"
             "| {{Integraality cell|100.0|6|column=Dxy|grouping=Q623333}}\n"
+            '|- class="sortbottom"\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            "| 10 \n"
+            "| {{Integraality cell|100.0|10|column=P21|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P19|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=Lbr|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=Dxy|grouping=}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_retrieve_and_process_data_year_grouping(self):
+        self.stats.grouping_type = GroupingType.YEAR
+        self.mock_sparql_query.return_value.select.return_value = [
+            {"grouping": "2001", "count": "10"},
+            {"grouping": "2012", "count": "6"},
+            {"grouping": "2023", "count": "6"},
+        ]
+        result = self.stats.retrieve_and_process_data()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="6"|Top Properties (used at least 10 times per grouping)\n'
+            "|-\n"
+            "! Name\n"
+            "! Count\n"
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P19}}\n'
+            '! data-sort-type="number"|{{Property|P2}}\n'
+            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{#language:br}}\n'
+            '! data-sort-type="number"|{{#language:xy}}\n'
+            "|-\n"
+            "| 2001\n"
+            "| 10 \n"
+            "| {{Integraality cell|100.0|10|column=P21|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P19|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=Lbr|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=Dxy|grouping=2001}}\n"
+            "|-\n"
+            "| 2012\n"
+            "| 6 \n"
+            "| {{Integraality cell|100.0|6|column=P21|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P19|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=Lbr|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=Dxy|grouping=2012}}\n"
+            "|-\n"
+            "| 2023\n"
+            "| 6 \n"
+            "| {{Integraality cell|100.0|6|column=P21|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P19|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=Lbr|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=Dxy|grouping=2023}}\n"
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 10 \n"

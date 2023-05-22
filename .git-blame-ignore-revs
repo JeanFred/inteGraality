@@ -1,0 +1,10 @@
+# .git-blame-ignore-revs
+
+# Reformat the whole Python codebase using Black
+7df13146151e246fe166b61dc0b7e999b85edf3e
+
+# Reformat Shell scripts using shfmt
+de6335d4ab04c55a90f9e4fec93db981599b6bae
+
+# Reformat HTML files using HTMLPrettify/js-beautify
+19a63b0399c0a6449ee99c93b961c41a3e202b22

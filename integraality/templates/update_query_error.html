@@ -1,10 +1,9 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="alert alert-danger">
-<p>Something went wrong when updating page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
-<p>The following SPARQL query timed out or returned no result:</p>
-<pre><code>{{ query }}</code></pre>
-<p><a class="btn btn-primary" href="https://query.wikidata.org/#{{ query }}">Try it in Wikidata Query Service</a></p>
+    <p>Something went wrong when updating page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
+    <p>The following SPARQL query timed out or returned no result:</p>
+    <pre><code>{{ query }}</code></pre>
+    <p><a class="btn btn-primary" href="https://query.wikidata.org/#{{ query }}">Try it in Wikidata Query Service</a></p>
 </div>
 {% endblock %}

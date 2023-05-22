@@ -1,8 +1,7 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="alert alert-danger">
-<p>Something went wrong when updating page <a href="{{ page_url }}">{{ page_title }}</a>. Please check your configuration.</p>
-<p>{{ error_message }}</p>
+    <p>Something went wrong when updating page <a href="{{ page_url }}">{{ page_title }}</a>. Please check your configuration.</p>
+    <p>{{ error_message }}</p>
 </div>
 {% endblock %}

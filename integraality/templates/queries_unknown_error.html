@@ -1,12 +1,11 @@
 {% extends "base.html" %}
-
 {% block content %}
 <div class="alert alert-danger">
-<p>Something catastrophic happened when generating queries from page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
-<p>This is very likely a bug in inteGraality itself, not a configuration issue.</p>
-<p>Please <a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=```{{error_message}}```">report this on Phabricator</a>.</p>
-{% for error_line in error_message %}
-<p>{{ error_line }}</p>
-{% endfor %}
+    <p>Something catastrophic happened when generating queries from page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
+    <p>This is very likely a bug in inteGraality itself, not a configuration issue.</p>
+    <p>Please <a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=```{{error_message}}```">report this on Phabricator</a>.</p>
+    {% for error_line in error_message %}
+    <p>{{ error_line }}</p>
+    {% endfor %}
 </div>
 {% endblock %}

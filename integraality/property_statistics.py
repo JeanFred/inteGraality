@@ -301,12 +301,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return result
 
-    @staticmethod
-    def _get_percentage(count, total):
-        if not count:
-            return 0
-        return round(1.0 * count / max(total, 1) * 100, 2)
-
     def get_header(self):
         text = '{| class="wikitable sortable"\n'
         colspan = 3 if self.higher_grouping else 2

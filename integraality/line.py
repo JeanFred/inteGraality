@@ -92,7 +92,7 @@ class NoGroupGrouping(Grouping):
         return "|\n"
 
 
-class PropertyGrouping(Grouping):
+class ItemGrouping(Grouping):
     def format_grouping_link(self, grouping_link, repo):
         try:
             group_item = pywikibot.ItemPage(repo, self.title)
@@ -135,7 +135,7 @@ class PropertyGrouping(Grouping):
         return f"{{{{Q|{self.title}}}}}"
 
 
-class YearGrouping(PropertyGrouping):
+class YearGrouping(Grouping):
     def heading(self):
         return f"{self.title}"
 

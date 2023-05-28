@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pywikibot
 
 from column import DescriptionColumn, GroupingType, LabelColumn, PropertyColumn
-from line import PropertyGrouping, UnknownValueGrouping, YearGrouping
+from line import ItemGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics, QueryException
 
 
@@ -258,7 +258,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         # }
 
     def test_format_stats_for_one_grouping(self):
-        grouping = PropertyGrouping(title="Q3115846", count=10)
+        grouping = ItemGrouping(title="Q3115846", count=10)
         grouping.cells = OrderedDict(
             [
                 ("P21", 10),
@@ -328,7 +328,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def test_format_stats_for_one_grouping_with_higher_grouping(self):
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
-        grouping = PropertyGrouping(title="Q3115846", count=10, higher_grouping="Q1")
+        grouping = ItemGrouping(title="Q3115846", count=10, higher_grouping="Q1")
         grouping.cells = OrderedDict(
             [
                 ("P21", 10),
@@ -358,7 +358,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
     def test_format_stats_for_one_grouping_with_grouping_link(self, mock_item_page):
         mock_item_page.return_value.labels = {"en": "Bar"}
         self.stats.grouping_link = "Foo"
-        grouping = PropertyGrouping(title="Q3115846", count=10)
+        grouping = ItemGrouping(title="Q3115846", count=10)
         grouping.cells = OrderedDict(
             [
                 ("P21", 10),
@@ -389,7 +389,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
     ):
         mock_item_page.side_effect = pywikibot.exceptions.InvalidTitleError("Error")
         self.stats.grouping_link = "Foo"
-        grouping = PropertyGrouping(title="Q3115846", count=10)
+        grouping = ItemGrouping(title="Q3115846", count=10)
         grouping.cells = OrderedDict(
             [
                 ("P21", 10),
@@ -760,9 +760,9 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         expected = {
-            "Q3115846": PropertyGrouping(title="Q3115846", count=10),
-            "Q5087901": PropertyGrouping(title="Q5087901", count=6),
-            "Q623333": PropertyGrouping(title="Q623333", count=6),
+            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6),
+            "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         query = (
             "\n"
@@ -785,9 +785,9 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         expected = {
-            "Q3115846": PropertyGrouping(title="Q3115846", count=10),
-            "Q5087901": PropertyGrouping(title="Q5087901", count=6),
-            "Q623333": PropertyGrouping(title="Q623333", count=6),
+            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6),
+            "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         self.stats.grouping_threshold = 5
         query = (
@@ -823,15 +823,9 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             },
         ]
         expected = {
-            "Q3115846": PropertyGrouping(
-                title="Q3115846", count=10, higher_grouping="NZL"
-            ),
-            "Q5087901": PropertyGrouping(
-                title="Q5087901", count=6, higher_grouping="USA"
-            ),
-            "Q623333": PropertyGrouping(
-                title="Q623333", count=6, higher_grouping="USA"
-            ),
+            "Q3115846": ItemGrouping(title="Q3115846", count=10, higher_grouping="NZL"),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6, higher_grouping="USA"),
+            "Q623333": ItemGrouping(title="Q623333", count=6, higher_grouping="USA"),
         }
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
         query = (
@@ -898,8 +892,8 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             },
         ]
         expected = {
-            "Q3115846": PropertyGrouping(title="Q3115846", count=10),
-            "Q5087901": PropertyGrouping(title="Q5087901", count=6),
+            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "UNKNOWN_VALUE": UnknownValueGrouping(count=3),
         }
         query = (
@@ -1104,9 +1098,9 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
         ]
         result = self.stats.retrieve_data()
         expected = {
-            "Q3115846": PropertyGrouping(title="Q3115846", count=10),
-            "Q5087901": PropertyGrouping(title="Q5087901", count=6),
-            "Q623333": PropertyGrouping(title="Q623333", count=6),
+            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6),
+            "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         self.assertEqual(result, expected)
 
@@ -1142,7 +1136,7 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_process_data(self):
         grouping_data = {
-            "Q3115846": PropertyGrouping(
+            "Q3115846": ItemGrouping(
                 title="Q3115846",
                 count=10,
                 cells=OrderedDict(
@@ -1156,7 +1150,7 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     ]
                 ),
             ),
-            "Q5087901": PropertyGrouping(
+            "Q5087901": ItemGrouping(
                 title="Q5087901",
                 count=6,
                 cells=OrderedDict(

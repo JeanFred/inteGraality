@@ -13,8 +13,8 @@ import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
 from line import (
+    ItemGrouping,
     NoGroupGrouping,
-    PropertyGrouping,
     TotalsGrouping,
     UnknownValueGrouping,
     YearGrouping,
@@ -163,7 +163,7 @@ LIMIT 1000
                 if self.grouping_type == GroupingType.YEAR:
                     line_type = YearGrouping
                 else:
-                    line_type = PropertyGrouping
+                    line_type = ItemGrouping
                 property_grouping = line_type(
                     title=qid,
                     count=int(resultitem.get("count")),

@@ -368,17 +368,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text = self.process_data(groupings)
         return text
 
-    def retrieve_data(self):
-        logging.info("Retrieving grouping information...")
-
-        try:
-            groupings = self.get_grouping_information()
-        except QueryException as e:
-            logging.error("No groupings found.")
-            raise e
-
-        logging.info(f"Grouping retrieved: {len(groupings)}")
-
+    def populate_groupings(self, groupings):
         for column_entry_key, column_entry in self.columns.items():
             data = self._get_grouping_counts_from_sparql(
                 column_entry.get_info_query(self)
@@ -391,7 +381,19 @@ SELECT (COUNT(*) as ?count) WHERE {{
                     logging.debug(
                         f"Discarding data on {grouping_item}, not in the groupings"
                     )
+        return groupings
 
+    def retrieve_data(self):
+        logging.info("Retrieving grouping information...")
+
+        try:
+            groupings = self.get_grouping_information()
+        except QueryException as e:
+            logging.error("No groupings found.")
+            raise e
+
+        logging.info(f"Grouping retrieved: {len(groupings)}")
+        groupings = self.populate_groupings(groupings)
         return groupings
 
     def process_data(self, groupings):

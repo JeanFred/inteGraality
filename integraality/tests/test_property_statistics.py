@@ -1097,10 +1097,50 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         result = self.stats.retrieve_data()
+        print(result)
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
-            "Q5087901": ItemGrouping(title="Q5087901", count=6),
-            "Q623333": ItemGrouping(title="Q623333", count=6),
+            "Q3115846": ItemGrouping(
+                title="Q3115846",
+                count=10,
+                cells=OrderedDict(
+                    [
+                        ("P21", 10),
+                        ("P19", 10),
+                        ("P1P2", 10),
+                        ("P3Q4P5", 10),
+                        ("Lbr", 10),
+                        ("Dxy", 10),
+                    ]
+                ),
+            ),
+            "Q5087901": ItemGrouping(
+                title="Q5087901",
+                count=6,
+                cells=OrderedDict(
+                    [
+                        ("P21", 6),
+                        ("P19", 6),
+                        ("P1P2", 6),
+                        ("P3Q4P5", 6),
+                        ("Lbr", 6),
+                        ("Dxy", 6),
+                    ]
+                ),
+            ),
+            "Q623333": ItemGrouping(
+                title="Q623333",
+                count=6,
+                cells=OrderedDict(
+                    [
+                        ("P21", 6),
+                        ("P19", 6),
+                        ("P1P2", 6),
+                        ("P3Q4P5", 6),
+                        ("Lbr", 6),
+                        ("Dxy", 6),
+                    ]
+                ),
+            ),
         }
         self.assertEqual(result, expected)
 

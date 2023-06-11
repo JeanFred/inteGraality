@@ -37,6 +37,7 @@ class Grouping(AbstractLine):
             self.count == other.count
             and self.title == other.title
             and self.higher_grouping == other.higher_grouping
+            and self.cells == other.cells
         )
 
     def __repr__(self):

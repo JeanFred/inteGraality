@@ -1189,6 +1189,84 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
         }
         self.assertEqual(result, expected)
 
+    def test_populate_groupings_with_columns_one_empty(self):
+        groupings = {
+            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", count=6),
+            "Q623333": ItemGrouping(title="Q623333", count=6),
+        }
+        self.mock_sparql_query.return_value.select.side_effect = [
+            [
+                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "1"},
+                {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "2"},
+                {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "3"},
+            ],
+            None,
+            [
+                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "9"},
+                {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "10"},
+                {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "11"},
+            ],
+            [
+                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "13"},
+                {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "14"},
+                {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "15"},
+            ],
+            [
+                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "17"},
+                {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "18"},
+                {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "19"},
+            ],
+            [
+                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "21"},
+                {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "22"},
+                {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "23"},
+            ],
+        ]
+        result = self.stats.populate_groupings(groupings)
+        expected = {
+            "Q3115846": ItemGrouping(
+                title="Q3115846",
+                count=10,
+                cells=OrderedDict(
+                    [
+                        ("P21", 1),
+                        ("P1P2", 9),
+                        ("P3Q4P5", 13),
+                        ("Lbr", 17),
+                        ("Dxy", 21),
+                    ]
+                ),
+            ),
+            "Q5087901": ItemGrouping(
+                title="Q5087901",
+                count=6,
+                cells=OrderedDict(
+                    [
+                        ("P21", 2),
+                        ("P1P2", 10),
+                        ("P3Q4P5", 14),
+                        ("Lbr", 18),
+                        ("Dxy", 22),
+                    ]
+                ),
+            ),
+            "Q623333": ItemGrouping(
+                title="Q623333",
+                count=6,
+                cells=OrderedDict(
+                    [
+                        ("P21", 3),
+                        ("P1P2", 11),
+                        ("P3Q4P5", 15),
+                        ("Lbr", 19),
+                        ("Dxy", 23),
+                    ]
+                ),
+            ),
+        }
+        self.assertEqual(result, expected)
+
 
 class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_retrieve_data_empty(self):

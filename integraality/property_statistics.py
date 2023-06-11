@@ -373,6 +373,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
             data = self._get_grouping_counts_from_sparql(
                 column_entry.get_info_query(self)
             )
+            if not data:
+                continue
             for grouping_item, value in data.items():
                 grouping = groupings.get(grouping_item)
                 if grouping:

@@ -12,6 +12,7 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
+from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from line import (
     ItemGrouping,
     NoGroupGrouping,
@@ -86,38 +87,20 @@ class PropertyStatistics:
 
         :return: List of Grouping objects
         """
-        if self.higher_grouping:
-            query = f"""
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?grouping .
-  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.
-}} GROUP BY ?grouping ?higher_grouping
-HAVING (?count >= {self.grouping_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-"""
-        elif self.grouping_type == GroupingType.YEAR:
-            query = f"""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?date .
-  BIND(YEAR(?date) as ?grouping) .
-}} GROUP BY ?grouping
-HAVING (?count >= {self.grouping_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-"""
+        if self.grouping_type == GroupingType.YEAR:
+            grouping_configuration = YearGroupingConfiguration(
+                property=self.grouping_property,
+                grouping_threshold=self.grouping_threshold,
+            )
         else:
-            query = f"""
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {self.selector_sparql} .
-  ?entity wdt:{self.grouping_property} ?grouping .
-}} GROUP BY ?grouping
-HAVING (?count >= {self.grouping_threshold})
-ORDER BY DESC(?count)
-LIMIT 1000
-"""
+            grouping_configuration = ItemGroupingConfiguration(
+                property=self.grouping_property,
+                higher_grouping=self.higher_grouping,
+                grouping_threshold=self.grouping_threshold,
+            )
+        query = grouping_configuration.get_grouping_information_query(
+            self.selector_sparql
+        )
         groupings = collections.OrderedDict()
 
         try:

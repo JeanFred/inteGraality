@@ -28,7 +28,6 @@ class PropertyStatisticsTest(unittest.TestCase):
             columns=columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P551",
             property_threshold=10,
         )
 

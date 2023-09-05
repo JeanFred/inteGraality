@@ -84,7 +84,7 @@ def queries():
             page_url=page_url,
             column=column_key,
             grouping=request.args.get("grouping"),
-            grouping_property=stats.grouping_property,
+            grouping_property=stats.grouping_configuration.property,
             positive_query=positive_query,
             negative_query=negative_query,
         )

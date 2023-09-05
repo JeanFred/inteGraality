@@ -29,7 +29,6 @@ class PropertyStatisticsTest(unittest.TestCase):
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P551",
             property_threshold=10,
         )
 
@@ -209,7 +208,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(self.mock_sparql_query.call_count, 6)
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
-        self.stats.higher_grouping = "wdt:P17/wdt:P298"
+        self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
@@ -545,7 +544,6 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             columns=self.columns,
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P577",
             grouping_type="year",
             property_threshold=10,
         )
@@ -656,7 +654,6 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             columns=self.columns,
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P577",
             grouping_type="year",
             property_threshold=10,
         )
@@ -921,7 +918,6 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             columns=self.columns,
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P577",
             grouping_type="year",
             property_threshold=10,
         )
@@ -954,7 +950,6 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             columns=self.columns,
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P577",
             grouping_type="year",
             property_threshold=10,
         )
@@ -988,7 +983,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
 class TestGetHeader(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.stats.grouping_threshold = 7
+        self.stats.grouping_configuration.grouping_threshold = 7
         self.stats.property_threshold = 4
 
     def test_get_header(self):
@@ -1010,7 +1005,7 @@ class TestGetHeader(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_get_header_with_higher_grouping(self):
-        self.stats.higher_grouping = "wdt:P17/wdt:P298"
+        self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.get_header()
         expected = (
             '{| class="wikitable sortable"\n'
@@ -1059,7 +1054,7 @@ class MakeTotalsTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_totals_with_higher_grouping(self):
-        self.stats.higher_grouping = "wdt:P17/wdt:P298"
+        self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.make_totals()
         expected = (
             '|- class="sortbottom"\n'
@@ -1590,7 +1585,6 @@ class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
-            grouping_property="P551",
             property_threshold=10,
         )
 

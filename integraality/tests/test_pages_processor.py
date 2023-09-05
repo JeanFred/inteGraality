@@ -76,7 +76,6 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         expected = {
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
-            "grouping_property": "P400",
             "grouping_configuration": ItemGroupingConfiguration(property="P400"),
             "stats_for_no_group": True,
             "columns": [
@@ -96,7 +95,6 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         expected = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_property": "P400",
             "grouping_configuration": ItemGroupingConfiguration(property="P400"),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
@@ -120,14 +118,12 @@ class TestParseConfig(ProcessortTest):
         expected = {
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_property": "P400",
             "grouping_configuration": ItemGroupingConfiguration(property="P400", grouping_threshold=1),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
             "stats_for_no_group": True,
-            "grouping_threshold": "1",
             "property_threshold": "2",
         }
         self.assertEqual(result, expected)

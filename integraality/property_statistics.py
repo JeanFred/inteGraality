@@ -37,14 +37,11 @@ class PropertyStatistics:
         self,
         selector_sparql,
         columns,
-        grouping_property,
         grouping_configuration,
         grouping_type=None,
-        higher_grouping=None,
         higher_grouping_type=None,
         stats_for_no_group=False,
         grouping_link=None,
-        grouping_threshold=20,
         property_threshold=0,
     ):
         """
@@ -53,17 +50,14 @@ class PropertyStatistics:
         site = pywikibot.Site("en", "wikipedia")
         self.repo = site.data_repository()
         self.columns = {column.get_key(): column for column in columns}
-        self.grouping_property = grouping_property
         self.grouping_configuration = grouping_configuration
         if grouping_type:
             self.grouping_type = GroupingType(grouping_type)
         else:
             self.grouping_type = None
-        self.higher_grouping = higher_grouping
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
         self.stats_for_no_group = stats_for_no_group
-        self.grouping_threshold = grouping_threshold
         self.property_threshold = property_threshold
 
         self.grouping_link = grouping_link
@@ -80,6 +74,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
+        grouping_property = self.grouping_configuration.property
         query = f"""
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
   ?entity {self.selector_sparql} ."""
@@ -90,23 +85,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f"""
   MINUS {{
-    ?entity wdt:{self.grouping_property} [] .
+    ?entity wdt:{grouping_property} [] .
   }}"""
 
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
             query += f"""
-  ?entity wdt:{self.grouping_property} ?grouping.
+  ?entity wdt:{grouping_property} ?grouping.
   FILTER wikibase:isSomeValue(?grouping)."""
 
         elif self.grouping_type == GroupingType.YEAR:
             query += f"""
-  ?entity wdt:{self.grouping_property} ?date.
+  ?entity wdt:{grouping_property} ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = {grouping})."""
 
         else:
             query += f"""
-  ?entity wdt:{self.grouping_property} wd:{grouping} ."""
+  ?entity wdt:{grouping_property} wd:{grouping} ."""
 
         query += column.get_filter_for_positive_query()
         query += """}
@@ -115,6 +110,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         column_key = column.get_key()
+        grouping_property = self.grouping_configuration.property
         query = f"""
 SELECT DISTINCT ?entity ?entityLabel WHERE {{
   ?entity {self.selector_sparql} ."""
@@ -126,24 +122,24 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
             query += f"""
   MINUS {{
-    {{?entity wdt:{self.grouping_property} [] .}} UNION"""
+    {{?entity wdt:{grouping_property} [] .}} UNION"""
 
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
             query += f"""
-  ?entity wdt:{self.grouping_property} ?grouping.
+  ?entity wdt:{grouping_property} ?grouping.
   FILTER wikibase:isSomeValue(?grouping).
   MINUS {{"""
 
         elif self.grouping_type == GroupingType.YEAR:
             query += f"""
-  ?entity wdt:{self.grouping_property} ?date.
+  ?entity wdt:{grouping_property} ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = {grouping}).
   MINUS {{"""
 
         else:
             query += f"""
-  ?entity wdt:{self.grouping_property} wd:{grouping} .
+  ?entity wdt:{grouping_property} wd:{grouping} .
   MINUS {{"""
 
         query += column.get_filter_for_negative_query()
@@ -152,10 +148,11 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {{
         return query
 
     def get_totals_no_grouping(self):
+        grouping_property = self.grouping_configuration.property
         query = f"""
 SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {self.selector_sparql}
-  MINUS {{ ?entity wdt:{self.grouping_property} _:b28. }}
+  MINUS {{ ?entity wdt:{grouping_property} _:b28. }}
 }}
 """
         return self._get_count_from_sparql(query)
@@ -204,12 +201,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def get_header(self):
         text = '{| class="wikitable sortable"\n'
-        colspan = 3 if self.higher_grouping else 2
-        text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_threshold} items)\n'
+        colspan = 3 if self.grouping_configuration.higher_grouping else 2
+        text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_configuration.grouping_threshold} items)\n'
         text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'  # noqa
         text += "|-\n"
 
-        if self.higher_grouping:
+        if self.grouping_configuration.higher_grouping:
             text += "! \n"
 
         text += "! Name\n"
@@ -225,7 +222,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         count = self.get_totals_no_grouping()
         grouping_object = NoGroupGrouping(
-            count=count, higher_grouping=self.higher_grouping
+            count=count, higher_grouping=self.grouping_configuration.higher_grouping
         )
 
         for column_entry_key, column_entry in self.columns.items():
@@ -251,7 +248,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def make_totals(self):
         count = self.get_totals()
         grouping_object = TotalsGrouping(
-            count=count, title="", higher_grouping=self.higher_grouping
+            count=count, title="", higher_grouping=self.grouping_configuration.higher_grouping
         )
 
         for column_entry_key, column_entry in self.columns.items():
@@ -329,9 +326,7 @@ def main(*args):
         columns=columns,
         selector_sparql="wdt:P10241 wd:Q41960",
         grouping_configuration=ItemGroupingConfiguration(property="P551", grouping_threshold=5),
-        grouping_property="P551",
         stats_for_no_group=True,
-        grouping_threshold=5,
         property_threshold=1,
     )
     print(stats.retrieve_and_process_data())

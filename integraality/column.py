@@ -50,12 +50,12 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
 
         if property_statistics.grouping_type == GroupingType.YEAR:
             query += f"""
-  ?entity wdt:{property_statistics.grouping_property} ?date .
+  ?entity wdt:{property_statistics.grouping_configuration.property} ?date .
   BIND(YEAR(?date) as ?grouping)."""
 
         else:
             query += f"""
-  ?entity wdt:{property_statistics.grouping_property} ?grouping ."""
+  ?entity wdt:{property_statistics.grouping_configuration.property} ?grouping ."""
 
         query += f"""
   FILTER(EXISTS {{{self.get_filter_for_info()}
@@ -91,7 +91,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         query = f"""
 SELECT (COUNT(*) AS ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
-  MINUS {{ ?entity wdt:{property_statistics.grouping_property} _:b28. }}
+  MINUS {{ ?entity wdt:{property_statistics.grouping_configuration.property} _:b28. }}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}

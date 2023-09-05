@@ -140,9 +140,13 @@ class QueriesTests(PagesProcessorTests):
         patcher03 = patch("column.DescriptionColumn", autospec=True)
         self.mock_column_Dbr = patcher03.start()
         self.addCleanup(patcher03.stop)
+        patcher04 = patch("grouping.ItemGroupingConfiguration", autospec=True)
+        self.mock_grouping_configuration = patcher04.start()
+        self.addCleanup(patcher04.stop)
+        self.mock_grouping_configuration.property = "P495"
         patcher1 = patch("pages_processor.PropertyStatistics", autospec=True)
         self.mock_property_statistics = patcher1.start()
-        self.mock_property_statistics.grouping_property = "P495"
+        self.mock_property_statistics.grouping_configuration = self.mock_grouping_configuration
         self.mock_property_statistics.columns = {
             "P1": self.mock_column_P1,
             "Lbr": self.mock_column_Lbr,

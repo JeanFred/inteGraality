@@ -8,7 +8,7 @@ from time import perf_counter
 from flask import Flask, render_template, request
 
 from pages_processor import PagesProcessor, ProcessingException
-from property_statistics import QueryException
+from sparql_utils import QueryException
 
 app = Flask(__name__)
 app.debug = True

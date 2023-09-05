@@ -13,7 +13,8 @@ import pywikibot
 
 from cache import RedisCache
 from column import ColumnMaker, ColumnSyntaxException
-from property_statistics import PropertyStatistics, QueryException
+from property_statistics import PropertyStatistics
+from sparql_utils import QueryException
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 

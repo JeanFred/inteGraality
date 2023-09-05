@@ -9,7 +9,8 @@ import pywikibot
 
 from column import DescriptionColumn, GroupingType, LabelColumn, PropertyColumn
 from line import ItemGrouping, UnknownValueGrouping, YearGrouping
-from property_statistics import PropertyStatistics, QueryException
+from property_statistics import PropertyStatistics
+from sparql_utils import QueryException
 
 
 class PropertyStatisticsTest(unittest.TestCase):

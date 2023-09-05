@@ -4,7 +4,7 @@ from unittest.mock import patch
 
 from app import app
 from pages_processor import ProcessingException
-from property_statistics import QueryException
+from sparql_utils import QueryException
 
 
 class AppTests(unittest.TestCase):

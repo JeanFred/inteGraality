@@ -20,13 +20,8 @@ from line import (
     UnknownValueGrouping,
     YearGrouping,
 )
+from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 from statsd.defaults.env import statsd
-
-
-class QueryException(Exception):
-    def __init__(self, message, query):
-        super().__init__(message)
-        self.query = query
 
 
 class PropertyStatistics:
@@ -34,8 +29,6 @@ class PropertyStatistics:
     Generate statitics
 
     """
-
-    UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
 
     GROUP_MAPPING = Enum(
         "GROUP_MAPPING",
@@ -126,7 +119,7 @@ class PropertyStatistics:
 
         for resultitem in queryresult:
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
-                self.UNKNOWN_VALUE_PREFIX
+                UNKNOWN_VALUE_PREFIX
             ):
                 unknown_value_count += int(resultitem.get("count"))
 
@@ -269,7 +262,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             return None
         for resultitem in queryresult:
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
-                self.UNKNOWN_VALUE_PREFIX
+                UNKNOWN_VALUE_PREFIX
             ):
                 if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in result.keys():
                     result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0

@@ -12,7 +12,8 @@ from redis import StrictRedis
 import pywikibot
 
 from cache import RedisCache
-from column import ColumnMaker, ColumnSyntaxException
+from column import ColumnMaker, ColumnSyntaxException, GroupingType
+from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException
 
@@ -129,8 +130,20 @@ class PagesProcessor:
                 raise ConfigException("A required field is missing: %s" % field)
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
+        config["grouping_configuration"] = self.build_grouping_configuration(
+            config["grouping_property"],
+            config.get("grouping_type", None),
+            config.get("higher_grouping", None),
+            int(config.get("grouping_threshold", 20))
+        )
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         return config
+
+    def build_grouping_configuration(self, grouping_property, grouping_type, higher_grouping, grouping_threshold):
+        if grouping_type == GroupingType.YEAR:
+            return YearGroupingConfiguration(property=grouping_property, grouping_threshold=grouping_threshold)
+        else:
+            return ItemGroupingConfiguration(property=grouping_property, higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
 
     @staticmethod
     def parse_config_properties(properties_string):

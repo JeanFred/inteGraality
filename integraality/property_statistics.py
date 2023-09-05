@@ -12,7 +12,7 @@ import pywikibot
 import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
-from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
+from grouping import ItemGroupingConfiguration
 from line import NoGroupGrouping, TotalsGrouping
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 from statsd.defaults.env import statsd
@@ -38,6 +38,7 @@ class PropertyStatistics:
         selector_sparql,
         columns,
         grouping_property,
+        grouping_configuration,
         grouping_type=None,
         higher_grouping=None,
         higher_grouping_type=None,
@@ -53,6 +54,7 @@ class PropertyStatistics:
         self.repo = site.data_repository()
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_property = grouping_property
+        self.grouping_configuration = grouping_configuration
         if grouping_type:
             self.grouping_type = GroupingType(grouping_type)
         else:
@@ -74,18 +76,7 @@ class PropertyStatistics:
 
         :return: List of Grouping objects
         """
-        if self.grouping_type == GroupingType.YEAR:
-            grouping_configuration = YearGroupingConfiguration(
-                property=self.grouping_property,
-                grouping_threshold=self.grouping_threshold,
-            )
-        else:
-            grouping_configuration = ItemGroupingConfiguration(
-                property=self.grouping_property,
-                higher_grouping=self.higher_grouping,
-                grouping_threshold=self.grouping_threshold,
-            )
-        return grouping_configuration.get_grouping_information(self.selector_sparql)
+        return self.grouping_configuration.get_grouping_information(self.selector_sparql)
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
@@ -337,6 +328,7 @@ def main(*args):
     stats = PropertyStatistics(
         columns=columns,
         selector_sparql="wdt:P10241 wd:Q41960",
+        grouping_configuration=ItemGroupingConfiguration(property="P551", grouping_threshold=5),
         grouping_property="P551",
         stats_for_no_group=True,
         grouping_threshold=5,

@@ -8,6 +8,7 @@ from unittest.mock import patch
 import fakeredis
 
 from integraality.column import DescriptionColumn, LabelColumn, PropertyColumn
+from integraality.grouping import ItemGroupingConfiguration
 from integraality.pages_processor import ConfigException, PagesProcessor, main
 
 
@@ -76,6 +77,7 @@ class TestParseConfig(ProcessortTest):
         expected = {
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "grouping_property": "P400",
+            "grouping_configuration": ItemGroupingConfiguration(property="P400"),
             "stats_for_no_group": True,
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
@@ -95,6 +97,7 @@ class TestParseConfig(ProcessortTest):
         expected = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
+            "grouping_configuration": ItemGroupingConfiguration(property="P400"),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
@@ -118,6 +121,7 @@ class TestParseConfig(ProcessortTest):
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
+            "grouping_configuration": ItemGroupingConfiguration(property="P400", grouping_threshold=1),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),

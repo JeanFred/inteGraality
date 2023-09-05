@@ -9,6 +9,7 @@ from column import (
     LabelColumn,
     PropertyColumn,
 )
+from grouping import ItemGroupingConfiguration
 from property_statistics import PropertyStatistics
 
 
@@ -22,8 +23,10 @@ class PropertyStatisticsTest(unittest.TestCase):
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
         ]
+        self.grouping_configuration = ItemGroupingConfiguration("P551")
         self.stats = PropertyStatistics(
             columns=columns,
+            grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P551",
             property_threshold=10,

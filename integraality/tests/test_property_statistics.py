@@ -7,7 +7,8 @@ from unittest.mock import patch
 
 import pywikibot
 
-from column import DescriptionColumn, GroupingType, LabelColumn, PropertyColumn
+from column import DescriptionColumn, LabelColumn, PropertyColumn
+from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from line import ItemGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException
@@ -23,8 +24,10 @@ class PropertyStatisticsTest(unittest.TestCase):
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
         ]
+        self.grouping_configuration = ItemGroupingConfiguration("P551")
         self.stats = PropertyStatistics(
             columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P551",
             property_threshold=10,
@@ -540,6 +543,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     def test_get_query_for_items_for_property_positive_year_grouping(self):
         stats = PropertyStatistics(
             columns=self.columns,
+            grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P577",
             grouping_type="year",
@@ -650,6 +654,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     def test_get_query_for_items_for_property_negative_year_grouping(self):
         stats = PropertyStatistics(
             columns=self.columns,
+            grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P577",
             grouping_type="year",
@@ -790,7 +795,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
-        self.stats.grouping_threshold = 5
+        self.stats.grouping_configuration.grouping_threshold = 5
         query = (
             "\n"
             "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
@@ -828,7 +833,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6, higher_grouping="USA"),
             "Q623333": ItemGrouping(title="Q623333", count=6, higher_grouping="USA"),
         }
-        self.stats.higher_grouping = "wdt:P17/wdt:P298"
+        self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         query = (
             "\n"
             "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) "
@@ -914,6 +919,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_get_grouping_information_year(self):
         stats = PropertyStatistics(
             columns=self.columns,
+            grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P577",
             grouping_type="year",
@@ -946,6 +952,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_get_grouping_information_year_unknown_value(self):
         stats = PropertyStatistics(
             columns=self.columns,
+            grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_property="P577",
             grouping_type="year",
@@ -1578,7 +1585,15 @@ class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_retrieve_and_process_data_year_grouping(self):
-        self.stats.grouping_type = GroupingType.YEAR
+        self.grouping_configuration = YearGroupingConfiguration("P551")
+        self.stats = PropertyStatistics(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_property="P551",
+            property_threshold=10,
+        )
+
         self.mock_sparql_query.return_value.select.return_value = [
             {"grouping": "2001", "count": "10"},
             {"grouping": "2012", "count": "6"},

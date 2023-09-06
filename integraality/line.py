@@ -79,6 +79,22 @@ class Grouping(AbstractLine):
     def format_grouping_link(self, grouping_link, repo=None):
         return f"| [[{grouping_link}/{self.title}|{self.count}]] \n"
 
+    def postive_query(self, selector_sparql, grouping_property=None, grouping=None):
+        query = []
+        query.extend(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                f"  ?entity {selector_sparql} .",
+            ]
+        )
+        query.extend(
+            self.postive_query_filter_out_fragment(grouping_property, grouping)
+        )
+        return "\n".join(query)
+
+    def postive_query_filter_out_fragment(self, grouping_property=None, grouping=None):
+        return []
+
 
 class NoGroupGrouping(Grouping):
 
@@ -91,6 +107,9 @@ class NoGroupGrouping(Grouping):
 
     def format_higher_grouping_text(self, grouping_type=None):
         return "|\n"
+
+    def postive_query_filter_out_fragment(self, grouping_property, grouping=None):
+        return ["  MINUS {", f"    ?entity wdt:{grouping_property} [] .", "  }"]
 
 
 class ItemGrouping(Grouping):
@@ -135,10 +154,20 @@ class ItemGrouping(Grouping):
     def heading(self):
         return f"{{{{Q|{self.title}}}}}"
 
+    def postive_query_filter_out_fragment(self, grouping_property, grouping):
+        return [f"  ?entity wdt:{grouping_property} wd:{grouping} ."]
+
 
 class YearGrouping(Grouping):
     def heading(self):
         return f"{self.title}"
+
+    def postive_query_filter_out_fragment(self, grouping_property, grouping):
+        return [
+            f"  ?entity wdt:{grouping_property} ?date.",
+            "  BIND(YEAR(?date) as ?year).",
+            f"  FILTER(?year = {grouping}).",
+        ]
 
 
 class UnknownValueGrouping(Grouping):
@@ -147,6 +176,12 @@ class UnknownValueGrouping(Grouping):
 
     def heading(self):
         return "{{int:wikibase-snakview-variations-somevalue-label}}"
+
+    def postive_query_filter_out_fragment(self, grouping_property, grouping=None):
+        return [
+            f"  ?entity wdt:{grouping_property} ?grouping.",
+            "  FILTER wikibase:isSomeValue(?grouping).",
+        ]
 
 
 class TotalsGrouping(Grouping):

@@ -13,7 +13,8 @@ import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
 from grouping import ItemGroupingConfiguration
-from line import NoGroupGrouping, TotalsGrouping
+from line import (ItemGrouping, NoGroupGrouping, TotalsGrouping,
+                  UnknownValueGrouping, YearGrouping)
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 from statsd.defaults.env import statsd
 
@@ -75,34 +76,20 @@ class PropertyStatistics:
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
         grouping_property = self.grouping_configuration.property
-        query = f"""
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {{
-  ?entity {self.selector_sparql} ."""
 
         if grouping == self.GROUP_MAPPING.TOTALS:
-            pass
-
+            line = TotalsGrouping(None)
         elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            query += f"""
-  MINUS {{
-    ?entity wdt:{grouping_property} [] .
-  }}"""
-
+            line = NoGroupGrouping(None)
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            query += f"""
-  ?entity wdt:{grouping_property} ?grouping.
-  FILTER wikibase:isSomeValue(?grouping)."""
-
+            line = UnknownValueGrouping(None)
         elif self.grouping_type == GroupingType.YEAR:
-            query += f"""
-  ?entity wdt:{grouping_property} ?date.
-  BIND(YEAR(?date) as ?year).
-  FILTER(?year = {grouping})."""
-
+            line = YearGrouping(None)
         else:
-            query += f"""
-  ?entity wdt:{grouping_property} wd:{grouping} ."""
+            line = ItemGrouping(None)
 
+        query = "\n"
+        query += line.postive_query(self.selector_sparql, grouping_property, grouping)
         query += column.get_filter_for_positive_query()
         query += """}
 """

@@ -98,36 +98,24 @@ class PropertyStatistics:
     def get_query_for_items_for_property_negative(self, column, grouping):
         column_key = column.get_key()
         grouping_property = self.grouping_configuration.property
-        query = f"""
-SELECT DISTINCT ?entity ?entityLabel WHERE {{
-  ?entity {self.selector_sparql} ."""
 
         if grouping == self.GROUP_MAPPING.TOTALS:
+            line = TotalsGrouping(None)
+        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
+            line = NoGroupGrouping(None)
+        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
+            line = UnknownValueGrouping(None)
+        elif self.grouping_type == GroupingType.YEAR:
+            line = YearGrouping(None)
+        else:
+            line = ItemGrouping(None)
+
+        query = "\n"
+        query += line.negative_query(self.selector_sparql, grouping_property, grouping)
+
+        if grouping != self.GROUP_MAPPING.NO_GROUPING:
             query += """
   MINUS {"""
-
-        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            query += f"""
-  MINUS {{
-    {{?entity wdt:{grouping_property} [] .}} UNION"""
-
-        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            query += f"""
-  ?entity wdt:{grouping_property} ?grouping.
-  FILTER wikibase:isSomeValue(?grouping).
-  MINUS {{"""
-
-        elif self.grouping_type == GroupingType.YEAR:
-            query += f"""
-  ?entity wdt:{grouping_property} ?date.
-  BIND(YEAR(?date) as ?year).
-  FILTER(?year = {grouping}).
-  MINUS {{"""
-
-        else:
-            query += f"""
-  ?entity wdt:{grouping_property} wd:{grouping} .
-  MINUS {{"""
 
         query += column.get_filter_for_negative_query()
         query += """}

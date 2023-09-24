@@ -95,6 +95,22 @@ class Grouping(AbstractLine):
     def postive_query_filter_out_fragment(self, grouping_property=None, grouping=None):
         return []
 
+    def negative_query(self, selector_sparql, grouping_property=None, grouping=None):
+        query = []
+        query.extend(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                f"  ?entity {selector_sparql} .",
+            ]
+        )
+        query.extend(
+            self.negative_query_filter_out_fragment(grouping_property, grouping)
+        )
+        return "\n".join(query)
+
+    def negative_query_filter_out_fragment(self, grouping_property=None, grouping=None):
+        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+
 
 class NoGroupGrouping(Grouping):
 
@@ -110,6 +126,12 @@ class NoGroupGrouping(Grouping):
 
     def postive_query_filter_out_fragment(self, grouping_property, grouping=None):
         return ["  MINUS {", f"    ?entity wdt:{grouping_property} [] .", "  }"]
+
+    def negative_query_filter_out_fragment(self, grouping_property, grouping=None):
+        return [
+            "  MINUS {",
+            f"    {{?entity wdt:{grouping_property} [] .}} UNION",
+        ]
 
 
 class ItemGrouping(Grouping):
@@ -157,6 +179,9 @@ class ItemGrouping(Grouping):
     def postive_query_filter_out_fragment(self, grouping_property, grouping):
         return [f"  ?entity wdt:{grouping_property} wd:{grouping} ."]
 
+    def negative_query_filter_out_fragment(self, grouping_property, grouping):
+        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+
 
 class YearGrouping(Grouping):
     def heading(self):
@@ -168,6 +193,9 @@ class YearGrouping(Grouping):
             "  BIND(YEAR(?date) as ?year).",
             f"  FILTER(?year = {grouping}).",
         ]
+
+    def negative_query_filter_out_fragment(self, grouping_property, grouping):
+        return self.postive_query_filter_out_fragment(grouping_property, grouping)
 
 
 class UnknownValueGrouping(Grouping):
@@ -182,6 +210,9 @@ class UnknownValueGrouping(Grouping):
             f"  ?entity wdt:{grouping_property} ?grouping.",
             "  FILTER wikibase:isSomeValue(?grouping).",
         ]
+
+    def negative_query_filter_out_fragment(self, grouping_property, grouping):
+        return self.postive_query_filter_out_fragment(grouping_property, grouping)
 
 
 class TotalsGrouping(Grouping):

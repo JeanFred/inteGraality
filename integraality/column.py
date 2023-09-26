@@ -44,20 +44,11 @@ class AbstractColumn:
 
         :return: (str) SPARQL query
         """
+        grouping_selector = "\n".join(property_statistics.grouping_configuration.get_grouping_selector())
         query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
-  ?entity {property_statistics.selector_sparql} ."""
-
-        if property_statistics.grouping_type == GroupingType.YEAR:
-            query += f"""
-  ?entity wdt:{property_statistics.grouping_configuration.property} ?date .
-  BIND(YEAR(?date) as ?grouping)."""
-
-        else:
-            query += f"""
-  ?entity wdt:{property_statistics.grouping_configuration.property} ?grouping ."""
-
-        query += f"""
+  ?entity {property_statistics.selector_sparql} .
+{grouping_selector}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}

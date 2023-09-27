@@ -47,9 +47,13 @@ class Grouping(AbstractLine):
     def get_key(self):
         return self.title
 
-    def format_header_cell(self, grouping_type):
+    def format_header_cell(self, grouping_configuration, grouping_type):
         text = ""
-        if self.higher_grouping is not None:
+        if self.higher_grouping is None:
+            pass
+        elif not grouping_configuration.higher_grouping:
+            pass
+        else:
             text += self.format_higher_grouping_text(grouping_type)
 
         text += f"| {self.heading()}\n"

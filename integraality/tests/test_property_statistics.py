@@ -331,6 +331,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
 
     def test_format_stats_for_one_grouping_with_higher_grouping(self):
         self.stats.higher_grouping = "wdt:P17/wdt:P298"
+        self.stats.grouping_configuration = ItemGroupingConfiguration("P551", "XYZ")
         grouping = ItemGrouping(title="Q3115846", count=10, higher_grouping="Q1")
         grouping.cells = OrderedDict(
             [

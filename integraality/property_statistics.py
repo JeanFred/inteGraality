@@ -214,7 +214,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         text = grouping_object.row_opener()
 
-        text += grouping_object.format_header_cell(self.grouping_type)
+        text += grouping_object.format_header_cell(self.grouping_configuration, self.grouping_type)
         text += grouping_object.format_count_cell(self.grouping_link, self.repo)
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)

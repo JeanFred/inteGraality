@@ -1,6 +1,7 @@
 # -*- coding: utf-8  -*-
 
 import unittest
+from unittest.mock import patch
 
 import grouping
 
@@ -106,3 +107,47 @@ class YearGroupingConfigurationTest(unittest.TestCase):
             "LIMIT 1000\n"
         )
         self.assertEqual(result, expected)
+
+
+class TestGroupingConfigurationMaker(unittest.TestCase):
+    def setUp(self):
+        patcher = patch("pywikibot.PropertyPage", autospec=True)
+        self.mock_property_page = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.higher_grouping = "wdt:P17/wdt:P298"
+        self.grouping_threshold = 5
+
+    def test_item_datatype(self):
+        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
+            "datatype": "wikibase-item"
+        }
+        result = grouping.GroupingConfigurationMaker.make(
+            None, "P136", self.higher_grouping, self.grouping_threshold
+        )
+        expected = grouping.ItemGroupingConfiguration(
+            property="P136",
+            higher_grouping=self.higher_grouping,
+            grouping_threshold=self.grouping_threshold,
+        )
+        self.assertEqual(result, expected)
+
+    def test_time_datatype(self):
+        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
+            "datatype": "time"
+        }
+        result = grouping.GroupingConfigurationMaker.make(
+            None, "P569", self.higher_grouping, self.grouping_threshold
+        )
+        expected = grouping.YearGroupingConfiguration(
+            property="P569", grouping_threshold=self.grouping_threshold
+        )
+        self.assertEqual(result, expected)
+
+    def test_unsupported_datatype(self):
+        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
+            "datatype": "string"
+        }
+        with self.assertRaises(grouping.UnsupportedGroupingConfigurationException):
+            grouping.GroupingConfigurationMaker.make(
+                None, "P528", self.higher_grouping, self.grouping_threshold
+            )

@@ -11,8 +11,37 @@ from line import ItemGrouping, UnknownValueGrouping, YearGrouping
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 
 
-class AbstractGroupingConfiguration:
+class GroupingConfigurationSyntaxException(Exception):
+    pass
 
+
+class UnsupportedGroupingConfigurationException(Exception):
+    pass
+
+
+class GroupingConfigurationMaker:
+    @staticmethod
+    def make(repo, grouping_property, higher_grouping, grouping_threshold):
+        property_page = pywikibot.PropertyPage(repo, grouping_property)
+        property_type = property_page.get_data_for_new_entity()["datatype"]
+        print(f"property_type is {property_type}")
+        if property_type == "wikibase-item":
+            return ItemGroupingConfiguration(
+                property=grouping_property,
+                higher_grouping=higher_grouping,
+                grouping_threshold=grouping_threshold,
+            )
+        elif property_type == "time":
+            return YearGroupingConfiguration(
+                property=grouping_property, grouping_threshold=grouping_threshold
+            )
+        else:
+            raise UnsupportedGroupingConfigurationException(
+                f"Property {grouping_property} is of type {property_type} which is not supported."
+            )
+
+
+class AbstractGroupingConfiguration:
     def __init__(self, higher_grouping=None, grouping_threshold=0):
         self.higher_grouping = higher_grouping
         self.grouping_threshold = grouping_threshold

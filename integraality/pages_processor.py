@@ -12,8 +12,9 @@ from redis import StrictRedis
 import pywikibot
 
 from cache import RedisCache
-from column import ColumnMaker, ColumnSyntaxException, GroupingType
-from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
+from column import ColumnMaker, ColumnSyntaxException
+from grouping import (GroupingConfigurationMaker,
+                      UnsupportedGroupingConfigurationException)
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException
 
@@ -39,6 +40,7 @@ class NoStartTemplateException(ProcessingException):
 class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.site = pywikibot.Site(url=url)
+        self.repo = self.site.data_repository()
         self.template_name = "Property dashboard"
         self.end_template_name = "Property dashboard end"
         self.summary = "Update property usage stats"
@@ -130,21 +132,17 @@ class PagesProcessor:
                 raise ConfigException("A required field is missing: %s" % field)
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
-        config["grouping_configuration"] = self.build_grouping_configuration(
-            config.pop("grouping_property"),
-            config.get("grouping_type", None),
-            config.pop("higher_grouping", None),
-            int(config.pop("grouping_threshold", 20))
-        )
+        try:
+            config["grouping_configuration"] = GroupingConfigurationMaker.make(
+                self.repo,
+                config.pop("grouping_property"),
+                config.pop("higher_grouping", None),
+                int(config.pop("grouping_threshold", 20)),
+            )
+        except UnsupportedGroupingConfigurationException as e:
+            raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         return config
-
-    @staticmethod
-    def build_grouping_configuration(grouping_property, grouping_type, higher_grouping, grouping_threshold):
-        if grouping_type == GroupingType.YEAR:
-            return YearGroupingConfiguration(property=grouping_property, grouping_threshold=grouping_threshold)
-        else:
-            return ItemGroupingConfiguration(property=grouping_property, higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
 
     @staticmethod
     def parse_config_properties(properties_string):

@@ -142,7 +142,7 @@ class ItemGrouping(Grouping):
     def format_grouping_link(self, grouping_link, repo):
         try:
             group_item = pywikibot.ItemPage(repo, self.title)
-            group_item.get()
+            group_item.get(get_redirect=True)
             label = group_item.labels["en"]
         except (
             pywikibot.exceptions.InvalidTitleError,

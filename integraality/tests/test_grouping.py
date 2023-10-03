@@ -152,8 +152,13 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
                 None, "P528", self.higher_grouping, self.grouping_threshold
             )
 
-    def test_unsupported_syntax(self):
-        with self.assertRaises(grouping.UnsupportedGroupingConfigurationException):
-            grouping.GroupingConfigurationMaker.make(
+    def test_non_property_syntax(self):
+        result = grouping.GroupingConfigurationMaker.make(
                 None, "dct:language", self.higher_grouping, self.grouping_threshold
             )
+        expected = grouping.PredicateGroupingConfiguration(
+            predicate="dct:language",
+            higher_grouping=self.higher_grouping,
+            grouping_threshold=self.grouping_threshold,
+        )
+        self.assertEqual(result, expected)

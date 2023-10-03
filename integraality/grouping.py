@@ -42,8 +42,10 @@ class GroupingConfigurationMaker:
                     f"Property {grouping_property} is of type {property_type} which is not supported."
                 )
         else:
-            raise UnsupportedGroupingConfigurationException(
-                f"Only properties are supported at the moment, {grouping_property} is not one."
+            return PredicateGroupingConfiguration(
+                predicate=grouping_property,
+                higher_grouping=higher_grouping,
+                grouping_threshold=grouping_threshold,
             )
 
 
@@ -152,6 +154,25 @@ class AbstractGroupingConfiguration:
             groupings[unknown_value_grouping.get_key()] = unknown_value_grouping
 
         return groupings
+
+
+class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
+
+    line_type = ItemGrouping
+
+    def __init__(self, predicate, higher_grouping=None, grouping_threshold=20):
+        super().__init__(higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+        self.predicate = predicate
+
+    def __eq__(self, other):
+        return (
+            self.predicate == other.predicate
+            and self.higher_grouping == other.higher_grouping
+            and self.grouping_threshold == other.grouping_threshold
+        )
+
+    def get_grouping_selector(self):
+        return [f"  ?entity {self.predicate} ?grouping ."]
 
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):

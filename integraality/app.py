@@ -78,13 +78,14 @@ def queries():
         negative_query = stats.get_query_for_items_for_property_negative(
             column, grouping
         )
+        formatted_predicate = stats.grouping_configuration.format_predicate_html()
         return render_template(
             "queries.html",
             page_title=page_title,
             page_url=page_url,
             column=column_key,
             grouping=request.args.get("grouping"),
-            grouping_property=stats.grouping_configuration.property,
+            formatted_predicate=formatted_predicate,
             positive_query=positive_query,
             negative_query=negative_query,
         )

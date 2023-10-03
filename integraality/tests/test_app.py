@@ -143,6 +143,7 @@ class QueriesTests(PagesProcessorTests):
         patcher04 = patch("grouping.ItemGroupingConfiguration", autospec=True)
         self.mock_grouping_configuration = patcher04.start()
         self.addCleanup(patcher04.stop)
+        self.mock_grouping_configuration.format_predicate_html.return_value = '<a href="https://wikidata.org/wiki/Property:P495">P495</a>'
         self.mock_grouping_configuration.property = "P495"
         patcher1 = patch("pages_processor.PropertyStatistics", autospec=True)
         self.mock_property_statistics = patcher1.start()

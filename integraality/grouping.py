@@ -177,6 +177,9 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
     def get_grouping_selector(self):
         return [f"  ?entity {self.get_predicate()} ?grouping ."]
 
+    def format_predicate_html(self):
+        return f"<tt>{self.predicate}</tt>"
+
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
     def __init__(self, property, higher_grouping=None, grouping_threshold=20):
@@ -192,6 +195,9 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
 
     def get_predicate(self):
         return f"wdt:{self.property}"
+
+    def format_predicate_html(self):
+        return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
 
 
 class ItemGroupingConfiguration(PropertyGroupingConfiguration):

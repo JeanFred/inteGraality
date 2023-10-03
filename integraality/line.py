@@ -83,7 +83,7 @@ class Grouping(AbstractLine):
     def format_grouping_link(self, grouping_link, repo=None):
         return f"| [[{grouping_link}/{self.title}|{self.count}]] \n"
 
-    def postive_query(self, selector_sparql, grouping_property=None, grouping=None):
+    def postive_query(self, selector_sparql, grouping_predicate=None, grouping=None):
         query = []
         query.extend(
             [
@@ -92,14 +92,14 @@ class Grouping(AbstractLine):
             ]
         )
         query.extend(
-            self.postive_query_filter_out_fragment(grouping_property, grouping)
+            self.postive_query_filter_out_fragment(grouping_predicate, grouping)
         )
         return "\n".join(query)
 
-    def postive_query_filter_out_fragment(self, grouping_property=None, grouping=None):
+    def postive_query_filter_out_fragment(self, grouping_predicate=None, grouping=None):
         return []
 
-    def negative_query(self, selector_sparql, grouping_property=None, grouping=None):
+    def negative_query(self, selector_sparql, grouping_predicate=None, grouping=None):
         query = []
         query.extend(
             [
@@ -108,12 +108,12 @@ class Grouping(AbstractLine):
             ]
         )
         query.extend(
-            self.negative_query_filter_out_fragment(grouping_property, grouping)
+            self.negative_query_filter_out_fragment(grouping_predicate, grouping)
         )
         return "\n".join(query)
 
-    def negative_query_filter_out_fragment(self, grouping_property=None, grouping=None):
-        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+    def negative_query_filter_out_fragment(self, grouping_predicate=None, grouping=None):
+        return self.postive_query_filter_out_fragment(grouping_predicate, grouping)
 
 
 class NoGroupGrouping(Grouping):
@@ -128,13 +128,13 @@ class NoGroupGrouping(Grouping):
     def format_higher_grouping_text(self, grouping_type=None):
         return "|\n"
 
-    def postive_query_filter_out_fragment(self, grouping_property, grouping=None):
-        return ["  MINUS {", f"    ?entity wdt:{grouping_property} [] .", "  }"]
+    def postive_query_filter_out_fragment(self, grouping_predicate, grouping=None):
+        return ["  MINUS {", f"    ?entity {grouping_predicate} [] .", "  }"]
 
-    def negative_query_filter_out_fragment(self, grouping_property, grouping=None):
+    def negative_query_filter_out_fragment(self, grouping_predicate, grouping=None):
         return [
             "  MINUS {",
-            f"    {{?entity wdt:{grouping_property} [] .}} UNION",
+            f"    {{?entity {grouping_predicate} [] .}} UNION",
         ]
 
 
@@ -180,26 +180,26 @@ class ItemGrouping(Grouping):
     def heading(self):
         return f"{{{{Q|{self.title}}}}}"
 
-    def postive_query_filter_out_fragment(self, grouping_property, grouping):
-        return [f"  ?entity wdt:{grouping_property} wd:{grouping} ."]
+    def postive_query_filter_out_fragment(self, grouping_predicate, grouping):
+        return [f"  ?entity {grouping_predicate} wd:{grouping} ."]
 
-    def negative_query_filter_out_fragment(self, grouping_property, grouping):
-        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+    def negative_query_filter_out_fragment(self, grouping_predicate, grouping):
+        return self.postive_query_filter_out_fragment(grouping_predicate, grouping)
 
 
 class YearGrouping(Grouping):
     def heading(self):
         return f"{self.title}"
 
-    def postive_query_filter_out_fragment(self, grouping_property, grouping):
+    def postive_query_filter_out_fragment(self, grouping_predicate, grouping):
         return [
-            f"  ?entity wdt:{grouping_property} ?date.",
+            f"  ?entity {grouping_predicate} ?date.",
             "  BIND(YEAR(?date) as ?year).",
             f"  FILTER(?year = {grouping}).",
         ]
 
-    def negative_query_filter_out_fragment(self, grouping_property, grouping):
-        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+    def negative_query_filter_out_fragment(self, grouping_predicate, grouping):
+        return self.postive_query_filter_out_fragment(grouping_predicate, grouping)
 
 
 class UnknownValueGrouping(Grouping):
@@ -209,14 +209,14 @@ class UnknownValueGrouping(Grouping):
     def heading(self):
         return "{{int:wikibase-snakview-variations-somevalue-label}}"
 
-    def postive_query_filter_out_fragment(self, grouping_property, grouping=None):
+    def postive_query_filter_out_fragment(self, grouping_predicate, grouping=None):
         return [
-            f"  ?entity wdt:{grouping_property} ?grouping.",
+            f"  ?entity {grouping_predicate} ?grouping.",
             "  FILTER wikibase:isSomeValue(?grouping).",
         ]
 
-    def negative_query_filter_out_fragment(self, grouping_property, grouping):
-        return self.postive_query_filter_out_fragment(grouping_property, grouping)
+    def negative_query_filter_out_fragment(self, grouping_predicate, grouping):
+        return self.postive_query_filter_out_fragment(grouping_predicate, grouping)
 
 
 class TotalsGrouping(Grouping):

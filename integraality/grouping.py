@@ -171,8 +171,11 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
             and self.grouping_threshold == other.grouping_threshold
         )
 
+    def get_predicate(self):
+        return self.predicate
+
     def get_grouping_selector(self):
-        return [f"  ?entity {self.predicate} ?grouping ."]
+        return [f"  ?entity {self.get_predicate()} ?grouping ."]
 
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
@@ -187,6 +190,9 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
             and self.grouping_threshold == other.grouping_threshold
         )
 
+    def get_predicate(self):
+        return f"wdt:{self.property}"
+
 
 class ItemGroupingConfiguration(PropertyGroupingConfiguration):
 
@@ -196,7 +202,7 @@ class ItemGroupingConfiguration(PropertyGroupingConfiguration):
         super().__init__(property=property, higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
 
     def get_grouping_selector(self):
-        return [f"  ?entity wdt:{self.property} ?grouping ."]
+        return [f"  ?entity {self.get_predicate()} ?grouping ."]
 
 
 class YearGroupingConfiguration(PropertyGroupingConfiguration):
@@ -208,6 +214,6 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
 
     def get_grouping_selector(self):
         return [
-            f"  ?entity wdt:{self.property} ?date .",
+            f"  ?entity {self.get_predicate()} ?date .",
             "  BIND(YEAR(?date) as ?grouping) .",
         ]

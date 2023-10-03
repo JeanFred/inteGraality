@@ -75,7 +75,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
-        grouping_property = self.grouping_configuration.property
+        grouping_predicate = self.grouping_configuration.get_predicate()
 
         if grouping == self.GROUP_MAPPING.TOTALS:
             line = TotalsGrouping(None)
@@ -89,7 +89,7 @@ class PropertyStatistics:
             line = ItemGrouping(None)
 
         query = "\n"
-        query += line.postive_query(self.selector_sparql, grouping_property, grouping)
+        query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
         query += column.get_filter_for_positive_query()
         query += """}
 """
@@ -97,7 +97,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         column_key = column.get_key()
-        grouping_property = self.grouping_configuration.property
+        grouping_predicate = self.grouping_configuration.get_predicate()
 
         if grouping == self.GROUP_MAPPING.TOTALS:
             line = TotalsGrouping(None)
@@ -111,7 +111,7 @@ class PropertyStatistics:
             line = ItemGrouping(None)
 
         query = "\n"
-        query += line.negative_query(self.selector_sparql, grouping_property, grouping)
+        query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
 
         if grouping != self.GROUP_MAPPING.NO_GROUPING:
             query += """
@@ -123,11 +123,11 @@ class PropertyStatistics:
         return query
 
     def get_totals_no_grouping(self):
-        grouping_property = self.grouping_configuration.property
+        grouping_predicate = self.grouping_configuration.get_predicate()
         query = f"""
 SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {self.selector_sparql}
-  MINUS {{ ?entity wdt:{grouping_property} _:b28. }}
+  MINUS {{ ?entity {grouping_predicate} _:b28. }}
 }}
 """
         return self._get_count_from_sparql(query)

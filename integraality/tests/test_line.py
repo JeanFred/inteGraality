@@ -42,12 +42,67 @@ class GroupingTest(unittest.TestCase):
         expected = "| [[Foo/smth|1]] \n"
         self.assertEquals(result, expected)
 
+    def test_postive_query(self):
+        grouping = line.Grouping(count=1)
+        result = grouping.postive_query(selector_sparql="wdt:P31 wd:Q41960")
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.Grouping(count=1)
+        result = grouping.negative_query(selector_sparql="wdt:P31 wd:Q41960")
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+            ]
+        )
+        self.assertEqual(result, expected)
+
 
 class NoGroupGroupingTest(unittest.TestCase):
     def test_heading(self):
         grouping = line.NoGroupGrouping(count=1)
         result = grouping.heading()
         expected = "No grouping"
+        self.assertEqual(result, expected)
+
+    def test_postive_query(self):
+        grouping = line.NoGroupGrouping(count=1)
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  MINUS {",
+                "    ?entity wdt:P551 [] .",
+                "  }",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.NoGroupGrouping(count=1)
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  MINUS {",
+                "    {?entity wdt:P551 [] .} UNION",
+            ]
+        )
         self.assertEqual(result, expected)
 
 
@@ -71,12 +126,80 @@ class ItemGroupingTest(unittest.TestCase):
         expected = '| data-sort-value="Q2"| {{Q|Q2}}\n| {{Q|Q1}}\n'
         self.assertEqual(result, expected)
 
+    def test_postive_query(self):
+        grouping = line.ItemGrouping(count=1)
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+            grouping="Q1",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 wd:Q1 .",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.ItemGrouping(count=1)
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+            grouping="Q1",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 wd:Q1 .",
+            ]
+        )
+        self.assertEqual(result, expected)
+
 
 class YearGroupingTest(unittest.TestCase):
     def test_heading(self):
         grouping = line.YearGrouping(count=1, title="2001")
         result = grouping.heading()
         expected = "2001"
+        self.assertEqual(result, expected)
+
+    def test_postive_query(self):
+        grouping = line.YearGrouping(count=1)
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+            grouping="2001",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 ?date.",
+                "  BIND(YEAR(?date) as ?year).",
+                "  FILTER(?year = 2001).",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.YearGrouping(count=1)
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+            grouping="2001",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 ?date.",
+                "  BIND(YEAR(?date) as ?year).",
+                "  FILTER(?year = 2001).",
+            ]
+        )
         self.assertEqual(result, expected)
 
 
@@ -87,12 +210,72 @@ class UnknownValueGroupingTest(unittest.TestCase):
         expected = "{{int:wikibase-snakview-variations-somevalue-label}}"
         self.assertEqual(result, expected)
 
+    def test_postive_query(self):
+        grouping = line.UnknownValueGrouping(count=1)
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 ?grouping.",
+                "  FILTER wikibase:isSomeValue(?grouping).",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.UnknownValueGrouping(count=1)
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+                "  ?entity wdt:P551 ?grouping.",
+                "  FILTER wikibase:isSomeValue(?grouping).",
+            ]
+        )
+        self.assertEqual(result, expected)
+
 
 class TotalsGroupingTest(unittest.TestCase):
     def test_heading(self):
         grouping = line.TotalsGrouping(count=1)
         result = grouping.heading()
         expected = "'''Totals''' <small>(all items)</small>"
+        self.assertEqual(result, expected)
+
+    def test_postive_query(self):
+        grouping = line.TotalsGrouping(count=1)
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+            ]
+        )
+        self.assertEqual(result, expected)
+
+    def test_negative_query(self):
+        grouping = line.TotalsGrouping(count=1)
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            grouping_predicate="wdt:P551",
+        )
+        expected = "\n".join(
+            [
+                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                "  ?entity wdt:P31 wd:Q41960 .",
+            ]
+        )
         self.assertEqual(result, expected)
 
 

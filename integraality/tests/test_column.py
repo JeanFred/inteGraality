@@ -2,13 +2,8 @@
 
 import unittest
 
-from column import (
-    ColumnMaker,
-    ColumnSyntaxException,
-    DescriptionColumn,
-    LabelColumn,
-    PropertyColumn,
-)
+from column import (ColumnMaker, ColumnSyntaxException, DescriptionColumn,
+                    LabelColumn, PropertyColumn, SitelinkColumn)
 from grouping import ItemGroupingConfiguration
 from property_statistics import PropertyStatistics
 
@@ -235,6 +230,66 @@ class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
+class TestSitelinkColumn(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = SitelinkColumn("brwiki")
+
+    def test_make_column_header(self):
+        result = self.column.make_column_header()
+        expected = '! data-sort-type="number"|{{Q|Q846871}}\n'
+        self.assertEqual(result, expected)
+
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960\n"
+            "  FILTER(EXISTS {\n"
+            "    ?sitelink schema:about ?entity;\n"
+            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT (COUNT(*) AS ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  MINUS { ?entity wdt:P551 _:b28. }\n"
+            "  FILTER(EXISTS {\n"
+            "    ?sitelink schema:about ?entity;\n"
+            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
+            "  })\n"
+            "}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        expected = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  FILTER(EXISTS {\n"
+            "    ?sitelink schema:about ?entity;\n"
+            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
+            "  })\n"
+            "}\n"
+            "GROUP BY ?grouping\n"
+            "HAVING (?count >= 10)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, expected)
+
+
 class TestColumnMaker(PropertyStatisticsTest):
     def test_property_without_title(self):
         result = ColumnMaker.make("P136", None)
@@ -287,6 +342,11 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_aliases(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("Axy", None)
+
+    def test_sitelink(self):
+        result = ColumnMaker.make("brwiki", None)
+        expected = SitelinkColumn("brwiki")
+        self.assertEqual(result, expected)
 
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):

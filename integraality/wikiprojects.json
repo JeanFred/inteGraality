@@ -1,0 +1,4026 @@
+{
+    "ombudsmenwiki": {
+        "item": "Q33120961",
+        "url": "https://ombudsmen.wikimedia.org/"
+    },
+    "cawikimedia": {
+        "item": "Q118719971",
+        "url": "https://ca.wikimedia.org/"
+    },
+    "hewiki": {
+        "item": "Q199913",
+        "url": "https://he.wikipedia.org/"
+    },
+    "sahwiki": {
+        "item": "Q225594",
+        "url": "https://sah.wikipedia.org/"
+    },
+    "wikimaniawiki": {
+        "item": "Q483279",
+        "url": "https://wikimania.wikimedia.org/"
+    },
+    "vowiki": {
+        "item": "Q714826",
+        "url": "https://vo.wikipedia.org/"
+    },
+    "mhrwiki": {
+        "item": "Q824297",
+        "url": "https://mhr.wikipedia.org/"
+    },
+    "incubatorwiki": {
+        "item": "Q846672",
+        "url": "https://incubator.wikimedia.org/"
+    },
+    "brwiki": {
+        "item": "Q846871",
+        "url": "https://br.wikipedia.org/"
+    },
+    "bewiki": {
+        "item": "Q877583",
+        "url": "https://be.wikipedia.org/"
+    },
+    "htwiki": {
+        "item": "Q1066461",
+        "url": "https://ht.wikipedia.org/"
+    },
+    "mdfwiki": {
+        "item": "Q1178461",
+        "url": "https://mdf.wikipedia.org/"
+    },
+    "newwiki": {
+        "item": "Q1291627",
+        "url": "https://new.wikipedia.org/"
+    },
+    "ltgwiki": {
+        "item": "Q2913253",
+        "url": "https://ltg.wikipedia.org/"
+    },
+    "mnwiki": {
+        "item": "Q2998037",
+        "url": "https://mn.wikipedia.org/"
+    },
+    "pmswiki": {
+        "item": "Q3046353",
+        "url": "https://pms.wikipedia.org/"
+    },
+    "cowiki": {
+        "item": "Q3111179",
+        "url": "https://co.wikipedia.org/"
+    },
+    "mrwiki": {
+        "item": "Q3486726",
+        "url": "https://mr.wikipedia.org/"
+    },
+    "vlswiki": {
+        "item": "Q3568038",
+        "url": "https://vls.wikipedia.org/"
+    },
+    "lijwiki": {
+        "item": "Q3568046",
+        "url": "https://lij.wikipedia.org/"
+    },
+    "scwiki": {
+        "item": "Q3568059",
+        "url": "https://sc.wikipedia.org/"
+    },
+    "cewiki": {
+        "item": "Q4783991",
+        "url": "https://ce.wikipedia.org/"
+    },
+    "avwiki": {
+        "item": "Q5652665",
+        "url": "https://av.wikipedia.org/"
+    },
+    "hakwiki": {
+        "item": "Q6112922",
+        "url": "https://hak.wikipedia.org/"
+    },
+    "akwiki": {
+        "item": "Q8558731",
+        "url": "https://ak.wikipedia.org/"
+    },
+    "bmwiki": {
+        "item": "Q8559737",
+        "url": "https://bm.wikipedia.org/"
+    },
+    "crwiki": {
+        "item": "Q8561582",
+        "url": "https://cr.wikipedia.org/"
+    },
+    "howiki": {
+        "item": "Q8563536",
+        "url": "https://ho.wikipedia.org/"
+    },
+    "kabwiki": {
+        "item": "Q8564352",
+        "url": "https://kab.wikipedia.org/"
+    },
+    "rnwiki": {
+        "item": "Q8565742",
+        "url": "https://rn.wikipedia.org/"
+    },
+    "lgwiki": {
+        "item": "Q8566347",
+        "url": "https://lg.wikipedia.org/"
+    },
+    "ngwiki": {
+        "item": "Q8569782",
+        "url": "https://ng.wikipedia.org/"
+    },
+    "pihwiki": {
+        "item": "Q8570048",
+        "url": "https://pih.wikipedia.org/"
+    },
+    "tiwiki": {
+        "item": "Q8575467",
+        "url": "https://ti.wikipedia.org/"
+    },
+    "chowiki": {
+        "item": "Q8576395",
+        "url": "https://cho.wikipedia.org/"
+    },
+    "wikimania2013wiki": {
+        "item": "Q13375018",
+        "url": "https://wikimania2013.wikimedia.org/"
+    },
+    "tyvwiki": {
+        "item": "Q14948450",
+        "url": "https://tyv.wikipedia.org/"
+    },
+    "enwikisource": {
+        "item": "Q15156406",
+        "url": "https://en.wikisource.org/"
+    },
+    "itwikiquote": {
+        "item": "Q15977310",
+        "url": "https://it.wikiquote.org/"
+    },
+    "wikimania2016wiki": {
+        "item": "Q19291990",
+        "url": "https://wikimania2016.wikimedia.org"
+    },
+    "zhwikisource": {
+        "item": "Q19822573",
+        "url": "https://zh.wikisource.org/"
+    },
+    "plwikivoyage": {
+        "item": "Q19963683",
+        "url": "https://pl.wikivoyage.org/"
+    },
+    "bgwikinews": {
+        "item": "Q21281262",
+        "url": "https://bg.wikinews.org/"
+    },
+    "eowikinews": {
+        "item": "Q21281269",
+        "url": "https://eo.wikinews.org/"
+    },
+    "fiwikinews": {
+        "item": "Q21281271",
+        "url": "https://fi.wikinews.org/"
+    },
+    "sdwikinews": {
+        "item": "Q21281284",
+        "url": "https://sd.wikinews.org/"
+    },
+    "srwikinews": {
+        "item": "Q21281287",
+        "url": "https://sr.wikinews.org/"
+    },
+    "trwikinews": {
+        "item": "Q21281291",
+        "url": "https://tr.wikinews.org/"
+    },
+    "nlwikibooks": {
+        "item": "Q22000234",
+        "url": "https://nl.wikibooks.org/"
+    },
+    "itwikibooks": {
+        "item": "Q22000495",
+        "url": "https://it.wikibooks.org/"
+    },
+    "elwikiversity": {
+        "item": "Q22001382",
+        "url": "https://el.wikiversity.org/"
+    },
+    "eowikiquote": {
+        "item": "Q24575986",
+        "url": "https://eo.wikiquote.org/"
+    },
+    "angwikisource": {
+        "item": "Q24577644",
+        "url": "https://ang.wikisource.org/"
+    },
+    "knwikisource": {
+        "item": "Q24577672",
+        "url": "https://kn.wikisource.org/"
+    },
+    "mrwikisource": {
+        "item": "Q24577680",
+        "url": "https://mr.wikisource.org/"
+    },
+    "sahwikisource": {
+        "item": "Q24577684",
+        "url": "https://sah.wikisource.org/"
+    },
+    "skwikisource": {
+        "item": "Q24577685",
+        "url": "https://sk.wikisource.org/"
+    },
+    "slwikisource": {
+        "item": "Q24577686",
+        "url": "https://sl.wikisource.org/"
+    },
+    "vecwikisource": {
+        "item": "Q24577695",
+        "url": "https://vec.wikisource.org/"
+    },
+    "wbwikimedia": {
+        "item": "Q28859468",
+        "url": "https://wb.wikimedia.org/"
+    },
+    "wikimania2018wiki": {
+        "item": "Q28914449",
+        "url": "https://wikimania2018.wikimedia.org/"
+    },
+    "dtywiki": {
+        "item": "Q29048035",
+        "url": "https://dty.wikipedia.org/"
+    },
+    "cswiktionary": {
+        "item": "Q32946808",
+        "url": "https://cs.wiktionary.org/"
+    },
+    "elwiktionary": {
+        "item": "Q33109101",
+        "url": "https://el.wiktionary.org/"
+    },
+    "iowiktionary": {
+        "item": "Q33109109",
+        "url": "https://io.wiktionary.org/"
+    },
+    "jawiktionary": {
+        "item": "Q33109119",
+        "url": "https://ja.wiktionary.org/"
+    },
+    "idwiktionary": {
+        "item": "Q33109126",
+        "url": "https://id.wiktionary.org/"
+    },
+    "dawiktionary": {
+        "item": "Q33109144",
+        "url": "https://da.wiktionary.org/"
+    },
+    "ocwiktionary": {
+        "item": "Q33109151",
+        "url": "https://oc.wiktionary.org/"
+    },
+    "mnwiktionary": {
+        "item": "Q33109189",
+        "url": "https://mn.wiktionary.org/"
+    },
+    "kawiktionary": {
+        "item": "Q33109190",
+        "url": "https://ka.wiktionary.org/"
+    },
+    "kmwiktionary": {
+        "item": "Q33109203",
+        "url": "https://km.wiktionary.org/"
+    },
+    "fowiktionary": {
+        "item": "Q33109248",
+        "url": "https://fo.wiktionary.org/"
+    },
+    "amwiktionary": {
+        "item": "Q33109273",
+        "url": "https://am.wiktionary.org/"
+    },
+    "dvwiktionary": {
+        "item": "Q33109275",
+        "url": "https://dv.wiktionary.org/"
+    },
+    "kswiktionary": {
+        "item": "Q33109288",
+        "url": "https://ks.wiktionary.org/"
+    },
+    "aswiktionary": {
+        "item": "Q33109289",
+        "url": "https://as.wiktionary.org/"
+    },
+    "abwiktionary": {
+        "item": "Q33109295",
+        "url": "https://ab.wiktionary.org/"
+    },
+    "bmwiktionary": {
+        "item": "Q33109315",
+        "url": "https://bm.wiktionary.org/"
+    },
+    "avwiktionary": {
+        "item": "Q33109318",
+        "url": "https://av.wiktionary.org/"
+    },
+    "chwiktionary": {
+        "item": "Q33109320",
+        "url": "https://ch.wiktionary.org/"
+    },
+    "hewikibooks": {
+        "item": "Q33109463",
+        "url": "https://he.wikibooks.org/"
+    },
+    "kowikibooks": {
+        "item": "Q33109504",
+        "url": "https://ko.wikibooks.org/"
+    },
+    "lawikibooks": {
+        "item": "Q33109571",
+        "url": "https://la.wikibooks.org/"
+    },
+    "angwikibooks": {
+        "item": "Q33109580",
+        "url": "https://ang.wikibooks.org/"
+    },
+    "mrwikibooks": {
+        "item": "Q33109589",
+        "url": "https://mr.wikibooks.org/"
+    },
+    "bewikibooks": {
+        "item": "Q33109596",
+        "url": "https://be.wikibooks.org/"
+    },
+    "iewikibooks": {
+        "item": "Q33109609",
+        "url": "https://ie.wikibooks.org/"
+    },
+    "kywikibooks": {
+        "item": "Q33109623",
+        "url": "https://ky.wikibooks.org/"
+    },
+    "alswikibooks": {
+        "item": "Q33109642",
+        "url": "https://als.wikibooks.org/"
+    },
+    "gotwikibooks": {
+        "item": "Q33109667",
+        "url": "https://got.wikibooks.org/"
+    },
+    "bswikiquote": {
+        "item": "Q33109742",
+        "url": "https://bs.wikiquote.org/"
+    },
+    "fiwikiquote": {
+        "item": "Q33109744",
+        "url": "https://fi.wikiquote.org/"
+    },
+    "bgwikiquote": {
+        "item": "Q33109748",
+        "url": "https://bg.wikiquote.org/"
+    },
+    "hrwikiquote": {
+        "item": "Q33109756",
+        "url": "https://hr.wikiquote.org/"
+    },
+    "amwikiquote": {
+        "item": "Q33110267",
+        "url": "https://am.wikiquote.org/"
+    },
+    "kswikiquote": {
+        "item": "Q33110291",
+        "url": "https://ks.wikiquote.org/"
+    },
+    "arbcom_dewiki": {
+        "item": "Q33120932",
+        "url": "https://arbcom-de.wikipedia.org/"
+    },
+    "boardwiki": {
+        "item": "Q33120939",
+        "url": "https://board.wikimedia.org/"
+    },
+    "chapcomwiki": {
+        "item": "Q33120941",
+        "url": "https://affcom.wikimedia.org/"
+    },
+    "execwiki": {
+        "item": "Q33120947",
+        "url": "https://exec.wikimedia.org/"
+    },
+    "enwiki": {
+        "item": "Q328",
+        "url": "https://en.wikipedia.org/"
+    },
+    "wikidatawiki": {
+        "item": "Q2013",
+        "url": "https://www.wikidata.org/"
+    },
+    "eswiki": {
+        "item": "Q8449",
+        "url": "https://es.wikipedia.org/"
+    },
+    "nlwiki": {
+        "item": "Q10000",
+        "url": "https://nl.wikipedia.org/"
+    },
+    "cvwiki": {
+        "item": "Q58215",
+        "url": "https://cv.wikipedia.org/"
+    },
+    "fiwiki": {
+        "item": "Q175482",
+        "url": "https://fi.wikipedia.org/"
+    },
+    "jawiki": {
+        "item": "Q177837",
+        "url": "https://ja.wikipedia.org/"
+    },
+    "simplewiki": {
+        "item": "Q200183",
+        "url": "https://simple.wikipedia.org/"
+    },
+    "ltwiki": {
+        "item": "Q202472",
+        "url": "https://lt.wikipedia.org/"
+    },
+    "bnwiki": {
+        "item": "Q427715",
+        "url": "https://bn.wikipedia.org/"
+    },
+    "tkwiki": {
+        "item": "Q511754",
+        "url": "https://tk.wikipedia.org/"
+    },
+    "iswiki": {
+        "item": "Q718394",
+        "url": "https://is.wikipedia.org/"
+    },
+    "mswiki": {
+        "item": "Q845993",
+        "url": "https://ms.wikipedia.org/"
+    },
+    "kawiki": {
+        "item": "Q848974",
+        "url": "https://ka.wikipedia.org/"
+    },
+    "tlwiki": {
+        "item": "Q877685",
+        "url": "https://tl.wikipedia.org/"
+    },
+    "astwiki": {
+        "item": "Q1071918",
+        "url": "https://ast.wikipedia.org/"
+    },
+    "anwiki": {
+        "item": "Q1147071",
+        "url": "https://an.wikipedia.org/"
+    },
+    "zh_classicalwiki": {
+        "item": "Q1378484",
+        "url": "https://zh-classical.wikipedia.org/"
+    },
+    "pawiki": {
+        "item": "Q1754193",
+        "url": "https://pa.wikipedia.org/"
+    },
+    "hywiki": {
+        "item": "Q1975217",
+        "url": "https://hy.wikipedia.org/"
+    },
+    "liwiki": {
+        "item": "Q2328409",
+        "url": "https://li.wikipedia.org/"
+    },
+    "abwiki": {
+        "item": "Q3568035",
+        "url": "https://ab.wikipedia.org/"
+    },
+    "furwiki": {
+        "item": "Q3568039",
+        "url": "https://fur.wikipedia.org/"
+    },
+    "kmwiki": {
+        "item": "Q3568044",
+        "url": "https://km.wikipedia.org/"
+    },
+    "mznwiki": {
+        "item": "Q3568048",
+        "url": "https://mzn.wikipedia.org/"
+    },
+    "pcdwiki": {
+        "item": "Q3568053",
+        "url": "https://pcd.wikipedia.org/"
+    },
+    "tnwiki": {
+        "item": "Q3568063",
+        "url": "https://tn.wikipedia.org/"
+    },
+    "gnwiki": {
+        "item": "Q3807895",
+        "url": "https://gn.wikipedia.org/"
+    },
+    "iuwiki": {
+        "item": "Q3913095",
+        "url": "https://iu.wikipedia.org/"
+    },
+    "lmowiki": {
+        "item": "Q3913160",
+        "url": "https://lmo.wikipedia.org/"
+    },
+    "glkwiki": {
+        "item": "Q3944107",
+        "url": "https://glk.wikipedia.org/"
+    },
+    "ganwiki": {
+        "item": "Q6125437",
+        "url": "https://gan.wikipedia.org/"
+    },
+    "ffwiki": {
+        "item": "Q8562927",
+        "url": "https://ff.wikipedia.org/"
+    },
+    "arcwiki": {
+        "item": "Q8569951",
+        "url": "https://arc.wikipedia.org/"
+    },
+    "piwiki": {
+        "item": "Q8570791",
+        "url": "https://pi.wikipedia.org/"
+    },
+    "snwiki": {
+        "item": "Q8571809",
+        "url": "https://sn.wikipedia.org/"
+    },
+    "hzwiki": {
+        "item": "Q8927872",
+        "url": "https://hz.wikipedia.org/"
+    },
+    "ptwikimedia": {
+        "item": "Q10393567",
+        "url": "https://pt.wikimedia.org/"
+    },
+    "wikimania2012wiki": {
+        "item": "Q11756045",
+        "url": "https://wikimania2012.wikimedia.org/"
+    },
+    "bnwikisource": {
+        "item": "Q20726423",
+        "url": "https://bn.wikisource.org/"
+    },
+    "cswikinews": {
+        "item": "Q21281265",
+        "url": "https://cs.wikinews.org/"
+    },
+    "frwikinews": {
+        "item": "Q21281272",
+        "url": "https://fr.wikinews.org/"
+    },
+    "itwikinews": {
+        "item": "Q21281274",
+        "url": "https://it.wikinews.org/"
+    },
+    "ukwikinews": {
+        "item": "Q21281293",
+        "url": "https://uk.wikinews.org/"
+    },
+    "dewiktionary": {
+        "item": "Q22001374",
+        "url": "https://de.wiktionary.org/"
+    },
+    "enwiktionary": {
+        "item": "Q22001375",
+        "url": "https://en.wiktionary.org/"
+    },
+    "eowiktionary": {
+        "item": "Q22001378",
+        "url": "https://eo.wiktionary.org/"
+    },
+    "hywiktionary": {
+        "item": "Q22001379",
+        "url": "https://hy.wiktionary.org/"
+    },
+    "svwikiversity": {
+        "item": "Q22001385",
+        "url": "https://sv.wikiversity.org/"
+    },
+    "hywikiquote": {
+        "item": "Q22002881",
+        "url": "https://hy.wikiquote.org/"
+    },
+    "itwikivoyage": {
+        "item": "Q24237997",
+        "url": "https://it.wikivoyage.org/"
+    },
+    "nlwikivoyage": {
+        "item": "Q24238011",
+        "url": "https://nl.wikivoyage.org/"
+    },
+    "svwikivoyage": {
+        "item": "Q24238014",
+        "url": "https://sv.wikivoyage.org/"
+    },
+    "elwikisource": {
+        "item": "Q24577655",
+        "url": "https://el.wikisource.org/"
+    },
+    "eowikisource": {
+        "item": "Q24577656",
+        "url": "https://eo.wikisource.org/"
+    },
+    "fiwikisource": {
+        "item": "Q24577659",
+        "url": "https://fi.wikisource.org/"
+    },
+    "mkwikisource": {
+        "item": "Q24577678",
+        "url": "https://mk.wikisource.org/"
+    },
+    "thwikisource": {
+        "item": "Q24577692",
+        "url": "https://th.wikisource.org/"
+    },
+    "shwiktionary": {
+        "item": "Q33108859",
+        "url": "https://sh.wiktionary.org/"
+    },
+    "nlwiktionary": {
+        "item": "Q33108861",
+        "url": "https://nl.wiktionary.org/"
+    },
+    "itwiktionary": {
+        "item": "Q33109102",
+        "url": "https://it.wiktionary.org/"
+    },
+    "chrwiktionary": {
+        "item": "Q33109116",
+        "url": "https://chr.wiktionary.org/"
+    },
+    "euwiktionary": {
+        "item": "Q33109139",
+        "url": "https://eu.wiktionary.org/"
+    },
+    "astwiktionary": {
+        "item": "Q33109174",
+        "url": "https://ast.wiktionary.org/"
+    },
+    "bswiktionary": {
+        "item": "Q33109195",
+        "url": "https://bs.wiktionary.org/"
+    },
+    "lbwiktionary": {
+        "item": "Q33109199",
+        "url": "https://lb.wiktionary.org/"
+    },
+    "kkwiktionary": {
+        "item": "Q33109201",
+        "url": "https://kk.wiktionary.org/"
+    },
+    "bewiktionary": {
+        "item": "Q33109210",
+        "url": "https://be.wiktionary.org/"
+    },
+    "mswiktionary": {
+        "item": "Q33109213",
+        "url": "https://ms.wiktionary.org/"
+    },
+    "csbwiktionary": {
+        "item": "Q33109230",
+        "url": "https://csb.wiktionary.org/"
+    },
+    "roa_rupwiktionary": {
+        "item": "Q33109239",
+        "url": "https://roa-rup.wiktionary.org/"
+    },
+    "iewiktionary": {
+        "item": "Q33109243",
+        "url": "https://ie.wiktionary.org/"
+    },
+    "aywiktionary": {
+        "item": "Q33109244",
+        "url": "https://ay.wiktionary.org/"
+    },
+    "lnwiktionary": {
+        "item": "Q33109252",
+        "url": "https://ln.wiktionary.org/"
+    },
+    "guwiktionary": {
+        "item": "Q33109257",
+        "url": "https://gu.wiktionary.org/"
+    },
+    "alswiktionary": {
+        "item": "Q33109293",
+        "url": "https://als.wiktionary.org/"
+    },
+    "hrwikibooks": {
+        "item": "Q33109497",
+        "url": "https://hr.wikibooks.org/"
+    },
+    "arwikibooks": {
+        "item": "Q33109507",
+        "url": "https://ar.wikibooks.org/"
+    },
+    "kawikibooks": {
+        "item": "Q33109527",
+        "url": "https://ka.wikibooks.org/"
+    },
+    "elwikibooks": {
+        "item": "Q33109545",
+        "url": "https://el.wikibooks.org/"
+    },
+    "bgwikibooks": {
+        "item": "Q33109550",
+        "url": "https://bg.wikibooks.org/"
+    },
+    "iawikibooks": {
+        "item": "Q33109577",
+        "url": "https://ia.wikibooks.org/"
+    },
+    "mgwikibooks": {
+        "item": "Q33109626",
+        "url": "https://mg.wikibooks.org/"
+    },
+    "nawikibooks": {
+        "item": "Q33109647",
+        "url": "https://na.wikibooks.org/"
+    },
+    "akwikibooks": {
+        "item": "Q33109649",
+        "url": "https://ak.wikibooks.org/"
+    },
+    "mnwikibooks": {
+        "item": "Q33109651",
+        "url": "https://mn.wikibooks.org/"
+    },
+    "gawikibooks": {
+        "item": "Q33109683",
+        "url": "https://ga.wikibooks.org/"
+    },
+    "mywikibooks": {
+        "item": "Q33109685",
+        "url": "https://my.wikibooks.org/"
+    },
+    "nnwikiquote": {
+        "item": "Q33109754",
+        "url": "https://nn.wikiquote.org/"
+    },
+    "idwikiquote": {
+        "item": "Q33109755",
+        "url": "https://id.wikiquote.org/"
+    },
+    "huwikiquote": {
+        "item": "Q33109759",
+        "url": "https://hu.wikiquote.org/"
+    },
+    "kowikiversity": {
+        "item": "Q33110343",
+        "url": "https://ko.wikiversity.org/"
+    },
+    "arbcom_fiwiki": {
+        "item": "Q33120935",
+        "url": "https://arbcom-fi.wikipedia.org/"
+    },
+    "boardgovcomwiki": {
+        "item": "Q33120938",
+        "url": "https://boardgovcom.wikimedia.org/"
+    },
+    "grantswiki": {
+        "item": "Q33120950",
+        "url": "https://grants.wikimedia.org/"
+    },
+    "officewiki": {
+        "item": "Q33120960",
+        "url": "https://office.wikimedia.org/"
+    },
+    "outreachwiki": {
+        "item": "Q33120964",
+        "url": "https://outreach.wikimedia.org/"
+    },
+    "searchcomwiki": {
+        "item": "Q33120968",
+        "url": "https://searchcom.wikimedia.org/"
+    },
+    "kuwiki": {
+        "item": "Q92600463",
+        "url": "https://ku.wikipedia.org/"
+    },
+    "fiwikimedia": {
+        "item": "Q118726330",
+        "url": "https://fi.wikimedia.org/"
+    },
+    "specieswiki": {
+        "item": "Q13679",
+        "url": "https://species.wikimedia.org/"
+    },
+    "ruewiki": {
+        "item": "Q58781",
+        "url": "https://rue.wikipedia.org/"
+    },
+    "eowiki": {
+        "item": "Q190551",
+        "url": "https://eo.wikipedia.org/"
+    },
+    "skwiki": {
+        "item": "Q192582",
+        "url": "https://sk.wikipedia.org/"
+    },
+    "viwiki": {
+        "item": "Q200180",
+        "url": "https://vi.wikipedia.org/"
+    },
+    "pamwiki": {
+        "item": "Q588620",
+        "url": "https://pam.wikipedia.org/"
+    },
+    "lvwiki": {
+        "item": "Q728945",
+        "url": "https://lv.wikipedia.org/"
+    },
+    "glwiki": {
+        "item": "Q841208",
+        "url": "https://gl.wikipedia.org/"
+    },
+    "mkwiki": {
+        "item": "Q842341",
+        "url": "https://mk.wikipedia.org/"
+    },
+    "kvwiki": {
+        "item": "Q925661",
+        "url": "https://kv.wikipedia.org/"
+    },
+    "suwiki": {
+        "item": "Q966609",
+        "url": "https://su.wikipedia.org/"
+    },
+    "napwiki": {
+        "item": "Q1047851",
+        "url": "https://nap.wikipedia.org/"
+    },
+    "koiwiki": {
+        "item": "Q1116066",
+        "url": "https://koi.wikipedia.org/"
+    },
+    "wawiki": {
+        "item": "Q1132977",
+        "url": "https://wa.wikipedia.org/"
+    },
+    "yowiki": {
+        "item": "Q1148240",
+        "url": "https://yo.wikipedia.org/"
+    },
+    "huwiktionary": {
+        "item": "Q1162302",
+        "url": "https://hu.wiktionary.org/"
+    },
+    "plwiki": {
+        "item": "Q1551807",
+        "url": "https://pl.wikipedia.org/"
+    },
+    "zeawiki": {
+        "item": "Q2111591",
+        "url": "https://zea.wikipedia.org/"
+    },
+    "nnwiki": {
+        "item": "Q2349453",
+        "url": "https://nn.wikipedia.org/"
+    },
+    "arzwiki": {
+        "item": "Q2374285",
+        "url": "https://arz.wikipedia.org/"
+    },
+    "amwiki": {
+        "item": "Q3025527",
+        "url": "https://am.wikipedia.org/"
+    },
+    "towiki": {
+        "item": "Q3112631",
+        "url": "https://to.wikipedia.org/"
+    },
+    "zh_min_nanwiki": {
+        "item": "Q3239456",
+        "url": "https://zh-min-nan.wikipedia.org/"
+    },
+    "jvwiki": {
+        "item": "Q3477935",
+        "url": "https://jv.wikipedia.org/"
+    },
+    "klwiki": {
+        "item": "Q3568042",
+        "url": "https://kl.wikipedia.org/"
+    },
+    "hawwiki": {
+        "item": "Q3568043",
+        "url": "https://haw.wikipedia.org/"
+    },
+    "xhwiki": {
+        "item": "Q3568065",
+        "url": "https://xh.wikipedia.org/"
+    },
+    "wikimania2006wiki": {
+        "item": "Q3619349",
+        "url": "https://wikimania2006.wikimedia.org/"
+    },
+    "nawiki": {
+        "item": "Q3753095",
+        "url": "https://na.wikipedia.org/"
+    },
+    "acewiki": {
+        "item": "Q3957795",
+        "url": "https://ace.wikipedia.org/"
+    },
+    "pntwiki": {
+        "item": "Q4372058",
+        "url": "https://pnt.wikipedia.org/"
+    },
+    "ndswiki": {
+        "item": "Q4925786",
+        "url": "https://nds.wikipedia.org/"
+    },
+    "fowiki": {
+        "item": "Q8042979",
+        "url": "https://fo.wikipedia.org/"
+    },
+    "bhwiki": {
+        "item": "Q8561277",
+        "url": "https://bh.wikipedia.org/"
+    },
+    "chywiki": {
+        "item": "Q8561491",
+        "url": "https://chy.wikipedia.org/"
+    },
+    "nywiki": {
+        "item": "Q8561552",
+        "url": "https://ny.wikipedia.org/"
+    },
+    "hifwiki": {
+        "item": "Q8562481",
+        "url": "https://hif.wikipedia.org/"
+    },
+    "rwwiki": {
+        "item": "Q8565518",
+        "url": "https://rw.wikipedia.org/"
+    },
+    "kjwiki": {
+        "item": "Q8565913",
+        "url": "https://kj.wikipedia.org/"
+    },
+    "jbowiki": {
+        "item": "Q8566311",
+        "url": "https://jbo.wikipedia.org/"
+    },
+    "sgwiki": {
+        "item": "Q8571487",
+        "url": "https://sg.wikipedia.org/"
+    },
+    "twwiki": {
+        "item": "Q8575885",
+        "url": "https://tw.wikipedia.org/"
+    },
+    "frrwiki": {
+        "item": "Q8669146",
+        "url": "https://frr.wikipedia.org/"
+    },
+    "be_x_oldwiki": {
+        "item": "Q8937989",
+        "url": "https://be-tarask.wikipedia.org/"
+    },
+    "wikimania2011wiki": {
+        "item": "Q14507061",
+        "url": "https://wikimania2011.wikimedia.org/"
+    },
+    "sewikimedia": {
+        "item": "Q15279144",
+        "url": "http://wikimedia.se/"
+    },
+    "plwikisource": {
+        "item": "Q15298974",
+        "url": "https://pl.wikisource.org/"
+    },
+    "mediawikiwiki": {
+        "item": "Q15633578",
+        "url": "https://www.mediawiki.org/"
+    },
+    "ruwikisource": {
+        "item": "Q15634506",
+        "url": "https://ru.wikisource.org/"
+    },
+    "maiwiki": {
+        "item": "Q18508969",
+        "url": "https://mai.wikipedia.org/"
+    },
+    "nycwikimedia": {
+        "item": "Q18559925",
+        "url": "https://nyc.wikimedia.org/"
+    },
+    "ptwikisource": {
+        "item": "Q19826831",
+        "url": "https://pt.wikisource.org/"
+    },
+    "ukwikisource": {
+        "item": "Q20726429",
+        "url": "https://uk.wikisource.org/"
+    },
+    "arwikinews": {
+        "item": "Q21281261",
+        "url": "https://ar.wikinews.org/"
+    },
+    "bswikinews": {
+        "item": "Q21281263",
+        "url": "https://bs.wikinews.org/"
+    },
+    "eswikinews": {
+        "item": "Q21281270",
+        "url": "https://es.wikinews.org/"
+    },
+    "jawikinews": {
+        "item": "Q21281275",
+        "url": "https://ja.wikinews.org/"
+    },
+    "plwikinews": {
+        "item": "Q21281278",
+        "url": "https://pl.wikinews.org/"
+    },
+    "maiwikimedia": {
+        "item": "Q21962219",
+        "url": "https://mai.wikimedia.org/"
+    },
+    "eswikibooks": {
+        "item": "Q22000399",
+        "url": "https://es.wikibooks.org/"
+    },
+    "dewikibooks": {
+        "item": "Q22000929",
+        "url": "https://de.wikibooks.org/"
+    },
+    "frwiktionary": {
+        "item": "Q22001373",
+        "url": "https://fr.wiktionary.org/"
+    },
+    "simplewiktionary": {
+        "item": "Q22001376",
+        "url": "https://simple.wiktionary.org/"
+    },
+    "ptwikiquote": {
+        "item": "Q22002935",
+        "url": "https://pt.wikiquote.org/"
+    },
+    "hywikisource": {
+        "item": "Q22004694",
+        "url": "https://hy.wikisource.org/"
+    },
+    "trwikimedia": {
+        "item": "Q22133438",
+        "url": "https://tr.wikimedia.org/"
+    },
+    "eswikivoyage": {
+        "item": "Q24238015",
+        "url": "https://es.wikivoyage.org/"
+    },
+    "hewikivoyage": {
+        "item": "Q24238020",
+        "url": "https://he.wikivoyage.org/"
+    },
+    "viwikivoyage": {
+        "item": "Q24238023",
+        "url": "https://vi.wikivoyage.org/"
+    },
+    "azwikisource": {
+        "item": "Q24577646",
+        "url": "https://az.wikisource.org/"
+    },
+    "cywikisource": {
+        "item": "Q24577651",
+        "url": "https://cy.wikisource.org/"
+    },
+    "hrwikisource": {
+        "item": "Q24577663",
+        "url": "https://hr.wikisource.org/"
+    },
+    "nlwikisource": {
+        "item": "Q24577681",
+        "url": "https://nl.wikisource.org/"
+    },
+    "rowikisource": {
+        "item": "Q24577683",
+        "url": "https://ro.wikisource.org/"
+    },
+    "yiwikisource": {
+        "item": "Q24577696",
+        "url": "https://yi.wikisource.org/"
+    },
+    "olowiki": {
+        "item": "Q27102215",
+        "url": "https://olo.wikipedia.org/"
+    },
+    "ukwiktionary": {
+        "item": "Q33109149",
+        "url": "https://uk.wiktionary.org/"
+    },
+    "vowiktionary": {
+        "item": "Q33109161",
+        "url": "https://vo.wiktionary.org/"
+    },
+    "swwiktionary": {
+        "item": "Q33109178",
+        "url": "https://sw.wiktionary.org/"
+    },
+    "tkwiktionary": {
+        "item": "Q33109202",
+        "url": "https://tk.wiktionary.org/"
+    },
+    "ugwiktionary": {
+        "item": "Q33109232",
+        "url": "https://ug.wiktionary.org/"
+    },
+    "zuwiktionary": {
+        "item": "Q33109253",
+        "url": "https://zu.wiktionary.org/"
+    },
+    "xhwiktionary": {
+        "item": "Q33109309",
+        "url": "https://xh.wiktionary.org/"
+    },
+    "trwikibooks": {
+        "item": "Q33109502",
+        "url": "https://tr.wikibooks.org/"
+    },
+    "urwikibooks": {
+        "item": "Q33109570",
+        "url": "https://ur.wikibooks.org/"
+    },
+    "vowikibooks": {
+        "item": "Q33109644",
+        "url": "https://vo.wikibooks.org/"
+    },
+    "tewikiquote": {
+        "item": "Q33109776",
+        "url": "https://te.wikiquote.org/"
+    },
+    "ugwikiquote": {
+        "item": "Q33110284",
+        "url": "https://ug.wikiquote.org/"
+    },
+    "testwikidatawiki": {
+        "item": "Q33120977",
+        "url": "https://test.wikidata.org/wiki/Wikidata:Main_Page"
+    },
+    "satwiki": {
+        "item": "Q55950814",
+        "url": "https://sat.wikipedia.org/"
+    },
+    "shnwiki": {
+        "item": "Q58832948",
+        "url": "https://shn.wikipedia.org/"
+    },
+    "hywwiki": {
+        "item": "Q60437959",
+        "url": "https://hyw.wikipedia.org/"
+    },
+    "banwiki": {
+        "item": "Q70885480",
+        "url": "https://ban.wikipedia.org/"
+    },
+    "mnwwiki": {
+        "item": "Q72145810",
+        "url": "https://mnw.wikipedia.org/"
+    },
+    "gewikimedia": {
+        "item": "Q75847675",
+        "url": "https://ge.wikimedia.org/"
+    },
+    "awawiki": {
+        "item": "Q94694371",
+        "url": "https://awa.wikipedia.org/"
+    },
+    "lldwiki": {
+        "item": "Q98442371",
+        "url": "https://lld.wikipedia.org/"
+    },
+    "altwiki": {
+        "item": "Q105630329",
+        "url": "https://alt.wikipedia.org/"
+    },
+    "shiwiki": {
+        "item": "Q107228569",
+        "url": "https://shi.wikipedia.org/"
+    },
+    "elwiki": {
+        "item": "Q11918",
+        "url": "https://el.wikipedia.org/"
+    },
+    "itwiki": {
+        "item": "Q11920",
+        "url": "https://it.wikipedia.org/"
+    },
+    "zhwiki": {
+        "item": "Q30239",
+        "url": "https://zh.wikipedia.org/"
+    },
+    "diqwiki": {
+        "item": "Q38288",
+        "url": "https://diq.wikipedia.org/"
+    },
+    "huwiki": {
+        "item": "Q53464",
+        "url": "https://hu.wikipedia.org/"
+    },
+    "azwiki": {
+        "item": "Q58251",
+        "url": "https://az.wikipedia.org/"
+    },
+    "kaawiki": {
+        "item": "Q79636",
+        "url": "https://kaa.wikipedia.org/"
+    },
+    "rowiki": {
+        "item": "Q199864",
+        "url": "https://ro.wikipedia.org/"
+    },
+    "etwiki": {
+        "item": "Q200060",
+        "url": "https://et.wikipedia.org/"
+    },
+    "hrwiki": {
+        "item": "Q203488",
+        "url": "https://hr.wikipedia.org/"
+    },
+    "ruwiki": {
+        "item": "Q206855",
+        "url": "https://ru.wikipedia.org/"
+    },
+    "euwiki": {
+        "item": "Q207260",
+        "url": "https://eu.wikipedia.org/"
+    },
+    "udmwiki": {
+        "item": "Q221444",
+        "url": "https://udm.wikipedia.org/"
+    },
+    "ocwiki": {
+        "item": "Q595628",
+        "url": "https://oc.wikipedia.org/"
+    },
+    "cywiki": {
+        "item": "Q848525",
+        "url": "https://cy.wikipedia.org/"
+    },
+    "scnwiki": {
+        "item": "Q1058430",
+        "url": "https://scn.wikipedia.org/"
+    },
+    "krcwiki": {
+        "item": "Q1249553",
+        "url": "https://krc.wikipedia.org/"
+    },
+    "warwiki": {
+        "item": "Q1648786",
+        "url": "https://war.wikipedia.org/"
+    },
+    "uzwiki": {
+        "item": "Q2081526",
+        "url": "https://uz.wikipedia.org/"
+    },
+    "bowiki": {
+        "item": "Q2091593",
+        "url": "https://bo.wikipedia.org/"
+    },
+    "fywiki": {
+        "item": "Q2602203",
+        "url": "https://fy.wikipedia.org/"
+    },
+    "ru_sibwiki": {
+        "item": "Q2996321",
+        "url": "https://ru-sib.wikipedia.org/"
+    },
+    "mgwiki": {
+        "item": "Q3123304",
+        "url": "https://mg.wikipedia.org/"
+    },
+    "nrmwiki": {
+        "item": "Q3568051",
+        "url": "https://nrm.wikipedia.org/"
+    },
+    "pswiki": {
+        "item": "Q3568054",
+        "url": "https://ps.wikipedia.org/"
+    },
+    "emlwiki": {
+        "item": "Q3568066",
+        "url": "https://eml.wikipedia.org/"
+    },
+    "ruwikimedia": {
+        "item": "Q4110960",
+        "url": "https://ru.wikimedia.org/"
+    },
+    "xalwiki": {
+        "item": "Q4210231",
+        "url": "https://xal.wikipedia.org/"
+    },
+    "angwiki": {
+        "item": "Q8558960",
+        "url": "https://ang.wikipedia.org/"
+    },
+    "aswiki": {
+        "item": "Q8559119",
+        "url": "https://as.wikipedia.org/"
+    },
+    "igwiki": {
+        "item": "Q8563635",
+        "url": "https://ig.wikipedia.org/"
+    },
+    "kwwiki": {
+        "item": "Q8565801",
+        "url": "https://kw.wikipedia.org/"
+    },
+    "mhwiki": {
+        "item": "Q8568150",
+        "url": "https://mh.wikipedia.org/"
+    },
+    "novwiki": {
+        "item": "Q8570353",
+        "url": "https://nov.wikipedia.org/"
+    },
+    "ptwiktionary": {
+        "item": "Q28065753",
+        "url": "https://pt.wiktionary.org/"
+    },
+    "tokiponawiki": {
+        "item": "Q28970868",
+        "url": "https://tokipona.wikipedia.org/"
+    },
+    "mgwiktionary": {
+        "item": "Q33108762",
+        "url": "https://mg.wiktionary.org/"
+    },
+    "kowiktionary": {
+        "item": "Q33109108",
+        "url": "https://ko.wiktionary.org/"
+    },
+    "rowiktionary": {
+        "item": "Q33109121",
+        "url": "https://ro.wiktionary.org/"
+    },
+    "uzwiktionary": {
+        "item": "Q33109129",
+        "url": "https://uz.wiktionary.org/"
+    },
+    "nnwiktionary": {
+        "item": "Q33109184",
+        "url": "https://nn.wiktionary.org/"
+    },
+    "sqwiktionary": {
+        "item": "Q33109193",
+        "url": "https://sq.wiktionary.org/"
+    },
+    "klwiktionary": {
+        "item": "Q33109247",
+        "url": "https://kl.wiktionary.org/"
+    },
+    "nawiktionary": {
+        "item": "Q33109256",
+        "url": "https://na.wiktionary.org/"
+    },
+    "newiktionary": {
+        "item": "Q33109264",
+        "url": "https://ne.wiktionary.org/"
+    },
+    "quwiktionary": {
+        "item": "Q33109267",
+        "url": "https://qu.wiktionary.org/"
+    },
+    "tiwiktionary": {
+        "item": "Q33109282",
+        "url": "https://ti.wiktionary.org/"
+    },
+    "mowiktionary": {
+        "item": "Q33109291",
+        "url": "https://mo.wiktionary.org/"
+    },
+    "bhwiktionary": {
+        "item": "Q33109298",
+        "url": "https://bh.wiktionary.org/"
+    },
+    "towiktionary": {
+        "item": "Q33109302",
+        "url": "https://to.wiktionary.org/"
+    },
+    "sawikibooks": {
+        "item": "Q33109523",
+        "url": "https://sa.wikibooks.org/"
+    },
+    "ltwikibooks": {
+        "item": "Q33109528",
+        "url": "https://lt.wikibooks.org/"
+    },
+    "eowikibooks": {
+        "item": "Q33109536",
+        "url": "https://eo.wikibooks.org/"
+    },
+    "simplewikibooks": {
+        "item": "Q33109541",
+        "url": "https://simple.wikibooks.org/"
+    },
+    "slwikibooks": {
+        "item": "Q33109565",
+        "url": "https://sl.wikibooks.org/"
+    },
+    "kkwikibooks": {
+        "item": "Q33109595",
+        "url": "https://kk.wikibooks.org/"
+    },
+    "bmwikibooks": {
+        "item": "Q33109646",
+        "url": "https://bm.wikibooks.org/"
+    },
+    "nahwikibooks": {
+        "item": "Q33109671",
+        "url": "https://nah.wikibooks.org/"
+    },
+    "zawikibooks": {
+        "item": "Q33109674",
+        "url": "https://za.wikibooks.org/"
+    },
+    "aawikibooks": {
+        "item": "Q33109677",
+        "url": "https://aa.wikibooks.org/"
+    },
+    "liwikiquote": {
+        "item": "Q33109762",
+        "url": "https://li.wikiquote.org/"
+    },
+    "azwikiquote": {
+        "item": "Q33109763",
+        "url": "https://az.wikiquote.org/"
+    },
+    "jawikiquote": {
+        "item": "Q33109767",
+        "url": "https://ja.wikiquote.org/"
+    },
+    "arwikiquote": {
+        "item": "Q33109768",
+        "url": "https://ar.wikiquote.org/"
+    },
+    "guwikiquote": {
+        "item": "Q33109771",
+        "url": "https://gu.wikiquote.org/"
+    },
+    "glwikiquote": {
+        "item": "Q33109774",
+        "url": "https://gl.wikiquote.org/"
+    },
+    "viwikiquote": {
+        "item": "Q33109781",
+        "url": "https://vi.wikiquote.org/"
+    },
+    "mlwikiquote": {
+        "item": "Q33109784",
+        "url": "https://ml.wikiquote.org/"
+    },
+    "rowikiquote": {
+        "item": "Q33109790",
+        "url": "https://ro.wikiquote.org/"
+    },
+    "brwikiquote": {
+        "item": "Q33109802",
+        "url": "https://br.wikiquote.org/"
+    },
+    "astwikiquote": {
+        "item": "Q33110261",
+        "url": "https://ast.wikiquote.org/"
+    },
+    "zh_min_nanwikiquote": {
+        "item": "Q33110266",
+        "url": "https://zh-min-nan.wikiquote.org/"
+    },
+    "zawikiquote": {
+        "item": "Q33110277",
+        "url": "https://za.wikiquote.org/"
+    },
+    "crwikiquote": {
+        "item": "Q33110287",
+        "url": "https://cr.wikiquote.org/"
+    },
+    "kwwikiquote": {
+        "item": "Q33110289",
+        "url": "https://kw.wikiquote.org/"
+    },
+    "quwikiquote": {
+        "item": "Q33110294",
+        "url": "https://qu.wikiquote.org/"
+    },
+    "ndswikiquote": {
+        "item": "Q33110295",
+        "url": "https://nds.wikiquote.org/"
+    },
+    "krwikiquote": {
+        "item": "Q33110298",
+        "url": "https://kr.wikiquote.org/"
+    },
+    "arwikiversity": {
+        "item": "Q33110338",
+        "url": "https://ar.wikiversity.org/"
+    },
+    "qualitywiki": {
+        "item": "Q33120967",
+        "url": "https://quality.wikimedia.org/"
+    },
+    "stewardwiki": {
+        "item": "Q33120970",
+        "url": "https://steward.wikimedia.org/"
+    },
+    "wg_enwiki": {
+        "item": "Q33120981",
+        "url": "https://wg-en.wikipedia.org/"
+    },
+    "zerowiki": {
+        "item": "Q33120983",
+        "url": "https://zero.wikimedia.org/"
+    },
+    "romdwikimedia": {
+        "item": "Q51032162",
+        "url": "https://romd.wikimedia.org/"
+    },
+    "euwikisource": {
+        "item": "Q51977600",
+        "url": "https://eu.wikisource.org/"
+    },
+    "lfnwiki": {
+        "item": "Q52047822",
+        "url": "https://lfn.wikipedia.org/"
+    },
+    "id_internalwikimedia": {
+        "item": "Q65494596",
+        "url": "https://id-internal.wikimedia.org/"
+    },
+    "napwikisource": {
+        "item": "Q66587539",
+        "url": "https://nap.wikisource.org/"
+    },
+    "gcrwiki": {
+        "item": "Q74731437",
+        "url": "https://gcr.wikipedia.org/"
+    },
+    "szywiki": {
+        "item": "Q74732560",
+        "url": "https://szy.wikipedia.org/"
+    },
+    "avkwiki": {
+        "item": "Q97393723",
+        "url": "https://avk.wikipedia.org/"
+    },
+    "lijwikisource": {
+        "item": "Q97568657",
+        "url": "https://lij.wikisource.org/"
+    },
+    "thankyouwiki": {
+        "item": "Q98456630",
+        "url": "https://thankyou.wikipedia.org/"
+    },
+    "skrwiki": {
+        "item": "Q104116398",
+        "url": "https://skr.wikipedia.org/"
+    },
+    "labswiki": {
+        "item": "Q104819161",
+        "url": "https://wikitech.wikimedia.org/"
+    },
+    "mnwwiktionary": {
+        "item": "Q118489317",
+        "url": "https://mnw.wiktionary.org/wiki/ဝိက်ရှေန်နရဳ:မုက်လိက်တမ်/"
+    },
+    "banwikisource": {
+        "item": "Q107387552",
+        "url": "https://ban.wikisource.org/"
+    },
+    "kcgwiki": {
+        "item": "Q112042422",
+        "url": "https://kcg.wikipedia.org/"
+    },
+    "cowikimedia": {
+        "item": "Q118725089",
+        "url": "https://co.wikimedia.org/"
+    },
+    "lawiki": {
+        "item": "Q12237",
+        "url": "https://la.wikipedia.org/"
+    },
+    "lezwiki": {
+        "item": "Q45041",
+        "url": "https://lez.wikipedia.org/"
+    },
+    "ugwiki": {
+        "item": "Q60856",
+        "url": "https://ug.wikipedia.org/"
+    },
+    "dawiki": {
+        "item": "Q181163",
+        "url": "https://da.wikipedia.org/"
+    },
+    "nvwiki": {
+        "item": "Q8569757",
+        "url": "https://nv.wikipedia.org/"
+    },
+    "iiwiki": {
+        "item": "Q8582909",
+        "url": "https://ii.wikipedia.org/"
+    },
+    "wikimania2014wiki": {
+        "item": "Q14506843",
+        "url": "https://wikimania2014.wikimedia.org/"
+    },
+    "wikimania2009wiki": {
+        "item": "Q14507063",
+        "url": "https://wikimania2009.wikimedia.org/"
+    },
+    "guwikisource": {
+        "item": "Q15156648",
+        "url": "https://gu.wikisource.org/"
+    },
+    "itwikisource": {
+        "item": "Q15281537",
+        "url": "https://it.wikisource.org/"
+    },
+    "sourceswiki": {
+        "item": "Q18198097",
+        "url": "https://wikisource.org/"
+    },
+    "rswikimedia": {
+        "item": "Q18559846",
+        "url": "https://wikimedia.rs"
+    },
+    "frwikivoyage": {
+        "item": "Q19826572",
+        "url": "https://fr.wikivoyage.org/"
+    },
+    "fawikivoyage": {
+        "item": "Q20671724",
+        "url": "https://fa.wikivoyage.org/"
+    },
+    "azbwiki": {
+        "item": "Q20789766",
+        "url": "https://azb.wikipedia.org/"
+    },
+    "elwikinews": {
+        "item": "Q21281267",
+        "url": "https://el.wikinews.org/"
+    },
+    "tawikinews": {
+        "item": "Q21281289",
+        "url": "https://ta.wikinews.org/"
+    },
+    "thwikibooks": {
+        "item": "Q21999967",
+        "url": "https://th.wikibooks.org/"
+    },
+    "ptwikibooks": {
+        "item": "Q22000456",
+        "url": "https://pt.wikibooks.org/"
+    },
+    "enwikibooks": {
+        "item": "Q22000859",
+        "url": "https://en.wikibooks.org/"
+    },
+    "ruwikiquote": {
+        "item": "Q22002932",
+        "url": "https://ru.wikiquote.org/"
+    },
+    "kuwikiquote": {
+        "item": "Q22002978",
+        "url": "https://ku.wikiquote.org/"
+    },
+    "orwikisource": {
+        "item": "Q22004646",
+        "url": "https://or.wikisource.org/"
+    },
+    "mlwikisource": {
+        "item": "Q22004659",
+        "url": "https://ml.wikisource.org/"
+    },
+    "viwikisource": {
+        "item": "Q22004943",
+        "url": "https://vi.wikisource.org/"
+    },
+    "ruwiktionary": {
+        "item": "Q22116890",
+        "url": "https://ru.wiktionary.org/"
+    },
+    "adywiki": {
+        "item": "Q22676953",
+        "url": "https://ady.wikipedia.org/"
+    },
+    "zhwikivoyage": {
+        "item": "Q24238024",
+        "url": "https://zh.wikivoyage.org/"
+    },
+    "glwikisource": {
+        "item": "Q24577661",
+        "url": "https://gl.wikisource.org/"
+    },
+    "idwikisource": {
+        "item": "Q24577666",
+        "url": "https://id.wikisource.org/"
+    },
+    "nowikisource": {
+        "item": "Q24577682",
+        "url": "https://no.wikisource.org/"
+    },
+    "tawikisource": {
+        "item": "Q24577690",
+        "url": "https://ta.wikisource.org/"
+    },
+    "kbpwiki": {
+        "item": "Q28971705",
+        "url": "https://kbp.wikipedia.org/"
+    },
+    "bnwikibooks": {
+        "item": "Q30535076",
+        "url": "https://bn.wikibooks.org/"
+    },
+    "tawiktionary": {
+        "item": "Q33109103",
+        "url": "https://ta.wiktionary.org/"
+    },
+    "fiwiktionary": {
+        "item": "Q33109105",
+        "url": "https://fi.wiktionary.org/"
+    },
+    "viwiktionary": {
+        "item": "Q33109114",
+        "url": "https://vi.wiktionary.org/"
+    },
+    "hiwiktionary": {
+        "item": "Q33109117",
+        "url": "https://hi.wiktionary.org/"
+    },
+    "nowiktionary": {
+        "item": "Q112176133",
+        "url": "https://no.wiktionary.org/"
+    },
+    "liwiktionary": {
+        "item": "Q33109130",
+        "url": "https://li.wiktionary.org/"
+    },
+    "glwiktionary": {
+        "item": "Q33109143",
+        "url": "https://gl.wiktionary.org/"
+    },
+    "hrwiktionary": {
+        "item": "Q33109153",
+        "url": "https://hr.wiktionary.org/"
+    },
+    "wawiktionary": {
+        "item": "Q33109162",
+        "url": "https://wa.wiktionary.org/"
+    },
+    "lawiktionary": {
+        "item": "Q33109170",
+        "url": "https://la.wiktionary.org/"
+    },
+    "cowiktionary": {
+        "item": "Q33109186",
+        "url": "https://co.wiktionary.org/"
+    },
+    "sawiktionary": {
+        "item": "Q33109200",
+        "url": "https://sa.wiktionary.org/"
+    },
+    "smwiktionary": {
+        "item": "Q33109207",
+        "url": "https://sm.wiktionary.org/"
+    },
+    "mkwiktionary": {
+        "item": "Q33109208",
+        "url": "https://mk.wiktionary.org/"
+    },
+    "siwiktionary": {
+        "item": "Q33109240",
+        "url": "https://si.wiktionary.org/"
+    },
+    "gvwiktionary": {
+        "item": "Q33109259",
+        "url": "https://gv.wiktionary.org/"
+    },
+    "rwwiktionary": {
+        "item": "Q33109261",
+        "url": "https://rw.wiktionary.org/"
+    },
+    "sswiktionary": {
+        "item": "Q33109268",
+        "url": "https://ss.wiktionary.org/"
+    },
+    "zawiktionary": {
+        "item": "Q33109276",
+        "url": "https://za.wiktionary.org/"
+    },
+    "scwiktionary": {
+        "item": "Q33109314",
+        "url": "https://sc.wiktionary.org/"
+    },
+    "mhwiktionary": {
+        "item": "Q33109323",
+        "url": "https://mh.wiktionary.org/"
+    },
+    "huwikibooks": {
+        "item": "Q33109447",
+        "url": "https://hu.wikibooks.org/"
+    },
+    "mkwikibooks": {
+        "item": "Q33109519",
+        "url": "https://mk.wikibooks.org/"
+    },
+    "ukwikibooks": {
+        "item": "Q33109522",
+        "url": "https://uk.wikibooks.org/"
+    },
+    "hiwikibooks": {
+        "item": "Q33109524",
+        "url": "https://hi.wikibooks.org/"
+    },
+    "skwikibooks": {
+        "item": "Q33109542",
+        "url": "https://sk.wikibooks.org/"
+    },
+    "mlwikibooks": {
+        "item": "Q33109572",
+        "url": "https://ml.wikibooks.org/"
+    },
+    "newikibooks": {
+        "item": "Q33109601",
+        "url": "https://ne.wikibooks.org/"
+    },
+    "tewikibooks": {
+        "item": "Q33109616",
+        "url": "https://te.wikibooks.org/"
+    },
+    "zh_min_nanwikibooks": {
+        "item": "Q33109630",
+        "url": "https://zh-min-nan.wikibooks.org/"
+    },
+    "uzwikibooks": {
+        "item": "Q33109638",
+        "url": "https://uz.wikibooks.org/"
+    },
+    "xhwikibooks": {
+        "item": "Q33109655",
+        "url": "https://xh.wikibooks.org/"
+    },
+    "bowikibooks": {
+        "item": "Q33109658",
+        "url": "https://bo.wikibooks.org/"
+    },
+    "chwikibooks": {
+        "item": "Q33109668",
+        "url": "https://ch.wikibooks.org/"
+    },
+    "miwikibooks": {
+        "item": "Q33109684",
+        "url": "https://mi.wikibooks.org/"
+    },
+    "eswikiquote": {
+        "item": "Q33109737",
+        "url": "https://es.wikiquote.org/"
+    },
+    "elwikiquote": {
+        "item": "Q33109752",
+        "url": "https://el.wikiquote.org/"
+    },
+    "zhwikiquote": {
+        "item": "Q33109757",
+        "url": "https://zh.wikiquote.org/"
+    },
+    "kowikiquote": {
+        "item": "Q33109765",
+        "url": "https://ko.wikiquote.org/"
+    },
+    "tawikiquote": {
+        "item": "Q33109778",
+        "url": "https://ta.wikiquote.org/"
+    },
+    "euwikiquote": {
+        "item": "Q33109792",
+        "url": "https://eu.wikiquote.org/"
+    },
+    "bewikiquote": {
+        "item": "Q33109794",
+        "url": "https://be.wikiquote.org/"
+    },
+    "dawikiquote": {
+        "item": "Q33109796",
+        "url": "https://da.wikiquote.org/"
+    },
+    "mrwikiquote": {
+        "item": "Q33109801",
+        "url": "https://mr.wikiquote.org/"
+    },
+    "wowikiquote": {
+        "item": "Q33110272",
+        "url": "https://wo.wikiquote.org/"
+    },
+    "gawikiquote": {
+        "item": "Q33110275",
+        "url": "https://ga.wikiquote.org/"
+    },
+    "eswikiversity": {
+        "item": "Q33110337",
+        "url": "https://es.wikiversity.org/"
+    },
+    "arbcom_nlwiki": {
+        "item": "Q33120936",
+        "url": "https://arbcom-nl.wikipedia.org/"
+    },
+    "iegcomwiki": {
+        "item": "Q33120951",
+        "url": "https://iegcom.wikimedia.org/"
+    },
+    "internalwiki": {
+        "item": "Q33120952",
+        "url": "https://internal.wikimedia.org/"
+    },
+    "labtestwiki": {
+        "item": "Q33120954",
+        "url": "https://labtestwikitech.wikimedia.org/"
+    },
+    "legalteamwiki": {
+        "item": "Q33120956",
+        "url": "https://legalteam.wikimedia.org/"
+    },
+    "movementroleswiki": {
+        "item": "Q33120958",
+        "url": "https://movementroles.wikimedia.org/"
+    },
+    "testwiki": {
+        "item": "Q33120975",
+        "url": "https://test.wikipedia.org/"
+    },
+    "hiwikimedia": {
+        "item": "Q35212815",
+        "url": "https://hi.wikimedia.org/"
+    },
+    "ngwikimedia": {
+        "item": "Q84850642",
+        "url": "https://ng.wikimedia.org/"
+    },
+    "sysop_itwiki": {
+        "item": "Q99333732",
+        "url": "https://sysop-it.wikipedia.org/"
+    },
+    "apiportalwiki": {
+        "item": "Q99333993",
+        "url": "https://api.wikimedia.org/"
+    },
+    "wawikisource": {
+        "item": "Q104115883",
+        "url": "https://wa.wikisource.org/"
+    },
+    "niawiki": {
+        "item": "Q104778087",
+        "url": "https://nia.wikipedia.org/"
+    },
+    "dagwiki": {
+        "item": "Q107379932",
+        "url": "https://dag.wikipedia.org/"
+    },
+    "guwwiki": {
+        "item": "Q111343484",
+        "url": "https://guw.wikipedia.org/"
+    },
+    "shnwikivoyage": {
+        "item": "Q111345933",
+        "url": "https://shn.wikivoyage.org/"
+    },
+    "bnwikiquote": {
+        "item": "Q114570460",
+        "url": "https://bn.wikiquote.org/"
+    },
+    "dkwikimedia": {
+        "item": "Q118725126",
+        "url": "https://dk.wikimedia.org/"
+    },
+    "commonswiki": {
+        "item": "Q565",
+        "url": "https://commons.wikimedia.org/"
+    },
+    "ptwiki": {
+        "item": "Q11921",
+        "url": "https://pt.wikipedia.org/"
+    },
+    "kowiki": {
+        "item": "Q17985",
+        "url": "https://ko.wikipedia.org/"
+    },
+    "dewiki": {
+        "item": "Q48183",
+        "url": "https://de.wikipedia.org/"
+    },
+    "trwiki": {
+        "item": "Q58255",
+        "url": "https://tr.wikipedia.org/"
+    },
+    "kywiki": {
+        "item": "Q60799",
+        "url": "https://ky.wikipedia.org/"
+    },
+    "gagwiki": {
+        "item": "Q79633",
+        "url": "https://gag.wikipedia.org/"
+    },
+    "idwiki": {
+        "item": "Q155214",
+        "url": "https://id.wikipedia.org/"
+    },
+    "svwiki": {
+        "item": "Q169514",
+        "url": "https://sv.wikipedia.org/"
+    },
+    "cawiki": {
+        "item": "Q199693",
+        "url": "https://ca.wikipedia.org/"
+    },
+    "cuwiki": {
+        "item": "Q547271",
+        "url": "https://cu.wikipedia.org/"
+    },
+    "tawiki": {
+        "item": "Q844491",
+        "url": "https://ta.wikipedia.org/"
+    },
+    "cdowiki": {
+        "item": "Q846630",
+        "url": "https://cdo.wikipedia.org/"
+    },
+    "tewiki": {
+        "item": "Q848046",
+        "url": "https://te.wikipedia.org/"
+    },
+    "iowiki": {
+        "item": "Q1154766",
+        "url": "https://io.wikipedia.org/"
+    },
+    "alswiki": {
+        "item": "Q1211233",
+        "url": "https://als.wikipedia.org/"
+    },
+    "bpywiki": {
+        "item": "Q1287192",
+        "url": "https://bpy.wikipedia.org/"
+    },
+    "fiu_vrowiki": {
+        "item": "Q1585232",
+        "url": "https://fiu-vro.wikipedia.org/"
+    },
+    "sawiki": {
+        "item": "Q2587255",
+        "url": "https://sa.wikipedia.org/"
+    },
+    "nahwiki": {
+        "item": "Q2744155",
+        "url": "https://nah.wikipedia.org/"
+    },
+    "pdcwiki": {
+        "item": "Q3025736",
+        "url": "https://pdc.wikipedia.org/"
+    },
+    "guwiki": {
+        "item": "Q3180306",
+        "url": "https://gu.wikipedia.org/"
+    },
+    "zawiki": {
+        "item": "Q3311132",
+        "url": "https://za.wikipedia.org/"
+    },
+    "sswiki": {
+        "item": "Q3432470",
+        "url": "https://ss.wikipedia.org/"
+    },
+    "lowiki": {
+        "item": "Q3568045",
+        "url": "https://lo.wikipedia.org/"
+    },
+    "bat_smgwiki": {
+        "item": "Q3568069",
+        "url": "https://bat-smg.wikipedia.org/"
+    },
+    "map_bmswiki": {
+        "item": "Q4077512",
+        "url": "https://map-bms.wikipedia.org/"
+    },
+    "ckbwiki": {
+        "item": "Q4115463",
+        "url": "https://ckb.wikipedia.org/"
+    },
+    "zuwiki": {
+        "item": "Q8075204",
+        "url": "https://zu.wikipedia.org/"
+    },
+    "dsbwiki": {
+        "item": "Q8561147",
+        "url": "https://dsb.wikipedia.org/"
+    },
+    "bclwiki": {
+        "item": "Q8561870",
+        "url": "https://bcl.wikipedia.org/"
+    },
+    "fjwiki": {
+        "item": "Q8562502",
+        "url": "https://fj.wikipedia.org/"
+    },
+    "hawiki": {
+        "item": "Q8563393",
+        "url": "https://ha.wikipedia.org/"
+    },
+    "kgwiki": {
+        "item": "Q8565463",
+        "url": "https://kg.wikipedia.org/"
+    },
+    "plwikimedia": {
+        "item": "Q9346299",
+        "url": "https://wikimedia.pl"
+    },
+    "wikimania2007wiki": {
+        "item": "Q14507065",
+        "url": "https://wikimania2007.wikimedia.org/"
+    },
+    "sawikisource": {
+        "item": "Q15156667",
+        "url": "https://sa.wikisource.org/"
+    },
+    "cawikisource": {
+        "item": "Q15298977",
+        "url": "https://ca.wikisource.org/"
+    },
+    "svwikisource": {
+        "item": "Q16515025",
+        "url": "https://sv.wikisource.org/"
+    },
+    "ptwikinews": {
+        "item": "Q21281280",
+        "url": "https://pt.wikinews.org/"
+    },
+    "sqwikinews": {
+        "item": "Q21281286",
+        "url": "https://sq.wikinews.org/"
+    },
+    "svwikinews": {
+        "item": "Q21281288",
+        "url": "https://sv.wikinews.org/"
+    },
+    "thwikinews": {
+        "item": "Q21281290",
+        "url": "https://th.wikinews.org/"
+    },
+    "hywikibooks": {
+        "item": "Q22000307",
+        "url": "https://hy.wikibooks.org/"
+    },
+    "viwikibooks": {
+        "item": "Q22000473",
+        "url": "https://vi.wikibooks.org/"
+    },
+    "frwikibooks": {
+        "item": "Q22000915",
+        "url": "https://fr.wikibooks.org/"
+    },
+    "cawikibooks": {
+        "item": "Q22000974",
+        "url": "https://ca.wikibooks.org/"
+    },
+    "ruwikiversity": {
+        "item": "Q22001383",
+        "url": "https://ru.wikiversity.org/"
+    },
+    "enwikiquote": {
+        "item": "Q22712353",
+        "url": "https://en.wikiquote.org/"
+    },
+    "enwikiversity": {
+        "item": "Q22808092",
+        "url": "https://en.wikiversity.org/"
+    },
+    "jamwiki": {
+        "item": "Q23948717",
+        "url": "http://jam.wikipedia.org/"
+    },
+    "ukwikivoyage": {
+        "item": "Q24238021",
+        "url": "https://uk.wikivoyage.org/"
+    },
+    "bewikisource": {
+        "item": "Q24577647",
+        "url": "https://be.wikisource.org/"
+    },
+    "bswikisource": {
+        "item": "Q24577650",
+        "url": "https://bs.wikisource.org/"
+    },
+    "htwikisource": {
+        "item": "Q24577664",
+        "url": "https://ht.wikisource.org/"
+    },
+    "huwikisource": {
+        "item": "Q24577665",
+        "url": "https://hu.wikisource.org/"
+    },
+    "iswikisource": {
+        "item": "Q24577669",
+        "url": "https://is.wikisource.org/"
+    },
+    "tewikisource": {
+        "item": "Q24577691",
+        "url": "https://te.wikisource.org/"
+    },
+    "tcywiki": {
+        "item": "Q26235862",
+        "url": "https://tcy.wikipedia.org/"
+    },
+    "ecwikimedia": {
+        "item": "Q27131135",
+        "url": "http://www.wikimedistasecuador.org/"
+    },
+    "fiwikivoyage": {
+        "item": "Q27910728",
+        "url": "https://fi.wikivoyage.org/"
+    },
+    "brwikimedia": {
+        "item": "Q28378968",
+        "url": "https://br.wikimedia.org/"
+    },
+    "zhwiktionary": {
+        "item": "Q31622179",
+        "url": "https://zh.wiktionary.org/"
+    },
+    "dinwiki": {
+        "item": "Q32012187",
+        "url": "https://din.wikipedia.org/"
+    },
+    "tewiktionary": {
+        "item": "Q33109134",
+        "url": "https://te.wiktionary.org/"
+    },
+    "angwiktionary": {
+        "item": "Q33109222",
+        "url": "https://ang.wiktionary.org/"
+    },
+    "suwiktionary": {
+        "item": "Q33109269",
+        "url": "https://su.wiktionary.org/"
+    },
+    "sgwiktionary": {
+        "item": "Q33109283",
+        "url": "https://sg.wiktionary.org/"
+    },
+    "plwikibooks": {
+        "item": "Q33109455",
+        "url": "https://pl.wikibooks.org/"
+    },
+    "azwikibooks": {
+        "item": "Q33109492",
+        "url": "https://az.wikibooks.org/"
+    },
+    "pawikibooks": {
+        "item": "Q33109599",
+        "url": "https://pa.wikibooks.org/"
+    },
+    "swwikibooks": {
+        "item": "Q33109635",
+        "url": "https://sw.wikibooks.org/"
+    },
+    "tkwikibooks": {
+        "item": "Q33109637",
+        "url": "https://tk.wikibooks.org/"
+    },
+    "slwikiquote": {
+        "item": "Q33109749",
+        "url": "https://sl.wikiquote.org/"
+    },
+    "thwikiquote": {
+        "item": "Q33109750",
+        "url": "https://th.wikiquote.org/"
+    },
+    "suwikiquote": {
+        "item": "Q33109760",
+        "url": "https://su.wikiquote.org/"
+    },
+    "svwikiquote": {
+        "item": "Q33109772",
+        "url": "https://sv.wikiquote.org/"
+    },
+    "srwikiquote": {
+        "item": "Q33109789",
+        "url": "https://sr.wikiquote.org/"
+    },
+    "sqwikiquote": {
+        "item": "Q33109800",
+        "url": "https://sq.wikiquote.org/"
+    },
+    "uzwikiquote": {
+        "item": "Q33109805",
+        "url": "https://uz.wikiquote.org/"
+    },
+    "pa_uswikimedia": {
+        "item": "Q33120775",
+        "url": "https://pa-us.wikimedia.org/"
+    },
+    "arbcom_enwiki": {
+        "item": "Q33120933",
+        "url": "https://arbcom-en.wikipedia.org/"
+    },
+    "otrs_wikiwiki": {
+        "item": "Q33120962",
+        "url": "https://vrt-wiki.wikimedia.org/"
+    },
+    "spcomwiki": {
+        "item": "Q33120969",
+        "url": "https://spcom.wikimedia.org/"
+    },
+    "tenwiki": {
+        "item": "Q33120972",
+        "url": "https://ten.wikipedia.org/"
+    },
+    "usabilitywiki": {
+        "item": "Q33120979",
+        "url": "https://usability.wikimedia.org/"
+    },
+    "wikimaniateamwiki": {
+        "item": "Q33120982",
+        "url": "https://wikimaniateam.wikimedia.org/"
+    },
+    "inhwiki": {
+        "item": "Q47099246",
+        "url": "https://inh.wikipedia.org/"
+    },
+    "bnwikivoyage": {
+        "item": "Q54598336",
+        "url": "https://bn.wikivoyage.org/"
+    },
+    "pmswikisource": {
+        "item": "Q54893569",
+        "url": "https://pms.wikisource.org/"
+    },
+    "hiwikisource": {
+        "item": "Q69590574",
+        "url": "https://hi.wikisource.org/"
+    },
+    "gomwiktionary": {
+        "item": "Q94700087",
+        "url": "https://gom.wiktionary.org/"
+    },
+    "eowikivoyage": {
+        "item": "Q104114893",
+        "url": "https://eo.wikivoyage.org/"
+    },
+    "madwiki": {
+        "item": "Q104115350",
+        "url": "https://mad.wikipedia.org/"
+    },
+    "skrwiktionary": {
+        "item": "Q104116585",
+        "url": "https://skr.wiktionary.org/"
+    },
+    "niawiktionary": {
+        "item": "Q104778106",
+        "url": "https://nia.wiktionary.org/"
+    },
+    "trwikivoyage": {
+        "item": "Q104903746",
+        "url": "https://tr.wikivoyage.org/"
+    },
+    "mniwiktionary": {
+        "item": "Q105631321",
+        "url": "https://mni.wiktionary.org/"
+    },
+    "jvwikisource": {
+        "item": "Q107586427",
+        "url": "https://jv.wikisource.org/"
+    },
+    "pwnwiki": {
+        "item": "Q109661042",
+        "url": "https://pwn.wikipedia.org/"
+    },
+    "kkwiki": {
+        "item": "Q58172",
+        "url": "https://kk.wikipedia.org/"
+    },
+    "hiwiki": {
+        "item": "Q722040",
+        "url": "https://hi.wikipedia.org/"
+    },
+    "gawiki": {
+        "item": "Q875631",
+        "url": "https://ga.wikipedia.org/"
+    },
+    "dvwiki": {
+        "item": "Q928808",
+        "url": "https://dv.wikipedia.org/"
+    },
+    "lbwiki": {
+        "item": "Q950058",
+        "url": "https://lb.wikipedia.org/"
+    },
+    "bswiki": {
+        "item": "Q1047829",
+        "url": "https://bs.wikipedia.org/"
+    },
+    "urwiki": {
+        "item": "Q1067878",
+        "url": "https://ur.wikipedia.org/"
+    },
+    "nds_nlwiki": {
+        "item": "Q1574617",
+        "url": "https://nds-nl.wikipedia.org/"
+    },
+    "yiwiki": {
+        "item": "Q1968379",
+        "url": "https://yi.wikipedia.org/"
+    },
+    "xmfwiki": {
+        "item": "Q2029239",
+        "url": "https://xmf.wikipedia.org/"
+    },
+    "roa_rupwiki": {
+        "item": "Q2073394",
+        "url": "https://roa-rup.wikipedia.org/"
+    },
+    "nlwikimedia": {
+        "item": "Q2406378",
+        "url": "https://nl.wikimedia.org/"
+    },
+    "tgwiki": {
+        "item": "Q2742472",
+        "url": "https://tg.wikipedia.org/"
+    },
+    "rmwiki": {
+        "item": "Q3026819",
+        "url": "https://rm.wikipedia.org/"
+    },
+    "mtwiki": {
+        "item": "Q3180091",
+        "url": "https://mt.wikipedia.org/"
+    },
+    "extwiki": {
+        "item": "Q3181928",
+        "url": "https://ext.wikipedia.org/"
+    },
+    "papwiki": {
+        "item": "Q3568056",
+        "url": "https://pap.wikipedia.org/"
+    },
+    "pnbwiki": {
+        "item": "Q3696028",
+        "url": "https://pnb.wikipedia.org/"
+    },
+    "csbwiki": {
+        "item": "Q3756269",
+        "url": "https://csb.wikipedia.org/"
+    },
+    "aywiki": {
+        "item": "Q3826575",
+        "url": "https://ay.wikipedia.org/"
+    },
+    "uawikimedia": {
+        "item": "Q4110961",
+        "url": "https://ua.wikimedia.org/"
+    },
+    "minwiki": {
+        "item": "Q4296423",
+        "url": "https://min.wikipedia.org/"
+    },
+    "iewiki": {
+        "item": "Q6167360",
+        "url": "https://ie.wikipedia.org/"
+    },
+    "orwiki": {
+        "item": "Q7102897",
+        "url": "https://or.wikipedia.org/"
+    },
+    "aawiki": {
+        "item": "Q8558395",
+        "url": "https://aa.wikipedia.org/"
+    },
+    "newiki": {
+        "item": "Q8560590",
+        "url": "https://ne.wikipedia.org/"
+    },
+    "krwiki": {
+        "item": "Q8565254",
+        "url": "https://kr.wikipedia.org/"
+    },
+    "omwiki": {
+        "item": "Q8570425",
+        "url": "https://om.wikipedia.org/"
+    },
+    "rmywiki": {
+        "item": "Q8571143",
+        "url": "https://rmy.wikipedia.org/"
+    },
+    "smwiki": {
+        "item": "Q8571427",
+        "url": "https://sm.wikipedia.org/"
+    },
+    "tetwiki": {
+        "item": "Q8575385",
+        "url": "https://tet.wikipedia.org/"
+    },
+    "tswiki": {
+        "item": "Q8575674",
+        "url": "https://ts.wikipedia.org/"
+    },
+    "chwiki": {
+        "item": "Q8576190",
+        "url": "https://ch.wikipedia.org/"
+    },
+    "pagwiki": {
+        "item": "Q12265494",
+        "url": "https://pag.wikipedia.org/"
+    },
+    "mkwikimedia": {
+        "item": "Q12905543",
+        "url": "https://mk.wikimedia.org/"
+    },
+    "kbdwiki": {
+        "item": "Q13231253",
+        "url": "https://kbd.wikipedia.org/"
+    },
+    "dewikivoyage": {
+        "item": "Q14325227",
+        "url": "https://de.wikivoyage.org/"
+    },
+    "cswikiquote": {
+        "item": "Q16735592",
+        "url": "https://cs.wikiquote.org/"
+    },
+    "wikimania2015wiki": {
+        "item": "Q17505730",
+        "url": "https://wikimania2015.wikimedia.org/"
+    },
+    "enwikivoyage": {
+        "item": "Q19826574",
+        "url": "https://en.wikivoyage.org/"
+    },
+    "lrcwiki": {
+        "item": "Q20442276",
+        "url": "https://lrc.wikipedia.org/"
+    },
+    "gomwiki": {
+        "item": "Q20726662",
+        "url": "https://gom.wikipedia.org/"
+    },
+    "svwiktionary": {
+        "item": "Q33109095",
+        "url": "https://sv.wiktionary.org/"
+    },
+    "trwiktionary": {
+        "item": "Q33109107",
+        "url": "https://tr.wiktionary.org/"
+    },
+    "mlwiktionary": {
+        "item": "Q33109124",
+        "url": "https://ml.wiktionary.org/"
+    },
+    "etwiktionary": {
+        "item": "Q33109128",
+        "url": "https://et.wiktionary.org/"
+    },
+    "tgwiktionary": {
+        "item": "Q33109155",
+        "url": "https://tg.wiktionary.org/"
+    },
+    "bgwiktionary": {
+        "item": "Q33109157",
+        "url": "https://bg.wiktionary.org/"
+    },
+    "pswiktionary": {
+        "item": "Q33109159",
+        "url": "https://ps.wiktionary.org/"
+    },
+    "zh_min_nanwiktionary": {
+        "item": "Q33109166",
+        "url": "https://zh-min-nan.wiktionary.org/"
+    },
+    "kywiktionary": {
+        "item": "Q33109179",
+        "url": "https://ky.wiktionary.org/"
+    },
+    "pnbwiktionary": {
+        "item": "Q33109187",
+        "url": "https://pnb.wiktionary.org/"
+    },
+    "ndswiktionary": {
+        "item": "Q33109194",
+        "url": "https://nds.wiktionary.org/"
+    },
+    "nahwiktionary": {
+        "item": "Q33109197",
+        "url": "https://nah.wiktionary.org/"
+    },
+    "bnwiktionary": {
+        "item": "Q33109205",
+        "url": "https://bn.wiktionary.org/"
+    },
+    "vecwiktionary": {
+        "item": "Q33109220",
+        "url": "https://vec.wiktionary.org/"
+    },
+    "ttwiktionary": {
+        "item": "Q33109224",
+        "url": "https://tt.wiktionary.org/"
+    },
+    "sowiktionary": {
+        "item": "Q33109229",
+        "url": "https://so.wiktionary.org/"
+    },
+    "gdwiktionary": {
+        "item": "Q33109234",
+        "url": "https://gd.wiktionary.org/"
+    },
+    "kwwiktionary": {
+        "item": "Q33109260",
+        "url": "https://kw.wiktionary.org/"
+    },
+    "tswiktionary": {
+        "item": "Q33109262",
+        "url": "https://ts.wiktionary.org/"
+    },
+    "tpiwiktionary": {
+        "item": "Q33109277",
+        "url": "https://tpi.wiktionary.org/"
+    },
+    "ikwiktionary": {
+        "item": "Q33109279",
+        "url": "https://ik.wiktionary.org/"
+    },
+    "twwiktionary": {
+        "item": "Q33109299",
+        "url": "https://tw.wiktionary.org/"
+    },
+    "bowiktionary": {
+        "item": "Q33109307",
+        "url": "https://bo.wiktionary.org/"
+    },
+    "rnwiktionary": {
+        "item": "Q33109322",
+        "url": "https://rn.wiktionary.org/"
+    },
+    "svwikibooks": {
+        "item": "Q33109495",
+        "url": "https://sv.wikibooks.org/"
+    },
+    "srwikibooks": {
+        "item": "Q33109500",
+        "url": "https://sr.wikibooks.org/"
+    },
+    "glwikibooks": {
+        "item": "Q33109511",
+        "url": "https://gl.wikibooks.org/"
+    },
+    "tawikibooks": {
+        "item": "Q33109516",
+        "url": "https://ta.wikibooks.org/"
+    },
+    "mswikibooks": {
+        "item": "Q33109561",
+        "url": "https://ms.wikibooks.org/"
+    },
+    "tgwikibooks": {
+        "item": "Q33109613",
+        "url": "https://tg.wikibooks.org/"
+    },
+    "cowikibooks": {
+        "item": "Q33109634",
+        "url": "https://co.wikibooks.org/"
+    },
+    "suwikibooks": {
+        "item": "Q33109641",
+        "url": "https://su.wikibooks.org/"
+    },
+    "yowikibooks": {
+        "item": "Q33109663",
+        "url": "https://yo.wikibooks.org/"
+    },
+    "zuwikibooks": {
+        "item": "Q33109673",
+        "url": "https://zu.wikibooks.org/"
+    },
+    "wawikibooks": {
+        "item": "Q33109675",
+        "url": "https://wa.wikibooks.org/"
+    },
+    "lnwikibooks": {
+        "item": "Q33109676",
+        "url": "https://ln.wikibooks.org/"
+    },
+    "bawikibooks": {
+        "item": "Q33109687",
+        "url": "https://ba.wikibooks.org/"
+    },
+    "kywikiquote": {
+        "item": "Q33110273",
+        "url": "https://ky.wikiquote.org/"
+    },
+    "kkwikiquote": {
+        "item": "Q33110274",
+        "url": "https://kk.wikiquote.org/"
+    },
+    "betawikiversity": {
+        "item": "Q33110334",
+        "url": "https://beta.wikiversity.org/"
+    },
+    "checkuserwiki": {
+        "item": "Q33120942",
+        "url": "https://checkuser.wikimedia.org/"
+    },
+    "donatewiki": {
+        "item": "Q33120946",
+        "url": "https://donate.wikimedia.org/"
+    },
+    "loginwiki": {
+        "item": "Q33120957",
+        "url": "https://login.wikimedia.org/"
+    },
+    "noboard_chapterswikimedia": {
+        "item": "Q33120959",
+        "url": "https://noboard-chapters.wikimedia.org/"
+    },
+    "strategywiki": {
+        "item": "Q33120971",
+        "url": "https://strategy.wikimedia.org/"
+    },
+    "test2wiki": {
+        "item": "Q33120974",
+        "url": "https://test2.wikipedia.org/"
+    },
+    "pswikivoyage": {
+        "item": "Q54893684",
+        "url": "https://ps.wikivoyage.org/"
+    },
+    "foundationwiki": {
+        "item": "Q57077840",
+        "url": "https://foundation.wikimedia.org/"
+    },
+    "testcommonswiki": {
+        "item": "Q65494664",
+        "url": "https://test-commons.wikimedia.org/"
+    },
+    "grwikimedia": {
+        "item": "Q89575308",
+        "url": "https://gr.wikimedia.org/"
+    },
+    "shnwiktionary": {
+        "item": "Q94699033",
+        "url": "https://shn.wiktionary.org/"
+    },
+    "arywiki": {
+        "item": "Q97393767",
+        "url": "https://ary.wikipedia.org/"
+    },
+    "jawikivoyage": {
+        "item": "Q98668890",
+        "url": "https://ja.wikivoyage.org/"
+    },
+    "kcgwiktionary": {
+        "item": "Q112126994",
+        "url": "https://kcg.wiktionary.org/"
+    },
+    "blkwiki": {
+        "item": "Q113161446",
+        "url": "https://blk.wikipedia.org/"
+    },
+    "pcmwiki": {
+        "item": "Q113576853",
+        "url": "https://pcm.wikipedia.org/"
+    },
+    "amwikimedia": {
+        "item": "Q118642570",
+        "url": "https://am.wikimedia.org/"
+    },
+    "bewikimedia": {
+        "item": "Q118719939",
+        "url": "https://be.wikimedia.org/"
+    },
+    "bgwiki": {
+        "item": "Q11913",
+        "url": "https://bg.wikipedia.org/"
+    },
+    "slwiki": {
+        "item": "Q14380",
+        "url": "https://sl.wikipedia.org/"
+    },
+    "crhwiki": {
+        "item": "Q60786",
+        "url": "https://crh.wikipedia.org/"
+    },
+    "ttwiki": {
+        "item": "Q60819",
+        "url": "https://tt.wikipedia.org/"
+    },
+    "cswiki": {
+        "item": "Q191168",
+        "url": "https://cs.wikipedia.org/"
+    },
+    "ukwiki": {
+        "item": "Q199698",
+        "url": "https://uk.wikipedia.org/"
+    },
+    "sqwiki": {
+        "item": "Q208533",
+        "url": "https://sq.wikipedia.org/"
+    },
+    "afwiki": {
+        "item": "Q766705",
+        "url": "https://af.wikipedia.org/"
+    },
+    "myvwiki": {
+        "item": "Q856881",
+        "url": "https://myv.wikipedia.org/"
+    },
+    "szlwiki": {
+        "item": "Q940309",
+        "url": "https://szl.wikipedia.org/"
+    },
+    "vecwiki": {
+        "item": "Q1055841",
+        "url": "https://vec.wikipedia.org/"
+    },
+    "wuuwiki": {
+        "item": "Q1110233",
+        "url": "https://wuu.wikipedia.org/"
+    },
+    "scowiki": {
+        "item": "Q1444686",
+        "url": "https://sco.wikipedia.org/"
+    },
+    "barwiki": {
+        "item": "Q1961887",
+        "url": "https://bar.wikipedia.org/"
+    },
+    "knwiki": {
+        "item": "Q3181422",
+        "url": "https://kn.wikipedia.org/"
+    },
+    "stqwiki": {
+        "item": "Q3568040",
+        "url": "https://stq.wikipedia.org/"
+    },
+    "kshwiki": {
+        "item": "Q3568041",
+        "url": "https://ksh.wikipedia.org/"
+    },
+    "srnwiki": {
+        "item": "Q3568060",
+        "url": "https://srn.wikipedia.org/"
+    },
+    "tywiki": {
+        "item": "Q3568061",
+        "url": "https://ty.wikipedia.org/"
+    },
+    "roa_tarawiki": {
+        "item": "Q3568062",
+        "url": "https://roa-tara.wikipedia.org/"
+    },
+    "wikimania2005wiki": {
+        "item": "Q3619309",
+        "url": "https://wikimania2005.wikimedia.org/"
+    },
+    "ladwiki": {
+        "item": "Q3756562",
+        "url": "https://lad.wikipedia.org/"
+    },
+    "lbewiki": {
+        "item": "Q6587084",
+        "url": "https://lbe.wikipedia.org/"
+    },
+    "nowikimedia": {
+        "item": "Q6985258",
+        "url": "https://wikimedia.no"
+    },
+    "biwiki": {
+        "item": "Q8561332",
+        "url": "https://bi.wikipedia.org/"
+    },
+    "bxrwiki": {
+        "item": "Q8561415",
+        "url": "https://bxr.wikipedia.org/"
+    },
+    "gdwiki": {
+        "item": "Q8562272",
+        "url": "https://gd.wikipedia.org/"
+    },
+    "gotwiki": {
+        "item": "Q8563136",
+        "url": "https://got.wikipedia.org/"
+    },
+    "ilowiki": {
+        "item": "Q8563685",
+        "url": "https://ilo.wikipedia.org/"
+    },
+    "kswiki": {
+        "item": "Q8565447",
+        "url": "https://ks.wikipedia.org/"
+    },
+    "kiwiki": {
+        "item": "Q8565476",
+        "url": "https://ki.wikipedia.org/"
+    },
+    "lnwiki": {
+        "item": "Q8566298",
+        "url": "https://ln.wikipedia.org/"
+    },
+    "sdwiki": {
+        "item": "Q8571840",
+        "url": "https://sd.wikipedia.org/"
+    },
+    "stwiki": {
+        "item": "Q8572199",
+        "url": "https://st.wikipedia.org/"
+    },
+    "tumwiki": {
+        "item": "Q8575782",
+        "url": "https://tum.wikipedia.org/"
+    },
+    "chrwiki": {
+        "item": "Q8576237",
+        "url": "https://chr.wikipedia.org/"
+    },
+    "wikimania2017wiki": {
+        "item": "Q21113296",
+        "url": "https://wikimania2017.wikimedia.org"
+    },
+    "enwikinews": {
+        "item": "Q21281268",
+        "url": "https://en.wikinews.org/"
+    },
+    "hewikinews": {
+        "item": "Q21281273",
+        "url": "https://he.wikinews.org/"
+    },
+    "ruwikinews": {
+        "item": "Q21281283",
+        "url": "https://ru.wikinews.org/"
+    },
+    "frwikiversity": {
+        "item": "Q22001380",
+        "url": "https://fr.wikiversity.org/"
+    },
+    "hewikiquote": {
+        "item": "Q22002898",
+        "url": "https://he.wikiquote.org/"
+    },
+    "plwikiquote": {
+        "item": "Q22002946",
+        "url": "https://pl.wikiquote.org/"
+    },
+    "punjabiwikimedia": {
+        "item": "Q23008463",
+        "url": "https://punjabi.wikimedia.org/"
+    },
+    "ptwikivoyage": {
+        "item": "Q24238016",
+        "url": "https://pt.wikivoyage.org/"
+    },
+    "elwikivoyage": {
+        "item": "Q24238022",
+        "url": "https://el.wikivoyage.org/"
+    },
+    "frwikiquote": {
+        "item": "Q24577055",
+        "url": "https://fr.wikiquote.org/"
+    },
+    "arwikisource": {
+        "item": "Q24577645",
+        "url": "https://ar.wikisource.org/"
+    },
+    "kowikisource": {
+        "item": "Q24577673",
+        "url": "https://ko.wikisource.org/"
+    },
+    "srwikisource": {
+        "item": "Q24577688",
+        "url": "https://sr.wikisource.org/"
+    },
+    "trwikisource": {
+        "item": "Q24577693",
+        "url": "https://tr.wikisource.org/"
+    },
+    "atjwiki": {
+        "item": "Q30286865",
+        "url": "https://atj.wikipedia.org/"
+    },
+    "ltwiktionary": {
+        "item": "Q33109094",
+        "url": "https://lt.wiktionary.org/"
+    },
+    "knwiktionary": {
+        "item": "Q33109111",
+        "url": "https://kn.wiktionary.org/"
+    },
+    "thwiktionary": {
+        "item": "Q33109123",
+        "url": "https://th.wiktionary.org/"
+    },
+    "fawiktionary": {
+        "item": "Q33109136",
+        "url": "https://fa.wiktionary.org/"
+    },
+    "jvwiktionary": {
+        "item": "Q33109138",
+        "url": "https://jv.wiktionary.org/"
+    },
+    "azwiktionary": {
+        "item": "Q33109141",
+        "url": "https://az.wiktionary.org/"
+    },
+    "fjwiktionary": {
+        "item": "Q33109154",
+        "url": "https://fj.wiktionary.org/"
+    },
+    "scnwiktionary": {
+        "item": "Q33109169",
+        "url": "https://scn.wiktionary.org/"
+    },
+    "afwiktionary": {
+        "item": "Q33109175",
+        "url": "https://af.wiktionary.org/"
+    },
+    "fywiktionary": {
+        "item": "Q33109182",
+        "url": "https://fy.wiktionary.org/"
+    },
+    "miwiktionary": {
+        "item": "Q33109246",
+        "url": "https://mi.wiktionary.org/"
+    },
+    "yiwiktionary": {
+        "item": "Q33109280",
+        "url": "https://yi.wiktionary.org/"
+    },
+    "yowiktionary": {
+        "item": "Q33109305",
+        "url": "https://yo.wiktionary.org/"
+    },
+    "rmwiktionary": {
+        "item": "Q33109308",
+        "url": "https://rm.wiktionary.org/"
+    },
+    "sqwikibooks": {
+        "item": "Q33109481",
+        "url": "https://sq.wikibooks.org/"
+    },
+    "ruwikibooks": {
+        "item": "Q33109486",
+        "url": "https://ru.wikibooks.org/"
+    },
+    "rowikibooks": {
+        "item": "Q33109512",
+        "url": "https://ro.wikibooks.org/"
+    },
+    "etwikibooks": {
+        "item": "Q33109585",
+        "url": "https://et.wikibooks.org/"
+    },
+    "ocwikibooks": {
+        "item": "Q33109591",
+        "url": "https://oc.wikibooks.org/"
+    },
+    "euwikibooks": {
+        "item": "Q33109592",
+        "url": "https://eu.wikibooks.org/"
+    },
+    "afwikibooks": {
+        "item": "Q33109620",
+        "url": "https://af.wikibooks.org/"
+    },
+    "kuwikibooks": {
+        "item": "Q33109621",
+        "url": "https://ku.wikibooks.org/"
+    },
+    "sewikibooks": {
+        "item": "Q33109657",
+        "url": "https://se.wikibooks.org/"
+    },
+    "pswikibooks": {
+        "item": "Q33109661",
+        "url": "https://ps.wikibooks.org/"
+    },
+    "aywikibooks": {
+        "item": "Q33109669",
+        "url": "https://ay.wikibooks.org/"
+    },
+    "rmwikibooks": {
+        "item": "Q33109681",
+        "url": "https://rm.wikibooks.org/"
+    },
+    "gnwikibooks": {
+        "item": "Q33109682",
+        "url": "https://gn.wikibooks.org/"
+    },
+    "biwikibooks": {
+        "item": "Q33109689",
+        "url": "https://bi.wikibooks.org/"
+    },
+    "huwikinews": {
+        "item": "Q33109709",
+        "url": "https://hu.wikinews.org/"
+    },
+    "dewikiquote": {
+        "item": "Q33109736",
+        "url": "https://de.wikiquote.org/"
+    },
+    "simplewikiquote": {
+        "item": "Q33109769",
+        "url": "https://simple.wikiquote.org/"
+    },
+    "nowikiquote": {
+        "item": "Q33109782",
+        "url": "https://no.wikiquote.org/"
+    },
+    "knwikiquote": {
+        "item": "Q33109788",
+        "url": "https://kn.wikiquote.org/"
+    },
+    "ptwikiversity": {
+        "item": "Q33110336",
+        "url": "https://pt.wikiversity.org/"
+    },
+    "fiwikiversity": {
+        "item": "Q33110339",
+        "url": "https://fi.wikiversity.org/"
+    },
+    "arbcom_cswiki": {
+        "item": "Q33120931",
+        "url": "https://arbcom-cs.wikipedia.org/"
+    },
+    "auditcomwiki": {
+        "item": "Q33120937",
+        "url": "https://auditcom.wikimedia.org/"
+    },
+    "chairwiki": {
+        "item": "Q33120940",
+        "url": "https://chair.wikimedia.org/"
+    },
+    "collabwiki": {
+        "item": "Q33120944",
+        "url": "https://collab.wikimedia.org/"
+    },
+    "hifwiktionary": {
+        "item": "Q48569283",
+        "url": "https://hif.wiktionary.org/"
+    },
+    "gorwiki": {
+        "item": "Q52048523",
+        "url": "https://gor.wikipedia.org/"
+    },
+    "advisorswiki": {
+        "item": "Q54858393",
+        "url": "https://advisors.wikimedia.org/"
+    },
+    "sahwikiquote": {
+        "item": "Q54893864",
+        "url": "https://sah.wikiquote.org/"
+    },
+    "liwikinews": {
+        "item": "Q58833054",
+        "url": "https://li.wikinews.org/"
+    },
+    "fixcopyrightwiki": {
+        "item": "Q65494619",
+        "url": "https://fixcopyright.wikimedia.org/"
+    },
+    "diqwiktionary": {
+        "item": "Q104778212",
+        "url": "https://diq.wiktionary.org/"
+    },
+    "etwikimedia": {
+        "item": "Q108029180",
+        "url": "https://ee.wikimedia.org/"
+    },
+    "frwiki": {
+        "item": "Q8447",
+        "url": "https://fr.wikipedia.org/"
+    },
+    "fawiki": {
+        "item": "Q48952",
+        "url": "https://fa.wikipedia.org/"
+    },
+    "bawiki": {
+        "item": "Q58209",
+        "url": "https://ba.wikipedia.org/"
+    },
+    "shwiki": {
+        "item": "Q58679",
+        "url": "https://sh.wikipedia.org/"
+    },
+    "arwiki": {
+        "item": "Q199700",
+        "url": "https://ar.wikipedia.org/"
+    },
+    "srwiki": {
+        "item": "Q200386",
+        "url": "https://sr.wikipedia.org/"
+    },
+    "oswiki": {
+        "item": "Q226150",
+        "url": "https://os.wikipedia.org/"
+    },
+    "thwiki": {
+        "item": "Q565074",
+        "url": "https://th.wikipedia.org/"
+    },
+    "tpiwiki": {
+        "item": "Q571001",
+        "url": "https://tpi.wikipedia.org/"
+    },
+    "swwiki": {
+        "item": "Q722243",
+        "url": "https://sw.wikipedia.org/"
+    },
+    "cebwiki": {
+        "item": "Q837615",
+        "url": "https://ceb.wikipedia.org/"
+    },
+    "mlwiki": {
+        "item": "Q874555",
+        "url": "https://ml.wikipedia.org/"
+    },
+    "mrjwiki": {
+        "item": "Q1034940",
+        "url": "https://mrj.wikipedia.org/"
+    },
+    "metawiki": {
+        "item": "Q1063116",
+        "url": "https://meta.wikimedia.org/"
+    },
+    "zh_yuewiki": {
+        "item": "Q1190962",
+        "url": "https://zh-yue.wikipedia.org/"
+    },
+    "quwiki": {
+        "item": "Q1377618",
+        "url": "https://qu.wikipedia.org/"
+    },
+    "wikimania2010wiki": {
+        "item": "Q14507062",
+        "url": "https://wikimania2010.wikimedia.org"
+    },
+    "frwikisource": {
+        "item": "Q15156541",
+        "url": "https://fr.wikisource.org/"
+    },
+    "cswikisource": {
+        "item": "Q16735590",
+        "url": "https://cs.wikisource.org/"
+    },
+    "ruwikivoyage": {
+        "item": "Q17601812",
+        "url": "https://ru.wikivoyage.org/"
+    },
+    "lawikisource": {
+        "item": "Q21205461",
+        "url": "https://la.wikisource.org/"
+    },
+    "cawikinews": {
+        "item": "Q21281264",
+        "url": "https://ca.wikinews.org/"
+    },
+    "dewikinews": {
+        "item": "Q21281266",
+        "url": "https://de.wikinews.org/"
+    },
+    "nlwikinews": {
+        "item": "Q21281276",
+        "url": "https://nl.wikinews.org/"
+    },
+    "rowikinews": {
+        "item": "Q21281281",
+        "url": "https://ro.wikinews.org/"
+    },
+    "zhwikinews": {
+        "item": "Q21281294",
+        "url": "https://zh.wikinews.org/"
+    },
+    "fawikibooks": {
+        "item": "Q21999841",
+        "url": "https://fa.wikibooks.org/"
+    },
+    "dewikiversity": {
+        "item": "Q22001381",
+        "url": "https://de.wikiversity.org/"
+    },
+    "cawikiquote": {
+        "item": "Q22002911",
+        "url": "https://ca.wikiquote.org/"
+    },
+    "fawikiquote": {
+        "item": "Q22002964",
+        "url": "https://fa.wikiquote.org/"
+    },
+    "hewikisource": {
+        "item": "Q22004676",
+        "url": "https://he.wikisource.org/"
+    },
+    "nostalgiawiki": {
+        "item": "Q22046598",
+        "url": "https://nostalgia.wikipedia.org/"
+    },
+    "nzwikimedia": {
+        "item": "Q22047663",
+        "url": "https://nz.wikimedia.org/"
+    },
+    "cnwikimedia": {
+        "item": "Q23977963",
+        "url": "https://cn.wikimedia.org"
+    },
+    "bgwikisource": {
+        "item": "Q24577648",
+        "url": "https://bg.wikisource.org/"
+    },
+    "brwikisource": {
+        "item": "Q24577649",
+        "url": "https://br.wikisource.org/"
+    },
+    "etwikisource": {
+        "item": "Q24577657",
+        "url": "https://et.wikisource.org/"
+    },
+    "fawikisource": {
+        "item": "Q24577658",
+        "url": "https://fa.wikisource.org/"
+    },
+    "jawikisource": {
+        "item": "Q24577671",
+        "url": "https://ja.wikisource.org/"
+    },
+    "pawikisource": {
+        "item": "Q28861316",
+        "url": "https://pa.wikisource.org/"
+    },
+    "eswiktionary": {
+        "item": "Q33108860",
+        "url": "https://es.wiktionary.org/"
+    },
+    "plwiktionary": {
+        "item": "Q33109097",
+        "url": "https://pl.wiktionary.org/"
+    },
+    "kuwiktionary": {
+        "item": "Q33109100",
+        "url": "https://ku.wiktionary.org/"
+    },
+    "cawiktionary": {
+        "item": "Q33109110",
+        "url": "https://ca.wiktionary.org/"
+    },
+    "lowiktionary": {
+        "item": "Q33109145",
+        "url": "https://lo.wiktionary.org/"
+    },
+    "skwiktionary": {
+        "item": "Q33109167",
+        "url": "https://sk.wiktionary.org/"
+    },
+    "pawiktionary": {
+        "item": "Q33109212",
+        "url": "https://pa.wiktionary.org/"
+    },
+    "gawiktionary": {
+        "item": "Q33109215",
+        "url": "https://ga.wiktionary.org/"
+    },
+    "anwiktionary": {
+        "item": "Q33109217",
+        "url": "https://an.wiktionary.org/"
+    },
+    "sdwiktionary": {
+        "item": "Q33109225",
+        "url": "https://sd.wiktionary.org/"
+    },
+    "gnwiktionary": {
+        "item": "Q33109226",
+        "url": "https://gn.wiktionary.org/"
+    },
+    "stwiktionary": {
+        "item": "Q33109237",
+        "url": "https://st.wiktionary.org/"
+    },
+    "hawiktionary": {
+        "item": "Q33109271",
+        "url": "https://ha.wiktionary.org/"
+    },
+    "tnwiktionary": {
+        "item": "Q33109284",
+        "url": "https://tn.wiktionary.org/"
+    },
+    "aawiktionary": {
+        "item": "Q33109312",
+        "url": "https://aa.wiktionary.org/"
+    },
+    "crwiktionary": {
+        "item": "Q33109317",
+        "url": "https://cr.wiktionary.org/"
+    },
+    "idwikibooks": {
+        "item": "Q33109480",
+        "url": "https://id.wikibooks.org/"
+    },
+    "zhwikibooks": {
+        "item": "Q33109483",
+        "url": "https://zh.wikibooks.org/"
+    },
+    "nowikibooks": {
+        "item": "Q33109508",
+        "url": "https://no.wikibooks.org/"
+    },
+    "ttwikibooks": {
+        "item": "Q33109532",
+        "url": "https://tt.wikibooks.org/"
+    },
+    "kmwikibooks": {
+        "item": "Q33109576",
+        "url": "https://km.wikibooks.org/"
+    },
+    "cvwikibooks": {
+        "item": "Q33109587",
+        "url": "https://cv.wikibooks.org/"
+    },
+    "fywikibooks": {
+        "item": "Q33109607",
+        "url": "https://fy.wikibooks.org/"
+    },
+    "cywikibooks": {
+        "item": "Q33109629",
+        "url": "https://cy.wikibooks.org/"
+    },
+    "quwikibooks": {
+        "item": "Q33109643",
+        "url": "https://qu.wikibooks.org/"
+    },
+    "guwikibooks": {
+        "item": "Q33109650",
+        "url": "https://gu.wikibooks.org/"
+    },
+    "knwikibooks": {
+        "item": "Q33109652",
+        "url": "https://kn.wikibooks.org/"
+    },
+    "lbwikibooks": {
+        "item": "Q33109654",
+        "url": "https://lb.wikibooks.org/"
+    },
+    "kswikibooks": {
+        "item": "Q33109659",
+        "url": "https://ks.wikibooks.org/"
+    },
+    "aswikibooks": {
+        "item": "Q33109679",
+        "url": "https://as.wikibooks.org/"
+    },
+    "skwikiquote": {
+        "item": "Q33109741",
+        "url": "https://sk.wikiquote.org/"
+    },
+    "trwikiquote": {
+        "item": "Q33109743",
+        "url": "https://tr.wikiquote.org/"
+    },
+    "cywikiquote": {
+        "item": "Q33109779",
+        "url": "https://cy.wikiquote.org/"
+    },
+    "lawikiquote": {
+        "item": "Q33109780",
+        "url": "https://la.wikiquote.org/"
+    },
+    "hiwikiquote": {
+        "item": "Q33109795",
+        "url": "https://hi.wikiquote.org/"
+    },
+    "sawikiquote": {
+        "item": "Q33109797",
+        "url": "https://sa.wikiquote.org/"
+    },
+    "lbwikiquote": {
+        "item": "Q33110265",
+        "url": "https://lb.wikiquote.org/"
+    },
+    "cowikiquote": {
+        "item": "Q33110269",
+        "url": "https://co.wikiquote.org/"
+    },
+    "vowikiquote": {
+        "item": "Q33110280",
+        "url": "https://vo.wikiquote.org/"
+    },
+    "ttwikiquote": {
+        "item": "Q33110281",
+        "url": "https://tt.wikiquote.org/"
+    },
+    "tkwikiquote": {
+        "item": "Q33110282",
+        "url": "https://tk.wikiquote.org/"
+    },
+    "bmwikiquote": {
+        "item": "Q33110286",
+        "url": "https://bm.wikiquote.org/"
+    },
+    "jawikiversity": {
+        "item": "Q33110342",
+        "url": "https://ja.wikiversity.org/"
+    },
+    "advisorywiki": {
+        "item": "Q33120928",
+        "url": "https://advisory.wikimedia.org/"
+    },
+    "fdcwiki": {
+        "item": "Q33120948",
+        "url": "https://fdc.wikimedia.org/"
+    },
+    "projectcomwiki": {
+        "item": "Q33120965",
+        "url": "https://projectcom.wikimedia.org/"
+    },
+    "transitionteamwiki": {
+        "item": "Q33120978",
+        "url": "https://transitionteam.wikimedia.org/"
+    },
+    "votewiki": {
+        "item": "Q33120980",
+        "url": "https://vote.wikimedia.org/"
+    },
+    "hiwikiversity": {
+        "item": "Q34641426",
+        "url": "https://hi.wikiversity.org/"
+    },
+    "zhwikiversity": {
+        "item": "Q56009325",
+        "url": "https://zh.wikiversity.org/"
+    },
+    "yuewiktionary": {
+        "item": "Q58787175",
+        "url": "https://yue.wiktionary.org/"
+    },
+    "ilwikimedia": {
+        "item": "Q63214377",
+        "url": "https://il.wikimedia.org/"
+    },
+    "electcomwiki": {
+        "item": "Q65494490",
+        "url": "https://electcom.wikimedia.org/"
+    },
+    "shywiktionary": {
+        "item": "Q75986893",
+        "url": "https://shy.wiktionary.org/"
+    },
+    "smnwiki": {
+        "item": "Q100154036",
+        "url": "https://smn.wikipedia.org/"
+    },
+    "taywiki": {
+        "item": "Q105723660",
+        "url": "https://tay.wikipedia.org/"
+    },
+    "nowiki": {
+        "item": "Q109333352",
+        "url": "https://no.wikipedia.org/"
+    },
+    "amiwiki": {
+        "item": "Q109660988",
+        "url": "https://ami.wikipedia.org/"
+    },
+    "anpwiki": {
+        "item": "Q117306515",
+        "url": "https://anp.wikipedia.org/"
+    },
+    "arwikimedia": {
+        "item": "Q118719811",
+        "url": "https://ar.wikimedia.org/"
+    },
+    "idwikimedia": {
+        "item": "Q118726617",
+        "url": "https://id.wikimedia.org/"
+    },
+    "wikifunctionswiki": {
+        "item": "Q104587954",
+        "url": "https://www.wikifunctions.org/"
+    },
+    "ckbwiktionary": {
+        "item": "Q117463713",
+        "url": "https://ckb.wiktionary.org/"
+    },
+    "fatwiki": {
+        "item": "Q117805986",
+        "url": "https://fat.wikipedia.org/"
+    },
+    "kbdwiktionary": {
+        "item": "Q117808046",
+        "url": "https://kbd.wiktionary.org/"
+    },
+    "guwwikinews": {
+        "item": "Q117808670",
+        "url": "https://guw.wikinews.org/"
+    },
+    "gpewiki": {
+        "item": "Q120400616",
+        "url": "https://gpe.wikipedia.org/"
+    },
+    "suwikisource": {
+        "item": "Q121787476",
+        "url": "https://su.wikisource.org/"
+    },
+    "tlywiki": {
+        "item": "Q122212356",
+        "url": "https://tly.wikipedia.org/"
+    },
+    "fonwiki": {
+        "item": "Q122930671",
+        "url": "https://fon.wikipedia.org/"
+    },
+    "guwwiktionary": {
+        "item": "Q113627834",
+        "url": "https://guw.wiktionary.org/"
+    },
+    "bdwikimedia": {
+        "item": "Q118719914",
+        "url": "https://bd.wikimedia.org/"
+    },
+    "hsbwiki": {
+        "item": "Q2402143",
+        "url": "https://hsb.wikipedia.org/"
+    },
+    "miwiki": {
+        "item": "Q2732019",
+        "url": "https://mi.wikipedia.org/"
+    },
+    "bjnwiki": {
+        "item": "Q2983979",
+        "url": "https://bjn.wikipedia.org/"
+    },
+    "iawiki": {
+        "item": "Q3757068",
+        "url": "https://ia.wikipedia.org/"
+    },
+    "bugwiki": {
+        "item": "Q4097773",
+        "url": "https://bug.wikipedia.org/"
+    },
+    "vepwiki": {
+        "item": "Q4107346",
+        "url": "https://vep.wikipedia.org/"
+    },
+    "sewiki": {
+        "item": "Q4115441",
+        "url": "https://se.wikipedia.org/"
+    },
+    "mywiki": {
+        "item": "Q4614845",
+        "url": "https://my.wikipedia.org/"
+    },
+    "fawikinews": {
+        "item": "Q5725285",
+        "url": "https://fa.wikinews.org/"
+    },
+    "dzwiki": {
+        "item": "Q8561662",
+        "url": "https://dz.wikipedia.org/"
+    },
+    "eewiki": {
+        "item": "Q8562097",
+        "url": "https://ee.wikipedia.org/"
+    },
+    "frpwiki": {
+        "item": "Q8562529",
+        "url": "https://frp.wikipedia.org/"
+    },
+    "ikwiki": {
+        "item": "Q8563863",
+        "url": "https://ik.wikipedia.org/"
+    },
+    "gvwiki": {
+        "item": "Q8566503",
+        "url": "https://gv.wikipedia.org/"
+    },
+    "mwlwiki": {
+        "item": "Q8568791",
+        "url": "https://mwl.wikipedia.org/"
+    },
+    "muswiki": {
+        "item": "Q8569511",
+        "url": "https://mus.wikipedia.org/"
+    },
+    "siwiki": {
+        "item": "Q8571954",
+        "url": "https://si.wikipedia.org/"
+    },
+    "sowiki": {
+        "item": "Q8572132",
+        "url": "https://so.wikipedia.org/"
+    },
+    "cbk_zamwiki": {
+        "item": "Q8575930",
+        "url": "https://cbk-zam.wikipedia.org/"
+    },
+    "vewiki": {
+        "item": "Q8577029",
+        "url": "https://ve.wikipedia.org/"
+    },
+    "wowiki": {
+        "item": "Q8582589",
+        "url": "https://wo.wikipedia.org/"
+    },
+    "wikimania2008wiki": {
+        "item": "Q11756041",
+        "url": "https://wikimania2008.wikimedia.org/"
+    },
+    "nsowiki": {
+        "item": "Q13230970",
+        "url": "https://nso.wikipedia.org/"
+    },
+    "pflwiki": {
+        "item": "Q13358221",
+        "url": "https://pfl.wikipedia.org/"
+    },
+    "dewikisource": {
+        "item": "Q15522295",
+        "url": "https://de.wikisource.org/"
+    },
+    "eswikisource": {
+        "item": "Q15618752",
+        "url": "https://es.wikisource.org/"
+    },
+    "mxwikimedia": {
+        "item": "Q18559782",
+        "url": "https://mx.wikimedia.org/"
+    },
+    "nowikinews": {
+        "item": "Q21281277",
+        "url": "https://no.wikinews.org/"
+    },
+    "dawikibooks": {
+        "item": "Q22000281",
+        "url": "https://da.wikibooks.org/"
+    },
+    "cswikibooks": {
+        "item": "Q22000362",
+        "url": "https://cs.wikibooks.org/"
+    },
+    "kawikiquote": {
+        "item": "Q22002884",
+        "url": "https://ka.wikiquote.org/"
+    },
+    "aswikisource": {
+        "item": "Q22004684",
+        "url": "https://as.wikisource.org/"
+    },
+    "rowikivoyage": {
+        "item": "Q24238019",
+        "url": "https://ro.wikivoyage.org/"
+    },
+    "kowikinews": {
+        "item": "Q24576293",
+        "url": "https://ko.wikinews.org/"
+    },
+    "dawikisource": {
+        "item": "Q24577653",
+        "url": "https://da.wikisource.org/"
+    },
+    "fowikisource": {
+        "item": "Q24577660",
+        "url": "https://fo.wikisource.org/"
+    },
+    "liwikisource": {
+        "item": "Q24577674",
+        "url": "https://li.wikisource.org/"
+    },
+    "ltwikisource": {
+        "item": "Q24577676",
+        "url": "https://lt.wikisource.org/"
+    },
+    "zh_min_nanwikisource": {
+        "item": "Q24577697",
+        "url": "https://zh-min-nan.wikisource.org/"
+    },
+    "itwikiversity": {
+        "item": "Q24880555",
+        "url": "https://it.wikiversity.org/"
+    },
+    "tlwiktionary": {
+        "item": "Q31441527",
+        "url": "https://tl.wiktionary.org/"
+    },
+    "srwiktionary": {
+        "item": "Q33109115",
+        "url": "https://sr.wiktionary.org/"
+    },
+    "mywiktionary": {
+        "item": "Q33109131",
+        "url": "https://my.wiktionary.org/"
+    },
+    "orwiktionary": {
+        "item": "Q33109132",
+        "url": "https://or.wiktionary.org/"
+    },
+    "arwiktionary": {
+        "item": "Q33109137",
+        "url": "https://ar.wiktionary.org/"
+    },
+    "brwiktionary": {
+        "item": "Q33109146",
+        "url": "https://br.wiktionary.org/"
+    },
+    "cywiktionary": {
+        "item": "Q33109160",
+        "url": "https://cy.wiktionary.org/"
+    },
+    "iswiktionary": {
+        "item": "Q33109163",
+        "url": "https://is.wiktionary.org/"
+    },
+    "hewiktionary": {
+        "item": "Q33109172",
+        "url": "https://he.wiktionary.org/"
+    },
+    "lvwiktionary": {
+        "item": "Q33109185",
+        "url": "https://lv.wiktionary.org/"
+    },
+    "slwiktionary": {
+        "item": "Q33109192",
+        "url": "https://sl.wiktionary.org/"
+    },
+    "hsbwiktionary": {
+        "item": "Q33109209",
+        "url": "https://hsb.wiktionary.org/"
+    },
+    "urwiktionary": {
+        "item": "Q33109216",
+        "url": "https://ur.wiktionary.org/"
+    },
+    "wowiktionary": {
+        "item": "Q33109218",
+        "url": "https://wo.wiktionary.org/"
+    },
+    "mrwiktionary": {
+        "item": "Q33109227",
+        "url": "https://mr.wiktionary.org/"
+    },
+    "mtwiktionary": {
+        "item": "Q33109236",
+        "url": "https://mt.wiktionary.org/"
+    },
+    "iawiktionary": {
+        "item": "Q33109242",
+        "url": "https://ia.wiktionary.org/"
+    },
+    "jbowiktionary": {
+        "item": "Q33109251",
+        "url": "https://jbo.wiktionary.org/"
+    },
+    "omwiktionary": {
+        "item": "Q33109265",
+        "url": "https://om.wiktionary.org/"
+    },
+    "iuwiktionary": {
+        "item": "Q33109272",
+        "url": "https://iu.wiktionary.org/"
+    },
+    "piwiktionary": {
+        "item": "Q33109292",
+        "url": "https://pi.wiktionary.org/"
+    },
+    "snwiktionary": {
+        "item": "Q33109296",
+        "url": "https://sn.wiktionary.org/"
+    },
+    "dzwiktionary": {
+        "item": "Q33109297",
+        "url": "https://dz.wiktionary.org/"
+    },
+    "biwiktionary": {
+        "item": "Q33109304",
+        "url": "https://bi.wiktionary.org/"
+    },
+    "akwiktionary": {
+        "item": "Q33109316",
+        "url": "https://ak.wiktionary.org/"
+    },
+    "jawikibooks": {
+        "item": "Q33109449",
+        "url": "https://ja.wikibooks.org/"
+    },
+    "fiwikibooks": {
+        "item": "Q33109477",
+        "url": "https://fi.wikibooks.org/"
+    },
+    "tlwikibooks": {
+        "item": "Q33109518",
+        "url": "https://tl.wikibooks.org/"
+    },
+    "iswikibooks": {
+        "item": "Q33109521",
+        "url": "https://is.wikibooks.org/"
+    },
+    "liwikibooks": {
+        "item": "Q33109556",
+        "url": "https://li.wikibooks.org/"
+    },
+    "siwikibooks": {
+        "item": "Q33109558",
+        "url": "https://si.wikibooks.org/"
+    },
+    "lvwikibooks": {
+        "item": "Q33109603",
+        "url": "https://lv.wikibooks.org/"
+    },
+    "bswikibooks": {
+        "item": "Q33109624",
+        "url": "https://bs.wikibooks.org/"
+    },
+    "astwikibooks": {
+        "item": "Q33109632",
+        "url": "https://ast.wikibooks.org/"
+    },
+    "ndswikibooks": {
+        "item": "Q33109660",
+        "url": "https://nds.wikibooks.org/"
+    },
+    "ugwikibooks": {
+        "item": "Q33109666",
+        "url": "https://ug.wikibooks.org/"
+    },
+    "ukwikiquote": {
+        "item": "Q33109739",
+        "url": "https://uk.wikiquote.org/"
+    },
+    "ltwikiquote": {
+        "item": "Q33109746",
+        "url": "https://lt.wikiquote.org/"
+    },
+    "nlwikiquote": {
+        "item": "Q33109764",
+        "url": "https://nl.wikiquote.org/"
+    },
+    "urwikiquote": {
+        "item": "Q33109775",
+        "url": "https://ur.wikiquote.org/"
+    },
+    "etwikiquote": {
+        "item": "Q33109786",
+        "url": "https://et.wikiquote.org/"
+    },
+    "iswikiquote": {
+        "item": "Q33109798",
+        "url": "https://is.wikiquote.org/"
+    },
+    "afwikiquote": {
+        "item": "Q33109804",
+        "url": "https://af.wikiquote.org/"
+    },
+    "angwikiquote": {
+        "item": "Q33110263",
+        "url": "https://ang.wikiquote.org/"
+    },
+    "alswikiquote": {
+        "item": "Q33110279",
+        "url": "https://als.wikiquote.org/"
+    },
+    "nawikiquote": {
+        "item": "Q33110293",
+        "url": "https://na.wikiquote.org/"
+    },
+    "cswikiversity": {
+        "item": "Q33110332",
+        "url": "https://cs.wikiversity.org/"
+    },
+    "slwikiversity": {
+        "item": "Q33110341",
+        "url": "https://sl.wikiversity.org/"
+    },
+    "hiwikivoyage": {
+        "item": "Q35864580",
+        "url": "https://hi.wikivoyage.org/"
+    },
+    "techconductwiki": {
+        "item": "Q65494466",
+        "url": "https://techconduct.wikimedia.org/"
+    },
+    "nqowiki": {
+        "item": "Q68669691",
+        "url": "https://nqo.wikipedia.org/"
+    },
+    "minwiktionary": {
+        "item": "Q75848703",
+        "url": "https://min.wiktionary.org/"
+    },
+    "bclwiktionary": {
+        "item": "Q104778147",
+        "url": "https://bcl.wiktionary.org/"
+    },
+    "mniwiki": {
+        "item": "Q105631325",
+        "url": "https://mni.wikipedia.org/"
+    },
+    "trvwiki": {
+        "item": "Q105975521",
+        "url": "https://trv.wikipedia.org/"
+    },
+    "gucwiki": {
+        "item": "Q116927536",
+        "url": "https://guc.wikipedia.org/"
+    },
+    "gurwiki": {
+        "item": "Q116927552",
+        "url": "https://gur.wikipedia.org/"
+    }
+}

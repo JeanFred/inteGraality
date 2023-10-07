@@ -4,6 +4,7 @@
 Column configuration classes
 """
 
+import json
 from enum import Enum
 
 
@@ -18,6 +19,7 @@ class ColumnSyntaxException(Exception):
 class ColumnMaker:
     @staticmethod
     def make(key, title):
+        wikiprojects = json.load(open("integraality/wikiprojects.json", "r"))
         if key.startswith("P"):
             splitted = key.split("/")
             if len(splitted) == 3:
@@ -33,6 +35,9 @@ class ColumnMaker:
             return LabelColumn(language=key[1:])
         elif key.startswith("D"):
             return DescriptionColumn(language=key[1:])
+        elif key in wikiprojects:
+            wikiproject = wikiprojects.get(key)
+            return SitelinkColumn(project=key, title=title)
         else:
             raise ColumnSyntaxException("Unknown column syntax %s" % key)
 
@@ -202,3 +207,46 @@ class DescriptionColumn(TextColumn):
 
     def get_selector(self):
         return "schema:description"
+
+
+class SitelinkColumn(AbstractColumn):
+    def __init__(self, project, title=None):
+        wikiprojects = json.load(open("integraality/wikiprojects.json", "r"))
+        self.project = project
+        self.url = wikiprojects[project]["url"]
+        self.item = wikiprojects[project]["item"]
+        self.title = title
+
+    def __eq__(self, other):
+        return self.url == other.url and self.title == other.title
+
+    def get_key(self):
+        return self.project
+
+    def get_title(self):
+        return self.get_key()
+
+    def make_column_header(self):
+        if self.title:
+            label = f"[[{self.item}|{self.title}]]"
+        else:
+            label = f"{{{{Q|{self.item}}}}}"
+        return f'! data-sort-type="number"|{label}\n'
+
+    def get_filter_for_info(self):
+        return f"""
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <{self.url}>."""
+
+    def get_filter_for_positive_query(self):
+        return f"""
+  ?sitelink schema:about ?entity;
+    schema:isPartOf <{self.url}>;
+    schema:name ?value.
+"""
+
+    def get_filter_for_negative_query(self):
+        return f"""
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <{self.url}>.
+"""

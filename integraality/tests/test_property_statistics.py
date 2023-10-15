@@ -581,6 +581,20 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_sitelink(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.stats.columns.get("brwiki"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  ?sitelink schema:about ?entity;
+    schema:isPartOf <https://br.wikipedia.org/>;
+    schema:name ?value.
+}
+"""
+        self.assertEqual(result, expected)
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
@@ -690,6 +704,21 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity wdt:P21 ?prop .}
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_sitelink(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.stats.columns.get("brwiki"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  MINUS {
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <https://br.wikipedia.org/>.
 }
 """
         self.assertEqual(result, expected)

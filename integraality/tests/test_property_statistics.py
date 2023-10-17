@@ -592,9 +592,11 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?sitelink schema:about ?entity;
     schema:isPartOf <https://br.wikipedia.org/>;
     schema:name ?value.
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 """
         self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
@@ -719,6 +721,8 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   MINUS {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }
 """
         self.assertEqual(result, expected)

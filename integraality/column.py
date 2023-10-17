@@ -249,10 +249,13 @@ class SitelinkColumn(AbstractColumn):
   ?sitelink schema:about ?entity;
     schema:isPartOf <{self.url}>;
     schema:name ?value.
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """
 
     def get_filter_for_negative_query(self):
         return f"""
     ?sitelink schema:about ?entity;
       schema:isPartOf <{self.url}>.
+  }}
+  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """

@@ -5,6 +5,8 @@
     {% set name = 'label' %}
 {%- elif column.startswith("D") -%}
     {% set name = 'description' %}
+{%- else -%}
+    {% set name = 'sitelink' %}
 {%- endif -%}
 {% block content %}
 <div class="alert">

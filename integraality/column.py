@@ -5,6 +5,7 @@ Column configuration classes
 """
 
 import json
+import os
 from enum import Enum
 
 
@@ -19,7 +20,10 @@ class ColumnSyntaxException(Exception):
 class ColumnMaker:
     @staticmethod
     def make(key, title):
-        wikiprojects = json.load(open("integraality/wikiprojects.json", "r"))
+        current_dir = os.path.dirname(__file__)
+        wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
+        wikiprojects = json.load(open(wikiprojects_path, "r"))
+
         if key.startswith("P"):
             splitted = key.split("/")
             if len(splitted) == 3:
@@ -211,7 +215,9 @@ class DescriptionColumn(TextColumn):
 
 class SitelinkColumn(AbstractColumn):
     def __init__(self, project, title=None):
-        wikiprojects = json.load(open("integraality/wikiprojects.json", "r"))
+        current_dir = os.path.dirname(__file__)
+        wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
+        wikiprojects = json.load(open(wikiprojects_path, "r"))
         self.project = project
         self.url = wikiprojects[project]["url"]
         self.item = wikiprojects[project]["item"]

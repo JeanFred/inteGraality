@@ -83,7 +83,7 @@ def queries():
             "queries.html",
             page_title=page_title,
             page_url=page_url,
-            column=column_key,
+            column=column,
             grouping=request.args.get("grouping"),
             formatted_predicate=formatted_predicate,
             positive_query=positive_query,

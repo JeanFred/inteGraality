@@ -120,6 +120,12 @@ class PropertyColumn(AbstractColumn):
     def get_key(self):
         return "".join([x for x in [self.property, self.value, self.qualifier] if x])
 
+    def get_type_name(self):
+        return "property"
+
+    def format_html_snippet(self):
+        return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
+
     def make_column_header(self):
         if self.qualifier:
             property_link = self.qualifier
@@ -167,6 +173,9 @@ class TextColumn(AbstractColumn):
     def get_title(self):
         return self.get_key()
 
+    def format_html_snippet(self):
+        return f"{self.language} {self.get_type_name()}"
+
     def make_column_header(self):
         if self.title:
             text = f"{self.title}"
@@ -204,6 +213,9 @@ class LabelColumn(TextColumn):
     def get_selector(self):
         return "rdfs:label"
 
+    def get_type_name(self):
+        return "label"
+
 
 class DescriptionColumn(TextColumn):
     def get_key(self):
@@ -211,6 +223,9 @@ class DescriptionColumn(TextColumn):
 
     def get_selector(self):
         return "schema:description"
+
+    def get_type_name(self):
+        return "description"
 
 
 class SitelinkColumn(AbstractColumn):
@@ -231,6 +246,12 @@ class SitelinkColumn(AbstractColumn):
 
     def get_title(self):
         return self.get_key()
+
+    def get_type_name(self):
+        return "sitelink"
+
+    def format_html_snippet(self):
+        return f'<a href="{ self.url }">{self.get_title()} {self.get_type_name()}</a>'
 
     def make_column_header(self):
         if self.title:

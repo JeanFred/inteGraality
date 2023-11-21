@@ -1,7 +1,2 @@
 [toolforge]
 login-buster.toolforge.org
-
-[toolforge:vars]
-statsd_host=cloudmetrics1003.eqiad.wmnet
-statsd_port=8125
-statsd_prefix=toolforge.integraality

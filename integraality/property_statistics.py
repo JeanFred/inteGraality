@@ -16,7 +16,6 @@ from grouping import ItemGroupingConfiguration
 from line import (ItemGrouping, NoGroupGrouping, TotalsGrouping,
                   UnknownValueGrouping, YearGrouping)
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
-from statsd.defaults.env import statsd
 
 
 class PropertyStatistics:
@@ -64,7 +63,6 @@ class PropertyStatistics:
         self.grouping_link = grouping_link
         self.cell_template = "Integraality cell"
 
-    @statsd.timer("property_statistics.sparql.groupings")
     def get_grouping_information(self):
         """
         Get all groupings and their counts.
@@ -141,7 +139,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return self._get_count_from_sparql(query)
 
     @staticmethod
-    @statsd.timer("property_statistics.sparql.count")
     def _get_count_from_sparql(query):
         sq = pywikibot.data.sparql.SparqlQuery()
         queryresult = sq.select(query)
@@ -150,7 +147,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return int(queryresult[0].get("count"))
 
-    @statsd.timer("property_statistics.sparql.grouping_counts")
     def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
         sq = pywikibot.data.sparql.SparqlQuery()
@@ -232,7 +228,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return self.format_stats_for_one_grouping(grouping_object)
 
-    @statsd.timer("property_statistics.processing")
     def retrieve_and_process_data(self):
         """
         Query the data, output wikitext

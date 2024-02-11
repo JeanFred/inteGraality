@@ -114,11 +114,8 @@ class PropertyColumn(AbstractColumn):
             and self.qualifier == other.qualifier
         )
 
-    def get_title(self):
-        return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
-
     def get_key(self):
-        return "".join([x for x in [self.property, self.value, self.qualifier] if x])
+        return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
 
     def get_type_name(self):
         return "property"
@@ -169,9 +166,6 @@ class TextColumn(AbstractColumn):
 
     def __eq__(self, other):
         return self.language == other.language and self.title == other.title
-
-    def get_title(self):
-        return self.get_key()
 
     def format_html_snippet(self):
         return f"{self.language} {self.get_type_name()}"
@@ -244,14 +238,11 @@ class SitelinkColumn(AbstractColumn):
     def get_key(self):
         return self.project
 
-    def get_title(self):
-        return self.get_key()
-
     def get_type_name(self):
         return "sitelink"
 
     def format_html_snippet(self):
-        return f'<a href="{ self.url }">{self.get_title()} {self.get_type_name()}</a>'
+        return f'<a href="{ self.url }">{self.get_key()} {self.get_type_name()}</a>'
 
     def make_column_header(self):
         if self.title:

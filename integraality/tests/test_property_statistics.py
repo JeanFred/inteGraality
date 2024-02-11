@@ -260,8 +260,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         #         ('UNKNOWN_VALUE', 4)
         #     ]),
         #     'P19': OrderedDict([('Q3115846', 8), ('Q2166574', 5)]),
-        #     'P1P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
-        #     'P3Q4P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
+        #     'P1/P2': OrderedDict([('Q3115846', 2), ('Q2166574', 9)]),
+        #     'P3/Q4/P5': OrderedDict([('Q3115846', 7), ('Q2166574', 1)]),
         #     'Lbr': OrderedDict([('Q3115846', 1), ('Q2166574', 2)]),
         #     'Dxy': OrderedDict([('Q3115846', 2), ('Q2166574', 1)]),
         # }
@@ -272,8 +272,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             [
                 ("P21", 10),
                 ("P19", 8),
-                ("P1P2", 2),
-                ("P3Q4P5", 7),
+                ("P1/P2", 2),
+                ("P3/Q4/P5", 7),
                 ("Lbr", 1),
                 ("Dxy", 2),
                 ("brwiki", 1),
@@ -347,8 +347,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             [
                 ("P21", 10),
                 ("P19", 8),
-                ("P1P2", 2),
-                ("P3Q4P5", 7),
+                ("P1/P2", 2),
+                ("P3/Q4/P5", 7),
                 ("Lbr", 1),
                 ("Dxy", 2),
                 ("brwiki", 1),
@@ -379,8 +379,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             [
                 ("P21", 10),
                 ("P19", 8),
-                ("P1P2", 2),
-                ("P3Q4P5", 7),
+                ("P1/P2", 2),
+                ("P3/Q4/P5", 7),
                 ("Lbr", 1),
                 ("Dxy", 2),
                 ("brwiki", 1),
@@ -412,8 +412,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
             [
                 ("P21", 10),
                 ("P19", 8),
-                ("P1P2", 2),
-                ("P3Q4P5", 7),
+                ("P1/P2", 2),
+                ("P3/Q4/P5", 7),
                 ("Lbr", 1),
                 ("Dxy", 2),
                 ("brwiki", 1),
@@ -1218,8 +1218,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 1),
                         ("P19", 5),
-                        ("P1P2", 9),
-                        ("P3Q4P5", 13),
+                        ("P1/P2", 9),
+                        ("P3/Q4/P5", 13),
                         ("Lbr", 17),
                         ("Dxy", 21),
                         ("brwiki", 25),
@@ -1233,8 +1233,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 2),
                         ("P19", 6),
-                        ("P1P2", 10),
-                        ("P3Q4P5", 14),
+                        ("P1/P2", 10),
+                        ("P3/Q4/P5", 14),
                         ("Lbr", 18),
                         ("Dxy", 22),
                         ("brwiki", 26),
@@ -1248,8 +1248,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 3),
                         ("P19", 7),
-                        ("P1P2", 11),
-                        ("P3Q4P5", 15),
+                        ("P1/P2", 11),
+                        ("P3/Q4/P5", 15),
                         ("Lbr", 19),
                         ("Dxy", 23),
                         ("brwiki", 27),
@@ -1306,8 +1306,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                 cells=OrderedDict(
                     [
                         ("P21", 1),
-                        ("P1P2", 9),
-                        ("P3Q4P5", 13),
+                        ("P1/P2", 9),
+                        ("P3/Q4/P5", 13),
                         ("Lbr", 17),
                         ("Dxy", 21),
                         ("brwiki", 24),
@@ -1320,8 +1320,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                 cells=OrderedDict(
                     [
                         ("P21", 2),
-                        ("P1P2", 10),
-                        ("P3Q4P5", 14),
+                        ("P1/P2", 10),
+                        ("P3/Q4/P5", 14),
                         ("Lbr", 18),
                         ("Dxy", 22),
                         ("brwiki", 25),
@@ -1334,8 +1334,8 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
                 cells=OrderedDict(
                     [
                         ("P21", 3),
-                        ("P1P2", 11),
-                        ("P3Q4P5", 15),
+                        ("P1/P2", 11),
+                        ("P3/Q4/P5", 15),
                         ("Lbr", 19),
                         ("Dxy", 23),
                         ("brwiki", 26),
@@ -1368,8 +1368,8 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 10),
                         ("P19", 10),
-                        ("P1P2", 10),
-                        ("P3Q4P5", 10),
+                        ("P1/P2", 10),
+                        ("P3/Q4/P5", 10),
                         ("Lbr", 10),
                         ("Dxy", 10),
                         ("brwiki", 10),
@@ -1383,8 +1383,8 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 6),
                         ("P19", 6),
-                        ("P1P2", 6),
-                        ("P3Q4P5", 6),
+                        ("P1/P2", 6),
+                        ("P3/Q4/P5", 6),
                         ("Lbr", 6),
                         ("Dxy", 6),
                         ("brwiki", 6),
@@ -1398,8 +1398,8 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 6),
                         ("P19", 6),
-                        ("P1P2", 6),
-                        ("P3Q4P5", 6),
+                        ("P1/P2", 6),
+                        ("P3/Q4/P5", 6),
                         ("Lbr", 6),
                         ("Dxy", 6),
                         ("brwiki", 6),
@@ -1450,8 +1450,8 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 10),
                         ("P19", 8),
-                        ("P1P2", 2),
-                        ("P3Q4P5", 7),
+                        ("P1/P2", 2),
+                        ("P3/Q4/P5", 7),
                         ("Lbr", 1),
                         ("Dxy", 2),
                         ("brwiki", 1),
@@ -1465,8 +1465,8 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 6),
                         ("P19", 0),
-                        ("P1P2", 0),
-                        ("P3Q4P5", 0),
+                        ("P1/P2", 0),
+                        ("P3/Q4/P5", 0),
                         ("Lbr", 0),
                         ("Dxy", 0),
                         ("brwiki", 0),
@@ -1534,8 +1534,8 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 10),
                         ("P19", 8),
-                        ("P1P2", 2),
-                        ("P3Q4P5", 7),
+                        ("P1/P2", 2),
+                        ("P3/Q4/P5", 7),
                         ("Lbr", 1),
                         ("Dxy", 2),
                         ("brwiki", 1),
@@ -1549,8 +1549,8 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
                     [
                         ("P21", 6),
                         ("P19", 0),
-                        ("P1P2", 0),
-                        ("P3Q4P5", 0),
+                        ("P1/P2", 0),
+                        ("P3/Q4/P5", 0),
                         ("Lbr", 0),
                         ("Dxy", 0),
                         ("brwiki", 0),

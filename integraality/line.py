@@ -66,7 +66,7 @@ class Grouping(AbstractLine):
             cell_template,
             str(percentage),
             str(column_count),
-            f"column={column_entry.get_title()}",
+            f"column={column_entry.get_key()}",
             f"grouping={self.title}",
         ]
         return f'| {{{{{"|".join(fields)}}}}}\n'

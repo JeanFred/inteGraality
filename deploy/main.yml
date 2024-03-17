@@ -10,6 +10,16 @@
     toolforge_path: "{{ base_path }}/www/python"
     virtualenv_path: "{{ toolforge_path }}/venv"
     source_path: "{{ toolforge_path }}/src"
+    jobs_file_path: "{{ base_path }}/jobs.yml"
+
+    jobs:
+      - name: weekly-update-wikidata
+        command: "{{ checkout_path }}/bin/run.sh wikidata"
+        image: python3.9
+        schedule: "@weekly"
+        emails: all
+        filelog-stdout: logs/weekly-update-wikidata-out.log
+        filelog-stderr: logs/weekly-update-wikidata-err.log
 
   handlers:
     - name: Restart webservice
@@ -21,6 +31,10 @@
         msg: >
           Deploy done. Please update the Server Admin Log via IRC:
           https://webchat.freenode.net/?channels=#wikimedia-labs
+
+    - name: Load Toolforge jobs from file
+      command: >
+        toolforge jobs load {{ jobs_file_path }}
 
   tasks:
     - name: Ensure directories exist
@@ -66,32 +80,11 @@
       tags:
         - paths
 
-    - name: Cron environment variables
-      cron:
-        name: "{{ item.name }}"
-        env: yes
-        value: "{{ item.value }}"
-      with_items:
-        - {name: 'UPDATE_SCRIPT', value: "{{ checkout_path }}/bin/run.sh"}
-        - {name: 'UPDATE_LOG_FILE_META', value: "{{ logs_path }}/daily-update-meta.log"}
-        - {name: 'UPDATE_LOG_FILE_WIKIDATA', value: "{{ logs_path }}/weekly-update-wikidata.log"}
-        - {name: 'CRONTAB_LOG_FILE', value: "{{ logs_path }}/crontab.log"}
-        - {name: 'JSUB_PARAMS', value: '-release buster -mem 1000m -once -j y'}
-      tags:
-        - crontab
-
     - name: Weekly job updating all dashboards on Wikidata
-      cron:
-        name: Weekly update
-        special_time: weekly
-        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_WIKIDATA -N weekly-update $UPDATE_SCRIPT wikidata >> $CRONTAB_LOG_FILE
+      ansible.builtin.copy:
+        content: '{{ jobs | to_nice_yaml(sort_keys=false) }}'
+        dest: '{{ jobs_file_path }}'
+      notify:
+        - Load Toolforge jobs from file
       tags:
-        - crontab
-
-    - name: Daily job updating all dashboards on Meta
-      cron:
-        name: Daily Meta update
-        special_time: daily
-        job: jsub $JSUB_PARAMS -o $UPDATE_LOG_FILE_META -N daily-update-meta $UPDATE_SCRIPT meta https://meta.wikimedia.org/wiki/ >> $CRONTAB_LOG_FILE
-      tags:
-        - crontab
+        - jobs

@@ -152,6 +152,7 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_negative_query(self):
         return f"""
+  MINUS {{
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?prop .}}
   }}
@@ -193,6 +194,7 @@ class TextColumn(AbstractColumn):
 
     def get_filter_for_negative_query(self):
         return f"""
+  MINUS {{
     {{ ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}") }}
   }}
@@ -266,6 +268,7 @@ class SitelinkColumn(AbstractColumn):
 
     def get_filter_for_negative_query(self):
         return f"""
+  MINUS {{
     ?sitelink schema:about ?entity;
       schema:isPartOf <{self.url}>.
   }}

@@ -110,9 +110,6 @@ class PropertyStatistics:
 
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
-
-        query += """
-  MINUS {"""
         query += column.get_filter_for_negative_query()
         query += """}
 """

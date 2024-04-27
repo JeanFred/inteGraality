@@ -663,7 +663,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     { ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br") }
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "br". }
 }
 """
         self.assertEqual(result, expected)

@@ -89,6 +89,7 @@ class PropertyStatistics:
         query = "\n"
         query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
         query += column.get_filter_for_positive_query()
+        query += column.get_service_wikibase_label()
         query += """}
 """
         return query
@@ -111,6 +112,7 @@ class PropertyStatistics:
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
         query += column.get_filter_for_negative_query()
+        query += column.get_service_wikibase_label()
         query += """}
 """
         return query

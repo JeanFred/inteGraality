@@ -98,6 +98,9 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 """
         return query
 
+    def get_service_wikibase_label(self):
+        return '  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }\n'
+
 
 class PropertyColumn(AbstractColumn):
     def __init__(self, property, title=None, value=None, qualifier=None):
@@ -147,7 +150,6 @@ class PropertyColumn(AbstractColumn):
     def get_filter_for_positive_query(self):
         return f"""
   ?entity p:{self.property} ?prop . OPTIONAL {{ ?prop ps:{self.property} ?value }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """
 
     def get_filter_for_negative_query(self):
@@ -156,7 +158,6 @@ class PropertyColumn(AbstractColumn):
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?prop .}}
   }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """
 
 
@@ -189,7 +190,6 @@ class TextColumn(AbstractColumn):
     ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}").
   }})
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.language}". }}
 """
 
     def get_filter_for_negative_query(self):
@@ -198,8 +198,10 @@ class TextColumn(AbstractColumn):
     {{ ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}") }}
   }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """
+
+    def get_service_wikibase_label(self):
+        return f'  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.language}". }}\n'
 
 
 class LabelColumn(TextColumn):
@@ -263,7 +265,6 @@ class SitelinkColumn(AbstractColumn):
   ?sitelink schema:about ?entity;
     schema:isPartOf <{self.url}>;
     schema:name ?value.
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """
 
     def get_filter_for_negative_query(self):
@@ -272,5 +273,4 @@ class SitelinkColumn(AbstractColumn):
     ?sitelink schema:about ?entity;
       schema:isPartOf <{self.url}>.
   }}
-  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }}
 """

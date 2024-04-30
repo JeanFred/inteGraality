@@ -111,10 +111,8 @@ class PropertyStatistics:
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
 
-        if grouping != self.GROUP_MAPPING.NO_GROUPING:
-            query += """
+        query += """
   MINUS {"""
-
         query += column.get_filter_for_negative_query()
         query += """}
 """

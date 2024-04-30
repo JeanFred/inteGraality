@@ -100,7 +100,8 @@ class NoGroupGroupingTest(unittest.TestCase):
                 "SELECT DISTINCT ?entity ?entityLabel WHERE {",
                 "  ?entity wdt:P31 wd:Q41960 .",
                 "  MINUS {",
-                "    {?entity wdt:P551 [] .} UNION",
+                "    ?entity wdt:P551 [] .",
+                "  }",
             ]
         )
         self.assertEqual(result, expected)

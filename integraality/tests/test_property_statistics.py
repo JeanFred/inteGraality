@@ -624,7 +624,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   MINUS {
-    {?entity wdt:P551 [] .} UNION
+    ?entity wdt:P551 [] .
+  }
+  MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }

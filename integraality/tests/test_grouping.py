@@ -162,3 +162,14 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
             grouping_threshold=self.grouping_threshold,
         )
         self.assertEqual(result, expected)
+
+    def test_property_syntax_with_injection(self):
+        result = grouping.GroupingConfigurationMaker.make(
+                None, "P131/wdt:P131", self.higher_grouping, self.grouping_threshold
+            )
+        expected = grouping.PredicateGroupingConfiguration(
+            predicate="wdt:P131/wdt:P131",
+            higher_grouping=self.higher_grouping,
+            grouping_threshold=self.grouping_threshold,
+        )
+        self.assertEqual(result, expected)

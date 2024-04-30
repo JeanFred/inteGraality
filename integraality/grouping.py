@@ -23,7 +23,7 @@ class UnsupportedGroupingConfigurationException(Exception):
 class GroupingConfigurationMaker:
     @staticmethod
     def make(repo, grouping_property, higher_grouping, grouping_threshold):
-        if re.match(r"P\d+", grouping_property):
+        if re.match(r"^P\d+$", grouping_property):
             property_page = pywikibot.PropertyPage(repo, grouping_property)
             property_type = property_page.get_data_for_new_entity()["datatype"]
             print(f"property_type is {property_type}")
@@ -41,6 +41,12 @@ class GroupingConfigurationMaker:
                 raise UnsupportedGroupingConfigurationException(
                     f"Property {grouping_property} is of type {property_type} which is not supported."
                 )
+        elif re.match(r"^P\d+", grouping_property):
+            return PredicateGroupingConfiguration(
+                predicate=f"wdt:{grouping_property}",
+                higher_grouping=higher_grouping,
+                grouping_threshold=grouping_threshold,
+            )
         else:
             return PredicateGroupingConfiguration(
                 predicate=grouping_property,

@@ -148,12 +148,30 @@ class PropertyColumn(AbstractColumn):
     ?entity p:{self.property}[]"""
 
     def get_filter_for_positive_query(self):
-        return f"""
+        if self.qualifier:
+            return f"""
+  ?entity p:{self.property} ?statement .
+  {{ ?statement pq:{self.qualifier} ?value . }}
+  UNION
+  {{ ?statement a wdno:{self.qualifier} . BIND("no value"@en AS ?valueLabel) }}
+"""
+        else:
+            return f"""
   ?entity p:{self.property} ?prop . OPTIONAL {{ ?prop ps:{self.property} ?value }}
 """
 
     def get_filter_for_negative_query(self):
-        return f"""
+        if self.qualifier:
+            return f"""
+  MINUS {{
+    ?entity p:{self.property} ?statement .
+    {{ ?statement pq:{self.qualifier} ?value . }}
+    UNION
+    {{ ?statement a wdno:{self.qualifier} . }}
+  }}
+"""
+        else:
+            return f"""
   MINUS {{
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?prop .}}

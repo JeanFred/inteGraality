@@ -597,6 +597,22 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_qualifier(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.stats.columns.get("P1/P2"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  ?entity p:P1 ?statement .
+  { ?statement pq:P2 ?value . }
+  UNION
+  { ?statement a wdno:P2 . BIND("no value"@en AS ?valueLabel) }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
@@ -723,6 +739,25 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   MINUS {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
+  }
+  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_qualifier(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.stats.columns.get("P1/P2"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  MINUS {
+    ?entity p:P1 ?statement .
+    { ?statement pq:P2 ?value . }
+    UNION
+    { ?statement a wdno:P2 . }
   }
   SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
 }

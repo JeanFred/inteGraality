@@ -8,7 +8,7 @@ import re
 
 import pywikibot.data.sparql
 
-from line import ItemGrouping, UnknownValueGrouping, YearGrouping
+from line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 
 
@@ -23,6 +23,11 @@ class UnsupportedGroupingConfigurationException(Exception):
 class GroupingConfigurationMaker:
     @staticmethod
     def make(repo, grouping_property, higher_grouping, grouping_threshold):
+        if grouping_property == "schema:about":
+            return SitelinkGroupingConfiguration(
+                higher_grouping=higher_grouping,
+                grouping_threshold=grouping_threshold,
+            )
         if re.match(r"^P\d+$", grouping_property):
             property_page = pywikibot.PropertyPage(repo, grouping_property)
             property_type = property_page.get_data_for_new_entity()["datatype"]
@@ -229,3 +234,29 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
             f"  ?entity {self.get_predicate()} ?date .",
             "  BIND(YEAR(?date) as ?grouping) .",
         ]
+
+
+class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
+
+    line_type = SitelinkGrouping
+
+    def __init__(self, higher_grouping=None, grouping_threshold=20):
+        super().__init__(higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+
+    def __eq__(self, other):
+        return (
+            self.higher_grouping == other.higher_grouping
+            and self.grouping_threshold == other.grouping_threshold
+        )
+
+    def format_predicate_html(self):
+        return "sitelink"
+
+    def get_grouping_selector(self):
+        return [
+            f"  ?entity {self.get_predicate()} ?sitelink.",
+            "  ?sitelink schema:isPartOf ?grouping."
+        ]
+
+    def get_predicate(self):
+        return "^schema:about"

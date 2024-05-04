@@ -109,6 +109,56 @@ class YearGroupingConfigurationTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class SitelinkGroupingConfigurationTest(unittest.TestCase):
+
+    def test_constructor_empty(self):
+        grouping.SitelinkGroupingConfiguration()
+
+    def test_get_grouping_selector(self):
+        grouping_configuration = grouping.SitelinkGroupingConfiguration()
+        result = grouping_configuration.get_grouping_selector()
+        expected = [
+            '  ?entity ^schema:about ?sitelink.',
+            '  ?sitelink schema:isPartOf ?grouping.'
+        ]
+        self.assertListEqual(result, expected)
+
+    def test_get_grouping_information_query(self):
+        grouping_configuration = grouping.SitelinkGroupingConfiguration()
+        result = grouping_configuration.get_grouping_information_query("Q1")
+        expected = (
+            "\n"
+            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity Q1 .\n"
+            "  ?entity ^schema:about ?sitelink.\n"
+            "  ?sitelink schema:isPartOf ?grouping.\n"
+            "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_query_with_higher_grouping(self):
+        grouping_configuration = grouping.SitelinkGroupingConfiguration(
+            higher_grouping="wikibase:wikiGroup"
+        )
+        result = grouping_configuration.get_grouping_information_query("Q1")
+        expected = (
+            "\n"
+            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity Q1 .\n"
+            "  ?entity ^schema:about ?sitelink.\n"
+            "  ?sitelink schema:isPartOf ?grouping.\n"
+            "  OPTIONAL { ?grouping wikibase:wikiGroup ?_higher_grouping }.\n"
+            "} GROUP BY ?grouping ?higher_grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, expected)
+
+
 class TestGroupingConfigurationMaker(unittest.TestCase):
     def setUp(self):
         patcher = patch("pywikibot.PropertyPage", autospec=True)
@@ -169,6 +219,16 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
             )
         expected = grouping.PredicateGroupingConfiguration(
             predicate="wdt:P131/wdt:P131",
+            higher_grouping=self.higher_grouping,
+            grouping_threshold=self.grouping_threshold,
+        )
+        self.assertEqual(result, expected)
+
+    def test_sitelink(self):
+        result = grouping.GroupingConfigurationMaker.make(
+                None, "schema:about", self.higher_grouping, self.grouping_threshold
+            )
+        expected = grouping.SitelinkGroupingConfiguration(
             higher_grouping=self.higher_grouping,
             grouping_threshold=self.grouping_threshold,
         )

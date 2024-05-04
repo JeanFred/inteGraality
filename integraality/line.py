@@ -175,6 +175,21 @@ class ItemGrouping(Grouping):
         return [f"  ?entity {grouping_predicate} wd:{grouping} ."]
 
 
+class SitelinkGrouping(Grouping):
+
+    def heading(self):
+        return f"{self.title}"
+
+    def format_higher_grouping_text(self, grouping_type):
+        return f'| data-sort-value="{self.higher_grouping}"| {self.higher_grouping}\n'
+
+    def query_filter_out_fragment(self, grouping_predicate, grouping):
+        return [
+            "  ?entity ^schema:about ?article.",
+            f"  ?article schema:isPartOf <{grouping}>."
+        ]
+
+
 class YearGrouping(Grouping):
     def heading(self):
         return f"{self.title}"

@@ -13,8 +13,8 @@ import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
 from grouping import ItemGroupingConfiguration
-from line import (ItemGrouping, NoGroupGrouping, TotalsGrouping,
-                  UnknownValueGrouping, YearGrouping)
+from line import (ItemGrouping, NoGroupGrouping, SitelinkGrouping,
+                  TotalsGrouping, UnknownValueGrouping, YearGrouping)
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 
 
@@ -83,6 +83,8 @@ class PropertyStatistics:
             line = UnknownValueGrouping(None)
         elif self.grouping_type == GroupingType.YEAR:
             line = YearGrouping(None)
+        elif grouping.startswith("https://"):
+            line = SitelinkGrouping(None)
         else:
             line = ItemGrouping(None)
 
@@ -106,6 +108,8 @@ class PropertyStatistics:
             line = UnknownValueGrouping(None)
         elif self.grouping_type == GroupingType.YEAR:
             line = YearGrouping(None)
+        elif grouping.startswith("https://"):
+            line = SitelinkGrouping(None)
         else:
             line = ItemGrouping(None)
 

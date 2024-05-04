@@ -18,6 +18,7 @@
         image: python3.9
         schedule: "@weekly"
         emails: all
+        mem: 1G
         filelog-stdout: logs/weekly-update-wikidata-out.log
         filelog-stderr: logs/weekly-update-wikidata-err.log
 

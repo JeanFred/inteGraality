@@ -91,7 +91,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         query = f"""
 SELECT (COUNT(*) AS ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
-  MINUS {{ ?entity wdt:{property_statistics.grouping_configuration.property} _:b28. }}
+  MINUS {{ ?entity {property_statistics.grouping_configuration.get_predicate()} _:b28. }}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}

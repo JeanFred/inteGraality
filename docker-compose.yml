@@ -11,6 +11,7 @@ services:
       - PYWIKIBOT_NO_USER_CONFIG=1
       - REDIS_HOST=redis
       - PYTHONPATH=/code/integraality/
+      - LOCAL_WRITE_PATH=docker_pages
     ports:
      - 5000:5000
     volumes:

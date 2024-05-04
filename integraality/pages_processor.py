@@ -15,6 +15,7 @@ from cache import RedisCache
 from column import ColumnMaker, ColumnSyntaxException
 from grouping import (GroupingConfigurationMaker,
                       UnsupportedGroupingConfigurationException)
+from page_saving import save_to_wiki_or_local
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException
 
@@ -123,7 +124,7 @@ class PagesProcessor:
         stats = self.make_stats_object_for_page(page)
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page.get())
-        page.put(new_text, self.summary)
+        save_to_wiki_or_local(page, self.summary, new_text)
 
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:

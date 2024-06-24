@@ -231,7 +231,6 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(self.mock_sparql_query.call_count, 7)
 
     def test_make_stats_for_no_group_with_grouping_link(self):
-        self.stats.grouping_link = "Foo"
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
@@ -316,8 +315,9 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_stats_for_unknown_grouping_with_grouping_link(self):
-        self.stats.grouping_link = "Foo"
-        grouping = UnknownValueGrouping(title="UNKNOWN_VALUE", count=10)
+        grouping = UnknownValueGrouping(
+            title="UNKNOWN_VALUE", grouping_link="Foo/UNKNOWN_VALUE", count=10
+        )
         grouping.cells = OrderedDict(
             [
                 ("P21", 4),
@@ -369,11 +369,8 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
-    @patch("pywikibot.ItemPage", autospec=True)
-    def test_format_stats_for_one_grouping_with_grouping_link(self, mock_item_page):
-        mock_item_page.return_value.labels = {"en": "Bar"}
-        self.stats.grouping_link = "Foo"
-        grouping = ItemGrouping(title="Q3115846", count=10)
+    def test_format_stats_for_one_grouping_with_grouping_link(self):
+        grouping = ItemGrouping(title="Q3115846", grouping_link="Foo/Bar", count=10)
         grouping.cells = OrderedDict(
             [
                 ("P21", 10),
@@ -400,41 +397,6 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
-    @patch("pywikibot.ItemPage", autospec=True)
-    def test_format_stats_for_one_grouping_with_grouping_link_failure(
-        self, mock_item_page
-    ):
-        mock_item_page.side_effect = pywikibot.exceptions.InvalidTitleError("Error")
-        self.stats.grouping_link = "Foo"
-        grouping = ItemGrouping(title="Q3115846", count=10)
-        grouping.cells = OrderedDict(
-            [
-                ("P21", 10),
-                ("P19", 8),
-                ("P1/P2", 2),
-                ("P3/Q4/P5", 7),
-                ("Lbr", 1),
-                ("Dxy", 2),
-                ("brwiki", 1),
-            ]
-        )
-        with self.assertLogs(level="INFO") as cm:
-            result = self.stats.format_stats_for_one_grouping(grouping)
-        expected = (
-            "|-\n"
-            "| {{Q|Q3115846}}\n"
-            "| [[Foo/Q3115846|10]] \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n"
-            "| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n"
-            "| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n"
-            "| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n"
-            "| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n"
-            "| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n"
-            "| {{Integraality cell|10.0|1|column=brwiki|grouping=Q3115846}}\n"
-        )
-        self.assertEqual(result, expected)
-        self.assertEqual(cm.output, ["INFO:root:Could not retrieve label for Q3115846"])
-
     def test_make_stats_for_year_grouping(self):
         grouping = YearGrouping(title="2001", count=10)
         grouping.cells = OrderedDict(
@@ -458,8 +420,7 @@ class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_stats_for_year_grouping_with_grouping_link(self):
-        self.stats.grouping_link = "Foo"
-        grouping = YearGrouping(title="2001", count=10)
+        grouping = YearGrouping(title="2001", grouping_link="Foo/2001", count=10)
         grouping.cells = OrderedDict(
             [
                 ("P21", 4),
@@ -1099,6 +1060,49 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assert_query_called(query)
         self.assertEqual(result, expected)
 
+    def test_get_grouping_information_with_grouping_link(self):
+        self.mock_sparql_query.return_value.select.return_value = [
+            {
+                "grouping": "http://www.wikidata.org/entity/Q3115846",
+                "grouping_link_value": "A",
+                "count": "10",
+            },
+            {
+                "grouping": "http://www.wikidata.org/entity/Q5087901",
+                "grouping_link_value": "B",
+                "count": "6",
+            },
+            {
+                "grouping": "http://www.wikidata.org/entity/Q623333",
+                "grouping_link_value": "C",
+                "count": "6",
+            },
+        ]
+        expected = {
+            "Q3115846": ItemGrouping(title="Q3115846", grouping_link="Foo/A", count=10),
+            "Q5087901": ItemGrouping(title="Q5087901", grouping_link="Foo/B", count=6),
+            "Q623333": ItemGrouping(title="Q623333", grouping_link="Foo/C", count=6),
+        }
+        query = (
+            "\n"
+            "SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity wdt:P31 wd:Q41960 .\n"
+            "  ?entity wdt:P551 ?grouping .\n"
+            "  OPTIONAL {{\n"
+            "    ?grouping rdfs:label ?label.\n"
+            "    FILTER(lang(?label)='en')\n"
+            "    BIND(?label AS ?grouping_link_value)\n"
+            "  }}.\n"
+            "} GROUP BY ?grouping ?grouping_link_value\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.stats.grouping_configuration.base_grouping_link = "Foo"
+        result = self.stats.get_grouping_information()
+        self.assert_query_called(query)
+        self.assertEqual(result, expected)
+
 
 class TestGetHeader(PropertyStatisticsTest):
     def setUp(self):
@@ -1196,7 +1200,6 @@ class MakeTotalsTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_totals_with_grouping_link(self):
-        self.stats.grouping_link = "Foo"
         result = self.stats.make_totals()
         expected = (
             '|- class="sortbottom"\n'

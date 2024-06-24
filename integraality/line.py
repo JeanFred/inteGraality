@@ -5,10 +5,7 @@ Line configuration classes
 """
 
 import collections
-import logging
 import re
-
-import pywikibot
 
 
 class AbstractLine:
@@ -27,10 +24,13 @@ class AbstractLine:
 class Grouping(AbstractLine):
     is_linkable = True
 
-    def __init__(self, count, cells=None, title=None, higher_grouping=None):
+    def __init__(
+        self, count, cells=None, title=None, higher_grouping=None, grouping_link=None
+    ):
         super().__init__(count, cells)
         self.title = title
         self.higher_grouping = higher_grouping
+        self.grouping_link = grouping_link
 
     def __eq__(self, other):
         return (
@@ -38,6 +38,7 @@ class Grouping(AbstractLine):
             and self.title == other.title
             and self.higher_grouping == other.higher_grouping
             and self.cells == other.cells
+            and self.grouping_link == other.grouping_link
         )
 
     def __repr__(self):
@@ -74,14 +75,14 @@ class Grouping(AbstractLine):
     def row_opener(self):
         return "|-\n"
 
-    def format_count_cell(self, grouping_link, repo):
-        if grouping_link and self.is_linkable:
-            return self.format_grouping_link(grouping_link, repo)
+    def format_count_cell(self):
+        if self.grouping_link and self.is_linkable:
+            return self.format_grouping_link()
         else:
             return f"| {self.count} \n"
 
-    def format_grouping_link(self, grouping_link, repo=None):
-        return f"| [[{grouping_link}/{self.title}|{self.count}]] \n"
+    def format_grouping_link(self):
+        return f"| [[{self.grouping_link}|{self.count}]] \n"
 
     def postive_query(self, selector_sparql, grouping_predicate=None, grouping=None):
         query = []
@@ -125,20 +126,6 @@ class NoGroupGrouping(Grouping):
 
 
 class ItemGrouping(Grouping):
-    def format_grouping_link(self, grouping_link, repo):
-        try:
-            group_item = pywikibot.ItemPage(repo, self.title)
-            group_item.get(get_redirect=True)
-            label = group_item.labels["en"]
-        except (
-            pywikibot.exceptions.InvalidTitleError,
-            pywikibot.exceptions.NoPageError,
-            KeyError,
-        ):
-            logging.info(f"Could not retrieve label for {self.title}")
-            label = self.title
-        return f"| [[{grouping_link}/{label}|{self.count}]] \n"
-
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping
         type_mapping = {

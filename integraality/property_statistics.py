@@ -48,14 +48,11 @@ class PropertyStatistics:
         grouping_type=None,
         higher_grouping_type=None,
         stats_for_no_group=False,
-        grouping_link=None,
         property_threshold=0,
     ):
         """
         Set what to work on and other variables here.
         """
-        site = pywikibot.Site("en", "wikipedia")
-        self.repo = site.data_repository()
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_configuration = grouping_configuration
         if grouping_type:
@@ -67,7 +64,6 @@ class PropertyStatistics:
         self.stats_for_no_group = stats_for_no_group
         self.property_threshold = property_threshold
 
-        self.grouping_link = grouping_link
         self.cell_template = "Integraality cell"
 
     def get_grouping_information(self):
@@ -240,7 +236,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         text += grouping_object.format_header_cell(
             self.grouping_configuration, self.grouping_type
         )
-        text += grouping_object.format_count_cell(self.grouping_link, self.repo)
+        text += grouping_object.format_count_cell()
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
         return text

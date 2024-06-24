@@ -32,13 +32,13 @@ class GroupingTest(unittest.TestCase):
 
     def test_format_count_cell(self):
         grouping = line.Grouping(count=1, title="smth")
-        result = grouping.format_count_cell(None, None)
+        result = grouping.format_count_cell()
         expected = "| 1 \n"
         self.assertEquals(result, expected)
 
     def test_format_count_cell_with_grouping_link(self):
-        grouping = line.Grouping(count=1, title="smth")
-        result = grouping.format_count_cell("Foo", None)
+        grouping = line.Grouping(count=1, grouping_link="Foo/smth", title="smth")
+        result = grouping.format_count_cell()
         expected = "| [[Foo/smth|1]] \n"
         self.assertEquals(result, expected)
 

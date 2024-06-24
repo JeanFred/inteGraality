@@ -142,6 +142,7 @@ class PagesProcessor:
                 config.pop("grouping_property"),
                 config.pop("higher_grouping", None),
                 int(config.pop("grouping_threshold", 20)),
+                config.pop("grouping_link", None),
             )
         except UnsupportedGroupingConfigurationException as e:
             raise ConfigException(e)

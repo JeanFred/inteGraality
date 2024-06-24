@@ -23,7 +23,13 @@ class UnsupportedGroupingConfigurationException(Exception):
 
 class GroupingConfigurationMaker:
     @staticmethod
-    def make(repo, grouping_property, higher_grouping, grouping_threshold):
+    def make(
+        repo,
+        grouping_property,
+        higher_grouping,
+        grouping_threshold,
+        base_grouping_link=None,
+    ):
         if grouping_property == "schema:about":
             return SitelinkGroupingConfiguration(
                 higher_grouping=higher_grouping,
@@ -36,12 +42,15 @@ class GroupingConfigurationMaker:
             if property_type == "wikibase-item":
                 return ItemGroupingConfiguration(
                     property=grouping_property,
+                    base_grouping_link=base_grouping_link,
                     higher_grouping=higher_grouping,
                     grouping_threshold=grouping_threshold,
                 )
             elif property_type == "time":
                 return YearGroupingConfiguration(
-                    property=grouping_property, grouping_threshold=grouping_threshold
+                    property=grouping_property,
+                    base_grouping_link=base_grouping_link,
+                    grouping_threshold=grouping_threshold,
                 )
             else:
                 raise UnsupportedGroupingConfigurationException(
@@ -50,20 +59,25 @@ class GroupingConfigurationMaker:
         elif re.match(r"^P\d+", grouping_property):
             return PredicateGroupingConfiguration(
                 predicate=f"wdt:{grouping_property}",
+                base_grouping_link=base_grouping_link,
                 higher_grouping=higher_grouping,
                 grouping_threshold=grouping_threshold,
             )
         else:
             return PredicateGroupingConfiguration(
                 predicate=grouping_property,
+                base_grouping_link=base_grouping_link,
                 higher_grouping=higher_grouping,
                 grouping_threshold=grouping_threshold,
             )
 
 
 class AbstractGroupingConfiguration:
-    def __init__(self, higher_grouping=None, grouping_threshold=0):
+    def __init__(
+        self, higher_grouping=None, base_grouping_link=None, grouping_threshold=0
+    ):
         self.higher_grouping = higher_grouping
+        self.base_grouping_link = base_grouping_link
         self.grouping_threshold = grouping_threshold
 
     def get_grouping_information_query(self, selector_sparql):
@@ -71,6 +85,7 @@ class AbstractGroupingConfiguration:
         select_elements = [
             "?grouping",
             self.get_select_for_higher_grouping(),
+            self.get_select_for_grouping_link_value(),
             "(COUNT(DISTINCT ?entity) as ?count)",
         ]
         selects = " ".join([x for x in select_elements if x])
@@ -82,12 +97,22 @@ class AbstractGroupingConfiguration:
             ]
         )
         query.extend(self.get_grouping_selector())
+
         (higher_grouping_select, higher_grouping_group_by) = (
             self.get_higher_grouping_selector()
         )
+
         query.extend(higher_grouping_select)
         if higher_grouping_group_by:
             group_bys.append(higher_grouping_group_by)
+
+        (grouping_link_select, grouping_link_group_by) = (
+            self.get_grouping_link_selector()
+        )
+        query.extend(grouping_link_select)
+        if grouping_link_group_by:
+            group_bys.append(grouping_link_group_by)
+
         query.extend([f"}} GROUP BY {' '.join(group_bys)}"])
         query.extend(
             [
@@ -105,6 +130,12 @@ class AbstractGroupingConfiguration:
         else:
             return ""
 
+    def get_select_for_grouping_link_value(self):
+        if self.base_grouping_link:
+            return "?grouping_link_value"
+        else:
+            return ""
+
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
             return (
@@ -112,6 +143,21 @@ class AbstractGroupingConfiguration:
                     f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
                 ],
                 "?higher_grouping",
+            )
+        else:
+            return ([], None)
+
+    def get_grouping_link_selector(self):
+        if self.base_grouping_link:
+            return (
+                [
+                    "  OPTIONAL {{",
+                    "    ?grouping rdfs:label ?label.",
+                    "    FILTER(lang(?label)='en')",
+                    "    BIND(?label AS ?grouping_link_value)",
+                    "  }}.",
+                ],
+                "?grouping_link_value",
             )
         else:
             return ([], None)
@@ -168,15 +214,31 @@ class AbstractGroupingConfiguration:
                     higher_grouping = value
                 else:
                     higher_grouping = None
+
+                if self.base_grouping_link:
+                    value = resultitem.get("grouping_link_value")
+                    if not value:
+                        value = qid
+                    grouping_link = f"{self.base_grouping_link}/{value}"
+                else:
+                    grouping_link = None
+
                 property_grouping = self.line_type(
                     title=qid,
                     count=int(resultitem.get("count")),
+                    grouping_link=grouping_link,
                     higher_grouping=higher_grouping,
                 )
                 groupings[property_grouping.get_key()] = property_grouping
 
         if unknown_value_count:
-            unknown_value_grouping = UnknownValueGrouping(unknown_value_count)
+            if self.base_grouping_link:
+                unknown_value_grouping = UnknownValueGrouping(
+                    unknown_value_count,
+                    grouping_link=f"{self.base_grouping_link}/UNKNOWN_VALUE",
+                )
+            else:
+                unknown_value_grouping = UnknownValueGrouping(unknown_value_count)
             groupings[unknown_value_grouping.get_key()] = unknown_value_grouping
 
         return groupings
@@ -185,9 +247,17 @@ class AbstractGroupingConfiguration:
 class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
     line_type = ItemGrouping
 
-    def __init__(self, predicate, higher_grouping=None, grouping_threshold=20):
+    def __init__(
+        self,
+        predicate,
+        higher_grouping=None,
+        base_grouping_link=None,
+        grouping_threshold=20,
+    ):
         super().__init__(
-            higher_grouping=higher_grouping, grouping_threshold=grouping_threshold
+            higher_grouping=higher_grouping,
+            base_grouping_link=base_grouping_link,
+            grouping_threshold=grouping_threshold,
         )
         self.predicate = predicate
 
@@ -195,6 +265,7 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
         return (
             self.predicate == other.predicate
             and self.higher_grouping == other.higher_grouping
+            and self.base_grouping_link == other.base_grouping_link
             and self.grouping_threshold == other.grouping_threshold
         )
 
@@ -209,9 +280,17 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
 
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
-    def __init__(self, property, higher_grouping=None, grouping_threshold=20):
+    def __init__(
+        self,
+        property,
+        higher_grouping=None,
+        base_grouping_link=None,
+        grouping_threshold=20,
+    ):
         super().__init__(
-            higher_grouping=higher_grouping, grouping_threshold=grouping_threshold
+            higher_grouping=higher_grouping,
+            base_grouping_link=base_grouping_link,
+            grouping_threshold=grouping_threshold,
         )
         self.property = property
 
@@ -219,6 +298,7 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
         return (
             self.property == other.property
             and self.higher_grouping == other.higher_grouping
+            and self.base_grouping_link == other.base_grouping_link
             and self.grouping_threshold == other.grouping_threshold
         )
 
@@ -232,10 +312,17 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
 class ItemGroupingConfiguration(PropertyGroupingConfiguration):
     line_type = ItemGrouping
 
-    def __init__(self, property, higher_grouping=None, grouping_threshold=20):
+    def __init__(
+        self,
+        property,
+        higher_grouping=None,
+        base_grouping_link=None,
+        grouping_threshold=20,
+    ):
         super().__init__(
             property=property,
             higher_grouping=higher_grouping,
+            base_grouping_link=base_grouping_link,
             grouping_threshold=grouping_threshold,
         )
 
@@ -246,8 +333,12 @@ class ItemGroupingConfiguration(PropertyGroupingConfiguration):
 class YearGroupingConfiguration(PropertyGroupingConfiguration):
     line_type = YearGrouping
 
-    def __init__(self, property, grouping_threshold=20):
-        super().__init__(property=property, grouping_threshold=grouping_threshold)
+    def __init__(self, property, base_grouping_link=None, grouping_threshold=20):
+        super().__init__(
+            property=property,
+            base_grouping_link=base_grouping_link,
+            grouping_threshold=grouping_threshold,
+        )
 
     def get_grouping_selector(self):
         return [

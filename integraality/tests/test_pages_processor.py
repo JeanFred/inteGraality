@@ -75,8 +75,10 @@ class TestParseConfig(ProcessortTest):
         }
         result = self.processor.parse_config(input_config)
         expected = {
-            "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
-            "grouping_configuration": ItemGroupingConfiguration(property="P400"),
+            "grouping_configuration": ItemGroupingConfiguration(
+                property="P400",
+                base_grouping_link="Wikidata:WikiProject Video games/Reports/Platform",
+            ),
             "stats_for_no_group": True,
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
@@ -106,7 +108,6 @@ class TestParseConfig(ProcessortTest):
 
     def test_full_config(self):
         input_config = {
-            "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "grouping_property": "P400",
             "stats_for_no_group": "1",
             "properties": "P136:genre,P404",
@@ -116,7 +117,6 @@ class TestParseConfig(ProcessortTest):
         }
         result = self.processor.parse_config(input_config)
         expected = {
-            "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_configuration": ItemGroupingConfiguration(
                 property="P400", grouping_threshold=1

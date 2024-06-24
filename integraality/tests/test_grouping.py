@@ -81,6 +81,29 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
         )
         self.assertEqual(result, expected)
 
+    def test_get_grouping_information_query_with_grouping_link(self):
+        grouping_configuration = grouping.ItemGroupingConfiguration(
+            property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
+        )
+        result = grouping_configuration.get_grouping_information_query("Q1")
+        expected = (
+            "\n"
+            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity Q1 .\n"
+            "  ?entity wdt:P1 ?grouping .\n"
+            "  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.\n"
+            "  OPTIONAL {{\n"
+            "    ?grouping rdfs:label ?label.\n"
+            "    FILTER(lang(?label)='en')\n"
+            "    BIND(?label AS ?grouping_link_value)\n"
+            "  }}.\n"
+            "} GROUP BY ?grouping ?higher_grouping ?grouping_link_value\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, expected)
+
 
 class YearGroupingConfigurationTest(unittest.TestCase):
     def test_constructor_empty(self):
@@ -102,6 +125,29 @@ class YearGroupingConfigurationTest(unittest.TestCase):
             "  ?entity wdt:P1 ?date .\n"
             "  BIND(YEAR(?date) as ?grouping) .\n"
             "} GROUP BY ?grouping\n"
+            "HAVING (?count >= 20)\n"
+            "ORDER BY DESC(?count)\n"
+            "LIMIT 1000\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_grouping_information_query_with_grouping_link(self):
+        grouping_configuration = grouping.ItemGroupingConfiguration(
+            property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
+        )
+        result = grouping_configuration.get_grouping_information_query("Q1")
+        expected = (
+            "\n"
+            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
+            "  ?entity Q1 .\n"
+            "  ?entity wdt:P1 ?grouping .\n"
+            "  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.\n"
+            "  OPTIONAL {{\n"
+            "    ?grouping rdfs:label ?label.\n"
+            "    FILTER(lang(?label)='en')\n"
+            "    BIND(?label AS ?grouping_link_value)\n"
+            "  }}.\n"
+            "} GROUP BY ?grouping ?higher_grouping ?grouping_link_value\n"
             "HAVING (?count >= 20)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"

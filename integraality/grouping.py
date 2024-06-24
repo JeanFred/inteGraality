@@ -73,6 +73,7 @@ class AbstractGroupingConfiguration:
             "(COUNT(DISTINCT ?entity) as ?count)",
         ]
         selects = " ".join([x for x in select_elements if x])
+        group_bys = ["?grouping"]
         query.extend(
             [
                 "\n"
@@ -81,7 +82,13 @@ class AbstractGroupingConfiguration:
             ]
         )
         query.extend(self.get_grouping_selector())
-        query.extend(self.get_higher_grouping_selector())
+        (higher_grouping_select, higher_grouping_group_by) = self.get_higher_grouping_selector()
+        query.extend(higher_grouping_select)
+        if higher_grouping_group_by:
+            group_bys.append(higher_grouping_group_by)
+        query.extend([
+            f"}} GROUP BY {' '.join(group_bys)}"
+        ])
         query.extend(
             [
                 f"HAVING (?count >= {self.grouping_threshold})",
@@ -100,12 +107,11 @@ class AbstractGroupingConfiguration:
 
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
-            return [
+            return ([
                 f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
-                "} GROUP BY ?grouping ?higher_grouping",
-            ]
+            ], "?higher_grouping")
         else:
-            return ["} GROUP BY ?grouping"]
+            return ([], None)
 
     def get_grouping_selector(self):
         raise NotImplementedError

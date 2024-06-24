@@ -67,10 +67,16 @@ class AbstractGroupingConfiguration:
 
     def get_grouping_information_query(self, selector_sparql):
         query = []
+        select_elements = [
+            "?grouping",
+            self.get_select_for_higher_grouping(),
+            "(COUNT(DISTINCT ?entity) as ?count)",
+        ]
+        selects = " ".join([x for x in select_elements if x])
         query.extend(
             [
                 "\n"
-                f"SELECT ?grouping {self.get_select_for_higher_grouping()}(COUNT(DISTINCT ?entity) as ?count) WHERE {{",
+                f"SELECT {selects} WHERE {{",
                 f"  ?entity {selector_sparql} .",
             ]
         )
@@ -88,7 +94,7 @@ class AbstractGroupingConfiguration:
 
     def get_select_for_higher_grouping(self):
         if self.higher_grouping:
-            return "(SAMPLE(?_higher_grouping) as ?higher_grouping) "
+            return "(SAMPLE(?_higher_grouping) as ?higher_grouping)"
         else:
             return ""
 

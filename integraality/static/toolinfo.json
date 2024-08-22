@@ -3,9 +3,23 @@
     "name" : "integraality",
     "title" : "inteGraality",
     "description" : "Generate dashboards of property coverage for a given part of Wikidata.",
-    "url" : "https://tools.wmflabs.org/integraality/",
-    "keywords" : "wikidata, statistics, ",
-    "author" : "Jean-Frédéric",
-    "repository" : "https://github.com/JeanFred/integraality"
+    "url" : "https://integraality.toolforge.org/",
+    "keywords" : "wikidata, statistics",
+    "author" : [
+      {
+        "name": "Jean-Frédéric",
+        "wiki_username": "Jean-Frédéric",
+        "developer_username": "Jean-Frédéric",
+        "url": "https://meta.wikimedia.org/wiki/User:Jean-Frédéric"
+      }
+    ],
+    "repository" : "https://github.com/JeanFred/integraality",
+    "for_wikis": ["wikidata.wikimedia.org"],
+    "license": "MIT",
+    "tool_type": "bot",
+    "user_docs_url": "https://www.wikidata.org/wiki/Wikidata:Tools/inteGraality",
+    "bugtracker_url": "https://phabricator.wikimedia.org/tag/tool-integraality/",
+    "developer_docs_url": "https://wikitech.wikimedia.org/wiki/Tool:InteGraality",
+    "_schema": "/toolinfo/1.2.1"
   }
 ]

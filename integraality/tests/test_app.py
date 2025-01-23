@@ -151,11 +151,6 @@ class QueriesTests(PagesProcessorTests):
             "Dbr": self.column_Dbr,
         }
         self.addCleanup(patcher1.stop)
-        patcher2 = patch(
-            "pages_processor.PropertyStatistics.GROUP_MAPPING", autospec=True
-        )
-        self.mock_group_mapping = patcher2.start()
-        self.addCleanup(patcher2.stop)
 
     def test_queries_success(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = (
@@ -167,8 +162,8 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.side_effect = ValueError
-        self.mock_group_mapping.__members__.get.return_value = "Q2"
+        self.mock_property_statistics.GROUP_MAPPING.side_effect = ValueError
+        self.mock_property_statistics.GROUP_MAPPING.__members__.get.return_value = "Q2"
         response = self.app.get(
             "/queries?page=%s&url=%s&column=P1&grouping=Q2"
             % (self.page_title, self.page_url)
@@ -203,7 +198,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.return_value = "No"
+        self.mock_property_statistics.GROUP_MAPPING.return_value = "No"
         response = self.app.get(
             "/queries?page=%s&url=%s&column=P1&grouping=None"
             % (self.page_title, self.page_url)
@@ -238,8 +233,8 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.side_effect = ValueError
-        self.mock_group_mapping.__members__.get.return_value = "Q2"
+        self.mock_property_statistics.GROUP_MAPPING.side_effect = ValueError
+        self.mock_property_statistics.GROUP_MAPPING.__members__.get.return_value = "Q2"
         response = self.app.get(
             "/queries?page=%s&url=%s&column=Lbr&grouping=Q2"
             % (self.page_title, self.page_url)
@@ -274,8 +269,8 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.side_effect = ValueError
-        self.mock_group_mapping.__members__.get.return_value = "Q2"
+        self.mock_property_statistics.GROUP_MAPPING.side_effect = ValueError
+        self.mock_property_statistics.GROUP_MAPPING.__members__.get.return_value = "Q2"
         response = self.app.get(
             "/queries?page=%s&url=%s&column=Dbr&grouping=Q2"
             % (self.page_title, self.page_url)
@@ -310,7 +305,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.return_value = "Totals"
+        self.mock_property_statistics.GROUP_MAPPING.return_value = "Totals"
         response = self.app.get(
             "/queries?page=%s&url=%s&property=P1&grouping="
             % (self.page_title, self.page_url)
@@ -379,8 +374,8 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.return_value = (
             "Z"
         )
-        self.mock_group_mapping.side_effect = ValueError
-        self.mock_group_mapping.__members__.get.return_value = "UNKNOWN_VALUE"
+        self.mock_property_statistics.GROUP_MAPPING.side_effect = ValueError
+        self.mock_property_statistics.GROUP_MAPPING.__members__.get.return_value = "UNKNOWN_VALUE"
         response = self.app.get(
             "/queries?page=%s&url=%s&column=P1&grouping=UNKNOWN_VALUE"
             % (self.page_title, self.page_url)

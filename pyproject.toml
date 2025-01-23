@@ -1,4 +1,25 @@
+[project]
+name = "integraality"
+version = "0.0.1"
+requires-python = "~=3.9"
+dependencies = [
+    "pywikibot",
+    "flask",
+    "redis",
+    "mwparserfromhell",
+]
+
+[dependency-groups]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "fakeredis",
+]
+
 [tool.pytest.ini_options]
 pythonpath = [
   "integraality"
 ]
+
+[tool.uv]
+package = false

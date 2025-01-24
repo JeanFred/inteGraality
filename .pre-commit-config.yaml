@@ -8,3 +8,9 @@ repos:
       - id: uv-export
         name: uv-export requirements-dev.txt
         args: [--quiet, --only-dev, --output-file, requirements-dev.txt]
+
+  - repo: https://github.com/openstack/bashate
+    rev: 2.1.1
+    hooks:
+      - id: bashate
+        args: [--verbose, --ignore=E006]

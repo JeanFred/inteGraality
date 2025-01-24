@@ -17,7 +17,7 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     """
     if not isinstance(page, pywikibot.Page):
         pywikibot.warning(
-            "Could not save page {0} because it is not a Page " "instance.".format(page)
+            "Could not save page {0} because it is not a Page instance.".format(page)
         )
 
     local_path = os.environ.get("LOCAL_WRITE_PATH")

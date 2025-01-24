@@ -3,6 +3,7 @@
 """
 Grouping configuration classes
 """
+
 import collections
 import re
 
@@ -76,19 +77,19 @@ class AbstractGroupingConfiguration:
         group_bys = ["?grouping"]
         query.extend(
             [
-                "\n"
+                "\n",
                 f"SELECT {selects} WHERE {{",
                 f"  ?entity {selector_sparql} .",
             ]
         )
         query.extend(self.get_grouping_selector())
-        (higher_grouping_select, higher_grouping_group_by) = self.get_higher_grouping_selector()
+        (higher_grouping_select, higher_grouping_group_by) = (
+            self.get_higher_grouping_selector()
+        )
         query.extend(higher_grouping_select)
         if higher_grouping_group_by:
             group_bys.append(higher_grouping_group_by)
-        query.extend([
-            f"}} GROUP BY {' '.join(group_bys)}"
-        ])
+        query.extend([f"}} GROUP BY {' '.join(group_bys)}"])
         query.extend(
             [
                 f"HAVING (?count >= {self.grouping_threshold})",
@@ -107,9 +108,12 @@ class AbstractGroupingConfiguration:
 
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
-            return ([
-                f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
-            ], "?higher_grouping")
+            return (
+                [
+                    f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
+                ],
+                "?higher_grouping",
+            )
         else:
             return ([], None)
 
@@ -180,11 +184,12 @@ class AbstractGroupingConfiguration:
 
 
 class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
-
     line_type = ItemGrouping
 
     def __init__(self, predicate, higher_grouping=None, grouping_threshold=20):
-        super().__init__(higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+        super().__init__(
+            higher_grouping=higher_grouping, grouping_threshold=grouping_threshold
+        )
         self.predicate = predicate
 
     def __eq__(self, other):
@@ -206,7 +211,9 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
     def __init__(self, property, higher_grouping=None, grouping_threshold=20):
-        super().__init__(higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+        super().__init__(
+            higher_grouping=higher_grouping, grouping_threshold=grouping_threshold
+        )
         self.property = property
 
     def __eq__(self, other):
@@ -224,18 +231,20 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
 
 
 class ItemGroupingConfiguration(PropertyGroupingConfiguration):
-
     line_type = ItemGrouping
 
     def __init__(self, property, higher_grouping=None, grouping_threshold=20):
-        super().__init__(property=property, higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+        super().__init__(
+            property=property,
+            higher_grouping=higher_grouping,
+            grouping_threshold=grouping_threshold,
+        )
 
     def get_grouping_selector(self):
         return [f"  ?entity {self.get_predicate()} ?grouping ."]
 
 
 class YearGroupingConfiguration(PropertyGroupingConfiguration):
-
     line_type = YearGrouping
 
     def __init__(self, property, grouping_threshold=20):
@@ -249,11 +258,12 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
 
 
 class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
-
     line_type = SitelinkGrouping
 
     def __init__(self, higher_grouping=None, grouping_threshold=20):
-        super().__init__(higher_grouping=higher_grouping, grouping_threshold=grouping_threshold)
+        super().__init__(
+            higher_grouping=higher_grouping, grouping_threshold=grouping_threshold
+        )
 
     def __eq__(self, other):
         return (
@@ -267,7 +277,7 @@ class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
     def get_grouping_selector(self):
         return [
             f"  ?entity {self.get_predicate()} ?sitelink.",
-            "  ?sitelink schema:isPartOf ?grouping."
+            "  ?sitelink schema:isPartOf ?grouping.",
         ]
 
     def get_predicate(self):

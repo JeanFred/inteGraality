@@ -4,6 +4,7 @@
 Calculate and generate statistics
 
 """
+
 import collections
 import logging
 from enum import Enum
@@ -13,8 +14,14 @@ import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
 from grouping import ItemGroupingConfiguration
-from line import (ItemGrouping, NoGroupGrouping, SitelinkGrouping,
-                  TotalsGrouping, UnknownValueGrouping, YearGrouping)
+from line import (
+    ItemGrouping,
+    NoGroupGrouping,
+    SitelinkGrouping,
+    TotalsGrouping,
+    UnknownValueGrouping,
+    YearGrouping,
+)
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 
 
@@ -69,7 +76,9 @@ class PropertyStatistics:
 
         :return: List of Grouping objects
         """
-        return self.grouping_configuration.get_grouping_information(self.selector_sparql)
+        return self.grouping_configuration.get_grouping_information(
+            self.selector_sparql
+        )
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         column_key = column.get_key()
@@ -211,7 +220,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
         """
         text = grouping_object.row_opener()
 
-        text += grouping_object.format_header_cell(self.grouping_configuration, self.grouping_type)
+        text += grouping_object.format_header_cell(
+            self.grouping_configuration, self.grouping_type
+        )
         text += grouping_object.format_count_cell(self.grouping_link, self.repo)
         for column_entry in self.columns.values():
             text += grouping_object.format_cell(column_entry, self.cell_template)
@@ -220,7 +231,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def make_totals(self):
         count = self.get_totals()
         grouping_object = TotalsGrouping(
-            count=count, title="", higher_grouping=self.grouping_configuration.higher_grouping
+            count=count,
+            title="",
+            higher_grouping=self.grouping_configuration.higher_grouping,
         )
 
         for column_entry_key, column_entry in self.columns.items():
@@ -296,7 +309,9 @@ def main(*args):
     stats = PropertyStatistics(
         columns=columns,
         selector_sparql="wdt:P10241 wd:Q41960",
-        grouping_configuration=ItemGroupingConfiguration(property="P551", grouping_threshold=5),
+        grouping_configuration=ItemGroupingConfiguration(
+            property="P551", grouping_threshold=5
+        ),
         stats_for_no_group=True,
         property_threshold=1,
     )

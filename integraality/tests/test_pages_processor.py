@@ -118,7 +118,9 @@ class TestParseConfig(ProcessortTest):
         expected = {
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_configuration": ItemGroupingConfiguration(property="P400", grouping_threshold=1),
+            "grouping_configuration": ItemGroupingConfiguration(
+                property="P400", grouping_threshold=1
+            ),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),

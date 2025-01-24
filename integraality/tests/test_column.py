@@ -2,8 +2,14 @@
 
 import unittest
 
-from column import (ColumnMaker, ColumnSyntaxException, DescriptionColumn,
-                    LabelColumn, PropertyColumn, SitelinkColumn)
+from column import (
+    ColumnMaker,
+    ColumnSyntaxException,
+    DescriptionColumn,
+    LabelColumn,
+    PropertyColumn,
+    SitelinkColumn,
+)
 from grouping import ItemGroupingConfiguration
 from property_statistics import PropertyStatistics
 
@@ -239,7 +245,6 @@ class TestSitelinkColumn(PropertyStatisticsTest):
         result = self.column.make_column_header()
         expected = '! data-sort-type="number"|{{Q|Q846871}}\n'
         self.assertEqual(result, expected)
-
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)

@@ -7,8 +7,7 @@ from unittest.mock import patch
 
 import pywikibot
 
-from column import (DescriptionColumn, LabelColumn, PropertyColumn,
-                    SitelinkColumn)
+from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from line import ItemGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics
@@ -614,6 +613,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
@@ -835,10 +835,7 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_get_totals(self):
         result = self.stats.get_totals()
         query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "}\n"
+            "\nSELECT (COUNT(*) as ?count) WHERE {\n  ?entity wdt:P31 wd:Q41960\n}\n"
         )
         self.assert_query_called(query)
         self.assertEqual(result, 18)

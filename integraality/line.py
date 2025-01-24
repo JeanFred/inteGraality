@@ -69,7 +69,7 @@ class Grouping(AbstractLine):
             f"column={column_entry.get_key()}",
             f"grouping={self.title}",
         ]
-        return f'| {{{{{"|".join(fields)}}}}}\n'
+        return f"| {{{{{'|'.join(fields)}}}}}\n"
 
     def row_opener(self):
         return "|-\n"
@@ -91,9 +91,7 @@ class Grouping(AbstractLine):
                 f"  ?entity {selector_sparql} .",
             ]
         )
-        query.extend(
-            self.query_filter_out_fragment(grouping_predicate, grouping)
-        )
+        query.extend(self.query_filter_out_fragment(grouping_predicate, grouping))
         return "\n".join(query)
 
     def query_filter_out_fragment(self, grouping_predicate=None, grouping=None):
@@ -107,14 +105,11 @@ class Grouping(AbstractLine):
                 f"  ?entity {selector_sparql} .",
             ]
         )
-        query.extend(
-            self.query_filter_out_fragment(grouping_predicate, grouping)
-        )
+        query.extend(self.query_filter_out_fragment(grouping_predicate, grouping))
         return "\n".join(query)
 
 
 class NoGroupGrouping(Grouping):
-
     """Group for items that do not belong to any group."""
 
     is_linkable = False
@@ -176,7 +171,6 @@ class ItemGrouping(Grouping):
 
 
 class SitelinkGrouping(Grouping):
-
     def heading(self):
         return f"{self.title}"
 
@@ -186,7 +180,7 @@ class SitelinkGrouping(Grouping):
     def query_filter_out_fragment(self, grouping_predicate, grouping):
         return [
             "  ?entity ^schema:about ?article.",
-            f"  ?article schema:isPartOf <{grouping}>."
+            f"  ?article schema:isPartOf <{grouping}>.",
         ]
 
 

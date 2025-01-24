@@ -110,7 +110,6 @@ class YearGroupingConfigurationTest(unittest.TestCase):
 
 
 class SitelinkGroupingConfigurationTest(unittest.TestCase):
-
     def test_constructor_empty(self):
         grouping.SitelinkGroupingConfiguration()
 
@@ -118,8 +117,8 @@ class SitelinkGroupingConfigurationTest(unittest.TestCase):
         grouping_configuration = grouping.SitelinkGroupingConfiguration()
         result = grouping_configuration.get_grouping_selector()
         expected = [
-            '  ?entity ^schema:about ?sitelink.',
-            '  ?sitelink schema:isPartOf ?grouping.'
+            "  ?entity ^schema:about ?sitelink.",
+            "  ?sitelink schema:isPartOf ?grouping.",
         ]
         self.assertListEqual(result, expected)
 
@@ -204,8 +203,8 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
 
     def test_non_property_syntax(self):
         result = grouping.GroupingConfigurationMaker.make(
-                None, "dct:language", self.higher_grouping, self.grouping_threshold
-            )
+            None, "dct:language", self.higher_grouping, self.grouping_threshold
+        )
         expected = grouping.PredicateGroupingConfiguration(
             predicate="dct:language",
             higher_grouping=self.higher_grouping,
@@ -215,8 +214,8 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
 
     def test_property_syntax_with_injection(self):
         result = grouping.GroupingConfigurationMaker.make(
-                None, "P131/wdt:P131", self.higher_grouping, self.grouping_threshold
-            )
+            None, "P131/wdt:P131", self.higher_grouping, self.grouping_threshold
+        )
         expected = grouping.PredicateGroupingConfiguration(
             predicate="wdt:P131/wdt:P131",
             higher_grouping=self.higher_grouping,
@@ -226,8 +225,8 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
 
     def test_sitelink(self):
         result = grouping.GroupingConfigurationMaker.make(
-                None, "schema:about", self.higher_grouping, self.grouping_threshold
-            )
+            None, "schema:about", self.higher_grouping, self.grouping_threshold
+        )
         expected = grouping.SitelinkGroupingConfiguration(
             higher_grouping=self.higher_grouping,
             grouping_threshold=self.grouping_threshold,

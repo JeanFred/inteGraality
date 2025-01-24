@@ -53,7 +53,9 @@ class AbstractColumn:
 
         :return: (str) SPARQL query
         """
-        grouping_selector = "\n".join(property_statistics.grouping_configuration.get_grouping_selector())
+        grouping_selector = "\n".join(
+            property_statistics.grouping_configuration.get_grouping_selector()
+        )
         query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
@@ -264,7 +266,7 @@ class SitelinkColumn(AbstractColumn):
         return "sitelink"
 
     def format_html_snippet(self):
-        return f'<a href="{ self.url }">{self.get_key()} {self.get_type_name()}</a>'
+        return f'<a href="{self.url}">{self.get_key()} {self.get_type_name()}</a>'
 
     def make_column_header(self):
         if self.title:

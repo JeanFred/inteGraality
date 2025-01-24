@@ -4,6 +4,7 @@
 Bot to generate statistics
 
 """
+
 import os
 import re
 
@@ -13,8 +14,10 @@ import pywikibot
 
 from cache import RedisCache
 from column import ColumnMaker, ColumnSyntaxException
-from grouping import (GroupingConfigurationMaker,
-                      UnsupportedGroupingConfigurationException)
+from grouping import (
+    GroupingConfigurationMaker,
+    UnsupportedGroupingConfigurationException,
+)
 from page_saving import save_to_wiki_or_local
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException

@@ -1,5 +1,8 @@
 # .git-blame-ignore-revs
 
+# Reformat the whole Python codebase using Ruff
+c80390c54b3fd87d1c4d67f4085e02bc6b3357b6
+
 # Reformat the whole Python codebase using Black
 7df13146151e246fe166b61dc0b7e999b85edf3e
 

@@ -4,6 +4,8 @@ import os
 import unittest
 from unittest.mock import call, patch
 
+import pywikibot
+
 import page_saving
 
 
@@ -33,3 +35,11 @@ class PageSavingTest(unittest.TestCase):
 
     def test_to_wiki(self):
         page_saving.save_to_wiki_or_local(self.mock_page, "Update page", "Lorem ipsum")
+
+    @patch("pywikibot.warning")
+    def test_to_wiki_error(self, mock_warning):
+        self.mock_page.put.side_effect = pywikibot.exceptions.PageSaveRelatedError(
+            self.mock_page
+        )
+        page_saving.save_to_wiki_or_local(self.mock_page, "Update page", "Lorem ipsum")
+        self.assertTrue(mock_warning.called)

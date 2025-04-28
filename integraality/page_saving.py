@@ -25,7 +25,10 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     if not local_path:
         try:
             page.put(newtext=content, summary=summary, minor=minor)
-        except (pywikibot.OtherPageSaveError, pywikibot.PageSaveRelatedError):
+        except (
+            pywikibot.exceptions.OtherPageSaveError,
+            pywikibot.exceptions.PageSaveRelatedError,
+        ):
             pywikibot.warning("Could not save page {0} ({1})".format(page, summary))
     else:
         filename = os.path.join(

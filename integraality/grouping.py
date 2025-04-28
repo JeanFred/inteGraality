@@ -77,8 +77,7 @@ class AbstractGroupingConfiguration:
         group_bys = ["?grouping"]
         query.extend(
             [
-                "\n",
-                f"SELECT {selects} WHERE {{",
+                f"\nSELECT {selects} WHERE {{",
                 f"  ?entity {selector_sparql} .",
             ]
         )

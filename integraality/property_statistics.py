@@ -150,19 +150,38 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     @staticmethod
     def _get_count_from_sparql(query):
-        sq = pywikibot.data.sparql.SparqlQuery()
-        queryresult = sq.select(query)
-        if not queryresult:
-            raise QueryException("No result when running a SPARQL query.", query=query)
+        try:
+            sq = pywikibot.data.sparql.SparqlQuery()
+            queryresult = sq.select(query)
+            if not queryresult:
+                raise QueryException(
+                    "No result when running a SPARQL query.", query=query
+                )
+
+        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
+            raise QueryException(
+                "The Wikidata Query Service timed out when running a SPARQL query."
+                "You might be trying to do something too expensive.",
+                query=query,
+            )
 
         return int(queryresult[0].get("count"))
 
     def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
-        sq = pywikibot.data.sparql.SparqlQuery()
-        queryresult = sq.select(query)
-        if not queryresult:
-            return None
+        try:
+            sq = pywikibot.data.sparql.SparqlQuery()
+            queryresult = sq.select(query)
+            if not queryresult:
+                return None
+
+        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
+            raise QueryException(
+                "The Wikidata Query Service timed out when running a SPARQL query."
+                "You might be trying to do something too expensive.",
+                query=query,
+            )
+
         for resultitem in queryresult:
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
                 UNKNOWN_VALUE_PREFIX

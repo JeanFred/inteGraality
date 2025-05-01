@@ -778,6 +778,14 @@ class GetCountFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
             self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
 
+    def test_return_timeout(self):
+        self.mock_sparql_query.return_value.select.side_effect = (
+            pywikibot.exceptions.TimeoutError("Error")
+        )
+        with self.assertRaises(QueryException):
+            self.stats._get_count_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
+
 
 class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
     def test_return_count(self):
@@ -795,6 +803,14 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
         result = self.stats._get_grouping_counts_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
         self.assertEqual(result, None)
+
+    def test_return_timeout(self):
+        self.mock_sparql_query.return_value.select.side_effect = (
+            pywikibot.exceptions.TimeoutError("Error")
+        )
+        with self.assertRaises(QueryException):
+            self.stats._get_grouping_counts_from_sparql("SELECT X")
+        self.assert_query_called("SELECT X")
 
     def test_return_count_with_unknown(self):
         self.mock_sparql_query.return_value.select.return_value = [

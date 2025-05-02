@@ -81,7 +81,6 @@ class PropertyStatistics:
         )
 
     def get_query_for_items_for_property_positive(self, column, grouping):
-        column_key = column.get_key()
         grouping_predicate = self.grouping_configuration.get_predicate()
 
         if grouping == self.GROUP_MAPPING.TOTALS:
@@ -106,7 +105,6 @@ class PropertyStatistics:
         return query
 
     def get_query_for_items_for_property_negative(self, column, grouping):
-        column_key = column.get_key()
         grouping_predicate = self.grouping_configuration.get_predicate()
 
         if grouping == self.GROUP_MAPPING.TOTALS:

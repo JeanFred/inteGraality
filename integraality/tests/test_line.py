@@ -28,7 +28,7 @@ class AbstractLineTest(unittest.TestCase):
 
 class GroupingTest(unittest.TestCase):
     def test(self):
-        grouping = line.Grouping(count=1)
+        line.Grouping(count=1)
 
     def test_format_count_cell(self):
         grouping = line.Grouping(count=1, title="smth")

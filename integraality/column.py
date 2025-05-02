@@ -41,7 +41,7 @@ class ColumnMaker:
             return DescriptionColumn(language=key[1:])
         elif key in wikiprojects:
             wikiproject = wikiprojects.get(key)
-            return SitelinkColumn(project=key, title=title)
+            return SitelinkColumn(project=key, project_data=wikiproject, title=title)
         else:
             raise ColumnSyntaxException("Unknown column syntax %s" % key)
 
@@ -247,13 +247,15 @@ class DescriptionColumn(TextColumn):
 
 
 class SitelinkColumn(AbstractColumn):
-    def __init__(self, project, title=None):
+    def __init__(self, project, project_data=None, title=None):
         current_dir = os.path.dirname(__file__)
-        wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
-        wikiprojects = json.load(open(wikiprojects_path, "r"))
+        if not project_data:
+            wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
+            wikiprojects = json.load(open(wikiprojects_path, "r"))
+            project_data = wikiprojects[project]
         self.project = project
-        self.url = wikiprojects[project]["url"]
-        self.item = wikiprojects[project]["item"]
+        self.url = project_data["url"]
+        self.item = project_data["item"]
         self.title = title
 
     def __eq__(self, other):

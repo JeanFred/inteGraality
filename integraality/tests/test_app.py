@@ -132,7 +132,6 @@ class UpdateTests(PagesProcessorTests):
 class QueriesTests(PagesProcessorTests):
     def setUp(self):
         super().setUp()
-        patcher01 = patch("column.PropertyColumn", autospec=True)
         self.column_P1 = column.PropertyColumn(property="P1")
         self.column_Lbr = column.LabelColumn(language="br")
         self.column_Dbr = column.DescriptionColumn(language="br")
@@ -144,6 +143,7 @@ class QueriesTests(PagesProcessorTests):
             '<a href="https://wikidata.org/wiki/Property:P495">P495</a>'
         )
         self.mock_grouping_configuration.property = "P495"
+
         patcher1 = patch("pages_processor.PropertyStatistics", autospec=True)
         self.mock_property_statistics = patcher1.start()
         self.mock_property_statistics.grouping_configuration = (

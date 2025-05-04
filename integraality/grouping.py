@@ -152,10 +152,14 @@ class AbstractGroupingConfiguration:
             return (
                 [
                     "  OPTIONAL {{",
-                    "    ?grouping rdfs:label ?label.",
-                    "    FILTER(lang(?label)='en')",
-                    "    BIND(?label AS ?grouping_link_value)",
+                    "    ?grouping rdfs:label ?labelMUL.",
+                    "    FILTER(lang(?labelMUL)='mul')",
                     "  }}.",
+                    "  OPTIONAL {{",
+                    "    ?grouping rdfs:label ?labelEN.",
+                    "    FILTER(lang(?labelEN)='en')",
+                    "  }}.",
+                    "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).",
                 ],
                 "?grouping_link_value",
             )

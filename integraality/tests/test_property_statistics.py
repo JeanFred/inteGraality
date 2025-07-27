@@ -901,7 +901,7 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "  ?entity wdt:P31 wd:Q41960 .\n"
             "  ?entity wdt:P551 ?grouping .\n"
             "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
-            "} GROUP BY ?grouping ?higher_grouping\n"
+            "} GROUP BY ?grouping\n"
             "HAVING (?count >= 20)\n"
             "ORDER BY DESC(?count)\n"
             "LIMIT 1000\n"

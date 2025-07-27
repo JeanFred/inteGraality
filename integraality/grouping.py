@@ -98,13 +98,7 @@ class AbstractGroupingConfiguration:
         )
         query.extend(self.get_grouping_selector())
 
-        (higher_grouping_select, higher_grouping_group_by) = (
-            self.get_higher_grouping_selector()
-        )
-
-        query.extend(higher_grouping_select)
-        if higher_grouping_group_by:
-            group_bys.append(higher_grouping_group_by)
+        query.extend(self.get_higher_grouping_selector())
 
         (grouping_link_select, grouping_link_group_by) = (
             self.get_grouping_link_selector()
@@ -138,14 +132,11 @@ class AbstractGroupingConfiguration:
 
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
-            return (
-                [
-                    f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
-                ],
-                "?higher_grouping",
-            )
+            return [
+                f"  OPTIONAL {{ ?grouping {self.higher_grouping} ?_higher_grouping }}.",
+            ]
         else:
-            return ([], None)
+            return []
 
     def get_grouping_link_selector(self):
         if self.base_grouping_link:

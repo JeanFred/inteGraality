@@ -82,35 +82,47 @@ class AbstractGroupingConfiguration:
 
     def get_grouping_information_query(self, selector_sparql):
         query = []
-        select_elements = [
+
+        outer_selects = [
             "?grouping",
             self.get_select_for_higher_grouping(),
             self.get_select_for_grouping_link_value(),
-            "(COUNT(DISTINCT ?entity) as ?count)",
+            "?count",
         ]
-        selects = " ".join([x for x in select_elements if x])
-        group_bys = ["?grouping"]
+
+        inner_selects = ["?grouping", "(COUNT(DISTINCT ?entity) as ?count)"]
+
         query.extend(
             [
-                f"\nSELECT {selects} WHERE {{",
-                f"  ?entity {selector_sparql} .",
+                f"\nSELECT {' '.join([x for x in outer_selects if x])} WHERE {{",
+                "  {",
+                f"    SELECT {' '.join(inner_selects)} WHERE {{",
+                f"      ?entity {selector_sparql} .",
             ]
         )
-        query.extend(self.get_grouping_selector())
-
+        query.extend([f"    {line}" for line in self.get_grouping_selector()])
+        query.extend(
+            [
+                "    }",
+                "    GROUP BY ?grouping",
+                f"    HAVING (?count >= {self.grouping_threshold})",
+                "  }",
+            ]
+        )
         query.extend(self.get_higher_grouping_selector())
 
         (grouping_link_select, grouping_link_group_by) = (
             self.get_grouping_link_selector()
         )
         query.extend(grouping_link_select)
-        if grouping_link_group_by:
-            group_bys.append(grouping_link_group_by)
+        query.append("}")
 
-        query.extend([f"}} GROUP BY {' '.join(group_bys)}"])
+        if self.higher_grouping:
+            group_bys = ["?grouping", grouping_link_group_by, "?count"]
+            query.append(f"GROUP BY {' '.join([x for x in group_bys if x])}")
+
         query.extend(
             [
-                f"HAVING (?count >= {self.grouping_threshold})",
                 "ORDER BY DESC(?count)",
                 "LIMIT 1000",
                 "",

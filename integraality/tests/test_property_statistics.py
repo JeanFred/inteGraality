@@ -826,11 +826,16 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -851,11 +856,16 @@ LIMIT 1000
         }
         self.stats.grouping_configuration.grouping_threshold = 5
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 5)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 5)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -888,12 +898,18 @@ LIMIT 1000
         }
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         query = """
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+}
+GROUP BY ?grouping ?count
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -904,11 +920,16 @@ LIMIT 1000
     def test_get_grouping_information_empty_result(self):
         self.mock_sparql_query.return_value.select.return_value = None
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -921,11 +942,16 @@ LIMIT 1000
             pywikibot.exceptions.TimeoutError("Error")
         )
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -938,11 +964,16 @@ LIMIT 1000
             pywikibot.exceptions.ServerError("Error")
         )
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -969,11 +1000,16 @@ LIMIT 1000
             "UNKNOWN_VALUE": UnknownValueGrouping(count=3),
         }
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -999,12 +1035,17 @@ LIMIT 1000
             "2002": YearGrouping(title="2002", count=6),
         }
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P577 ?date .
-  BIND(YEAR(?date) as ?grouping) .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P577 ?date .
+      BIND(YEAR(?date) as ?grouping) .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -1032,12 +1073,17 @@ LIMIT 1000
             "UNKNOWN_VALUE": UnknownValueGrouping(count=4),
         }
         query = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P577 ?date .
-  BIND(YEAR(?date) as ?grouping) .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P577 ?date .
+      BIND(YEAR(?date) as ?grouping) .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -1069,9 +1115,15 @@ LIMIT 1000
             "Q623333": ItemGrouping(title="Q623333", grouping_link="Foo/C", count=6),
         }
         query = """
-SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+SELECT ?grouping ?grouping_link_value ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P551 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL {{
     ?grouping rdfs:label ?labelMUL.
     FILTER(lang(?labelMUL)='mul')
@@ -1081,8 +1133,7 @@ SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE 
     FILTER(lang(?labelEN)='en')
   }}.
   BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
-} GROUP BY ?grouping ?grouping_link_value
-HAVING (?count >= 20)
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """

@@ -35,11 +35,16 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
         grouping_configuration = grouping.ItemGroupingConfiguration(property="P1")
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -51,11 +56,16 @@ LIMIT 1000
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?grouping .
-} GROUP BY ?grouping
-HAVING (?count >= 12)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 12)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -67,12 +77,18 @@ LIMIT 1000
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?grouping .
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+}
+GROUP BY ?grouping ?count
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -84,9 +100,15 @@ LIMIT 1000
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?grouping .
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?grouping .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
   OPTIONAL {{
     ?grouping rdfs:label ?labelMUL.
@@ -97,8 +119,8 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_
     FILTER(lang(?labelEN)='en')
   }}.
   BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
-} GROUP BY ?grouping ?grouping_link_value
-HAVING (?count >= 20)
+}
+GROUP BY ?grouping ?grouping_link_value ?count
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -119,12 +141,17 @@ class YearGroupingConfigurationTest(unittest.TestCase):
         grouping_configuration = grouping.YearGroupingConfiguration(property="P1")
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?date .
-  BIND(YEAR(?date) as ?grouping) .
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?date .
+      BIND(YEAR(?date) as ?grouping) .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -136,10 +163,16 @@ LIMIT 1000
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity wdt:P1 ?date .
-  BIND(YEAR(?date) as ?grouping) .
+SELECT ?grouping ?grouping_link_value ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity wdt:P1 ?date .
+      BIND(YEAR(?date) as ?grouping) .
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL {{
     ?grouping rdfs:label ?labelMUL.
     FILTER(lang(?labelMUL)='mul')
@@ -149,8 +182,7 @@ SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE 
     FILTER(lang(?labelEN)='en')
   }}.
   BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
-} GROUP BY ?grouping ?grouping_link_value
-HAVING (?count >= 20)
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -174,12 +206,17 @@ class SitelinkGroupingConfigurationTest(unittest.TestCase):
         grouping_configuration = grouping.SitelinkGroupingConfiguration()
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity ^schema:about ?sitelink.
-  ?sitelink schema:isPartOf ?grouping.
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity ^schema:about ?sitelink.
+      ?sitelink schema:isPartOf ?grouping.
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -191,13 +228,19 @@ LIMIT 1000
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity Q1 .
-  ?entity ^schema:about ?sitelink.
-  ?sitelink schema:isPartOf ?grouping.
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity Q1 .
+      ?entity ^schema:about ?sitelink.
+      ?sitelink schema:isPartOf ?grouping.
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
   OPTIONAL { ?grouping wikibase:wikiGroup ?_higher_grouping }.
-} GROUP BY ?grouping
-HAVING (?count >= 20)
+}
+GROUP BY ?grouping ?count
 ORDER BY DESC(?count)
 LIMIT 1000
 """

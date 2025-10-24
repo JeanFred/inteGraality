@@ -131,15 +131,15 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_grouping_link(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(
-            property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
+        grouping_configuration = grouping.YearGroupingConfiguration(
+            property="P1", base_grouping_link="Foo"
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
-SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
+SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
   ?entity Q1 .
-  ?entity wdt:P1 ?grouping .
-  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
+  ?entity wdt:P1 ?date .
+  BIND(YEAR(?date) as ?grouping) .
   OPTIONAL {{
     ?grouping rdfs:label ?labelMUL.
     FILTER(lang(?labelMUL)='mul')

@@ -34,16 +34,15 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
     def test_get_grouping_information_query(self):
         grouping_configuration = grouping.ItemGroupingConfiguration(property="P1")
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_threshold(self):
@@ -51,16 +50,15 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
             property="P1", grouping_threshold=12
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 12)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 12)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_higher_grouping(self):
@@ -68,17 +66,16 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
             property="P1", higher_grouping="wdt:P2"
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?grouping .\n"
-            "  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?grouping .
+  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_grouping_link(self):
@@ -86,26 +83,25 @@ class ItemGroupingConfigurationTest(unittest.TestCase):
             property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?grouping .\n"
-            "  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelMUL.\n"
-            "    FILTER(lang(?labelMUL)='mul')\n"
-            "  }}.\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelEN.\n"
-            "    FILTER(lang(?labelEN)='en')\n"
-            "  }}.\n"
-            "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).\n"
-            "} GROUP BY ?grouping ?grouping_link_value\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?grouping .
+  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelMUL.
+    FILTER(lang(?labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelEN.
+    FILTER(lang(?labelEN)='en')
+  }}.
+  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
+} GROUP BY ?grouping ?grouping_link_value
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 
@@ -122,17 +118,16 @@ class YearGroupingConfigurationTest(unittest.TestCase):
     def test_get_grouping_information_query(self):
         grouping_configuration = grouping.YearGroupingConfiguration(property="P1")
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?date .\n"
-            "  BIND(YEAR(?date) as ?grouping) .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?date .
+  BIND(YEAR(?date) as ?grouping) .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_grouping_link(self):
@@ -140,26 +135,25 @@ class YearGroupingConfigurationTest(unittest.TestCase):
             property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity wdt:P1 ?grouping .\n"
-            "  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelMUL.\n"
-            "    FILTER(lang(?labelMUL)='mul')\n"
-            "  }}.\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelEN.\n"
-            "    FILTER(lang(?labelEN)='en')\n"
-            "  }}.\n"
-            "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).\n"
-            "} GROUP BY ?grouping ?grouping_link_value\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity wdt:P1 ?grouping .
+  OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelMUL.
+    FILTER(lang(?labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelEN.
+    FILTER(lang(?labelEN)='en')
+  }}.
+  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
+} GROUP BY ?grouping ?grouping_link_value
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 
@@ -179,17 +173,16 @@ class SitelinkGroupingConfigurationTest(unittest.TestCase):
     def test_get_grouping_information_query(self):
         grouping_configuration = grouping.SitelinkGroupingConfiguration()
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity ^schema:about ?sitelink.\n"
-            "  ?sitelink schema:isPartOf ?grouping.\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity ^schema:about ?sitelink.
+  ?sitelink schema:isPartOf ?grouping.
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_higher_grouping(self):
@@ -197,18 +190,17 @@ class SitelinkGroupingConfigurationTest(unittest.TestCase):
             higher_grouping="wikibase:wikiGroup"
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
-        expected = (
-            "\n"
-            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity Q1 .\n"
-            "  ?entity ^schema:about ?sitelink.\n"
-            "  ?sitelink schema:isPartOf ?grouping.\n"
-            "  OPTIONAL { ?grouping wikibase:wikiGroup ?_higher_grouping }.\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity Q1 .
+  ?entity ^schema:about ?sitelink.
+  ?sitelink schema:isPartOf ?grouping.
+  OPTIONAL { ?grouping wikibase:wikiGroup ?_higher_grouping }.
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 

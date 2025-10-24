@@ -45,47 +45,44 @@ class TestPropertyColumn(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P19[]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P19[]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P19[]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P19[]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P19[]\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P19[]
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 
@@ -112,47 +109,44 @@ class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 
@@ -179,47 +173,44 @@ class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 
@@ -248,50 +239,47 @@ class TestSitelinkColumn(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?sitelink schema:about ?entity;\n"
-            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <https://br.wikipedia.org/>.
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?sitelink schema:about ?entity;\n"
-            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
-            "  })\n"
-            "}\n"
-        )
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <https://br.wikipedia.org/>.
+  })
+}
+"""
         self.assertEqual(result, expected)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        expected = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?sitelink schema:about ?entity;\n"
-            "      schema:isPartOf <https://br.wikipedia.org/>.\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <https://br.wikipedia.org/>.
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, expected)
 
 

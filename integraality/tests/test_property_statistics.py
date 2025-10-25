@@ -61,50 +61,47 @@ class TestLabelColumn(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity rdfs:label ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-        )
+        query = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+"""
         self.assertEqual(result, query)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity rdfs:label ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, query)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        query = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity rdfs:label ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-        )
+        query = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity rdfs:label ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+"""
         self.assertEqual(result, query)
 
 
@@ -124,50 +121,47 @@ class TestDescriptionColumn(PropertyStatisticsTest):
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
-        query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity schema:description ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-        )
+        query = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity schema:description ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+"""
         self.assertEqual(result, query)
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity schema:description ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-            "GROUP BY ?grouping\n"
-            "HAVING (?count >= 10)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity schema:description ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.assertEqual(result, query)
 
     def test_get_info_no_grouping_query(self):
         result = self.column.get_info_no_grouping_query(self.stats)
-        query = (
-            "\n"
-            "SELECT (COUNT(*) AS ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "  FILTER(EXISTS {\n"
-            "    ?entity schema:description ?lang_label.\n"
-            "    FILTER((LANG(?lang_label)) = 'br').\n"
-            "  })\n"
-            "}\n"
-        )
+        query = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity schema:description ?lang_label.
+    FILTER((LANG(?lang_label)) = 'br').
+  })
+}
+"""
 
         self.assertEqual(result, query)
 
@@ -799,21 +793,22 @@ class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
 
     def test_get_totals_no_grouping(self):
         result = self.stats.get_totals_no_grouping()
-        query = (
-            "\n"
-            "SELECT (COUNT(*) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960\n"
-            "  MINUS { ?entity wdt:P551 _:b28. }\n"
-            "}\n"
-        )
+        query = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  MINUS { ?entity wdt:P551 _:b28. }
+}
+"""
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
     def test_get_totals(self):
         result = self.stats.get_totals()
-        query = (
-            "\nSELECT (COUNT(*) as ?count) WHERE {\n  ?entity wdt:P31 wd:Q41960\n}\n"
-        )
+        query = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+}
+"""
         self.assert_query_called(query)
         self.assertEqual(result, 18)
 
@@ -830,16 +825,15 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
@@ -856,16 +850,15 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         self.stats.grouping_configuration.grouping_threshold = 5
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 5)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 5)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
@@ -894,34 +887,31 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q623333": ItemGrouping(title="Q623333", count=6, higher_grouping="USA"),
         }
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
-        query = (
-            "\n"
-            "SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) "
-            "(COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  OPTIONAL { ?grouping wdt:P17/wdt:P298 ?_higher_grouping }.
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_empty_result(self):
         self.mock_sparql_query.return_value.select.return_value = None
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         with self.assertRaises(QueryException):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
@@ -930,16 +920,15 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_sparql_query.return_value.select.side_effect = (
             pywikibot.exceptions.TimeoutError("Error")
         )
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         with self.assertRaises(QueryException):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
@@ -948,16 +937,15 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_sparql_query.return_value.select.side_effect = (
             pywikibot.exceptions.ServerError("Error")
         )
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         with self.assertRaises(QueryException):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
@@ -980,16 +968,15 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "UNKNOWN_VALUE": UnknownValueGrouping(count=3),
         }
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
@@ -1011,17 +998,16 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "2001": YearGrouping(title="2001", count=10),
             "2002": YearGrouping(title="2002", count=6),
         }
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P577 ?date .\n"
-            "  BIND(YEAR(?date) as ?grouping) .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P577 ?date .
+  BIND(YEAR(?date) as ?grouping) .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
@@ -1045,17 +1031,16 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "2002": YearGrouping(title="2002", count=6),
             "UNKNOWN_VALUE": UnknownValueGrouping(count=4),
         }
-        query = (
-            "\n"
-            "SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P577 ?date .\n"
-            "  BIND(YEAR(?date) as ?grouping) .\n"
-            "} GROUP BY ?grouping\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P577 ?date .
+  BIND(YEAR(?date) as ?grouping) .
+} GROUP BY ?grouping
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         result = stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)
@@ -1083,25 +1068,24 @@ class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", grouping_link="Foo/B", count=6),
             "Q623333": ItemGrouping(title="Q623333", grouping_link="Foo/C", count=6),
         }
-        query = (
-            "\n"
-            "SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {\n"
-            "  ?entity wdt:P31 wd:Q41960 .\n"
-            "  ?entity wdt:P551 ?grouping .\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelMUL.\n"
-            "    FILTER(lang(?labelMUL)='mul')\n"
-            "  }}.\n"
-            "  OPTIONAL {{\n"
-            "    ?grouping rdfs:label ?labelEN.\n"
-            "    FILTER(lang(?labelEN)='en')\n"
-            "  }}.\n"
-            "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).\n"
-            "} GROUP BY ?grouping ?grouping_link_value\n"
-            "HAVING (?count >= 20)\n"
-            "ORDER BY DESC(?count)\n"
-            "LIMIT 1000\n"
-        )
+        query = """
+SELECT ?grouping ?grouping_link_value (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelMUL.
+    FILTER(lang(?labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?grouping rdfs:label ?labelEN.
+    FILTER(lang(?labelEN)='en')
+  }}.
+  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
+} GROUP BY ?grouping ?grouping_link_value
+HAVING (?count >= 20)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
         self.stats.grouping_configuration.base_grouping_link = "Foo"
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)

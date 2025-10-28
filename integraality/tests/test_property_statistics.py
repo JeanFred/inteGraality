@@ -3,7 +3,7 @@
 
 import unittest
 from collections import OrderedDict
-from unittest.mock import patch
+from unittest.mock import patch, create_autospec
 
 import pywikibot
 
@@ -11,7 +11,7 @@ from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColum
 from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from line import ItemGrouping, UnknownValueGrouping, YearGrouping
 from property_statistics import PropertyStatistics
-from sparql_utils import QueryException
+from sparql_utils import QueryException, WdqsSparqlQueryEngine
 
 
 class PropertyStatisticsTest(unittest.TestCase):
@@ -26,23 +26,17 @@ class PropertyStatisticsTest(unittest.TestCase):
             SitelinkColumn(project="brwiki"),
         ]
         self.grouping_configuration = ItemGroupingConfiguration("P551")
+        self.mock_sparql_query = create_autospec(WdqsSparqlQueryEngine, instance=True)
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
             property_threshold=10,
+            sparql_query_engine=self.mock_sparql_query,
         )
 
-
-class SparqlQueryTest(unittest.TestCase):
-    def setUp(self):
-        super().setUp()
-        patcher = patch("pywikibot.data.sparql.SparqlQuery", autospec=True)
-        self.mock_sparql_query = patcher.start()
-        self.addCleanup(patcher.stop)
-
     def assert_query_called(self, query):
-        self.mock_sparql_query.return_value.select.assert_called_once_with(query)
+        self.mock_sparql_query.select.assert_called_once_with(query)
 
 
 class TestLabelColumn(PropertyStatisticsTest):
@@ -166,7 +160,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         self.assertEqual(result, query)
 
 
-class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
+class MakeStatsForNoGroupTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         patcher1 = patch(
@@ -176,7 +170,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         self.mock_get_totals_no_grouping = patcher1.start()
         self.addCleanup(patcher1.stop)
         self.mock_get_totals_no_grouping.return_value = 20
-        self.mock_sparql_query.return_value.select.side_effect = [
+        self.mock_sparql_query.select.side_effect = [
             [{"count": "2"}],
             [{"count": "10"}],
             [{"count": "15"}],
@@ -187,6 +181,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         ]
 
     def test_make_stats_for_no_group(self):
+        self.maxDiff = None
         result = self.stats.make_stats_for_no_group()
         expected = (
             "|-\n"
@@ -202,7 +197,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.assertEqual(self.mock_sparql_query.call_count, 7)
+        self.assertEqual(self.mock_sparql_query.select.call_count, 7)
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
@@ -222,7 +217,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.assertEqual(self.mock_sparql_query.call_count, 7)
+        self.assertEqual(self.mock_sparql_query.select.call_count, 7)
 
     def test_make_stats_for_no_group_with_grouping_link(self):
         result = self.stats.make_stats_for_no_group()
@@ -240,7 +235,7 @@ class MakeStatsForNoGroupTest(SparqlQueryTest, PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
-        self.assertEqual(self.mock_sparql_query.call_count, 7)
+        self.assertEqual(self.mock_sparql_query.select.call_count, 7)
 
 
 class MakeStatsForOneGroupingTest(PropertyStatisticsTest):
@@ -518,6 +513,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
+            sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_positive(
@@ -663,6 +659,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
+            sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_negative(
@@ -720,31 +717,31 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         self.assertEqual(result, expected)
 
 
-class GetCountFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
+class GetCountFromSparqlTest(PropertyStatisticsTest):
     def test_return_count(self):
-        self.mock_sparql_query.return_value.select.return_value = [{"count": "18"}]
+        self.mock_sparql_query.select.return_value = [{"count": "18"}]
         result = self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
         self.assertEqual(result, 18)
 
     def test_return_None(self):
-        self.mock_sparql_query.return_value.select.return_value = None
+        self.mock_sparql_query.select.return_value = None
         with self.assertRaises(QueryException):
             self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
 
     def test_return_timeout(self):
-        self.mock_sparql_query.return_value.select.side_effect = (
-            pywikibot.exceptions.TimeoutError("Error")
+        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
+            "Error"
         )
         with self.assertRaises(QueryException):
             self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
 
 
-class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
+class GetGroupingCountsFromSparqlTest(PropertyStatisticsTest):
     def test_return_count(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q1", "count": 10},
             {"grouping": "http://www.wikidata.org/entity/Q2", "count": 5},
         ]
@@ -754,21 +751,21 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_return_None(self):
-        self.mock_sparql_query.return_value.select.return_value = None
+        self.mock_sparql_query.select.return_value = None
         result = self.stats._get_grouping_counts_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
         self.assertEqual(result, None)
 
     def test_return_timeout(self):
-        self.mock_sparql_query.return_value.select.side_effect = (
-            pywikibot.exceptions.TimeoutError("Error")
+        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
+            "Error"
         )
         with self.assertRaises(QueryException):
             self.stats._get_grouping_counts_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
 
     def test_return_count_with_unknown(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q1", "count": 10},
             {"grouping": "http://www.wikidata.org/entity/Q2", "count": 5},
             {
@@ -786,10 +783,10 @@ class GetGroupingCountsFromSparqlTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class SparqlCountTest(SparqlQueryTest, PropertyStatisticsTest):
+class SparqlCountTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.mock_sparql_query.return_value.select.return_value = [{"count": "18"}]
+        self.mock_sparql_query.select.return_value = [{"count": "18"}]
 
     def test_get_totals_no_grouping(self):
         result = self.stats.get_totals_no_grouping()
@@ -813,9 +810,9 @@ SELECT (COUNT(*) as ?count) WHERE {
         self.assertEqual(result, 18)
 
 
-class GetGroupingInformationTest(SparqlQueryTest, PropertyStatisticsTest):
+class GetGroupingInformationTest(PropertyStatisticsTest):
     def test_get_grouping_information(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
@@ -844,7 +841,7 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_with_grouping_threshold(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
@@ -874,7 +871,7 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_with_higher_grouping(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {
                 "grouping": "http://www.wikidata.org/entity/Q3115846",
                 "higher_grouping": "NZL",
@@ -918,7 +915,7 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_empty_result(self):
-        self.mock_sparql_query.return_value.select.return_value = None
+        self.mock_sparql_query.select.return_value = None
         query = """
 SELECT ?grouping ?count WHERE {
   {
@@ -938,8 +935,8 @@ LIMIT 1000
         self.assert_query_called(query)
 
     def test_get_grouping_information_timeout(self):
-        self.mock_sparql_query.return_value.select.side_effect = (
-            pywikibot.exceptions.TimeoutError("Error")
+        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
+            "Error"
         )
         query = """
 SELECT ?grouping ?count WHERE {
@@ -960,8 +957,8 @@ LIMIT 1000
         self.assert_query_called(query)
 
     def test_get_grouping_information_timeout_bis(self):
-        self.mock_sparql_query.return_value.select.side_effect = (
-            pywikibot.exceptions.ServerError("Error")
+        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.ServerError(
+            "Error"
         )
         query = """
 SELECT ?grouping ?count WHERE {
@@ -982,7 +979,7 @@ LIMIT 1000
         self.assert_query_called(query)
 
     def test_get_grouping_information_unknown_value(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {
@@ -1023,10 +1020,11 @@ LIMIT 1000
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
+            sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
 
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "2001", "count": "10"},
             {"grouping": "2002", "count": "6"},
         ]
@@ -1059,10 +1057,11 @@ LIMIT 1000
             grouping_configuration=YearGroupingConfiguration("P577"),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
+            sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
 
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "2001", "count": "10"},
             {"grouping": "2002", "count": "6"},
             {"grouping": "", "count": "4"},
@@ -1092,7 +1091,7 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_with_grouping_link(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {
                 "grouping": "http://www.wikidata.org/entity/Q3115846",
                 "grouping_link_value": "A",
@@ -1190,10 +1189,10 @@ class TestGetHeader(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class MakeTotalsTest(SparqlQueryTest, PropertyStatisticsTest):
+class MakeTotalsTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.mock_sparql_query.return_value.select.side_effect = [
+        self.mock_sparql_query.select.side_effect = [
             [{"count": "120"}],
             [{"count": "30"}],
             [{"count": "80"}],
@@ -1255,7 +1254,7 @@ class MakeTotalsTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
+class PopulateGroupingsTest(PropertyStatisticsTest):
     def test_populate_groupings_empty(self):
         result = self.stats.populate_groupings(None)
         self.assertEqual(result, None)
@@ -1275,7 +1274,7 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
-        self.mock_sparql_query.return_value.select.side_effect = [
+        self.mock_sparql_query.select.side_effect = [
             [
                 {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "1"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "2"},
@@ -1375,7 +1374,7 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
-        self.mock_sparql_query.return_value.select.side_effect = [
+        self.mock_sparql_query.select.side_effect = [
             [
                 {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "1"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "2"},
@@ -1456,14 +1455,14 @@ class PopulateGroupingsTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
+class RetrieveDataTest(PropertyStatisticsTest):
     def test_retrieve_data_empty(self):
         result = self.stats.retrieve_data()
         expected = {}
         self.assertEqual(result, expected)
 
     def test_retrieve_data(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
@@ -1520,7 +1519,7 @@ class RetrieveDataTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
+class ProcessDataTest(PropertyStatisticsTest):
     def test_process_data_empty(self):
         result = self.stats.process_data({})
         expected = (
@@ -1720,9 +1719,9 @@ class ProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
+class RetrieveAndProcessDataTest(PropertyStatisticsTest):
     def test_retrieve_and_process_data(self):
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
@@ -1793,9 +1792,10 @@ class RetrieveAndProcessDataTest(SparqlQueryTest, PropertyStatisticsTest):
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q41960",
             property_threshold=10,
+            sparql_query_engine=self.mock_sparql_query,
         )
 
-        self.mock_sparql_query.return_value.select.return_value = [
+        self.mock_sparql_query.select.return_value = [
             {"grouping": "2001", "count": "10"},
             {"grouping": "2012", "count": "6"},
             {"grouping": "2023", "count": "6"},

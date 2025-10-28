@@ -7,7 +7,7 @@ Grouping configuration classes
 import collections
 import re
 
-import pywikibot.data.sparql
+import pywikibot
 
 from line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
@@ -172,7 +172,7 @@ class AbstractGroupingConfiguration:
     def get_grouping_selector(self):
         raise NotImplementedError
 
-    def get_grouping_information(self, selector_sparql):
+    def get_grouping_information(self, selector_sparql, sparql_query_engine):
         """
         Get all groupings and their counts.
 
@@ -182,8 +182,7 @@ class AbstractGroupingConfiguration:
         groupings = collections.OrderedDict()
 
         try:
-            sq = pywikibot.data.sparql.SparqlQuery()
-            queryresult = sq.select(query)
+            queryresult = sparql_query_engine.select(query)
 
             if not queryresult:
                 raise QueryException(

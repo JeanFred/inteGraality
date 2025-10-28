@@ -10,7 +10,6 @@ import logging
 from enum import Enum
 
 import pywikibot
-import pywikibot.data.sparql
 
 from column import ColumnMaker, GroupingType
 from grouping import ItemGroupingConfiguration
@@ -22,7 +21,7 @@ from line import (
     UnknownValueGrouping,
     YearGrouping,
 )
-from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
+from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, WdqsSparqlQueryEngine
 
 
 class PropertyStatistics:
@@ -49,6 +48,7 @@ class PropertyStatistics:
         higher_grouping_type=None,
         stats_for_no_group=False,
         property_threshold=0,
+        sparql_query_engine=WdqsSparqlQueryEngine(),
     ):
         """
         Set what to work on and other variables here.
@@ -63,6 +63,7 @@ class PropertyStatistics:
         self.selector_sparql = selector_sparql
         self.stats_for_no_group = stats_for_no_group
         self.property_threshold = property_threshold
+        self.sparql_query_engine = sparql_query_engine
 
         self.cell_template = "Integraality cell"
 
@@ -73,7 +74,7 @@ class PropertyStatistics:
         :return: List of Grouping objects
         """
         return self.grouping_configuration.get_grouping_information(
-            self.selector_sparql
+            self.selector_sparql, self.sparql_query_engine
         )
 
     def get_query_for_items_for_property_positive(self, column, grouping):
@@ -142,11 +143,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
 """
         return self._get_count_from_sparql(query)
 
-    @staticmethod
-    def _get_count_from_sparql(query):
+    def _get_count_from_sparql(self, query):
         try:
-            sq = pywikibot.data.sparql.SparqlQuery()
-            queryresult = sq.select(query)
+            queryresult = self.sparql_query_engine.select(query)
             if not queryresult:
                 raise QueryException(
                     "No result when running a SPARQL query.", query=query
@@ -164,8 +163,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
         try:
-            sq = pywikibot.data.sparql.SparqlQuery()
-            queryresult = sq.select(query)
+            queryresult = self.sparql_query_engine.select(query)
             if not queryresult:
                 return None
 

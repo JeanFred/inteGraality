@@ -19,7 +19,11 @@ from line import (
     UnknownValueGrouping,
     YearGrouping,
 )
-from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, WdqsSparqlQueryEngine
+from sparql_utils import (
+    UNKNOWN_VALUE_PREFIX,
+    QueryException,
+    WdqsSparqlQueryEngine,
+)
 
 
 class PropertyStatistics:

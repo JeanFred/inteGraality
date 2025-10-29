@@ -114,9 +114,13 @@ class UpdateTests(PagesProcessorTests):
             '<p>Something went wrong when updating page <a href="https://wikidata.org/wiki/Foo">Foo</a>.</p>\n'
             "<p>The following SPARQL query timed out or returned no result:</p>\n"
             "<pre><code>SELECT X</code></pre>\n"
-            '<p><a class="btn btn-primary" href="https://query.wikidata.org/#SELECT X">Try it in Wikidata Query Service</a></p>'  # noqa
         )
         self.assertErrorPage(response, expected)
+        buttons = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#SELECT X">Try it in Wikidata Query Service</a>'
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertErrorPage(response, buttons)
 
     def test_update_success_meta(self):
         page_url = "https://meta.wikimedia.org/wiki/%s" % self.page_title

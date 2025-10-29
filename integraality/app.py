@@ -7,10 +7,16 @@ from time import perf_counter
 from flask import Flask, render_template, request
 
 from pages_processor import PagesProcessor, ProcessingException
-from sparql_utils import QueryException
+from sparql_utils import QueryException, add_prefixes_to_query
 
 app = Flask(__name__)
 app.debug = True
+
+
+@app.template_filter("add_prefixes")
+def add_prefixes_filter(query):
+    """Jinja filter to add prefixes to SPARQL queries for QLever."""
+    return add_prefixes_to_query(query)
 
 
 @app.route("/")

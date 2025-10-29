@@ -4,6 +4,9 @@
     <p>Something went wrong when updating page <a href="{{ page_url }}">{{ page_title }}</a>.</p>
     <p>The following SPARQL query timed out or returned no result:</p>
     <pre><code>{{ query }}</code></pre>
-    <p><a class="btn btn-primary" href="https://query.wikidata.org/#{{ query }}">Try it in Wikidata Query Service</a></p>
+    <p>
+        <a class="btn btn-primary" href="https://query.wikidata.org/#{{ query }}">Try it in Wikidata Query Service</a>
+        <a class="btn btn-info" href="https://qlever.dev/wikidata/?query={{ query | add_prefixes | urlencode }}">Try it in QLever</a>
+    </p>
 </div>
 {% endblock %}

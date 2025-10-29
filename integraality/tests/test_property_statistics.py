@@ -5,8 +5,6 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import patch, create_autospec
 
-import pywikibot
-
 from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
 from line import ItemGrouping, UnknownValueGrouping, YearGrouping
@@ -731,9 +729,7 @@ class GetCountFromSparqlTest(PropertyStatisticsTest):
         self.assert_query_called("SELECT X")
 
     def test_return_timeout(self):
-        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
-            "Error"
-        )
+        self.mock_sparql_query.select.side_effect = QueryException("Error", "SELECT X")
         with self.assertRaises(QueryException):
             self.stats._get_count_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
@@ -757,9 +753,7 @@ class GetGroupingCountsFromSparqlTest(PropertyStatisticsTest):
         self.assertEqual(result, None)
 
     def test_return_timeout(self):
-        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
-            "Error"
-        )
+        self.mock_sparql_query.select.side_effect = QueryException("Error", "SELECT X")
         with self.assertRaises(QueryException):
             self.stats._get_grouping_counts_from_sparql("SELECT X")
         self.assert_query_called("SELECT X")
@@ -935,9 +929,7 @@ LIMIT 1000
         self.assert_query_called(query)
 
     def test_get_grouping_information_timeout(self):
-        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.TimeoutError(
-            "Error"
-        )
+        self.mock_sparql_query.select.side_effect = QueryException("Error", "SELECT X")
         query = """
 SELECT ?grouping ?count WHERE {
   {
@@ -957,9 +949,7 @@ LIMIT 1000
         self.assert_query_called(query)
 
     def test_get_grouping_information_timeout_bis(self):
-        self.mock_sparql_query.select.side_effect = pywikibot.exceptions.ServerError(
-            "Error"
-        )
+        self.mock_sparql_query.select.side_effect = QueryException("Error", "SELECT X")
         query = """
 SELECT ?grouping ?count WHERE {
   {

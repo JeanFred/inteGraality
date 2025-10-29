@@ -9,8 +9,6 @@ import collections
 import logging
 from enum import Enum
 
-import pywikibot
-
 from column import ColumnMaker, GroupingType
 from grouping import ItemGroupingConfiguration
 from line import (
@@ -151,12 +149,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
                     "No result when running a SPARQL query.", query=query
                 )
 
-        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
-            raise QueryException(
-                "The Wikidata Query Service timed out when running a SPARQL query."
-                "You might be trying to do something too expensive.",
-                query=query,
-            )
+        except QueryException:
+            raise
 
         return int(queryresult[0].get("count"))
 
@@ -167,12 +161,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
             if not queryresult:
                 return None
 
-        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
-            raise QueryException(
-                "The Wikidata Query Service timed out when running a SPARQL query."
-                "You might be trying to do something too expensive.",
-                query=query,
-            )
+        except QueryException:
+            raise
 
         for resultitem in queryresult:
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(

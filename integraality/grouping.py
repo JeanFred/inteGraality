@@ -191,13 +191,13 @@ class AbstractGroupingConfiguration:
                     query=query,
                 )
 
-        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
+        except QueryException as e:
             raise QueryException(
                 "The Wikidata Query Service timed out when fetching groupings."
                 "You might be trying to do something too expensive."
                 "Please investigate the 'all groupings' debug query in the dashboard header.",
                 query=query,
-            )
+            ) from e
 
         unknown_value_count = 0
 

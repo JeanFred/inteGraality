@@ -11,6 +11,8 @@ from sparql_utils import (
     add_prefixes_to_query,
     QLeverSparqlQueryEngine,
     QueryException,
+    SparqlEngineBuilder,
+    UnsupportedSparqlEngineException,
     WdqsSparqlQueryEngine,
 )
 
@@ -169,3 +171,27 @@ class AddPrefixesToQueryTest(unittest.TestCase):
         self.assertIn("PREFIX wdt: <http://www.wikidata.org/prop/direct/>", result)
         self.assertIn(query, result)
         self.assertTrue(result.endswith(query))
+
+
+class SparqlEngineBuilderTest(unittest.TestCase):
+    def test_create_qlever_engine_url(self):
+        engine = SparqlEngineBuilder.make("https://qlever.dev/api/wikidata")
+        self.assertIsInstance(engine, QLeverSparqlQueryEngine)
+        self.assertEqual(engine.endpoint, "https://qlever.dev/api/wikidata")
+
+    def test_create_qlever_engine_name(self):
+        engine = SparqlEngineBuilder.make("qlever")
+        self.assertIsInstance(engine, QLeverSparqlQueryEngine)
+        self.assertEqual(engine.endpoint, "https://qlever.dev/api/wikidata")
+
+    def test_create_wdqs_engine_wdqs(self):
+        engine = SparqlEngineBuilder.make("query.wikidata.org")
+        self.assertIsInstance(engine, WdqsSparqlQueryEngine)
+
+    def test_create_wdqs_engine_default(self):
+        engine = SparqlEngineBuilder.make()
+        self.assertIsInstance(engine, WdqsSparqlQueryEngine)
+
+    def test_create_wdqs_engine_unsupported(self):
+        with self.assertRaises(UnsupportedSparqlEngineException):
+            SparqlEngineBuilder.make("foo")

@@ -20,7 +20,7 @@ from grouping import (
 )
 from page_saving import save_to_wiki_or_local
 from property_statistics import PropertyStatistics
-from sparql_utils import QueryException
+from sparql_utils import QueryException, SparqlEngineBuilder
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 
@@ -147,6 +147,9 @@ class PagesProcessor:
         except UnsupportedGroupingConfigurationException as e:
             raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
+        config["sparql_query_engine"] = SparqlEngineBuilder.make(
+            config.pop("sparql_endpoint", None)
+        )
         return config
 
     @staticmethod

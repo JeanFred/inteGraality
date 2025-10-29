@@ -10,6 +10,7 @@ import fakeredis
 from integraality.column import DescriptionColumn, LabelColumn, PropertyColumn
 from integraality.grouping import ItemGroupingConfiguration
 from integraality.pages_processor import ConfigException, PagesProcessor, main
+from sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
 
 
 class ProcessortTest(unittest.TestCase):
@@ -86,6 +87,7 @@ class TestParseConfig(ProcessortTest):
             ],
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
         }
+        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
 
     def test_minimal_config(self):
@@ -104,6 +106,7 @@ class TestParseConfig(ProcessortTest):
             ],
             "stats_for_no_group": False,
         }
+        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
 
     def test_full_config(self):
@@ -128,6 +131,7 @@ class TestParseConfig(ProcessortTest):
             "stats_for_no_group": True,
             "property_threshold": "2",
         }
+        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
 
     def test_empty_config(self):
@@ -141,6 +145,26 @@ class TestParseConfig(ProcessortTest):
         }
         with self.assertRaises(ConfigException):
             self.processor.parse_config(input_config)
+
+    def test_config_with_qlever_endpoint(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136:genre,P404",
+            "sparql_endpoint": "https://qlever.dev/wikidata/",
+        }
+        result = self.processor.parse_config(input_config)
+        self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
+
+    def test_config_with_wdqs_endpoint(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136:genre,P404",
+            "sparql_endpoint": "query.wikidata.org",
+        }
+        result = self.processor.parse_config(input_config)
+        self.assertIsInstance(result["sparql_query_engine"], WdqsSparqlQueryEngine)
 
 
 class TestParseParams(ProcessortTest):

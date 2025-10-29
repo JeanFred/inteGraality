@@ -16,6 +16,26 @@ class QueryException(Exception):
 UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
 
 
+class UnsupportedSparqlEngineException(Exception):
+    pass
+
+
+class SparqlEngineBuilder:
+    @staticmethod
+    def make(sparql_endpoint=None):
+        """Create appropriate SPARQL engine based on endpoint URL."""
+        if sparql_endpoint:
+            if "qlever" in sparql_endpoint.lower():
+                return QLeverSparqlQueryEngine()
+            elif "query.wikidata.org" in sparql_endpoint.lower():
+                return WdqsSparqlQueryEngine()
+            else:
+                raise UnsupportedSparqlEngineException(
+                    f"The {sparql_endpoint} URL provided is not supported"
+                )
+        return WdqsSparqlQueryEngine()
+
+
 class SparqlQueryEngine:
     pass
 
@@ -53,8 +73,8 @@ def add_prefixes_to_query(query):
 
 
 class QLeverSparqlQueryEngine(SparqlQueryEngine):
-    def __init__(self):
-        self.endpoint = "https://qlever.dev/api/wikidata"
+    def __init__(self, endpoint="https://qlever.dev/api/wikidata"):
+        self.endpoint = endpoint
 
     def select(self, query):
         try:

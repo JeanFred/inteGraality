@@ -10,7 +10,19 @@
     {%- else -%}
         for the totals
     {%- endif %}.</p>
-    <a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">All items with the {{ column.get_type_name() }} set</a>
-    <a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">All items without the {{ column.get_type_name() }} set</a>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="btn-group-vertical" role="group">
+                <a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button">WDQS: All items with the {{ column.get_type_name() }} set</a>
+                <a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button">WDQS: All items without the {{ column.get_type_name() }} set</a>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="btn-group-vertical" role="group">
+                <a class="btn btn-info" href="https://qlever.dev/wikidata/?query={{positive_query | add_prefixes | urlencode}}" role="button">QLever: All items with the {{ column.get_type_name() }} set</a>
+                <a class="btn btn-info" href="https://qlever.dev/wikidata/?query={{negative_query | add_prefixes | urlencode}}" role="button">QLever: All items without the {{ column.get_type_name() }} set</a>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}

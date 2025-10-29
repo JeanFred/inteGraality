@@ -180,15 +180,23 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_P1, "Q2"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
             'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the property set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the property set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)
 
     def test_queries_success_no_grouping(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -209,15 +217,23 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_P1, "No"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
             'without <a href="https://wikidata.org/wiki/Property:P495">P495</a> grouping.</p>\n\t'
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the property set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the property set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)
 
     def test_queries_success_labels(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -239,15 +255,23 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_Lbr, "Q2"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             "br label, "
             'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the label set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the label set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the label set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the label set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)
 
     def test_queries_success_descriptions(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -269,15 +293,23 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_Dbr, "Q2"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             "br description, "
             'with <a href="https://wikidata.org/wiki/Q2">Q2</a> as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the description set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the description set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the description set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the description set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)
 
     def test_queries_success_totals(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
@@ -298,15 +330,23 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_P1, "Totals"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
             "for the totals.</p>\n\t"
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the property set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the property set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)
 
     def test_queries_error_processing_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ProcessingException
@@ -360,12 +400,20 @@ class QueriesTests(PagesProcessorTests):
         self.mock_property_statistics.get_query_for_items_for_property_negative.assert_called_once_with(
             self.column_P1, "UNKNOWN_VALUE"
         )
-        expected = (
+        self.assertEqual(response.status_code, 200)
+        content = response.get_data(as_text=True)
+        expected_body = (
             '<p>From page <a href="https://wikidata.org/wiki/Foo">Foo</a>, '
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a>, '
             'with unknown value as <a href="https://wikidata.org/wiki/Property:P495">P495</a>.</p>\n\t'
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">All items with the property set</a>\n\t'  # noqa
-            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">All items without the property set</a>'  # noqa
         )
-        self.assertEqual(response.status_code, 200)
-        self.assertPresent(expected, response.get_data(as_text=True))
+        self.assertPresent(expected_body, content)
+        expected_wdqs = (
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#X" role="button">WDQS: All items with the property set</a>'
+            '<a class="btn btn-primary" href="https://query.wikidata.org/#Z" role="button">WDQS: All items without the property set</a>'
+        )
+        self.assertPresent(expected_wdqs, content)
+        expected_qlever = (
+            '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
+        )
+        self.assertPresent(expected_qlever, content)

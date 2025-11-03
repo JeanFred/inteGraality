@@ -41,6 +41,8 @@ class SparqlQueryEngine:
 
 
 class WdqsSparqlQueryEngine(SparqlQueryEngine):
+    name = "Wikidata Query Service"
+
     def __init__(self):
         self.sq = pywikibot.data.sparql.SparqlQuery()
 
@@ -73,6 +75,8 @@ def add_prefixes_to_query(query):
 
 
 class QLeverSparqlQueryEngine(SparqlQueryEngine):
+    name = "QLever"
+
     def __init__(self, endpoint="https://qlever.dev/api/wikidata"):
         self.endpoint = endpoint
 

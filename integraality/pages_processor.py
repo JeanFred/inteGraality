@@ -127,7 +127,8 @@ class PagesProcessor:
         stats = self.make_stats_object_for_page(page)
         output = stats.retrieve_and_process_data()
         new_text = self.replace_in_page(output, page.get())
-        save_to_wiki_or_local(page, self.summary, new_text)
+        summary = self.summary + f" using {stats.get_sparql_engine_name()}"
+        save_to_wiki_or_local(page, summary, new_text)
 
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:

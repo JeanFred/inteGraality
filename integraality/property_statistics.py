@@ -69,6 +69,9 @@ class PropertyStatistics:
 
         self.cell_template = "Integraality cell"
 
+    def get_sparql_engine_name(self):
+        return self.sparql_query_engine.name
+
     def get_grouping_information(self):
         """
         Get all groupings and their counts.

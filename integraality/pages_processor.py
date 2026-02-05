@@ -7,6 +7,7 @@ Bot to generate statistics
 
 import os
 import re
+from time import perf_counter
 
 from redis import StrictRedis
 
@@ -123,12 +124,15 @@ class PagesProcessor:
             raise ConfigException("The template parameters are incorrect.")
 
     def process_page(self, page):
+        start_time = perf_counter()
         self.cache.invalidate(self.make_cache_key(page.title()))
         stats = self.make_stats_object_for_page(page)
         output = stats.retrieve_and_process_data()
+        elapsed_time = perf_counter() - start_time
         new_text = self.replace_in_page(output, page.get())
         summary = self.summary + f" using {stats.get_sparql_engine_name()}"
         save_to_wiki_or_local(page, summary, new_text)
+        return elapsed_time
 
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:
@@ -202,7 +206,7 @@ class PagesProcessor:
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.site, page_title)
         pywikibot.output("Processing page %s" % page.title())
-        self.process_page(page)
+        return self.process_page(page)
 
     def make_stats_object_for_page_title(self, page_title):
         key = self.make_cache_key(page_title)

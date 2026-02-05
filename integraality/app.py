@@ -2,7 +2,6 @@
 # -*- coding: utf-8  -*-
 
 import traceback
-from time import perf_counter
 
 from flask import Flask, render_template, request
 
@@ -26,13 +25,11 @@ def index():
 
 @app.route("/update")
 def update():
-    start_time = perf_counter()
     page_url = request.args.get("url")
     page_title = request.args.get("page")
     processor = PagesProcessor(page_url)
     try:
-        processor.process_one_page(page_title)
-        elapsed_time = perf_counter() - start_time
+        elapsed_time = processor.process_one_page(page_title)
         return render_template(
             "update.html",
             page_title=page_title,

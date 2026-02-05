@@ -130,7 +130,10 @@ class PagesProcessor:
         output = stats.retrieve_and_process_data()
         elapsed_time = perf_counter() - start_time
         new_text = self.replace_in_page(output, page.get())
-        summary = self.summary + f" using {stats.get_sparql_engine_name()}"
+        summary = (
+            self.summary
+            + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
+        )
         save_to_wiki_or_local(page, summary, new_text)
         return elapsed_time
 

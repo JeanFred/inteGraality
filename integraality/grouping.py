@@ -8,9 +8,8 @@ import collections
 import re
 
 import pywikibot
-
 from line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
-from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
+from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, get_label_for_variable
 
 
 class GroupingConfigurationSyntaxException(Exception):
@@ -153,17 +152,7 @@ class AbstractGroupingConfiguration:
     def get_grouping_link_selector(self):
         if self.base_grouping_link:
             return (
-                [
-                    "  OPTIONAL {{",
-                    "    ?grouping rdfs:label ?labelMUL.",
-                    "    FILTER(lang(?labelMUL)='mul')",
-                    "  }}.",
-                    "  OPTIONAL {{",
-                    "    ?grouping rdfs:label ?labelEN.",
-                    "    FILTER(lang(?labelEN)='en')",
-                    "  }}.",
-                    "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).",
-                ],
+                get_label_for_variable("?grouping", "?grouping_link_value"),
                 "?grouping_link_value",
             )
         else:

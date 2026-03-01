@@ -116,3 +116,18 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
                 result.append(row)
             return result
         return []
+
+
+def get_label_for_variable(subject_variable, output_variable):
+    """Generate SPARQL fragment to get label with fallback from 'en' to 'mul'."""
+    return [
+        "  OPTIONAL {{",
+        f"    {subject_variable} rdfs:label ?labelMUL.",
+        "    FILTER(lang(?labelMUL)='mul')",
+        "  }}.",
+        "  OPTIONAL {{",
+        f"    {subject_variable} rdfs:label ?labelEN.",
+        "    FILTER(lang(?labelEN)='en')",
+        "  }}.",
+        f"  BIND(COALESCE(?labelEN, ?labelMUL) AS {output_variable}).",
+    ]

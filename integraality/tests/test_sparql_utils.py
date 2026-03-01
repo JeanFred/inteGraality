@@ -9,6 +9,7 @@ import requests
 
 from sparql_utils import (
     add_prefixes_to_query,
+    get_label_for_variable,
     QLeverSparqlQueryEngine,
     QueryException,
     SparqlEngineBuilder,
@@ -195,3 +196,20 @@ class SparqlEngineBuilderTest(unittest.TestCase):
     def test_create_wdqs_engine_unsupported(self):
         with self.assertRaises(UnsupportedSparqlEngineException):
             SparqlEngineBuilder.make("foo")
+
+
+class GetLabelForVariableTest(unittest.TestCase):
+    def test_get_label_for_variable(self):
+        result = get_label_for_variable("?item", "?label")
+        expected = [
+            "  OPTIONAL {{",
+            "    ?item rdfs:label ?labelMUL.",
+            "    FILTER(lang(?labelMUL)='mul')",
+            "  }}.",
+            "  OPTIONAL {{",
+            "    ?item rdfs:label ?labelEN.",
+            "    FILTER(lang(?labelEN)='en')",
+            "  }}.",
+            "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?label).",
+        ]
+        self.assertListEqual(result, expected)

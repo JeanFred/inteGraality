@@ -203,13 +203,13 @@ class GetLabelForVariableTest(unittest.TestCase):
         result = get_label_for_variable("?item", "?label")
         expected = [
             "  OPTIONAL {{",
-            "    ?item rdfs:label ?labelMUL.",
-            "    FILTER(lang(?labelMUL)='mul')",
+            "    ?item rdfs:label ?itemlabelMUL.",
+            "    FILTER(lang(?itemlabelMUL)='mul')",
             "  }}.",
             "  OPTIONAL {{",
-            "    ?item rdfs:label ?labelEN.",
-            "    FILTER(lang(?labelEN)='en')",
+            "    ?item rdfs:label ?itemlabelEN.",
+            "    FILTER(lang(?itemlabelEN)='en')",
             "  }}.",
-            "  BIND(COALESCE(?labelEN, ?labelMUL) AS ?label).",
+            "  BIND(COALESCE(?itemlabelEN, ?itemlabelMUL) AS ?label).",
         ]
         self.assertListEqual(result, expected)

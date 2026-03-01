@@ -111,14 +111,14 @@ SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?grouping_link_
   }
   OPTIONAL { ?grouping wdt:P2 ?_higher_grouping }.
   OPTIONAL {{
-    ?grouping rdfs:label ?labelMUL.
-    FILTER(lang(?labelMUL)='mul')
+    ?grouping rdfs:label ?groupinglabelMUL.
+    FILTER(lang(?groupinglabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?grouping rdfs:label ?labelEN.
-    FILTER(lang(?labelEN)='en')
+    ?grouping rdfs:label ?groupinglabelEN.
+    FILTER(lang(?groupinglabelEN)='en')
   }}.
-  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
+  BIND(COALESCE(?groupinglabelEN, ?groupinglabelMUL) AS ?grouping_link_value).
 }
 GROUP BY ?grouping ?grouping_link_value ?count
 ORDER BY DESC(?count)
@@ -174,14 +174,14 @@ SELECT ?grouping ?grouping_link_value ?count WHERE {
     HAVING (?count >= 20)
   }
   OPTIONAL {{
-    ?grouping rdfs:label ?labelMUL.
-    FILTER(lang(?labelMUL)='mul')
+    ?grouping rdfs:label ?groupinglabelMUL.
+    FILTER(lang(?groupinglabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?grouping rdfs:label ?labelEN.
-    FILTER(lang(?labelEN)='en')
+    ?grouping rdfs:label ?groupinglabelEN.
+    FILTER(lang(?groupinglabelEN)='en')
   }}.
-  BIND(COALESCE(?labelEN, ?labelMUL) AS ?grouping_link_value).
+  BIND(COALESCE(?groupinglabelEN, ?groupinglabelMUL) AS ?grouping_link_value).
 }
 ORDER BY DESC(?count)
 LIMIT 1000

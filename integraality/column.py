@@ -8,6 +8,8 @@ import json
 import os
 from enum import Enum
 
+from sparql_utils import get_label_for_variable
+
 
 class GroupingType(Enum):
     YEAR = "year"
@@ -100,8 +102,23 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 """
         return query
 
-    def get_service_wikibase_label(self):
-        return '  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }\n'
+    def get_variable_labels_for_positive_query(self):
+        """Generate SPARQL for entity labels using native SPARQL."""
+        return "\n".join(get_label_for_variable("?entity", "?entityLabel")) + "\n"
+
+    def get_variable_labels_for_negative_query(self):
+        """Generate SPARQL for entity labels using native SPARQL."""
+        return "\n".join(get_label_for_variable("?entity", "?entityLabel")) + "\n"
+
+    def _get_entity_and_value_labels(self):
+        """Helper for classes that need both entity and value labels."""
+        return (
+            "\n".join(
+                get_label_for_variable("?entity", "?entityLabel")
+                + get_label_for_variable("?value", "?valueLabel")
+            )
+            + "\n"
+        )
 
 
 class PropertyColumn(AbstractColumn):
@@ -180,6 +197,10 @@ class PropertyColumn(AbstractColumn):
   }}
 """
 
+    def get_variable_labels_for_positive_query(self):
+        """Generate SPARQL for entity and value labels using native SPARQL."""
+        return self._get_entity_and_value_labels()
+
 
 class TextColumn(AbstractColumn):
     def __init__(self, language, title=None):
@@ -219,9 +240,6 @@ class TextColumn(AbstractColumn):
     FILTER((LANG(?lang_label)) = "{self.language}") }}
   }}
 """
-
-    def get_service_wikibase_label(self):
-        return f'  SERVICE wikibase:label {{ bd:serviceParam wikibase:language "{self.language}". }}\n'
 
 
 class LabelColumn(TextColumn):
@@ -296,3 +314,7 @@ class SitelinkColumn(AbstractColumn):
       schema:isPartOf <{self.url}>.
   }}
 """
+
+    def get_variable_labels_for_positive_query(self):
+        """Generate SPARQL for entity and value labels using native SPARQL."""
+        return self._get_entity_and_value_labels()

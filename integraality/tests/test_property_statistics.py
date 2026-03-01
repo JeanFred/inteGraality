@@ -439,7 +439,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -455,7 +472,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     ?entity wdt:P551 [] .
   }
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -468,7 +502,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -485,7 +536,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br").
   })
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "br". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -500,7 +559,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P551 ?grouping.
   FILTER wikibase:isSomeValue(?grouping).
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -524,7 +600,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -540,7 +633,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?sitelink schema:about ?entity;
     schema:isPartOf <https://br.wikipedia.org/>;
     schema:name ?value.
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -557,7 +667,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   { ?statement pq:P2 ?value . }
   UNION
   { ?statement a wdno:P2 . BIND("no value"@en AS ?valueLabel) }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -576,7 +703,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -595,7 +730,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -611,7 +754,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -628,7 +779,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     { ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br") }
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "br". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -646,7 +805,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -673,7 +840,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -690,7 +865,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -709,7 +892,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     UNION
     { ?statement a wdno:P2 . }
   }
-  SERVICE wikibase:label { bd:serviceParam wikibase:language "[AUTO_LANGUAGE],en". }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
 }
 """
         self.assertEqual(result, expected)

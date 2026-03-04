@@ -321,3 +321,164 @@ class TestGroupingConfigurationMaker(unittest.TestCase):
             grouping_threshold=self.grouping_threshold,
         )
         self.assertEqual(result, expected)
+
+
+class TestParseGroupings(unittest.TestCase):
+    def test_parse_item_groupings(self):
+        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1,Q2,Q3")
+        expected = ["Q1", "Q2", "Q3"]
+        self.assertEqual(result, expected)
+
+    def test_parse_item_groupings_with_spaces(self):
+        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1, Q2 , Q3")
+        expected = ["Q1", "Q2", "Q3"]
+        self.assertEqual(result, expected)
+
+    def test_parse_item_groupings_with_invalid(self):
+        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1,invalid,Q3")
+        expected = ["Q1", "Q3"]
+        self.assertEqual(result, expected)
+
+    def test_parse_year_groupings(self):
+        result = grouping.YearGroupingConfiguration.parse_groupings("2020,2021,2022")
+        expected = [2020, 2021, 2022]
+        self.assertEqual(result, expected)
+
+    def test_parse_year_groupings_with_spaces(self):
+        result = grouping.YearGroupingConfiguration.parse_groupings("2020, 2021 , 2022")
+        expected = [2020, 2021, 2022]
+        self.assertEqual(result, expected)
+
+    def test_parse_year_groupings_with_invalid(self):
+        result = grouping.YearGroupingConfiguration.parse_groupings("2020,invalid,2022")
+        expected = [2020, 2022]
+        self.assertEqual(result, expected)
+
+    def test_parse_sitelink_groupings(self):
+        result = grouping.SitelinkGroupingConfiguration.parse_groupings("enwiki,frwiki")
+        expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
+        self.assertEqual(result, expected)
+
+    def test_parse_sitelink_groupings_with_spaces(self):
+        result = grouping.SitelinkGroupingConfiguration.parse_groupings(
+            "enwiki, frwiki "
+        )
+        expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
+        self.assertEqual(result, expected)
+
+    def test_parse_sitelink_groupings_with_invalid(self):
+        result = grouping.SitelinkGroupingConfiguration.parse_groupings(
+            "enwiki,invalidwiki,frwiki"
+        )
+        expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
+        self.assertEqual(result, expected)
+
+
+class TestExplicitGroupings(unittest.TestCase):
+    def test_item_grouping_get_values_clause(self):
+        config = grouping.ItemGroupingConfiguration(
+            property="P1", explicit_groupings=["Q1", "Q2", "Q3"]
+        )
+        result = config.get_values_clause()
+        expected = ["  VALUES ?grouping { wd:Q1 wd:Q2 wd:Q3 }"]
+        self.assertEqual(result, expected)
+
+    def test_item_grouping_query_with_explicit_groupings(self):
+        config = grouping.ItemGroupingConfiguration(
+            property="P1", explicit_groupings=["Q1", "Q2"]
+        )
+        result = config.get_grouping_information_query("wdt:P31 wd:Q5")
+        expected = """
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q5 .
+      ?entity wdt:P1 ?grouping .
+      VALUES ?grouping { wd:Q1 wd:Q2 }
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_year_grouping_get_values_clause(self):
+        config = grouping.YearGroupingConfiguration(
+            property="P1", explicit_groupings=[2020, 2021, 2022]
+        )
+        result = config.get_values_clause()
+        expected = ["  VALUES ?grouping { 2020 2021 2022 }"]
+        self.assertEqual(result, expected)
+
+    def test_year_grouping_query_with_explicit_groupings(self):
+        config = grouping.YearGroupingConfiguration(
+            property="P577", explicit_groupings=[2020, 2021]
+        )
+        result = config.get_grouping_information_query("wdt:P31 wd:Q5")
+        expected = """
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q5 .
+      ?entity wdt:P577 ?date .
+      BIND(YEAR(?date) as ?grouping) .
+      VALUES ?grouping { 2020 2021 }
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_sitelink_grouping_get_values_clause(self):
+        config = grouping.SitelinkGroupingConfiguration(
+            explicit_groupings=[
+                "https://en.wikipedia.org/",
+                "https://fr.wikipedia.org/",
+            ]
+        )
+        result = config.get_values_clause()
+        expected = [
+            "  VALUES ?grouping { <https://en.wikipedia.org/> <https://fr.wikipedia.org/> }"
+        ]
+        self.assertEqual(result, expected)
+
+    def test_sitelink_grouping_query_with_explicit_groupings(self):
+        config = grouping.SitelinkGroupingConfiguration(
+            explicit_groupings=[
+                "https://en.wikipedia.org/",
+                "https://fr.wikipedia.org/",
+            ]
+        )
+        result = config.get_grouping_information_query("wdt:P31 wd:Q5")
+        expected = """
+SELECT ?grouping ?count WHERE {
+  {
+    SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+      ?entity wdt:P31 wd:Q5 .
+      ?entity ^schema:about ?sitelink.
+      ?sitelink schema:isPartOf ?grouping.
+      VALUES ?grouping { <https://en.wikipedia.org/> <https://fr.wikipedia.org/> }
+    }
+    GROUP BY ?grouping
+    HAVING (?count >= 20)
+  }
+}
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_predicate_grouping_get_values_clause(self):
+        config = grouping.PredicateGroupingConfiguration(
+            predicate="wdt:P1", explicit_groupings=["Q1", "Q2"]
+        )
+        result = config.get_values_clause()
+        expected = ["  VALUES ?grouping { wd:Q1 wd:Q2 }"]
+        self.assertEqual(result, expected)

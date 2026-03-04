@@ -58,10 +58,16 @@ class AbstractColumn:
         grouping_selector = "\n".join(
             property_statistics.grouping_configuration.get_grouping_selector()
         )
+        values_clause_lines = (
+            property_statistics.grouping_configuration.get_values_clause()
+        )
+        values_clause = (
+            "\n" + "\n".join(values_clause_lines) if values_clause_lines else ""
+        )
         query = f"""
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   ?entity {property_statistics.selector_sparql} .
-{grouping_selector}
+{grouping_selector}{values_clause}
   FILTER(EXISTS {{{self.get_filter_for_info()}
   }})
 }}

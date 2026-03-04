@@ -1649,7 +1649,6 @@ class RetrieveDataTest(PropertyStatisticsTest):
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         result = self.stats.retrieve_data()
-        print(result)
         expected = {
             "Q3115846": ItemGrouping(
                 title="Q3115846",

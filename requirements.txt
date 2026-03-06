@@ -203,9 +203,9 @@ packaging==24.2 \
     --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
     --hash=sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f
     # via pywikibot
-pywikibot==10.6.0 \
-    --hash=sha256:2f5773ed499ba4a432b402646c637a271453a753c62a6c8b9a67069c467579e3 \
-    --hash=sha256:d1f9b77c51e1838b1bcac334db8080572ed0ab8ea8e26d9a33d8ce35d9725541
+pywikibot==10.7.6 \
+    --hash=sha256:47dff243b5a74f292cd38261670156d036b6566338315d9eb4393ed78bc3f9de \
+    --hash=sha256:7c1cdcad5b6a45fede3a7afa6e12000bd546ce3b96a74e20f89abba91bae9e48
     # via integraality
 redis==5.2.1 \
     --hash=sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f \

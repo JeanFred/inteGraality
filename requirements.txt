@@ -228,9 +228,13 @@ pywikibot==10.7.6 \
     --hash=sha256:47dff243b5a74f292cd38261670156d036b6566338315d9eb4393ed78bc3f9de \
     --hash=sha256:7c1cdcad5b6a45fede3a7afa6e12000bd546ce3b96a74e20f89abba91bae9e48
     # via integraality
-redis==5.2.1 \
-    --hash=sha256:16f2e22dff21d5125e8481515e386711a34cbec50f0e44413dd7d9c060a54e0f \
-    --hash=sha256:ee7e1056b9aea0f04c6c2ed59452947f34c4940ee025f5dd83e6a6418b6989e4
+redis==7.0.1 ; python_full_version < '3.10' \
+    --hash=sha256:4977af3c7d67f8f0eb8b6fec0dafc9605db9343142f634041fb0235f67c0588a \
+    --hash=sha256:c949df947dca995dc68fdf5a7863950bf6df24f8d6022394585acc98e81624f1
+    # via integraality
+redis==7.2.1 ; python_full_version >= '3.10' \
+    --hash=sha256:49e231fbc8df2001436ae5252b3f0f3dc930430239bfeb6da4c7ee92b16e5d33 \
+    --hash=sha256:6163c1a47ee2d9d01221d8456bc1c75ab953cbda18cfbc15e7140e9ba16ca3a5
     # via integraality
 requests==2.32.3 \
     --hash=sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760 \

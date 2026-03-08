@@ -24,6 +24,10 @@
         filelog-stdout: logs/weekly-update-wikidata-out.log
         filelog-stderr: logs/weekly-update-wikidata-err.log
 
+    service_template:
+      backend: kubernetes
+      type: "{{ runtime_image }}"
+
   handlers:
     - name: Restart webservice
       command: >
@@ -74,6 +78,15 @@
         dest: '{{ toolforge_path }}/uwsgi.ini'
       tags:
         - config
+
+    - name: Deploy service.template file
+      ansible.builtin.copy:
+        content: '{{ service_template | to_nice_yaml }}'
+        dest: '{{ base_path }}/service.template'
+      tags:
+        - config
+      notify:
+        - Restart webservice
 
     - name: Symlink src directory
       file:

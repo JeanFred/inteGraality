@@ -12,10 +12,12 @@
     source_path: "{{ toolforge_path }}/src"
     jobs_file_path: "{{ base_path }}/jobs.yml"
 
+    runtime_image: python3.9
+
     jobs:
       - name: weekly-update-wikidata
         command: "{{ checkout_path }}/bin/run.sh wikidata"
-        image: python3.9
+        image: "{{ runtime_image }}"
         schedule: "@weekly"
         emails: all
         mem: 1G

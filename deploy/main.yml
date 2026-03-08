@@ -12,7 +12,7 @@
     source_path: "{{ toolforge_path }}/src"
     jobs_file_path: "{{ base_path }}/jobs.yml"
 
-    runtime_image: python3.9
+    runtime_image: python3.11
 
     jobs:
       - name: weekly-update-wikidata

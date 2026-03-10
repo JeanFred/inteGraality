@@ -114,9 +114,10 @@ class NoGroupGrouping(Grouping):
     """Group for items that do not belong to any group."""
 
     is_linkable = False
+    HEADING_TEXT = "No grouping"
 
     def heading(self):
-        return "No grouping"
+        return self.HEADING_TEXT
 
     def format_higher_grouping_text(self, grouping_type=None):
         return "|\n"
@@ -184,11 +185,13 @@ class YearGrouping(Grouping):
 
 
 class UnknownValueGrouping(Grouping):
+    HEADING_TEXT = "{{int:wikibase-snakview-variations-somevalue-label}}"
+
     def get_key(self):
         return "UNKNOWN_VALUE"
 
     def heading(self):
-        return "{{int:wikibase-snakview-variations-somevalue-label}}"
+        return self.HEADING_TEXT
 
     def query_filter_out_fragment(self, grouping_predicate, grouping=None):
         return [

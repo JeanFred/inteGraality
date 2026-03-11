@@ -9,15 +9,12 @@ import collections
 import logging
 from enum import Enum
 
-from column import ColumnMaker, GroupingType
+from column import ColumnMaker
 from grouping import ItemGroupingConfiguration
 from line import (
-    ItemGrouping,
     NoGroupGrouping,
-    SitelinkGrouping,
     TotalsGrouping,
     UnknownValueGrouping,
-    YearGrouping,
 )
 from results_formatter import ResultsFormatter
 from sparql_utils import (
@@ -58,10 +55,6 @@ class PropertyStatistics:
         """
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_configuration = grouping_configuration
-        if grouping_type:
-            self.grouping_type = GroupingType(grouping_type)
-        else:
-            self.grouping_type = None
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
         self.stats_for_no_group = stats_for_no_group
@@ -96,12 +89,8 @@ class PropertyStatistics:
             line = NoGroupGrouping(None)
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
             line = UnknownValueGrouping(None)
-        elif self.grouping_type == GroupingType.YEAR:
-            line = YearGrouping(None)
-        elif grouping.startswith("https://"):
-            line = SitelinkGrouping(None)
         else:
-            line = ItemGrouping(None)
+            line = self.grouping_configuration.line_type(None)
 
         query = "\n"
         query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
@@ -120,12 +109,8 @@ class PropertyStatistics:
             line = NoGroupGrouping(None)
         elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
             line = UnknownValueGrouping(None)
-        elif self.grouping_type == GroupingType.YEAR:
-            line = YearGrouping(None)
-        elif grouping.startswith("https://"):
-            line = SitelinkGrouping(None)
         else:
-            line = ItemGrouping(None)
+            line = self.grouping_configuration.line_type(None)
 
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)

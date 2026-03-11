@@ -6,13 +6,8 @@ Column configuration classes
 
 import json
 import os
-from enum import Enum
 
 from sparql_utils import get_label_for_variable
-
-
-class GroupingType(Enum):
-    YEAR = "year"
 
 
 class ColumnSyntaxException(Exception):

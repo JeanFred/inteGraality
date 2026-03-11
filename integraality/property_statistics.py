@@ -19,6 +19,7 @@ from line import (
     UnknownValueGrouping,
     YearGrouping,
 )
+from results_formatter import ResultsFormatter
 from sparql_utils import (
     UNKNOWN_VALUE_PREFIX,
     QueryException,
@@ -67,7 +68,11 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
-        self.cell_template = "Integraality cell"
+        self.formatter = ResultsFormatter(
+            columns=self.columns,
+            grouping_configuration=grouping_configuration,
+            property_threshold=property_threshold,
+        )
 
     def get_sparql_engine_name(self):
         return self.sparql_query_engine.name
@@ -189,21 +194,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return result
 
     def get_header(self):
-        text = '{| class="wikitable sortable"\n'
-        colspan = 3 if self.grouping_configuration.higher_grouping else 2
-        text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_configuration.grouping_threshold} items)\n'
-        text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'  # noqa
-        text += "|-\n"
-
-        if self.grouping_configuration.higher_grouping:
-            text += "! \n"
-
-        text += "! Name\n"
-        text += "! Count\n"
-        for column_entry in self.columns.values():
-            text += column_entry.make_column_header()
-
-        return text
+        """Generate table header."""
+        # Update formatter's property_threshold to current value
+        self.formatter.property_threshold = self.property_threshold
+        return self.formatter._format_header()
 
     def make_stats_for_no_group(self):
         """
@@ -223,18 +217,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return grouping_object
 
     def format_stats_for_one_grouping(self, grouping_object):
-        """
-        Query the data for one group, return the wikitext.
-        """
-        text = grouping_object.row_opener()
-
-        text += grouping_object.format_header_cell(
-            self.grouping_configuration, self.grouping_type
-        )
-        text += grouping_object.format_count_cell()
-        for column_entry in self.columns.values():
-            text += grouping_object.format_cell(column_entry, self.cell_template)
-        return text
+        """Format one grouping row."""
+        # Update formatter's grouping_configuration to current value
+        self.formatter.grouping_configuration = self.grouping_configuration
+        return self.formatter._format_grouping(grouping_object, self.grouping_type)
 
     def make_totals(self):
         """
@@ -301,12 +287,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         sorted_groupings.append(self.make_totals())
 
-        text = self.get_header()
-        for grouping in sorted_groupings:
-            text += self.format_stats_for_one_grouping(grouping)
-        text += "|}\n"
-
-        return text
+        return self.formatter.format_report(sorted_groupings)
 
 
 def main(*args):

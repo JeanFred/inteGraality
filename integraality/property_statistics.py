@@ -193,12 +193,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return result
 
-    def get_header(self):
-        """Generate table header."""
-        # Update formatter's property_threshold to current value
-        self.formatter.property_threshold = self.property_threshold
-        return self.formatter._format_header()
-
     def make_stats_for_no_group(self):
         """
         Query the data for no_group, return the grouping object.
@@ -215,12 +209,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
             grouping_object.cells[column_entry_key] = value
 
         return grouping_object
-
-    def format_stats_for_one_grouping(self, grouping_object):
-        """Format one grouping row."""
-        # Update formatter's grouping_configuration to current value
-        self.formatter.grouping_configuration = self.grouping_configuration
-        return self.formatter._format_grouping(grouping_object, self.grouping_type)
 
     def make_totals(self):
         """

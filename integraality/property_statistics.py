@@ -207,7 +207,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def make_stats_for_no_group(self):
         """
-        Query the data for no_group, return the wikitext
+        Query the data for no_group, return the grouping object.
         """
         count = self.get_totals_no_grouping()
         grouping_object = NoGroupGrouping(
@@ -220,7 +220,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             )
             grouping_object.cells[column_entry_key] = value
 
-        return self.format_stats_for_one_grouping(grouping_object)
+        return grouping_object
 
     def format_stats_for_one_grouping(self, grouping_object):
         """
@@ -237,6 +237,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return text
 
     def make_totals(self):
+        """
+        Query the data for totals, return the grouping object.
+        """
         count = self.get_totals()
         grouping_object = TotalsGrouping(
             count=count,
@@ -248,7 +251,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             value = self._get_count_from_sparql(column_entry.get_totals_query(self))
             grouping_object.cells[column_entry_key] = value
 
-        return self.format_stats_for_one_grouping(grouping_object)
+        return grouping_object
 
     def retrieve_and_process_data(self):
         """
@@ -289,15 +292,18 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return groupings
 
     def process_data(self, groupings):
-        text = self.get_header()
-
-        for grouping in sorted(groupings.values(), key=lambda t: t.count, reverse=True):
-            text += self.format_stats_for_one_grouping(grouping)
+        sorted_groupings = sorted(
+            groupings.values(), key=lambda t: t.count, reverse=True
+        )
 
         if self.stats_for_no_group:
-            text += self.make_stats_for_no_group()
+            sorted_groupings.append(self.make_stats_for_no_group())
 
-        text += self.make_totals()
+        sorted_groupings.append(self.make_totals())
+
+        text = self.get_header()
+        for grouping in sorted_groupings:
+            text += self.format_stats_for_one_grouping(grouping)
         text += "|}\n"
 
         return text

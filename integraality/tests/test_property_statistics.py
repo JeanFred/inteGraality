@@ -7,7 +7,13 @@ from unittest.mock import patch, create_autospec
 
 from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
-from line import ItemGrouping, UnknownValueGrouping, YearGrouping
+from line import (
+    ItemGrouping,
+    NoGroupGrouping,
+    TotalsGrouping,
+    UnknownValueGrouping,
+    YearGrouping,
+)
 from property_statistics import PropertyStatistics
 from sparql_utils import QueryException, WdqsSparqlQueryEngine
 
@@ -181,17 +187,19 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
     def test_make_stats_for_no_group(self):
         self.maxDiff = None
         result = self.stats.make_stats_for_no_group()
-        expected = (
-            "|-\n"
-            "| No grouping\n"
-            "| 20 \n"
-            "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
-            "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
-            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
-            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=brwiki|grouping=None}}\n"
+        expected = NoGroupGrouping(
+            count=20, higher_grouping=self.grouping_configuration.higher_grouping
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 2),
+                ("P19", 10),
+                ("P1/P2", 15),
+                ("P3/Q4/P5", 5),
+                ("Lbr", 4),
+                ("Dxy", 8),
+                ("brwiki", 4),
+            ]
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -200,18 +208,19 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
     def test_make_stats_for_no_group_with_higher_grouping(self):
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.make_stats_for_no_group()
-        expected = (
-            "|-\n"
-            "|\n"
-            "| No grouping\n"
-            "| 20 \n"
-            "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
-            "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
-            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
-            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=brwiki|grouping=None}}\n"
+        expected = NoGroupGrouping(
+            count=20, higher_grouping=self.stats.grouping_configuration.higher_grouping
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 2),
+                ("P19", 10),
+                ("P1/P2", 15),
+                ("P3/Q4/P5", 5),
+                ("Lbr", 4),
+                ("Dxy", 8),
+                ("brwiki", 4),
+            ]
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -219,17 +228,19 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
 
     def test_make_stats_for_no_group_with_grouping_link(self):
         result = self.stats.make_stats_for_no_group()
-        expected = (
-            "|-\n"
-            "| No grouping\n"
-            "| 20 \n"
-            "| {{Integraality cell|10.0|2|column=P21|grouping=None}}\n"
-            "| {{Integraality cell|50.0|10|column=P19|grouping=None}}\n"
-            "| {{Integraality cell|75.0|15|column=P1/P2|grouping=None}}\n"
-            "| {{Integraality cell|25.0|5|column=P3/Q4/P5|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=Lbr|grouping=None}}\n"
-            "| {{Integraality cell|40.0|8|column=Dxy|grouping=None}}\n"
-            "| {{Integraality cell|20.0|4|column=brwiki|grouping=None}}\n"
+        expected = NoGroupGrouping(
+            count=20, higher_grouping=self.grouping_configuration.higher_grouping
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 2),
+                ("P19", 10),
+                ("P1/P2", 15),
+                ("P3/Q4/P5", 5),
+                ("Lbr", 4),
+                ("Dxy", 8),
+                ("brwiki", 4),
+            ]
         )
         self.assertEqual(result, expected)
         self.mock_get_totals_no_grouping.assert_called_once_with(self.stats)
@@ -1386,51 +1397,62 @@ class MakeTotalsTest(PropertyStatisticsTest):
 
     def test_make_totals(self):
         result = self.stats.make_totals()
-        expected = (
-            '|- class="sortbottom"\n'
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 120 \n"
-            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
-            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=brwiki|grouping=}}\n"
+        expected = TotalsGrouping(
+            count=120,
+            title="",
+            higher_grouping=self.grouping_configuration.higher_grouping,
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 30),
+                ("P19", 80),
+                ("P1/P2", 10),
+                ("P3/Q4/P5", 12),
+                ("Lbr", 24),
+                ("Dxy", 36),
+                ("brwiki", 24),
+            ]
         )
         self.assertEqual(result, expected)
 
     def test_make_totals_with_higher_grouping(self):
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
         result = self.stats.make_totals()
-        expected = (
-            '|- class="sortbottom"\n'
-            "||\n"
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 120 \n"
-            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
-            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=brwiki|grouping=}}\n"
+        expected = TotalsGrouping(
+            count=120,
+            title="",
+            higher_grouping=self.stats.grouping_configuration.higher_grouping,
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 30),
+                ("P19", 80),
+                ("P1/P2", 10),
+                ("P3/Q4/P5", 12),
+                ("Lbr", 24),
+                ("Dxy", 36),
+                ("brwiki", 24),
+            ]
         )
         self.assertEqual(result, expected)
 
     def test_make_totals_with_grouping_link(self):
         result = self.stats.make_totals()
-        expected = (
-            '|- class="sortbottom"\n'
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 120 \n"
-            "| {{Integraality cell|25.0|30|column=P21|grouping=}}\n"
-            "| {{Integraality cell|66.67|80|column=P19|grouping=}}\n"
-            "| {{Integraality cell|8.33|10|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|10.0|12|column=P3/Q4/P5|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|30.0|36|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|20.0|24|column=brwiki|grouping=}}\n"
+        expected = TotalsGrouping(
+            count=120,
+            title="",
+            higher_grouping=self.grouping_configuration.higher_grouping,
+        )
+        expected.cells = OrderedDict(
+            [
+                ("P21", 30),
+                ("P19", 80),
+                ("P1/P2", 10),
+                ("P3/Q4/P5", 12),
+                ("Lbr", 24),
+                ("Dxy", 36),
+                ("brwiki", 24),
+            ]
         )
         self.assertEqual(result, expected)
 

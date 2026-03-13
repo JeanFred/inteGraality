@@ -5,7 +5,11 @@ import traceback
 
 from flask import Flask, render_template, request
 
-from pages_processor import PagesProcessor, ProcessingException
+from pages_processor import (
+    PagesProcessor,
+    ProcessingException,
+    TransientServerException,
+)
 from sparql_utils import QueryException, add_prefixes_to_query
 
 app = Flask(__name__)
@@ -43,6 +47,13 @@ def update():
             page_url=page_url,
             error_message=e,
             query=e.query,
+        )
+    except TransientServerException as e:
+        return render_template(
+            "update_transient_error.html",
+            page_title=page_title,
+            page_url=page_url,
+            error_message=e,
         )
     except ProcessingException as e:
         return render_template(

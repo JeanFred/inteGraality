@@ -42,6 +42,12 @@ class NoStartTemplateException(ProcessingException):
     pass
 
 
+class TransientServerException(Exception):
+    """Exception for temporary server issues that may resolve on retry."""
+
+    pass
+
+
 class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.site = pywikibot.Site(url=url)
@@ -204,13 +210,28 @@ class PagesProcessor:
                 pywikibot.output(
                     "A SPARQL query went wrong on page %s, skipping" % page.title()
                 )
+            except (
+                pywikibot.exceptions.TimeoutError,
+                pywikibot.exceptions.ServerError,
+            ) as e:
+                pywikibot.output(
+                    f"Temporary server issue with page {page.title()}: {e}. Will retry later."
+                )
             except Exception as e:
                 pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
 
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.site, page_title)
         pywikibot.output("Processing page %s" % page.title())
-        return self.process_page(page)
+        try:
+            return self.process_page(page)
+        except (
+            pywikibot.exceptions.TimeoutError,
+            pywikibot.exceptions.ServerError,
+        ) as e:
+            raise TransientServerException(
+                f"Temporary server issue: {e}. Please try again later."
+            ) from e
 
     def make_stats_object_for_page_title(self, page_title):
         key = self.make_cache_key(page_title)

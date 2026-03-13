@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="alert alert-warning">
+    <p>A temporary server issue occurred when updating page <a href="{{ page_url }}">{{ page_title }}</a>. This is usually caused by high server load and is not a bug.</p>
+    <p>{{ error_message }}</p>
+    <p>Please try again later.</p>
+</div>
+{% endblock %}

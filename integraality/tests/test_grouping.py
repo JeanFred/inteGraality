@@ -1,9 +1,12 @@
 # -*- coding: utf-8  -*-
 
+import collections
 import unittest
-from unittest.mock import patch
+from unittest.mock import create_autospec, patch
 
 import grouping
+from line import UnknownValueGrouping, YearGrouping
+from sparql_utils import WdqsSparqlQueryEngine
 
 
 class AbstractGroupingConfiguration(unittest.TestCase):
@@ -482,3 +485,106 @@ LIMIT 1000
         result = config.get_values_clause()
         expected = ["  VALUES ?grouping { wd:Q1 wd:Q2 }"]
         self.assertEqual(result, expected)
+
+
+class YearRebinningTest(unittest.TestCase):
+    def setUp(self):
+        self.config = grouping.YearGroupingConfiguration(property="P569")
+
+    def test_full_path_with_outlier(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        years = list(range(1903, 2027)) + [3]  # 125 years with outlier
+        mock_engine.select.return_value = [
+            {"grouping": str(year), "count": "5"} for year in years
+        ]
+
+        result = self.config.get_grouping_information("wdt:P31 wd:Q482994", mock_engine)
+        result = self.config.post_process(result)
+
+        self.assertEqual(len(result), 14)  # 1 (0s) + 13 (1900s-2020s)
+        self.assertIsInstance(result["1900/10"], YearGrouping)
+        self.assertEqual(result["1900/10"].time_span, 10)
+        self.assertIn("0/10", result)
+
+    def test_no_rebinning_for_small_count(self):
+        groupings = collections.OrderedDict(
+            (str(year), YearGrouping(title=str(year), count=5))
+            for year in range(1950, 2000)
+        )
+        result = self.config._rebin_if_needed(groupings)
+        self.assertEqual(len(result), 50)
+        self.assertIsInstance(result["1950"], YearGrouping)
+
+    def test_rebin_to_decade_for_large_count(self):
+        groupings = collections.OrderedDict(
+            (str(year), YearGrouping(title=str(year), count=5))
+            for year in range(1900, 2025)
+        )
+        result = self.config._rebin_if_needed(groupings)
+        self.assertLess(len(result), 125)
+        self.assertEqual(result["1900/10"].time_span, 10)
+
+    def test_ignores_unknown_value(self):
+        groupings = collections.OrderedDict(
+            (str(year), YearGrouping(title=str(year), count=5))
+            for year in range(1950, 2000)
+        )
+        groupings["UNKNOWN_VALUE"] = UnknownValueGrouping(count=3)
+        result = self.config._rebin_if_needed(groupings)
+        self.assertEqual(len(result), 51)  # 50 years + UNKNOWN_VALUE
+        self.assertIsInstance(result["1950"], YearGrouping)
+
+    def test_rebin_sums_counts_and_cells(self):
+        groupings = collections.OrderedDict(
+            [
+                (
+                    "1995",
+                    YearGrouping(
+                        title="1995",
+                        count=10,
+                        cells=collections.OrderedDict([("P1", 5)]),
+                    ),
+                ),
+                (
+                    "1996",
+                    YearGrouping(
+                        title="1996",
+                        count=8,
+                        cells=collections.OrderedDict([("P1", 4)]),
+                    ),
+                ),
+                (
+                    "2001",
+                    YearGrouping(
+                        title="2001",
+                        count=12,
+                        cells=collections.OrderedDict([("P1", 6)]),
+                    ),
+                ),
+            ]
+        )
+        # Force >100 entries so rebinning triggers
+        for year in range(1800, 1900):
+            groupings[str(year)] = YearGrouping(
+                title=str(year), count=1, cells=collections.OrderedDict([("P1", 1)])
+            )
+
+        result = self.config._rebin_if_needed(groupings)
+
+        self.assertIn("1990/10", result)
+        self.assertIn("2000/10", result)
+        self.assertEqual(result["1990/10"].count, 18)
+        self.assertEqual(result["1990/10"].cells["P1"], 9)
+        self.assertEqual(result["1990/10"].time_span, 10)
+
+    def test_rebin_preserves_unknown_value(self):
+        groupings = collections.OrderedDict(
+            (str(year), YearGrouping(title=str(year), count=5))
+            for year in range(1800, 2025)
+        )
+        groupings["UNKNOWN_VALUE"] = UnknownValueGrouping(count=5)
+
+        result = self.config._rebin_if_needed(groupings)
+
+        self.assertIn("UNKNOWN_VALUE", result)
+        self.assertEqual(result["UNKNOWN_VALUE"].count, 5)

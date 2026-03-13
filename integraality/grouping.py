@@ -211,6 +211,9 @@ class AbstractGroupingConfiguration:
     def get_grouping_selector(self):
         raise NotImplementedError
 
+    def post_process(self, groupings):
+        return groupings
+
     def get_grouping_information(self, selector_sparql, sparql_query_engine):
         """
         Get all groupings and their counts.
@@ -429,6 +432,51 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
             grouping_threshold=grouping_threshold,
             explicit_groupings=explicit_groupings,
         )
+
+    MAX_GROUPINGS = 100
+
+    def _rebin_if_needed(self, groupings):
+        """Rebin year groupings to a coarser resolution if there are too many."""
+        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.TITLE]
+
+        time_span = 1
+        while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:
+            time_span *= 10
+
+        if time_span == 1:
+            return groupings
+
+        rebinned = collections.OrderedDict()
+
+        for key, grouping in groupings.items():
+            if key == UnknownValueGrouping.TITLE:
+                rebinned[key] = grouping
+                continue
+
+            new_title = str((int(grouping.title) // time_span) * time_span)
+            new_grouping = YearGrouping(
+                title=new_title,
+                count=grouping.count,
+                cells=grouping.cells.copy(),
+                grouping_link=grouping.grouping_link,
+                higher_grouping=grouping.higher_grouping,
+                time_span=time_span,
+            )
+            rebinned_key = new_grouping.get_key()
+
+            if rebinned_key in rebinned:
+                rebinned[rebinned_key].count += grouping.count
+                for cell_key, cell_value in grouping.cells.items():
+                    rebinned[rebinned_key].cells[cell_key] = (
+                        rebinned[rebinned_key].cells.get(cell_key, 0) + cell_value
+                    )
+            else:
+                rebinned[rebinned_key] = new_grouping
+
+        return rebinned
+
+    def post_process(self, groupings):
+        return self._rebin_if_needed(groupings)
 
     def get_grouping_selector(self):
         return [

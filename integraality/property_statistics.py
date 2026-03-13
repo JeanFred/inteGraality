@@ -15,6 +15,7 @@ from line import (
     NoGroupGrouping,
     TotalsGrouping,
     UnknownValueGrouping,
+    YearGrouping,
 )
 from results_formatter import ResultsFormatter
 from sparql_utils import (
@@ -82,7 +83,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
-        line = self._make_line_for_grouping(grouping)
+        line, grouping = self._make_line_for_grouping(grouping)
 
         query = "\n"
         query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
@@ -94,7 +95,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
-        line = self._make_line_for_grouping(grouping)
+        line, grouping = self._make_line_for_grouping(grouping)
 
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
@@ -106,14 +107,16 @@ class PropertyStatistics:
 
     def _make_line_for_grouping(self, grouping):
         if grouping == self.GROUP_MAPPING.TOTALS:
-            return TotalsGrouping(None)
+            return TotalsGrouping(None), grouping
         if grouping == self.GROUP_MAPPING.NO_GROUPING:
-            return NoGroupGrouping(None)
+            return NoGroupGrouping(None), grouping
         if grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            return UnknownValueGrouping(None)
-        else:
-            line_type = self.grouping_configuration.line_type
-            return line_type(None)
+            return UnknownValueGrouping(None), grouping
+        line_type = self.grouping_configuration.line_type
+        if line_type == YearGrouping and "/" in str(grouping):
+            title, time_span = grouping.rsplit("/", 1)
+            return YearGrouping(None, time_span=int(time_span)), title
+        return line_type(None), grouping
 
     def get_totals_no_grouping(self):
         grouping_predicate = self.grouping_configuration.get_predicate()
@@ -243,6 +246,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         logging.info(f"Grouping retrieved: {len(groupings)}")
         groupings = self.populate_groupings(groupings)
+        groupings = self.grouping_configuration.post_process(groupings)
         return groupings
 
     def process_data(self, groupings):

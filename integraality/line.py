@@ -173,13 +173,38 @@ class SitelinkGrouping(Grouping):
 
 
 class YearGrouping(Grouping):
+    def __init__(
+        self,
+        count,
+        cells=None,
+        title=None,
+        higher_grouping=None,
+        grouping_link=None,
+        time_span=1,
+    ):
+        super().__init__(count, cells, title, higher_grouping, grouping_link)
+        self.time_span = time_span
+
+    @property
+    def bind_expression(self):
+        if self.time_span == 1:
+            return "YEAR(?date)"
+        return f"FLOOR(YEAR(?date) / {self.time_span}) * {self.time_span}"
+
+    def get_key(self):
+        if self.time_span == 1:
+            return self.title
+        return f"{self.title}/{self.time_span}"
+
     def heading(self):
-        return f"{self.title}"
+        if self.time_span == 1:
+            return f"{self.title}"
+        return f"{self.title}s"
 
     def query_filter_out_fragment(self, grouping_predicate, grouping):
         return [
             f"  ?entity {grouping_predicate} ?date.",
-            "  BIND(YEAR(?date) as ?year).",
+            f"  BIND({self.bind_expression} as ?year).",
             f"  FILTER(?year = {grouping}).",
         ]
 

@@ -310,3 +310,42 @@ class FormatHigherGroupingTextTest(unittest.TestCase):
         result = grouping.format_higher_grouping_text(None)
         expected = '| data-sort-value="US%20CDC%20logo.svg"| [[File:US%20CDC%20logo.svg|center|100px]]\n'
         self.assertEqual(result, expected)
+
+
+class YearGroupingDisplayTest(unittest.TestCase):
+    def test_heading_decade(self):
+        self.assertEqual(
+            line.YearGrouping(count=1, title="1950", time_span=10).heading(), "1950s"
+        )
+
+    def test_heading_century(self):
+        self.assertEqual(
+            line.YearGrouping(count=1, title="1900", time_span=100).heading(), "1900s"
+        )
+
+    def test_heading_millennium(self):
+        self.assertEqual(
+            line.YearGrouping(count=1, title="1000", time_span=1000).heading(), "1000s"
+        )
+
+    def test_query_filter_decade(self):
+        result = line.YearGrouping(
+            count=1, title="1950", time_span=10
+        ).query_filter_out_fragment("wdt:P569", "1950")
+        expected = [
+            "  ?entity wdt:P569 ?date.",
+            "  BIND(FLOOR(YEAR(?date) / 10) * 10 as ?year).",
+            "  FILTER(?year = 1950).",
+        ]
+        self.assertEqual(result, expected)
+
+    def test_query_filter_year(self):
+        result = line.YearGrouping(count=1, title="1950").query_filter_out_fragment(
+            "wdt:P569", "1950"
+        )
+        expected = [
+            "  ?entity wdt:P569 ?date.",
+            "  BIND(YEAR(?date) as ?year).",
+            "  FILTER(?year = 1950).",
+        ]
+        self.assertEqual(result, expected)

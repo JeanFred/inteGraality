@@ -64,7 +64,17 @@ Bottom
 
 class TestParseConfig(ProcessortTest):
     def setUp(self):
+        super().setUp()
+        self.property_page_patcher = patch("pywikibot.PropertyPage")
+        mock_property_page = self.property_page_patcher.start()
+        mock_property_page.return_value.get_data_for_new_entity.return_value = {
+            "datatype": "wikibase-item"
+        }
         self.processor = PagesProcessor()
+
+    def tearDown(self):
+        self.property_page_patcher.stop()
+        super().tearDown()
 
     def test_normal_config(self):
         input_config = {

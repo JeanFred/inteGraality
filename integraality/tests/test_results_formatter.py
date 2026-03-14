@@ -148,7 +148,7 @@ class TestFormatGrouping(ResultsFormatterTest):
         self.assertEqual(result, expected)
 
     def test_format_unknown_value_grouping(self):
-        grouping = UnknownValueGrouping(title="UNKNOWN_VALUE", count=10)
+        grouping = UnknownValueGrouping(count=10)
         grouping.cells = OrderedDict([("P21", 4), ("P19", 0), ("Lbr", 0)])
         result = self.formatter._format_grouping(grouping)
         expected = (
@@ -162,9 +162,7 @@ class TestFormatGrouping(ResultsFormatterTest):
         self.assertEqual(result, expected)
 
     def test_format_unknown_value_grouping_with_grouping_link(self):
-        grouping = UnknownValueGrouping(
-            title="UNKNOWN_VALUE", grouping_link="Foo/UNKNOWN_VALUE", count=10
-        )
+        grouping = UnknownValueGrouping(grouping_link="Foo/UNKNOWN_VALUE", count=10)
         grouping.cells = OrderedDict([("P21", 4), ("P19", 0), ("Lbr", 0)])
         result = self.formatter._format_grouping(grouping)
         expected = (

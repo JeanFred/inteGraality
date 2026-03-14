@@ -199,6 +199,11 @@ class YearGrouping(Grouping):
     def heading(self):
         if self.time_span == 1:
             return f"{self.title}"
+        title = int(self.title)
+        if self.time_span >= 1_000_000 and title % 1_000_000 == 0:
+            return f"{title // 1_000_000} Ma"
+        if self.time_span >= 10_000 and title % 1_000 == 0:
+            return f"{title // 1_000} ka"
         return f"{self.title}s"
 
     def query_filter_out_fragment(self, grouping_predicate, grouping):

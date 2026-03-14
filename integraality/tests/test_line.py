@@ -328,6 +328,18 @@ class YearGroupingDisplayTest(unittest.TestCase):
             line.YearGrouping(count=1, title="1000", time_span=1000).heading(), "1000s"
         )
 
+    def test_heading_mega_annum(self):
+        self.assertEqual(
+            line.YearGrouping(count=1, title="-80000000", time_span=10000000).heading(),
+            "-80 Ma",
+        )
+
+    def test_heading_kilo_annum(self):
+        self.assertEqual(
+            line.YearGrouping(count=1, title="-10000", time_span=10000).heading(),
+            "-10 ka",
+        )
+
     def test_query_filter_decade(self):
         result = line.YearGrouping(
             count=1, title="1950", time_span=10

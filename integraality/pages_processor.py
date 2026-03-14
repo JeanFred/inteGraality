@@ -50,6 +50,7 @@ class TransientServerException(Exception):
 
 class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
+        self.url = url
         self.site = pywikibot.Site(url=url)
         self.repo = self.site.data_repository()
         self.template_name = "Property dashboard"
@@ -163,7 +164,8 @@ class PagesProcessor:
             raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         config["sparql_query_engine"] = SparqlEngineBuilder.make(
-            config.pop("sparql_endpoint", None)
+            config.pop("sparql_endpoint", None),
+            site_url=self.url,
         )
         return config
 

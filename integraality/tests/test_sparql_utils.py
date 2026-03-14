@@ -185,6 +185,21 @@ class SparqlEngineBuilderTest(unittest.TestCase):
         self.assertIsInstance(engine, QLeverSparqlQueryEngine)
         self.assertEqual(engine.endpoint, "https://qlever.dev/api/wikidata")
 
+    def test_create_qlever_engine_commons_from_site_url(self):
+        engine = SparqlEngineBuilder.make(
+            site_url="https://commons.wikimedia.org/wiki/"
+        )
+        self.assertIsInstance(engine, QLeverSparqlQueryEngine)
+        self.assertEqual(engine.endpoint, "https://qlever.dev/api/wikimedia-commons")
+
+    def test_create_qlever_engine_commons_ignores_sparql_endpoint(self):
+        engine = SparqlEngineBuilder.make(
+            sparql_endpoint="qlever",
+            site_url="https://commons.wikimedia.org/wiki/",
+        )
+        self.assertIsInstance(engine, QLeverSparqlQueryEngine)
+        self.assertEqual(engine.endpoint, "https://qlever.dev/api/wikimedia-commons")
+
     def test_create_wdqs_engine_wdqs(self):
         engine = SparqlEngineBuilder.make("query.wikidata.org")
         self.assertIsInstance(engine, WdqsSparqlQueryEngine)

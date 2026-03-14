@@ -22,8 +22,16 @@ class UnsupportedSparqlEngineException(Exception):
 
 class SparqlEngineBuilder:
     @staticmethod
-    def make(sparql_endpoint=None):
-        """Create appropriate SPARQL engine based on endpoint URL."""
+    def make(sparql_endpoint=None, site_url=None):
+        """Create appropriate SPARQL engine based on endpoint and site URL.
+
+        If site_url points to Wikimedia Commons, force the QLever
+        wikimedia-commons endpoint regardless of sparql_endpoint.
+        """
+        if site_url and "commons.wikimedia.org" in site_url:
+            return QLeverSparqlQueryEngine(
+                endpoint="https://qlever.dev/api/wikimedia-commons"
+            )
         if sparql_endpoint:
             if "qlever" in sparql_endpoint.lower():
                 return QLeverSparqlQueryEngine()

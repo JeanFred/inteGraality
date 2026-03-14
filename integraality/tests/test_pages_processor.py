@@ -166,6 +166,24 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
 
+    def test_config_with_commons_site_url(self):
+        fake_cache_client = fakeredis.FakeStrictRedis()
+        processor = PagesProcessor(
+            url="https://commons.wikimedia.org/wiki/",
+            cache_client=fake_cache_client,
+        )
+        input_config = {
+            "selector_sparql": '(p:P170/pq:P4174) "Coyau"',
+            "grouping_property": "P571",
+            "properties": "P4082,P180",
+        }
+        result = processor.parse_config(input_config)
+        self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
+        self.assertEqual(
+            result["sparql_query_engine"].endpoint,
+            "https://qlever.dev/api/wikimedia-commons",
+        )
+
     def test_config_with_wdqs_endpoint(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",

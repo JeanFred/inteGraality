@@ -13,6 +13,7 @@ from pages_processor import (
 from sparql_utils import (
     QLeverSparqlQueryEngine,
     QueryException,
+    SparqlEngineBuilder,
     add_prefixes_to_query,
 )
 
@@ -22,7 +23,10 @@ app.debug = True
 
 def get_qlever_ui_url(page_url):
     """Return the QLever UI URL for the given wiki page URL."""
-    return QLeverSparqlQueryEngine().ui_url
+    engine = SparqlEngineBuilder.make(site_url=page_url)
+    if isinstance(engine, QLeverSparqlQueryEngine):
+        return engine.ui_url
+    return "https://qlever.dev/wikidata/"
 
 
 @app.template_filter("add_prefixes")

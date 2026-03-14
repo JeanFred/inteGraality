@@ -6,7 +6,7 @@
     <pre><code>{{ query }}</code></pre>
     <p>
         <a class="btn btn-primary" href="https://query.wikidata.org/#{{ query }}">Try it in Wikidata Query Service</a>
-        <a class="btn btn-info" href="https://qlever.dev/wikidata/?query={{ query | add_prefixes | urlencode }}">Try it in QLever</a>
+        <a class="btn btn-info" href="{{ qlever_ui_url }}?query={{ query | add_prefixes | urlencode }}">Try it in QLever</a>
     </p>
 </div>
 {% endblock %}

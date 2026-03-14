@@ -80,6 +80,10 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
     def __init__(self, endpoint="https://qlever.dev/api/wikidata"):
         self.endpoint = endpoint
 
+    @property
+    def ui_url(self):
+        return self.endpoint.replace("/api/", "/") + "/"
+
     def select(self, query):
         try:
             query = add_prefixes_to_query(query)

@@ -10,10 +10,19 @@ from pages_processor import (
     ProcessingException,
     TransientServerException,
 )
-from sparql_utils import QueryException, add_prefixes_to_query
+from sparql_utils import (
+    QLeverSparqlQueryEngine,
+    QueryException,
+    add_prefixes_to_query,
+)
 
 app = Flask(__name__)
 app.debug = True
+
+
+def get_qlever_ui_url(page_url):
+    """Return the QLever UI URL for the given wiki page URL."""
+    return QLeverSparqlQueryEngine().ui_url
 
 
 @app.template_filter("add_prefixes")
@@ -47,6 +56,7 @@ def update():
             page_url=page_url,
             error_message=e,
             query=e.query,
+            qlever_ui_url=get_qlever_ui_url(page_url),
         )
     except TransientServerException as e:
         return render_template(
@@ -92,6 +102,7 @@ def queries():
             column, grouping
         )
         formatted_predicate = stats.grouping_configuration.format_predicate_html()
+        qlever_ui_url = get_qlever_ui_url(page_url)
         return render_template(
             "queries.html",
             page_title=page_title,
@@ -101,6 +112,7 @@ def queries():
             formatted_predicate=formatted_predicate,
             positive_query=positive_query,
             negative_query=negative_query,
+            qlever_ui_url=qlever_ui_url,
         )
     except ProcessingException as e:
         return render_template(

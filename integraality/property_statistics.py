@@ -82,15 +82,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_positive(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
-
-        if grouping == self.GROUP_MAPPING.TOTALS:
-            line = TotalsGrouping(None)
-        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            line = NoGroupGrouping(None)
-        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            line = UnknownValueGrouping(None)
-        else:
-            line = self.grouping_configuration.line_type(None)
+        line = self._make_line_for_grouping(grouping)
 
         query = "\n"
         query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
@@ -102,15 +94,7 @@ class PropertyStatistics:
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
-
-        if grouping == self.GROUP_MAPPING.TOTALS:
-            line = TotalsGrouping(None)
-        elif grouping == self.GROUP_MAPPING.NO_GROUPING:
-            line = NoGroupGrouping(None)
-        elif grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            line = UnknownValueGrouping(None)
-        else:
-            line = self.grouping_configuration.line_type(None)
+        line = self._make_line_for_grouping(grouping)
 
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
@@ -119,6 +103,17 @@ class PropertyStatistics:
         query += """}
 """
         return query
+
+    def _make_line_for_grouping(self, grouping):
+        if grouping == self.GROUP_MAPPING.TOTALS:
+            return TotalsGrouping(None)
+        if grouping == self.GROUP_MAPPING.NO_GROUPING:
+            return NoGroupGrouping(None)
+        if grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
+            return UnknownValueGrouping(None)
+        else:
+            line_type = self.grouping_configuration.line_type
+            return line_type(None)
 
     def get_totals_no_grouping(self):
         grouping_predicate = self.grouping_configuration.get_predicate()

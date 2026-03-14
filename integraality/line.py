@@ -68,7 +68,7 @@ class Grouping(AbstractLine):
             str(percentage),
             str(column_count),
             f"column={column_entry.get_key()}",
-            f"grouping={self.title}",
+            f"grouping={self.get_key()}",
         ]
         return f"| {{{{{'|'.join(fields)}}}}}\n"
 

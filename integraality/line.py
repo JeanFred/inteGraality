@@ -185,10 +185,11 @@ class YearGrouping(Grouping):
 
 
 class UnknownValueGrouping(Grouping):
+    TITLE = "UNKNOWN_VALUE"
     HEADING_TEXT = "{{int:wikibase-snakview-variations-somevalue-label}}"
 
     def __init__(self, count, cells=None, **kwargs):
-        super().__init__(count, cells, title="UNKNOWN_VALUE", **kwargs)
+        super().__init__(count, cells, title=self.TITLE, **kwargs)
 
     def heading(self):
         return self.HEADING_TEXT

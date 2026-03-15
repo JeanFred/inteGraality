@@ -28,7 +28,7 @@ class Grouping(AbstractLine):
         self, count, cells=None, title=None, higher_grouping=None, grouping_link=None
     ):
         super().__init__(count, cells)
-        self.title = title
+        self.title = title if title is not None else getattr(self, "MARKER", None)
         self.higher_grouping = higher_grouping
         self.grouping_link = grouping_link
 
@@ -114,6 +114,7 @@ class NoGroupGrouping(Grouping):
     """Group for items that do not belong to any group."""
 
     is_linkable = False
+    MARKER = "None"
     HEADING_TEXT = "No grouping"
 
     def heading(self):
@@ -218,9 +219,6 @@ class UnknownValueGrouping(Grouping):
     MARKER = "UNKNOWN_VALUE"
     HEADING_TEXT = "{{int:wikibase-snakview-variations-somevalue-label}}"
 
-    def __init__(self, count, cells=None, **kwargs):
-        super().__init__(count, cells, title=self.MARKER, **kwargs)
-
     def heading(self):
         return self.HEADING_TEXT
 
@@ -232,6 +230,7 @@ class UnknownValueGrouping(Grouping):
 
 
 class TotalsGrouping(Grouping):
+    MARKER = ""
     is_linkable = False
 
     def heading(self):

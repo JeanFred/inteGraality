@@ -437,7 +437,7 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
 
     def _rebin_if_needed(self, groupings):
         """Rebin year groupings to a coarser resolution if there are too many."""
-        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.TITLE]
+        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.MARKER]
 
         time_span = 1
         while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:
@@ -449,7 +449,7 @@ class YearGroupingConfiguration(PropertyGroupingConfiguration):
         rebinned = collections.OrderedDict()
 
         for key, grouping in groupings.items():
-            if key == UnknownValueGrouping.TITLE:
+            if key == UnknownValueGrouping.MARKER:
                 rebinned[key] = grouping
                 continue
 

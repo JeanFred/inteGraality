@@ -7,7 +7,6 @@ Calculate and generate statistics
 
 import collections
 import logging
-from enum import Enum
 
 from column import ColumnMaker
 from grouping import ItemGroupingConfiguration
@@ -31,14 +30,14 @@ class PropertyStatistics:
 
     """
 
-    GROUP_MAPPING = Enum(
-        "GROUP_MAPPING",
-        {
-            "NO_GROUPING": "None",
-            "TOTALS": "",
-            "UNKNOWN_VALUE": "{{int:wikibase-snakview-variations-somevalue-label}}",
-        },
-    )
+    SPECIAL_GROUPINGS = (NoGroupGrouping, TotalsGrouping, UnknownValueGrouping)
+
+    @classmethod
+    def _find_special_grouping(cls, grouping_arg):
+        for grouping_class in cls.SPECIAL_GROUPINGS:
+            if grouping_arg == grouping_class.MARKER:
+                return grouping_class
+        return None
 
     def __init__(
         self,
@@ -106,12 +105,9 @@ class PropertyStatistics:
         return query
 
     def _make_line_for_grouping(self, grouping):
-        if grouping == self.GROUP_MAPPING.TOTALS:
-            return TotalsGrouping(None), grouping
-        if grouping == self.GROUP_MAPPING.NO_GROUPING:
-            return NoGroupGrouping(None), grouping
-        if grouping == self.GROUP_MAPPING.UNKNOWN_VALUE:
-            return UnknownValueGrouping(None), grouping
+        grouping_class = self._find_special_grouping(grouping)
+        if grouping_class:
+            return grouping_class(None), grouping
         line_type = self.grouping_configuration.line_type
         if line_type == YearGrouping and "/" in str(grouping):
             title, time_span = grouping.rsplit("/", 1)
@@ -163,11 +159,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
                 UNKNOWN_VALUE_PREFIX
             ):
-                if self.GROUP_MAPPING.UNKNOWN_VALUE.name not in result.keys():
-                    result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] = 0
-                result[self.GROUP_MAPPING.UNKNOWN_VALUE.name] += int(
-                    resultitem.get("count")
-                )
+                if UnknownValueGrouping.MARKER not in result.keys():
+                    result[UnknownValueGrouping.MARKER] = 0
+                result[UnknownValueGrouping.MARKER] += int(resultitem.get("count"))
             else:
                 qid = resultitem.get("grouping").replace(
                     "http://www.wikidata.org/entity/", ""
@@ -200,7 +194,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
         count = self.get_totals()
         grouping_object = TotalsGrouping(
             count=count,
-            title="",
             higher_grouping=self.grouping_configuration.higher_grouping,
         )
 

@@ -93,11 +93,7 @@ def queries():
     processor = PagesProcessor(page_url)
     try:
         stats = processor.make_stats_object_for_page_title(page_title)
-        grouping_arg = request.args.get("grouping")
-        try:
-            grouping = stats.GROUP_MAPPING(grouping_arg)
-        except ValueError:
-            grouping = stats.GROUP_MAPPING.__members__.get(grouping_arg, grouping_arg)
+        grouping = request.args.get("grouping")
         column = stats.columns.get(column_key)
         positive_query = stats.get_query_for_items_for_property_positive(
             column, grouping

@@ -247,6 +247,24 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.assertEqual(self.mock_sparql_query.select.call_count, 7)
 
 
+class FindSpecialGroupingTest(unittest.TestCase):
+    def test_no_grouping(self):
+        result = PropertyStatistics._find_special_grouping("None")
+        self.assertEqual(result, NoGroupGrouping)
+
+    def test_totals(self):
+        result = PropertyStatistics._find_special_grouping("")
+        self.assertEqual(result, TotalsGrouping)
+
+    def test_unknown_value(self):
+        result = PropertyStatistics._find_special_grouping("UNKNOWN_VALUE")
+        self.assertEqual(result, UnknownValueGrouping)
+
+    def test_regular_grouping(self):
+        result = PropertyStatistics._find_special_grouping("Q123")
+        self.assertIsNone(result)
+
+
 class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
@@ -281,7 +299,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_no_grouping(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.NO_GROUPING
+            self.stats.columns.get("P21"), NoGroupGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
@@ -314,7 +332,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_totals(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.TOTALS
+            self.stats.columns.get("P21"), TotalsGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
@@ -369,7 +387,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_unknown_value_grouping(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.UNKNOWN_VALUE
+            self.stats.columns.get("P21"), UnknownValueGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
@@ -536,7 +554,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_no_grouping(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.NO_GROUPING
+            self.stats.columns.get("P21"), NoGroupGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
@@ -563,7 +581,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_totals(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.TOTALS
+            self.stats.columns.get("P21"), TotalsGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
@@ -612,7 +630,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_unknown_value_grouping(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), self.stats.GROUP_MAPPING.UNKNOWN_VALUE
+            self.stats.columns.get("P21"), UnknownValueGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {

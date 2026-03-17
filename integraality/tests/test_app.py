@@ -20,6 +20,11 @@ class BasicTests(AppTests):
         self.assertEqual(response.status_code, 200)
         self.assertIn("<h1>InteGraality</h1>", response.get_data(as_text=True))
 
+    def test_healthz(self):
+        response = self.app.get("/healthz")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.get_json(), {"status": "healthy"})
+
     def test_404_page(self):
         response = self.app.get("/unexisting_page")
         self.assertEqual(response.status_code, 404)

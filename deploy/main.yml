@@ -27,6 +27,7 @@
     service_template:
       backend: kubernetes
       type: "{{ runtime_image }}"
+      health-check-path: /healthz
 
   handlers:
     - name: Restart webservice

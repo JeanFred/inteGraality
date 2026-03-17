@@ -3,7 +3,7 @@
 
 import traceback
 
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 
 from pages_processor import (
     PagesProcessor,
@@ -33,6 +33,11 @@ def get_qlever_ui_url(page_url):
 def add_prefixes_filter(query):
     """Jinja filter to add prefixes to SPARQL queries for QLever."""
     return add_prefixes_to_query(query)
+
+
+@app.route("/healthz")
+def healthcheck():
+    return jsonify(status="healthy")
 
 
 @app.route("/")

@@ -20,6 +20,129 @@ class UnsupportedGroupingConfigurationException(Exception):
     pass
 
 
+class ItemGroupingType:
+    line_type = ItemGrouping
+
+    def get_grouping_selector(self, predicate):
+        return [f"  ?entity {predicate} ?grouping ."]
+
+    def post_process(self, groupings):
+        return groupings
+
+    @staticmethod
+    def parse_groupings(groupings_string):
+        return [
+            g.strip()
+            for g in groupings_string.split(",")
+            if re.match(r"^Q\d+$", g.strip())
+        ]
+
+    @staticmethod
+    def get_values_clause(explicit_groupings):
+        if not explicit_groupings:
+            return []
+        values = " ".join([f"wd:{g}" for g in explicit_groupings])
+        return [f"  VALUES ?grouping {{ {values} }}"]
+
+
+class YearGroupingType:
+    line_type = YearGrouping
+    MAX_GROUPINGS = 100
+
+    def get_grouping_selector(self, predicate):
+        return [
+            f"  ?entity {predicate} ?date .",
+            "  BIND(YEAR(?date) as ?grouping) .",
+        ]
+
+    def post_process(self, groupings):
+        return self._rebin_if_needed(groupings)
+
+    def _rebin_if_needed(self, groupings):
+        """Rebin year groupings to a coarser resolution if there are too many."""
+        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.MARKER]
+
+        time_span = 1
+        while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:
+            time_span *= 10
+
+        if time_span == 1:
+            return groupings
+
+        rebinned = collections.OrderedDict()
+
+        for key, grouping in groupings.items():
+            if key == UnknownValueGrouping.MARKER:
+                rebinned[key] = grouping
+                continue
+
+            new_title = str((int(grouping.title) // time_span) * time_span)
+            new_grouping = YearGrouping(
+                title=new_title,
+                count=grouping.count,
+                cells=grouping.cells.copy(),
+                grouping_link=grouping.grouping_link,
+                higher_grouping=grouping.higher_grouping,
+                time_span=time_span,
+            )
+            rebinned_key = new_grouping.get_key()
+
+            if rebinned_key in rebinned:
+                rebinned[rebinned_key].count += grouping.count
+                for cell_key, cell_value in grouping.cells.items():
+                    rebinned[rebinned_key].cells[cell_key] = (
+                        rebinned[rebinned_key].cells.get(cell_key, 0) + cell_value
+                    )
+            else:
+                rebinned[rebinned_key] = new_grouping
+
+        return rebinned
+
+    @staticmethod
+    def parse_groupings(groupings_string):
+        return [
+            int(g.strip()) for g in groupings_string.split(",") if g.strip().isdigit()
+        ]
+
+    @staticmethod
+    def get_values_clause(explicit_groupings):
+        if not explicit_groupings:
+            return []
+        values = " ".join([str(g) for g in explicit_groupings])
+        return [f"  VALUES ?grouping {{ {values} }}"]
+
+
+class SitelinkGroupingType:
+    line_type = SitelinkGrouping
+
+    def get_grouping_selector(self, predicate):
+        return [
+            f"  ?entity {predicate} ?sitelink.",
+            "  ?sitelink schema:isPartOf ?grouping.",
+        ]
+
+    def post_process(self, groupings):
+        return groupings
+
+    @staticmethod
+    def parse_groupings(groupings_string):
+        import json
+        import os
+
+        current_dir = os.path.dirname(__file__)
+        wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
+        wikiprojects = json.load(open(wikiprojects_path, "r"))
+        codes = [g.strip() for g in groupings_string.split(",")]
+        return [wikiprojects[code]["url"] for code in codes if code in wikiprojects]
+
+    @staticmethod
+    def get_values_clause(explicit_groupings):
+        if not explicit_groupings:
+            return []
+        values = " ".join([f"<{url}>" for url in explicit_groupings])
+        return [f"  VALUES ?grouping {{ {values} }}"]
+
+
 class GroupingConfigurationMaker:
     @staticmethod
     def make(
@@ -293,8 +416,6 @@ class AbstractGroupingConfiguration:
 
 
 class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
-    line_type = ItemGrouping
-
     def __init__(
         self,
         predicate,
@@ -302,6 +423,7 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
         base_grouping_link=None,
         grouping_threshold=20,
         explicit_groupings=None,
+        grouping_type=None,
     ):
         super().__init__(
             higher_grouping=higher_grouping,
@@ -310,6 +432,11 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
             explicit_groupings=explicit_groupings,
         )
         self.predicate = predicate
+        self.grouping_type = grouping_type or ItemGroupingType()
+
+    @property
+    def line_type(self):
+        return self.grouping_type.line_type
 
     def __eq__(self, other):
         return (
@@ -324,7 +451,10 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
         return self.predicate
 
     def get_grouping_selector(self):
-        return [f"  ?entity {self.get_predicate()} ?grouping ."]
+        return self.grouping_type.get_grouping_selector(self.get_predicate())
+
+    def post_process(self, groupings):
+        return self.grouping_type.post_process(groupings)
 
     def format_predicate_html(self):
         return f"<tt>{self.predicate}</tt>"
@@ -332,17 +462,10 @@ class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
     @staticmethod
     def parse_groupings(groupings_string):
         """Parse 'Q1,Q2,Q3' -> ['Q1', 'Q2', 'Q3']"""
-        return [
-            g.strip()
-            for g in groupings_string.split(",")
-            if re.match(r"^Q\d+$", g.strip())
-        ]
+        return ItemGroupingType.parse_groupings(groupings_string)
 
     def get_values_clause(self):
-        if not self.explicit_groupings:
-            return []
-        values = " ".join([f"wd:{g}" for g in self.explicit_groupings])
-        return [f"  VALUES ?grouping {{ {values} }}"]
+        return self.grouping_type.get_values_clause(self.explicit_groupings)
 
 
 class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
@@ -353,6 +476,7 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
         base_grouping_link=None,
         grouping_threshold=20,
         explicit_groupings=None,
+        grouping_type=None,
     ):
         super().__init__(
             higher_grouping=higher_grouping,
@@ -361,6 +485,11 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
             explicit_groupings=explicit_groupings,
         )
         self.property = property
+        self.grouping_type = grouping_type
+
+    @property
+    def line_type(self):
+        return self.grouping_type.line_type
 
     def __eq__(self, other):
         return (
@@ -374,28 +503,24 @@ class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
     def get_predicate(self):
         return f"wdt:{self.property}"
 
+    def get_grouping_selector(self):
+        return self.grouping_type.get_grouping_selector(self.get_predicate())
+
+    def post_process(self, groupings):
+        return self.grouping_type.post_process(groupings)
+
     def format_predicate_html(self):
         return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
 
-    @staticmethod
     def parse_groupings(groupings_string):
-        """Parse 'Q1,Q2,Q3' -> ['Q1', 'Q2', 'Q3']"""
-        return [
-            g.strip()
-            for g in groupings_string.split(",")
-            if re.match(r"^Q\d+$", g.strip())
-        ]
+        """Parse groupings string using the grouping type's parser."""
+        raise NotImplementedError
 
     def get_values_clause(self):
-        if not self.explicit_groupings:
-            return []
-        values = " ".join([f"wd:{g}" for g in self.explicit_groupings])
-        return [f"  VALUES ?grouping {{ {values} }}"]
+        return self.grouping_type.get_values_clause(self.explicit_groupings)
 
 
 class ItemGroupingConfiguration(PropertyGroupingConfiguration):
-    line_type = ItemGrouping
-
     def __init__(
         self,
         property,
@@ -410,97 +535,39 @@ class ItemGroupingConfiguration(PropertyGroupingConfiguration):
             base_grouping_link=base_grouping_link,
             grouping_threshold=grouping_threshold,
             explicit_groupings=explicit_groupings,
+            grouping_type=ItemGroupingType(),
         )
-
-    def get_grouping_selector(self):
-        return [f"  ?entity {self.get_predicate()} ?grouping ."]
-
-
-class YearGroupingConfiguration(PropertyGroupingConfiguration):
-    line_type = YearGrouping
-
-    def __init__(
-        self,
-        property,
-        base_grouping_link=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-    ):
-        super().__init__(
-            property=property,
-            base_grouping_link=base_grouping_link,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-        )
-
-    MAX_GROUPINGS = 100
-
-    def _rebin_if_needed(self, groupings):
-        """Rebin year groupings to a coarser resolution if there are too many."""
-        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.MARKER]
-
-        time_span = 1
-        while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:
-            time_span *= 10
-
-        if time_span == 1:
-            return groupings
-
-        rebinned = collections.OrderedDict()
-
-        for key, grouping in groupings.items():
-            if key == UnknownValueGrouping.MARKER:
-                rebinned[key] = grouping
-                continue
-
-            new_title = str((int(grouping.title) // time_span) * time_span)
-            new_grouping = YearGrouping(
-                title=new_title,
-                count=grouping.count,
-                cells=grouping.cells.copy(),
-                grouping_link=grouping.grouping_link,
-                higher_grouping=grouping.higher_grouping,
-                time_span=time_span,
-            )
-            rebinned_key = new_grouping.get_key()
-
-            if rebinned_key in rebinned:
-                rebinned[rebinned_key].count += grouping.count
-                for cell_key, cell_value in grouping.cells.items():
-                    rebinned[rebinned_key].cells[cell_key] = (
-                        rebinned[rebinned_key].cells.get(cell_key, 0) + cell_value
-                    )
-            else:
-                rebinned[rebinned_key] = new_grouping
-
-        return rebinned
-
-    def post_process(self, groupings):
-        return self._rebin_if_needed(groupings)
-
-    def get_grouping_selector(self):
-        return [
-            f"  ?entity {self.get_predicate()} ?date .",
-            "  BIND(YEAR(?date) as ?grouping) .",
-        ]
 
     @staticmethod
     def parse_groupings(groupings_string):
-        """Parse '2020,2021,2022' -> [2020, 2021, 2022]"""
-        return [
-            int(g.strip()) for g in groupings_string.split(",") if g.strip().isdigit()
-        ]
+        return ItemGroupingType.parse_groupings(groupings_string)
 
-    def get_values_clause(self):
-        if not self.explicit_groupings:
-            return []
-        values = " ".join([str(g) for g in self.explicit_groupings])
-        return [f"  VALUES ?grouping {{ {values} }}"]
+
+class YearGroupingConfiguration(PropertyGroupingConfiguration):
+    def __init__(
+        self,
+        property,
+        base_grouping_link=None,
+        grouping_threshold=20,
+        explicit_groupings=None,
+    ):
+        super().__init__(
+            property=property,
+            base_grouping_link=base_grouping_link,
+            grouping_threshold=grouping_threshold,
+            explicit_groupings=explicit_groupings,
+            grouping_type=YearGroupingType(),
+        )
+
+    def _rebin_if_needed(self, groupings):
+        return self.grouping_type._rebin_if_needed(groupings)
+
+    @staticmethod
+    def parse_groupings(groupings_string):
+        return YearGroupingType.parse_groupings(groupings_string)
 
 
 class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
-    line_type = SitelinkGrouping
-
     def __init__(
         self,
         higher_grouping=None,
@@ -512,6 +579,11 @@ class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
             grouping_threshold=grouping_threshold,
             explicit_groupings=explicit_groupings,
         )
+        self.grouping_type = SitelinkGroupingType()
+
+    @property
+    def line_type(self):
+        return self.grouping_type.line_type
 
     def __eq__(self, other):
         return (
@@ -524,28 +596,17 @@ class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
         return "sitelink"
 
     def get_grouping_selector(self):
-        return [
-            f"  ?entity {self.get_predicate()} ?sitelink.",
-            "  ?sitelink schema:isPartOf ?grouping.",
-        ]
+        return self.grouping_type.get_grouping_selector(self.get_predicate())
+
+    def post_process(self, groupings):
+        return self.grouping_type.post_process(groupings)
 
     def get_predicate(self):
         return "^schema:about"
 
     @staticmethod
     def parse_groupings(groupings_string):
-        """Parse 'enwiki,frwiki' -> ['https://en.wikipedia.org/', ...]"""
-        import json
-        import os
-
-        current_dir = os.path.dirname(__file__)
-        wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
-        wikiprojects = json.load(open(wikiprojects_path, "r"))
-        codes = [g.strip() for g in groupings_string.split(",")]
-        return [wikiprojects[code]["url"] for code in codes if code in wikiprojects]
+        return SitelinkGroupingType.parse_groupings(groupings_string)
 
     def get_values_clause(self):
-        if not self.explicit_groupings:
-            return []
-        values = " ".join([f"<{url}>" for url in self.explicit_groupings])
-        return [f"  VALUES ?grouping {{ {values} }}"]
+        return self.grouping_type.get_values_clause(self.explicit_groupings)

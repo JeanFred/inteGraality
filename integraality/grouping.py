@@ -20,14 +20,31 @@ class UnsupportedGroupingConfigurationException(Exception):
     pass
 
 
-class ItemGroupingType:
+class AbstractGroupingType:
+    """Base class for grouping type strategies."""
+
+    line_type = None
+
+    def get_grouping_selector(self, predicate):
+        raise NotImplementedError
+
+    def post_process(self, groupings):
+        return groupings
+
+    @staticmethod
+    def parse_groupings(groupings_string):
+        raise NotImplementedError
+
+    @staticmethod
+    def get_values_clause(explicit_groupings):
+        raise NotImplementedError
+
+
+class ItemGroupingType(AbstractGroupingType):
     line_type = ItemGrouping
 
     def get_grouping_selector(self, predicate):
         return [f"  ?entity {predicate} ?grouping ."]
-
-    def post_process(self, groupings):
-        return groupings
 
     @staticmethod
     def parse_groupings(groupings_string):
@@ -45,7 +62,7 @@ class ItemGroupingType:
         return [f"  VALUES ?grouping {{ {values} }}"]
 
 
-class YearGroupingType:
+class YearGroupingType(AbstractGroupingType):
     line_type = YearGrouping
     MAX_GROUPINGS = 100
 
@@ -112,7 +129,7 @@ class YearGroupingType:
         return [f"  VALUES ?grouping {{ {values} }}"]
 
 
-class SitelinkGroupingType:
+class SitelinkGroupingType(AbstractGroupingType):
     line_type = SitelinkGrouping
 
     def get_grouping_selector(self, predicate):
@@ -120,9 +137,6 @@ class SitelinkGroupingType:
             f"  ?entity {predicate} ?sitelink.",
             "  ?sitelink schema:isPartOf ?grouping.",
         ]
-
-    def post_process(self, groupings):
-        return groupings
 
     @staticmethod
     def parse_groupings(groupings_string):

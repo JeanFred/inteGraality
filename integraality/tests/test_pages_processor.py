@@ -8,7 +8,7 @@ from unittest.mock import patch
 import fakeredis
 
 from integraality.column import DescriptionColumn, LabelColumn, PropertyColumn
-from integraality.grouping import ItemGroupingConfiguration
+from integraality.grouping import GroupingConfiguration
 from integraality.pages_processor import ConfigException, PagesProcessor, main
 from sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
 
@@ -65,16 +65,7 @@ Bottom
 class TestParseConfig(ProcessortTest):
     def setUp(self):
         super().setUp()
-        self.property_page_patcher = patch("pywikibot.PropertyPage")
-        mock_property_page = self.property_page_patcher.start()
-        mock_property_page.return_value.get_data_for_new_entity.return_value = {
-            "datatype": "wikibase-item"
-        }
         self.processor = PagesProcessor()
-
-    def tearDown(self):
-        self.property_page_patcher.stop()
-        super().tearDown()
 
     def test_normal_config(self):
         input_config = {
@@ -86,8 +77,8 @@ class TestParseConfig(ProcessortTest):
         }
         result = self.processor.parse_config(input_config)
         expected = {
-            "grouping_configuration": ItemGroupingConfiguration(
-                property="P400",
+            "grouping_configuration": GroupingConfiguration(
+                predicate="wdt:P400",
                 base_grouping_link="Wikidata:WikiProject Video games/Reports/Platform",
             ),
             "stats_for_no_group": True,
@@ -109,7 +100,7 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         expected = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_configuration": ItemGroupingConfiguration(property="P400"),
+            "grouping_configuration": GroupingConfiguration(predicate="wdt:P400"),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
@@ -131,8 +122,8 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         expected = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_configuration": ItemGroupingConfiguration(
-                property="P400", grouping_threshold=1
+            "grouping_configuration": GroupingConfiguration(
+                predicate="wdt:P400", grouping_threshold=1
             ),
             "columns": [
                 PropertyColumn(property="P136", title="genre"),

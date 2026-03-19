@@ -2,40 +2,26 @@
 
 import collections
 import unittest
-from unittest.mock import create_autospec, patch
+from unittest.mock import create_autospec
 
 import grouping
 from line import UnknownValueGrouping, YearGrouping
 from sparql_utils import WdqsSparqlQueryEngine
 
 
-class AbstractGroupingConfiguration(unittest.TestCase):
-    def test_constructor_empty(self):
-        grouping.AbstractGroupingConfiguration()
-
-    def test_get_grouping_selector(self):
-        grouping_configuration = grouping.AbstractGroupingConfiguration()
-        with self.assertRaises(NotImplementedError):
-            grouping_configuration.get_grouping_selector()
-
-    def test_get_grouping_information_query(self):
-        grouping_configuration = grouping.AbstractGroupingConfiguration()
-        with self.assertRaises(NotImplementedError):
-            grouping_configuration.get_grouping_information_query("Q1")
-
-
 class ItemGroupingConfigurationTest(unittest.TestCase):
-    def test_constructor_empty(self):
-        grouping.ItemGroupingConfiguration(property=None)
-
     def test_get_grouping_selector(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(property="P1")
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1", grouping_type=grouping.ItemGroupingType()
+        )
         result = grouping_configuration.get_grouping_selector()
         expected = ["  ?entity wdt:P1 ?grouping ."]
         self.assertListEqual(result, expected)
 
     def test_get_grouping_information_query(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(property="P1")
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1", grouping_type=grouping.ItemGroupingType()
+        )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
 SELECT ?grouping ?count WHERE {
@@ -54,8 +40,10 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_threshold(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(
-            property="P1", grouping_threshold=12
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.ItemGroupingType(),
+            grouping_threshold=12,
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -75,8 +63,10 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_higher_grouping(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(
-            property="P1", higher_grouping="wdt:P2"
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.ItemGroupingType(),
+            higher_grouping="wdt:P2",
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -98,8 +88,11 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_grouping_link(self):
-        grouping_configuration = grouping.ItemGroupingConfiguration(
-            property="P1", higher_grouping="wdt:P2", base_grouping_link="Foo"
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.ItemGroupingType(),
+            higher_grouping="wdt:P2",
+            base_grouping_link="Foo",
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -131,17 +124,18 @@ LIMIT 1000
 
 
 class YearGroupingConfigurationTest(unittest.TestCase):
-    def test_constructor_empty(self):
-        grouping.YearGroupingConfiguration(property=None)
-
     def test_get_grouping_selector(self):
-        grouping_configuration = grouping.YearGroupingConfiguration(property="P1")
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1", grouping_type=grouping.YearGroupingType()
+        )
         result = grouping_configuration.get_grouping_selector()
         expected = ["  ?entity wdt:P1 ?date .", "  BIND(YEAR(?date) as ?grouping) ."]
         self.assertListEqual(result, expected)
 
     def test_get_grouping_information_query(self):
-        grouping_configuration = grouping.YearGroupingConfiguration(property="P1")
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1", grouping_type=grouping.YearGroupingType()
+        )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
 SELECT ?grouping ?count WHERE {
@@ -161,8 +155,10 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_grouping_link(self):
-        grouping_configuration = grouping.YearGroupingConfiguration(
-            property="P1", base_grouping_link="Foo"
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.YearGroupingType(),
+            base_grouping_link="Foo",
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -193,11 +189,10 @@ LIMIT 1000
 
 
 class SitelinkGroupingConfigurationTest(unittest.TestCase):
-    def test_constructor_empty(self):
-        grouping.SitelinkGroupingConfiguration()
-
     def test_get_grouping_selector(self):
-        grouping_configuration = grouping.SitelinkGroupingConfiguration()
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="^schema:about", grouping_type=grouping.SitelinkGroupingType()
+        )
         result = grouping_configuration.get_grouping_selector()
         expected = [
             "  ?entity ^schema:about ?sitelink.",
@@ -206,7 +201,9 @@ class SitelinkGroupingConfigurationTest(unittest.TestCase):
         self.assertListEqual(result, expected)
 
     def test_get_grouping_information_query(self):
-        grouping_configuration = grouping.SitelinkGroupingConfiguration()
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="^schema:about", grouping_type=grouping.SitelinkGroupingType()
+        )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
 SELECT ?grouping ?count WHERE {
@@ -226,8 +223,10 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_get_grouping_information_query_with_higher_grouping(self):
-        grouping_configuration = grouping.SitelinkGroupingConfiguration(
-            higher_grouping="wikibase:wikiGroup"
+        grouping_configuration = grouping.GroupingConfiguration(
+            predicate="^schema:about",
+            grouping_type=grouping.SitelinkGroupingType(),
+            higher_grouping="wikibase:wikiGroup",
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -252,125 +251,156 @@ LIMIT 1000
 
 class TestGroupingConfigurationMaker(unittest.TestCase):
     def setUp(self):
-        patcher = patch("pywikibot.PropertyPage", autospec=True)
-        self.mock_property_page = patcher.start()
-        self.addCleanup(patcher.stop)
         self.higher_grouping = "wdt:P17/wdt:P298"
         self.grouping_threshold = 5
 
-    def test_item_datatype(self):
-        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
-            "datatype": "wikibase-item"
-        }
+    def test_simple_property(self):
         result = grouping.GroupingConfigurationMaker.make(
-            None, "P136", self.higher_grouping, self.grouping_threshold
+            "P136", self.higher_grouping, self.grouping_threshold
         )
-        expected = grouping.ItemGroupingConfiguration(
-            property="P136",
-            higher_grouping=self.higher_grouping,
-            grouping_threshold=self.grouping_threshold,
-        )
-        self.assertEqual(result, expected)
+        self.assertEqual(result.predicate, "wdt:P136")
+        self.assertEqual(result.higher_grouping, self.higher_grouping)
+        self.assertEqual(result.grouping_threshold, self.grouping_threshold)
+        self.assertIsNone(result.grouping_type)
 
-    def test_time_datatype(self):
-        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
-            "datatype": "time"
-        }
+    def test_predicate_path(self):
         result = grouping.GroupingConfigurationMaker.make(
-            None, "P569", self.higher_grouping, self.grouping_threshold
+            "P131/wdt:P131", self.higher_grouping, self.grouping_threshold
         )
-        expected = grouping.YearGroupingConfiguration(
-            property="P569", grouping_threshold=self.grouping_threshold
-        )
-        self.assertEqual(result, expected)
-
-    def test_unsupported_datatype(self):
-        self.mock_property_page.return_value.get_data_for_new_entity.return_value = {
-            "datatype": "string"
-        }
-        with self.assertRaises(grouping.UnsupportedGroupingConfigurationException):
-            grouping.GroupingConfigurationMaker.make(
-                None, "P528", self.higher_grouping, self.grouping_threshold
-            )
+        self.assertEqual(result.predicate, "wdt:P131/wdt:P131")
+        self.assertIsNone(result.grouping_type)
 
     def test_non_property_syntax(self):
         result = grouping.GroupingConfigurationMaker.make(
-            None, "dct:language", self.higher_grouping, self.grouping_threshold
+            "dct:language", self.higher_grouping, self.grouping_threshold
         )
-        expected = grouping.PredicateGroupingConfiguration(
-            predicate="dct:language",
-            higher_grouping=self.higher_grouping,
-            grouping_threshold=self.grouping_threshold,
-        )
-        self.assertEqual(result, expected)
-
-    def test_property_syntax_with_injection(self):
-        result = grouping.GroupingConfigurationMaker.make(
-            None, "P131/wdt:P131", self.higher_grouping, self.grouping_threshold
-        )
-        expected = grouping.PredicateGroupingConfiguration(
-            predicate="wdt:P131/wdt:P131",
-            higher_grouping=self.higher_grouping,
-            grouping_threshold=self.grouping_threshold,
-        )
-        self.assertEqual(result, expected)
+        self.assertEqual(result.predicate, "dct:language")
+        self.assertIsNone(result.grouping_type)
 
     def test_sitelink(self):
         result = grouping.GroupingConfigurationMaker.make(
-            None, "schema:about", self.higher_grouping, self.grouping_threshold
+            "schema:about", self.higher_grouping, self.grouping_threshold
         )
-        expected = grouping.SitelinkGroupingConfiguration(
-            higher_grouping=self.higher_grouping,
-            grouping_threshold=self.grouping_threshold,
+        self.assertEqual(result.predicate, "^schema:about")
+        self.assertIsInstance(result.grouping_type, grouping.SitelinkGroupingType)
+
+    def test_defers_explicit_groupings_parsing(self):
+        result = grouping.GroupingConfigurationMaker.make(
+            "P136", None, 20, explicit_groupings="Q1,Q2,Q3"
         )
-        self.assertEqual(result, expected)
+        self.assertIsNone(result.explicit_groupings)
+        self.assertEqual(result._raw_explicit_groupings, "Q1,Q2,Q3")
+
+
+class TestDetectGroupingType(unittest.TestCase):
+    def _detect(self, predicate, selector_sparql, engine):
+        config = grouping.GroupingConfiguration(predicate=predicate)
+        return config._detect_grouping_type(selector_sparql, engine)
+
+    def test_datetime_returns_year(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = [
+            {"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}
+        ]
+        result = self._detect("wdt:P569", "wdt:P31 wd:Q5", mock_engine)
+        self.assertIsInstance(result, grouping.YearGroupingType)
+
+    def test_no_datatype_returns_item(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = [{}]
+        result = self._detect("wdt:P17", "wdt:P31 wd:Q5", mock_engine)
+        self.assertIsInstance(result, grouping.ItemGroupingType)
+
+    def test_empty_result_raises(self):
+        from sparql_utils import QueryException
+
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = []
+        with self.assertRaises(QueryException):
+            self._detect("wdt:P17", "wdt:P31 wd:Q5", mock_engine)
+
+    def test_query_failure_propagates(self):
+        from sparql_utils import QueryException
+
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.side_effect = QueryException("timeout", query="")
+        with self.assertRaises(QueryException):
+            self._detect("wdt:P17", "wdt:P31 wd:Q5", mock_engine)
+
+    def test_unsupported_datatype_raises(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = [
+            {"datatype": "http://www.w3.org/2001/XMLSchema#string"}
+        ]
+        with self.assertRaises(grouping.UnsupportedGroupingConfigurationException):
+            self._detect("wdt:P528", "wdt:P31 wd:Q5", mock_engine)
+
+
+class TestResolveType(unittest.TestCase):
+    def test_resolve_sets_grouping_type(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = [
+            {"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}
+        ]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P569", raw_explicit_groupings="2020,2021"
+        )
+        config._resolve_type("wdt:P31 wd:Q5", mock_engine)
+        self.assertIsInstance(config.grouping_type, grouping.YearGroupingType)
+        self.assertEqual(config.explicit_groupings, [2020, 2021])
+
+    def test_resolve_skips_if_type_already_set(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P17", grouping_type=grouping.ItemGroupingType()
+        )
+        config._resolve_type("wdt:P31 wd:Q5", mock_engine)
+        mock_engine.select.assert_not_called()
 
 
 class TestParseGroupings(unittest.TestCase):
     def test_parse_item_groupings(self):
-        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1,Q2,Q3")
+        result = grouping.ItemGroupingType.parse_groupings("Q1,Q2,Q3")
         expected = ["Q1", "Q2", "Q3"]
         self.assertEqual(result, expected)
 
     def test_parse_item_groupings_with_spaces(self):
-        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1, Q2 , Q3")
+        result = grouping.ItemGroupingType.parse_groupings("Q1, Q2 , Q3")
         expected = ["Q1", "Q2", "Q3"]
         self.assertEqual(result, expected)
 
     def test_parse_item_groupings_with_invalid(self):
-        result = grouping.ItemGroupingConfiguration.parse_groupings("Q1,invalid,Q3")
+        result = grouping.ItemGroupingType.parse_groupings("Q1,invalid,Q3")
         expected = ["Q1", "Q3"]
         self.assertEqual(result, expected)
 
     def test_parse_year_groupings(self):
-        result = grouping.YearGroupingConfiguration.parse_groupings("2020,2021,2022")
+        result = grouping.YearGroupingType.parse_groupings("2020,2021,2022")
         expected = [2020, 2021, 2022]
         self.assertEqual(result, expected)
 
     def test_parse_year_groupings_with_spaces(self):
-        result = grouping.YearGroupingConfiguration.parse_groupings("2020, 2021 , 2022")
+        result = grouping.YearGroupingType.parse_groupings("2020, 2021 , 2022")
         expected = [2020, 2021, 2022]
         self.assertEqual(result, expected)
 
     def test_parse_year_groupings_with_invalid(self):
-        result = grouping.YearGroupingConfiguration.parse_groupings("2020,invalid,2022")
+        result = grouping.YearGroupingType.parse_groupings("2020,invalid,2022")
         expected = [2020, 2022]
         self.assertEqual(result, expected)
 
     def test_parse_sitelink_groupings(self):
-        result = grouping.SitelinkGroupingConfiguration.parse_groupings("enwiki,frwiki")
+        result = grouping.SitelinkGroupingType.parse_groupings("enwiki,frwiki")
         expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
         self.assertEqual(result, expected)
 
     def test_parse_sitelink_groupings_with_spaces(self):
-        result = grouping.SitelinkGroupingConfiguration.parse_groupings(
-            "enwiki, frwiki "
-        )
+        result = grouping.SitelinkGroupingType.parse_groupings("enwiki, frwiki ")
         expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
         self.assertEqual(result, expected)
 
     def test_parse_sitelink_groupings_with_invalid(self):
-        result = grouping.SitelinkGroupingConfiguration.parse_groupings(
+        result = grouping.SitelinkGroupingType.parse_groupings(
             "enwiki,invalidwiki,frwiki"
         )
         expected = ["https://en.wikipedia.org/", "https://fr.wikipedia.org/"]
@@ -379,16 +409,20 @@ class TestParseGroupings(unittest.TestCase):
 
 class TestExplicitGroupings(unittest.TestCase):
     def test_item_grouping_get_values_clause(self):
-        config = grouping.ItemGroupingConfiguration(
-            property="P1", explicit_groupings=["Q1", "Q2", "Q3"]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.ItemGroupingType(),
+            explicit_groupings=["Q1", "Q2", "Q3"],
         )
         result = config.get_values_clause()
         expected = ["  VALUES ?grouping { wd:Q1 wd:Q2 wd:Q3 }"]
         self.assertEqual(result, expected)
 
     def test_item_grouping_query_with_explicit_groupings(self):
-        config = grouping.ItemGroupingConfiguration(
-            property="P1", explicit_groupings=["Q1", "Q2"]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.ItemGroupingType(),
+            explicit_groupings=["Q1", "Q2"],
         )
         result = config.get_grouping_information_query("wdt:P31 wd:Q5")
         expected = """
@@ -409,16 +443,20 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_year_grouping_get_values_clause(self):
-        config = grouping.YearGroupingConfiguration(
-            property="P1", explicit_groupings=[2020, 2021, 2022]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=grouping.YearGroupingType(),
+            explicit_groupings=[2020, 2021, 2022],
         )
         result = config.get_values_clause()
         expected = ["  VALUES ?grouping { 2020 2021 2022 }"]
         self.assertEqual(result, expected)
 
     def test_year_grouping_query_with_explicit_groupings(self):
-        config = grouping.YearGroupingConfiguration(
-            property="P577", explicit_groupings=[2020, 2021]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P577",
+            grouping_type=grouping.YearGroupingType(),
+            explicit_groupings=[2020, 2021],
         )
         result = config.get_grouping_information_query("wdt:P31 wd:Q5")
         expected = """
@@ -440,11 +478,13 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_sitelink_grouping_get_values_clause(self):
-        config = grouping.SitelinkGroupingConfiguration(
+        config = grouping.GroupingConfiguration(
+            predicate="^schema:about",
+            grouping_type=grouping.SitelinkGroupingType(),
             explicit_groupings=[
                 "https://en.wikipedia.org/",
                 "https://fr.wikipedia.org/",
-            ]
+            ],
         )
         result = config.get_values_clause()
         expected = [
@@ -453,11 +493,13 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_sitelink_grouping_query_with_explicit_groupings(self):
-        config = grouping.SitelinkGroupingConfiguration(
+        config = grouping.GroupingConfiguration(
+            predicate="^schema:about",
+            grouping_type=grouping.SitelinkGroupingType(),
             explicit_groupings=[
                 "https://en.wikipedia.org/",
                 "https://fr.wikipedia.org/",
-            ]
+            ],
         )
         result = config.get_grouping_information_query("wdt:P31 wd:Q5")
         expected = """
@@ -479,8 +521,10 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
     def test_predicate_grouping_get_values_clause(self):
-        config = grouping.PredicateGroupingConfiguration(
-            predicate="wdt:P1", explicit_groupings=["Q1", "Q2"]
+        config = grouping.GroupingConfiguration(
+            predicate="wdt:P1",
+            explicit_groupings=["Q1", "Q2"],
+            grouping_type=grouping.ItemGroupingType(),
         )
         result = config.get_values_clause()
         expected = ["  VALUES ?grouping { wd:Q1 wd:Q2 }"]
@@ -489,7 +533,9 @@ LIMIT 1000
 
 class YearRebinningTest(unittest.TestCase):
     def setUp(self):
-        self.config = grouping.YearGroupingConfiguration(property="P569")
+        self.config = grouping.GroupingConfiguration(
+            predicate="wdt:P569", grouping_type=grouping.YearGroupingType()
+        )
 
     def test_full_path_with_outlier(self):
         mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
@@ -511,7 +557,7 @@ class YearRebinningTest(unittest.TestCase):
             (str(year), YearGrouping(title=str(year), count=5))
             for year in range(1950, 2000)
         )
-        result = self.config._rebin_if_needed(groupings)
+        result = self.config.post_process(groupings)
         self.assertEqual(len(result), 50)
         self.assertIsInstance(result["1950"], YearGrouping)
 
@@ -520,7 +566,7 @@ class YearRebinningTest(unittest.TestCase):
             (str(year), YearGrouping(title=str(year), count=5))
             for year in range(1900, 2025)
         )
-        result = self.config._rebin_if_needed(groupings)
+        result = self.config.post_process(groupings)
         self.assertLess(len(result), 125)
         self.assertEqual(result["1900/10"].time_span, 10)
 
@@ -530,7 +576,7 @@ class YearRebinningTest(unittest.TestCase):
             for year in range(1950, 2000)
         )
         groupings["UNKNOWN_VALUE"] = UnknownValueGrouping(count=3)
-        result = self.config._rebin_if_needed(groupings)
+        result = self.config.post_process(groupings)
         self.assertEqual(len(result), 51)  # 50 years + UNKNOWN_VALUE
         self.assertIsInstance(result["1950"], YearGrouping)
 
@@ -569,7 +615,7 @@ class YearRebinningTest(unittest.TestCase):
                 title=str(year), count=1, cells=collections.OrderedDict([("P1", 1)])
             )
 
-        result = self.config._rebin_if_needed(groupings)
+        result = self.config.post_process(groupings)
 
         self.assertIn("1990/10", result)
         self.assertIn("2000/10", result)
@@ -584,7 +630,7 @@ class YearRebinningTest(unittest.TestCase):
         )
         groupings["UNKNOWN_VALUE"] = UnknownValueGrouping(count=5)
 
-        result = self.config._rebin_if_needed(groupings)
+        result = self.config.post_process(groupings)
 
         self.assertIn("UNKNOWN_VALUE", result)
         self.assertEqual(result["UNKNOWN_VALUE"].count, 5)

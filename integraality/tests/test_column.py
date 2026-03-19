@@ -10,7 +10,7 @@ from column import (
     PropertyColumn,
     SitelinkColumn,
 )
-from grouping import ItemGroupingConfiguration
+from grouping import GroupingConfiguration, ItemGroupingType
 from property_statistics import PropertyStatistics
 
 
@@ -24,7 +24,9 @@ class PropertyStatisticsTest(unittest.TestCase):
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
         ]
-        self.grouping_configuration = ItemGroupingConfiguration("P551")
+        self.grouping_configuration = GroupingConfiguration(
+            predicate="wdt:P551", grouping_type=ItemGroupingType()
+        )
         self.stats = PropertyStatistics(
             columns=columns,
             grouping_configuration=self.grouping_configuration,

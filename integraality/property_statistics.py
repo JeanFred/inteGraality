@@ -9,7 +9,7 @@ import collections
 import logging
 
 from column import ColumnMaker
-from grouping import ItemGroupingConfiguration
+from grouping import GroupingConfiguration, ItemGroupingType
 from line import (
     NoGroupGrouping,
     TotalsGrouping,
@@ -269,8 +269,8 @@ def main(*args):
     stats = PropertyStatistics(
         columns=columns,
         selector_sparql="wdt:P10241 wd:Q41960",
-        grouping_configuration=ItemGroupingConfiguration(
-            property="P551", grouping_threshold=5
+        grouping_configuration=GroupingConfiguration(
+            predicate="wdt:P551", grouping_type=ItemGroupingType(), grouping_threshold=5
         ),
         stats_for_no_group=True,
         property_threshold=1,

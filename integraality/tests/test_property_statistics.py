@@ -6,7 +6,7 @@ from collections import OrderedDict
 from unittest.mock import patch, create_autospec
 
 from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
-from grouping import ItemGroupingConfiguration, YearGroupingConfiguration
+from grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
 from line import (
     ItemGrouping,
     NoGroupGrouping,
@@ -29,7 +29,9 @@ class PropertyStatisticsTest(unittest.TestCase):
             DescriptionColumn(language="xy"),
             SitelinkColumn(project="brwiki"),
         ]
-        self.grouping_configuration = ItemGroupingConfiguration("P551")
+        self.grouping_configuration = GroupingConfiguration(
+            predicate="wdt:P551", grouping_type=ItemGroupingType()
+        )
         self.mock_sparql_query = create_autospec(WdqsSparqlQueryEngine, instance=True)
         self.stats = PropertyStatistics(
             columns=self.columns,
@@ -420,7 +422,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     def test_get_query_for_items_for_property_positive_year_grouping(self):
         stats = PropertyStatistics(
             columns=self.columns,
-            grouping_configuration=YearGroupingConfiguration("P577"),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P577", grouping_type=YearGroupingType()
+            ),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
@@ -657,7 +661,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     def test_get_query_for_items_for_property_negative_year_grouping(self):
         stats = PropertyStatistics(
             columns=self.columns,
-            grouping_configuration=YearGroupingConfiguration("P577"),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P577", grouping_type=YearGroupingType()
+            ),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
@@ -1034,7 +1040,9 @@ LIMIT 1000
     def test_get_grouping_information_year(self):
         stats = PropertyStatistics(
             columns=self.columns,
-            grouping_configuration=YearGroupingConfiguration("P577"),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P577", grouping_type=YearGroupingType()
+            ),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
@@ -1071,7 +1079,9 @@ LIMIT 1000
     def test_get_grouping_information_year_unknown_value(self):
         stats = PropertyStatistics(
             columns=self.columns,
-            grouping_configuration=YearGroupingConfiguration("P577"),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P577", grouping_type=YearGroupingType()
+            ),
             selector_sparql="wdt:P31 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
@@ -1766,7 +1776,9 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_retrieve_and_process_data_year_grouping(self):
-        self.grouping_configuration = YearGroupingConfiguration("P551")
+        self.grouping_configuration = GroupingConfiguration(
+            predicate="wdt:P551", grouping_type=YearGroupingType()
+        )
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,

@@ -145,7 +145,7 @@ class QueriesTests(PagesProcessorTests):
         self.column_Lbr = column.LabelColumn(language="br")
         self.column_Dbr = column.DescriptionColumn(language="br")
 
-        patcher04 = patch("grouping.ItemGroupingConfiguration", autospec=True)
+        patcher04 = patch("grouping.GroupingConfiguration", autospec=True)
         self.mock_grouping_configuration = patcher04.start()
         self.addCleanup(patcher04.stop)
         self.mock_grouping_configuration.format_predicate_html.return_value = (

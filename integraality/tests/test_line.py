@@ -4,7 +4,7 @@ import collections
 import unittest
 
 import line
-from grouping import ItemGroupingConfiguration
+from grouping import GroupingConfiguration, ItemGroupingType
 
 
 class AbstractLineTest(unittest.TestCase):
@@ -122,7 +122,11 @@ class ItemGroupingTest(unittest.TestCase):
 
     def test_format_header_cell_with_higher_grouping(self):
         grouping = line.ItemGrouping(count=1, title="Q1", higher_grouping="Q2")
-        grouping_configuration = ItemGroupingConfiguration("P1", "XYZ")
+        grouping_configuration = GroupingConfiguration(
+            predicate="wdt:P1",
+            grouping_type=ItemGroupingType(),
+            higher_grouping="XYZ",
+        )
         result = grouping.format_header_cell(grouping_configuration, None)
         expected = '| data-sort-value="Q2"| {{Q|Q2}}\n| {{Q|Q1}}\n'
         self.assertEqual(result, expected)

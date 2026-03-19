@@ -7,13 +7,8 @@ Grouping configuration classes
 import collections
 import re
 
-import pywikibot
 from line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
 from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, get_label_for_variable
-
-
-class GroupingConfigurationSyntaxException(Exception):
-    pass
 
 
 class UnsupportedGroupingConfigurationException(Exception):
@@ -157,10 +152,14 @@ class SitelinkGroupingType(AbstractGroupingType):
         return [f"  VALUES ?grouping {{ {values} }}"]
 
 
+DATATYPE_TO_GROUPING_TYPE = {
+    "http://www.w3.org/2001/XMLSchema#dateTime": YearGroupingType,
+}
+
+
 class GroupingConfigurationMaker:
     @staticmethod
     def make(
-        repo,
         grouping_property,
         higher_grouping,
         grouping_threshold,
@@ -168,102 +167,83 @@ class GroupingConfigurationMaker:
         explicit_groupings=None,
     ):
         if grouping_property == "schema:about":
-            config_class = SitelinkGroupingConfiguration
             parsed_groupings = (
-                config_class.parse_groupings(explicit_groupings)
+                SitelinkGroupingType.parse_groupings(explicit_groupings)
                 if explicit_groupings
                 else None
             )
-            return config_class(
+            return GroupingConfiguration(
+                predicate="^schema:about",
                 higher_grouping=higher_grouping,
                 grouping_threshold=grouping_threshold,
                 explicit_groupings=parsed_groupings,
+                grouping_type=SitelinkGroupingType(),
             )
-        if re.match(r"^P\d+$", grouping_property):
-            property_page = pywikibot.PropertyPage(repo, grouping_property)
-            property_type = property_page.get_data_for_new_entity()["datatype"]
-            if property_type == "wikibase-item":
-                config_class = ItemGroupingConfiguration
-                parsed_groupings = (
-                    config_class.parse_groupings(explicit_groupings)
-                    if explicit_groupings
-                    else None
-                )
-                return config_class(
-                    property=grouping_property,
-                    base_grouping_link=base_grouping_link,
-                    higher_grouping=higher_grouping,
-                    grouping_threshold=grouping_threshold,
-                    explicit_groupings=parsed_groupings,
-                )
-            elif property_type == "time":
-                config_class = YearGroupingConfiguration
-                parsed_groupings = (
-                    config_class.parse_groupings(explicit_groupings)
-                    if explicit_groupings
-                    else None
-                )
-                return config_class(
-                    property=grouping_property,
-                    base_grouping_link=base_grouping_link,
-                    grouping_threshold=grouping_threshold,
-                    explicit_groupings=parsed_groupings,
-                )
-            else:
-                raise UnsupportedGroupingConfigurationException(
-                    f"Property {grouping_property} is of type {property_type} which is not supported."
-                )
-        elif re.match(r"^P\d+", grouping_property):
-            config_class = PredicateGroupingConfiguration
-            parsed_groupings = (
-                config_class.parse_groupings(explicit_groupings)
-                if explicit_groupings
-                else None
-            )
-            return config_class(
-                predicate=f"wdt:{grouping_property}",
-                base_grouping_link=base_grouping_link,
-                higher_grouping=higher_grouping,
-                grouping_threshold=grouping_threshold,
-                explicit_groupings=parsed_groupings,
-            )
+        if re.match(r"^P\d+", grouping_property):
+            predicate = f"wdt:{grouping_property}"
         else:
-            config_class = PredicateGroupingConfiguration
-            parsed_groupings = (
-                config_class.parse_groupings(explicit_groupings)
-                if explicit_groupings
-                else None
-            )
-            return config_class(
-                predicate=grouping_property,
-                base_grouping_link=base_grouping_link,
-                higher_grouping=higher_grouping,
-                grouping_threshold=grouping_threshold,
-                explicit_groupings=parsed_groupings,
-            )
+            predicate = grouping_property
+        return GroupingConfiguration(
+            predicate=predicate,
+            base_grouping_link=base_grouping_link,
+            higher_grouping=higher_grouping,
+            grouping_threshold=grouping_threshold,
+            raw_explicit_groupings=explicit_groupings,
+        )
 
 
-class AbstractGroupingConfiguration:
+class GroupingConfiguration:
     def __init__(
         self,
+        predicate,
         higher_grouping=None,
         base_grouping_link=None,
-        grouping_threshold=0,
+        grouping_threshold=20,
         explicit_groupings=None,
+        grouping_type=None,
+        raw_explicit_groupings=None,
     ):
+        self.predicate = predicate
         self.higher_grouping = higher_grouping
         self.base_grouping_link = base_grouping_link
         self.grouping_threshold = grouping_threshold
         self.explicit_groupings = explicit_groupings
+        self.grouping_type = grouping_type
+        self._raw_explicit_groupings = raw_explicit_groupings
 
-    @staticmethod
-    def parse_groupings(groupings_string):
-        """Parse explicit groupings string. Override in subclasses."""
-        raise NotImplementedError
+    @property
+    def line_type(self):
+        return self.grouping_type.line_type
+
+    def __eq__(self, other):
+        return (
+            self.predicate == other.predicate
+            and self.higher_grouping == other.higher_grouping
+            and self.base_grouping_link == other.base_grouping_link
+            and self.grouping_threshold == other.grouping_threshold
+            and self.explicit_groupings == other.explicit_groupings
+        )
+
+    def get_predicate(self):
+        return self.predicate
+
+    def get_grouping_selector(self):
+        return self.grouping_type.get_grouping_selector(self.get_predicate())
+
+    def post_process(self, groupings):
+        return self.grouping_type.post_process(groupings)
+
+    def format_predicate_html(self):
+        if isinstance(self.grouping_type, SitelinkGroupingType):
+            return "sitelink"
+        match = re.match(r"^wdt:(P\d+)", self.predicate)
+        if match:
+            prop = match.group(1)
+            return f'<a href="https://wikidata.org/wiki/Property:{prop}">{prop}</a>'
+        return f"<tt>{self.predicate}</tt>"
 
     def get_values_clause(self):
-        """Generate SPARQL VALUES clause for explicit groupings. Override in subclasses."""
-        raise NotImplementedError
+        return self.grouping_type.get_values_clause(self.explicit_groupings)
 
     def get_grouping_information_query(self, selector_sparql):
         query = []
@@ -345,11 +325,40 @@ class AbstractGroupingConfiguration:
         else:
             return ([], None)
 
-    def get_grouping_selector(self):
-        raise NotImplementedError
+    def _detect_grouping_type(self, selector_sparql, sparql_query_engine):
+        """Detect the grouping type by querying the datatype of values."""
+        query = (
+            f"SELECT (DATATYPE(?value) AS ?datatype) WHERE {{\n"
+            f"  ?entity {selector_sparql} .\n"
+            f"  ?entity {self.predicate} ?value .\n"
+            f"}} LIMIT 1"
+        )
+        result = sparql_query_engine.select(query)
+        if not result:
+            raise QueryException(
+                f"No values found for predicate {self.predicate}, cannot detect grouping type.",
+                query=query,
+            )
+        datatype = result[0].get("datatype", "")
+        if not datatype:
+            return ItemGroupingType()
+        grouping_type_class = DATATYPE_TO_GROUPING_TYPE.get(datatype)
+        if grouping_type_class:
+            return grouping_type_class()
+        raise UnsupportedGroupingConfigurationException(
+            f"Predicate {self.predicate} has datatype {datatype} which is not supported."
+        )
 
-    def post_process(self, groupings):
-        return groupings
+    def _resolve_type(self, selector_sparql, sparql_query_engine):
+        """Detect grouping type via SPARQL if not already set."""
+        if self.grouping_type is None:
+            self.grouping_type = self._detect_grouping_type(
+                selector_sparql, sparql_query_engine
+            )
+            if self._raw_explicit_groupings:
+                self.explicit_groupings = self.grouping_type.parse_groupings(
+                    self._raw_explicit_groupings
+                )
 
     def get_grouping_information(self, selector_sparql, sparql_query_engine):
         """
@@ -357,6 +366,7 @@ class AbstractGroupingConfiguration:
 
         :return: List of Grouping objects
         """
+        self._resolve_type(selector_sparql, sparql_query_engine)
         query = self.get_grouping_information_query(selector_sparql)
         groupings = collections.OrderedDict()
 
@@ -427,200 +437,3 @@ class AbstractGroupingConfiguration:
             groupings[unknown_value_grouping.get_key()] = unknown_value_grouping
 
         return groupings
-
-
-class PredicateGroupingConfiguration(AbstractGroupingConfiguration):
-    def __init__(
-        self,
-        predicate,
-        higher_grouping=None,
-        base_grouping_link=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-        grouping_type=None,
-    ):
-        super().__init__(
-            higher_grouping=higher_grouping,
-            base_grouping_link=base_grouping_link,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-        )
-        self.predicate = predicate
-        self.grouping_type = grouping_type or ItemGroupingType()
-
-    @property
-    def line_type(self):
-        return self.grouping_type.line_type
-
-    def __eq__(self, other):
-        return (
-            self.predicate == other.predicate
-            and self.higher_grouping == other.higher_grouping
-            and self.base_grouping_link == other.base_grouping_link
-            and self.grouping_threshold == other.grouping_threshold
-            and self.explicit_groupings == other.explicit_groupings
-        )
-
-    def get_predicate(self):
-        return self.predicate
-
-    def get_grouping_selector(self):
-        return self.grouping_type.get_grouping_selector(self.get_predicate())
-
-    def post_process(self, groupings):
-        return self.grouping_type.post_process(groupings)
-
-    def format_predicate_html(self):
-        return f"<tt>{self.predicate}</tt>"
-
-    @staticmethod
-    def parse_groupings(groupings_string):
-        """Parse 'Q1,Q2,Q3' -> ['Q1', 'Q2', 'Q3']"""
-        return ItemGroupingType.parse_groupings(groupings_string)
-
-    def get_values_clause(self):
-        return self.grouping_type.get_values_clause(self.explicit_groupings)
-
-
-class PropertyGroupingConfiguration(AbstractGroupingConfiguration):
-    def __init__(
-        self,
-        property,
-        higher_grouping=None,
-        base_grouping_link=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-        grouping_type=None,
-    ):
-        super().__init__(
-            higher_grouping=higher_grouping,
-            base_grouping_link=base_grouping_link,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-        )
-        self.property = property
-        self.grouping_type = grouping_type
-
-    @property
-    def line_type(self):
-        return self.grouping_type.line_type
-
-    def __eq__(self, other):
-        return (
-            self.property == other.property
-            and self.higher_grouping == other.higher_grouping
-            and self.base_grouping_link == other.base_grouping_link
-            and self.grouping_threshold == other.grouping_threshold
-            and self.explicit_groupings == other.explicit_groupings
-        )
-
-    def get_predicate(self):
-        return f"wdt:{self.property}"
-
-    def get_grouping_selector(self):
-        return self.grouping_type.get_grouping_selector(self.get_predicate())
-
-    def post_process(self, groupings):
-        return self.grouping_type.post_process(groupings)
-
-    def format_predicate_html(self):
-        return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
-
-    def parse_groupings(groupings_string):
-        """Parse groupings string using the grouping type's parser."""
-        raise NotImplementedError
-
-    def get_values_clause(self):
-        return self.grouping_type.get_values_clause(self.explicit_groupings)
-
-
-class ItemGroupingConfiguration(PropertyGroupingConfiguration):
-    def __init__(
-        self,
-        property,
-        higher_grouping=None,
-        base_grouping_link=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-    ):
-        super().__init__(
-            property=property,
-            higher_grouping=higher_grouping,
-            base_grouping_link=base_grouping_link,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-            grouping_type=ItemGroupingType(),
-        )
-
-    @staticmethod
-    def parse_groupings(groupings_string):
-        return ItemGroupingType.parse_groupings(groupings_string)
-
-
-class YearGroupingConfiguration(PropertyGroupingConfiguration):
-    def __init__(
-        self,
-        property,
-        base_grouping_link=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-    ):
-        super().__init__(
-            property=property,
-            base_grouping_link=base_grouping_link,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-            grouping_type=YearGroupingType(),
-        )
-
-    def _rebin_if_needed(self, groupings):
-        return self.grouping_type._rebin_if_needed(groupings)
-
-    @staticmethod
-    def parse_groupings(groupings_string):
-        return YearGroupingType.parse_groupings(groupings_string)
-
-
-class SitelinkGroupingConfiguration(AbstractGroupingConfiguration):
-    def __init__(
-        self,
-        higher_grouping=None,
-        grouping_threshold=20,
-        explicit_groupings=None,
-    ):
-        super().__init__(
-            higher_grouping=higher_grouping,
-            grouping_threshold=grouping_threshold,
-            explicit_groupings=explicit_groupings,
-        )
-        self.grouping_type = SitelinkGroupingType()
-
-    @property
-    def line_type(self):
-        return self.grouping_type.line_type
-
-    def __eq__(self, other):
-        return (
-            self.higher_grouping == other.higher_grouping
-            and self.grouping_threshold == other.grouping_threshold
-            and self.explicit_groupings == other.explicit_groupings
-        )
-
-    def format_predicate_html(self):
-        return "sitelink"
-
-    def get_grouping_selector(self):
-        return self.grouping_type.get_grouping_selector(self.get_predicate())
-
-    def post_process(self, groupings):
-        return self.grouping_type.post_process(groupings)
-
-    def get_predicate(self):
-        return "^schema:about"
-
-    @staticmethod
-    def parse_groupings(groupings_string):
-        return SitelinkGroupingType.parse_groupings(groupings_string)
-
-    def get_values_clause(self):
-        return self.grouping_type.get_values_clause(self.explicit_groupings)

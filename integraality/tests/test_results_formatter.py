@@ -5,7 +5,7 @@ import unittest
 from collections import OrderedDict
 
 from column import PropertyColumn, LabelColumn, SitelinkColumn
-from grouping import ItemGroupingConfiguration
+from grouping import GroupingConfiguration, ItemGroupingType
 from line import (
     ItemGrouping,
     NoGroupGrouping,
@@ -24,8 +24,10 @@ class ResultsFormatterTest(unittest.TestCase):
             "P19": PropertyColumn(property="P19"),
             "Lbr": LabelColumn(language="br"),
         }
-        self.grouping_configuration = ItemGroupingConfiguration(
-            "P551", grouping_threshold=20
+        self.grouping_configuration = GroupingConfiguration(
+            predicate="wdt:P551",
+            grouping_type=ItemGroupingType(),
+            grouping_threshold=20,
         )
         self.formatter = ResultsFormatter(
             columns=self.columns,

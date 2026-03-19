@@ -151,17 +151,13 @@ class PagesProcessor:
                 raise ConfigException("A required field is missing: %s" % field)
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
-        try:
-            config["grouping_configuration"] = GroupingConfigurationMaker.make(
-                self.repo,
-                config.pop("grouping_property"),
-                config.pop("higher_grouping", None),
-                int(config.pop("grouping_threshold", 20)),
-                config.pop("grouping_link", None),
-                config.pop("groupings", None),
-            )
-        except UnsupportedGroupingConfigurationException as e:
-            raise ConfigException(e)
+        config["grouping_configuration"] = GroupingConfigurationMaker.make(
+            config.pop("grouping_property"),
+            config.pop("higher_grouping", None),
+            int(config.pop("grouping_threshold", 20)),
+            config.pop("grouping_link", None),
+            config.pop("groupings", None),
+        )
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         config["sparql_query_engine"] = SparqlEngineBuilder.make(
             config.pop("sparql_endpoint", None),
@@ -211,6 +207,11 @@ class PagesProcessor:
             except QueryException:
                 pywikibot.output(
                     "A SPARQL query went wrong on page %s, skipping" % page.title()
+                )
+            except UnsupportedGroupingConfigurationException:
+                pywikibot.output(
+                    "Unsupported grouping configuration on page %s, skipping"
+                    % page.title()
                 )
             except (
                 pywikibot.exceptions.TimeoutError,

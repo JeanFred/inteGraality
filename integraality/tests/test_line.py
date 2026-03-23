@@ -226,7 +226,7 @@ class UnknownValueGroupingTest(unittest.TestCase):
                 "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
                 "  ?entity wdt:P31 wd:Q41960 .",
                 "  ?entity wdt:P551 ?grouping.",
-                "  FILTER wikibase:isSomeValue(?grouping).",
+                "  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).",
             ]
         )
         self.assertEqual(result, expected)
@@ -242,7 +242,7 @@ class UnknownValueGroupingTest(unittest.TestCase):
                 "SELECT DISTINCT ?entity ?entityLabel WHERE {",
                 "  ?entity wdt:P31 wd:Q41960 .",
                 "  ?entity wdt:P551 ?grouping.",
-                "  FILTER wikibase:isSomeValue(?grouping).",
+                "  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).",
             ]
         )
         self.assertEqual(result, expected)

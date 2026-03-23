@@ -395,7 +395,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
-  FILTER wikibase:isSomeValue(?grouping).
+  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -640,7 +640,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
-  FILTER wikibase:isSomeValue(?grouping).
+  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?prop .}

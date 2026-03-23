@@ -7,6 +7,8 @@ Line configuration classes
 import collections
 import re
 
+from sparql_utils import UNKNOWN_VALUE_PREFIX
+
 
 class AbstractLine:
     def __init__(self, count, cells=None):
@@ -225,7 +227,7 @@ class UnknownValueGrouping(Grouping):
     def query_filter_out_fragment(self, grouping_predicate, grouping=None):
         return [
             f"  ?entity {grouping_predicate} ?grouping.",
-            "  FILTER wikibase:isSomeValue(?grouping).",
+            f"  FILTER(STRSTARTS(STR(?grouping), '{UNKNOWN_VALUE_PREFIX}')).",
         ]
 
 

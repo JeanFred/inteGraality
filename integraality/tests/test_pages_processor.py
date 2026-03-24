@@ -7,10 +7,10 @@ from unittest.mock import patch
 
 import fakeredis
 
-from integraality.column import DescriptionColumn, LabelColumn, PropertyColumn
-from integraality.grouping import GroupingConfiguration
-from integraality.pages_processor import ConfigException, PagesProcessor, main
-from sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
+from ..column import DescriptionColumn, LabelColumn, PropertyColumn
+from ..grouping import GroupingConfiguration
+from ..pages_processor import ConfigException, PagesProcessor, main
+from ..sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
 
 
 class ProcessortTest(unittest.TestCase):

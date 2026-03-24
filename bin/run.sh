@@ -30,7 +30,7 @@ echo_time "Starting update for $WIKI."
 
 start_time="$(date -u +%s)"
 
-python integraality/pages_processor.py "$@"
+python -m integraality.pages_processor "$@"
 
 end_time="$(date -u +%s)"
 elapsed_time="$((end_time - start_time))"

@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 import pywikibot
 import requests
 
-from sparql_utils import (
+from ..sparql_utils import (
     add_prefixes_to_query,
     get_label_for_variable,
     QLeverSparqlQueryEngine,
@@ -19,7 +19,7 @@ from sparql_utils import (
 
 
 class WdqsSparqlQueryEngineTest(unittest.TestCase):
-    @patch("sparql_utils.pywikibot.data.sparql.SparqlQuery")
+    @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
     def test_select(self, mock_sparql_query_class):
         mock_sq = Mock()
         mock_sq.select.return_value = [{"count": "42"}]
@@ -34,7 +34,7 @@ class WdqsSparqlQueryEngineTest(unittest.TestCase):
             "SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o }"
         )
 
-    @patch("sparql_utils.pywikibot.data.sparql.SparqlQuery")
+    @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
     def test_select_timeout_error(self, mock_sparql_query_class):
         mock_sq = Mock()
         mock_sq.select.side_effect = pywikibot.exceptions.TimeoutError("Timeout")

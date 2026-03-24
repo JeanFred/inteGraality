@@ -3,8 +3,8 @@
 import collections
 import unittest
 
-import line
-from grouping import GroupingConfiguration, ItemGroupingType
+from .. import line
+from ..grouping import GroupingConfiguration, ItemGroupingType
 
 
 class AbstractLineTest(unittest.TestCase):

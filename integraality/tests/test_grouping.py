@@ -4,9 +4,9 @@ import collections
 import unittest
 from unittest.mock import create_autospec
 
-import grouping
-from line import UnknownValueGrouping, YearGrouping
-from sparql_utils import WdqsSparqlQueryEngine
+from .. import grouping
+from ..line import UnknownValueGrouping, YearGrouping
+from ..sparql_utils import WdqsSparqlQueryEngine
 
 
 class ItemGroupingConfigurationTest(unittest.TestCase):
@@ -312,7 +312,7 @@ class TestDetectGroupingType(unittest.TestCase):
         self.assertIsInstance(result, grouping.ItemGroupingType)
 
     def test_empty_result_raises(self):
-        from sparql_utils import QueryException
+        from ..sparql_utils import QueryException
 
         mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
         mock_engine.select.return_value = []
@@ -320,7 +320,7 @@ class TestDetectGroupingType(unittest.TestCase):
             self._detect("wdt:P17", "wdt:P31 wd:Q5", mock_engine)
 
     def test_query_failure_propagates(self):
-        from sparql_utils import QueryException
+        from ..sparql_utils import QueryException
 
         mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
         mock_engine.select.side_effect = QueryException("timeout", query="")

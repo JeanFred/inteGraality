@@ -5,12 +5,12 @@ import traceback
 
 from flask import Flask, jsonify, render_template, request
 
-from pages_processor import (
+from .pages_processor import (
     PagesProcessor,
     ProcessingException,
     TransientServerException,
 )
-from sparql_utils import (
+from .sparql_utils import (
     QLeverSparqlQueryEngine,
     QueryException,
     SparqlEngineBuilder,

@@ -2,7 +2,7 @@
 
 import unittest
 
-from column import (
+from ..column import (
     ColumnMaker,
     ColumnSyntaxException,
     DescriptionColumn,
@@ -10,8 +10,8 @@ from column import (
     PropertyColumn,
     SitelinkColumn,
 )
-from grouping import GroupingConfiguration, ItemGroupingType
-from property_statistics import PropertyStatistics
+from ..grouping import GroupingConfiguration, ItemGroupingType
+from ..property_statistics import PropertyStatistics
 
 
 class PropertyStatisticsTest(unittest.TestCase):

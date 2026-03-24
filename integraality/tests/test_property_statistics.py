@@ -5,17 +5,17 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import patch, create_autospec
 
-from column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
-from grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
-from line import (
+from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
+from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
+from ..line import (
     ItemGrouping,
     NoGroupGrouping,
     TotalsGrouping,
     UnknownValueGrouping,
     YearGrouping,
 )
-from property_statistics import PropertyStatistics
-from sparql_utils import QueryException, WdqsSparqlQueryEngine
+from ..property_statistics import PropertyStatistics
+from ..sparql_utils import QueryException, WdqsSparqlQueryEngine
 
 
 class PropertyStatisticsTest(unittest.TestCase):
@@ -170,7 +170,7 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         patcher1 = patch(
-            "property_statistics.PropertyStatistics.get_totals_no_grouping",
+            "integraality.property_statistics.PropertyStatistics.get_totals_no_grouping",
             autospec=True,
         )
         self.mock_get_totals_no_grouping = patcher1.start()

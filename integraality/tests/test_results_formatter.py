@@ -4,9 +4,9 @@
 import unittest
 from collections import OrderedDict
 
-from column import PropertyColumn, LabelColumn, SitelinkColumn
-from grouping import GroupingConfiguration, ItemGroupingType
-from line import (
+from ..column import LabelColumn, PropertyColumn, SitelinkColumn
+from ..grouping import GroupingConfiguration, ItemGroupingType
+from ..line import (
     ItemGrouping,
     NoGroupGrouping,
     SitelinkGrouping,
@@ -14,7 +14,7 @@ from line import (
     UnknownValueGrouping,
     YearGrouping,
 )
-from results_formatter import ResultsFormatter
+from ..results_formatter import ResultsFormatter
 
 
 class ResultsFormatterTest(unittest.TestCase):

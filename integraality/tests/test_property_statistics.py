@@ -530,6 +530,32 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         self.assertEqual(result, expected)
 
 
+class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
+    """Test that queries work when grouping_type is not yet resolved."""
+
+    def test_resolves_type_before_accessing_line_type(self):
+        self.mock_sparql_query.select.return_value = [
+            {"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}
+        ]
+        config = GroupingConfiguration(
+            predicate="wdt:P577",
+            grouping_type=None,
+            raw_explicit_groupings=None,
+        )
+        stats = PropertyStatistics(
+            columns=self.columns,
+            grouping_configuration=config,
+            selector_sparql="wdt:P31 wd:Q41960",
+            sparql_query_engine=self.mock_sparql_query,
+            property_threshold=10,
+        )
+        self.mock_sparql_query.reset_mock()
+        result = stats.get_query_for_items_for_property_positive(
+            stats.columns.get("P21"), 2007
+        )
+        self.assertIn("FILTER(?year = 2007)", result)
+
+
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(

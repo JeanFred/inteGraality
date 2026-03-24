@@ -366,7 +366,6 @@ class GroupingConfiguration:
 
         :return: List of Grouping objects
         """
-        self._resolve_type(selector_sparql, sparql_query_engine)
         query = self.get_grouping_information_query(selector_sparql)
         groupings = collections.OrderedDict()
 

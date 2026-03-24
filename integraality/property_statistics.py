@@ -61,6 +61,7 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
+        self.grouping_configuration._resolve_type(selector_sparql, sparql_query_engine)
         self.formatter = ResultsFormatter(
             columns=self.columns,
             grouping_configuration=grouping_configuration,

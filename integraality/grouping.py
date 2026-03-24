@@ -7,8 +7,8 @@ Grouping configuration classes
 import collections
 import re
 
-from line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
-from sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, get_label_for_variable
+from .line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
+from .sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, get_label_for_variable
 
 
 class UnsupportedGroupingConfigurationException(Exception):

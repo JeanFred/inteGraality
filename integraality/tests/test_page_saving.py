@@ -6,7 +6,7 @@ from unittest.mock import call, patch
 
 import pywikibot
 
-import page_saving
+from .. import page_saving
 
 
 class PageSavingTest(unittest.TestCase):

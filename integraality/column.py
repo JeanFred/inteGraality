@@ -7,7 +7,7 @@ Column configuration classes
 import json
 import os
 
-from sparql_utils import get_label_for_variable
+from .sparql_utils import get_label_for_variable
 
 
 class ColumnSyntaxException(Exception):

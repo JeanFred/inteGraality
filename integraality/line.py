@@ -7,7 +7,7 @@ Line configuration classes
 import collections
 import re
 
-from sparql_utils import UNKNOWN_VALUE_PREFIX
+from .sparql_utils import UNKNOWN_VALUE_PREFIX
 
 
 class AbstractLine:

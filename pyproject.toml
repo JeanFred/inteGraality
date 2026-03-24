@@ -17,9 +17,6 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = [
-  "integraality"
-]
 
 [tool.uv]
 package = false

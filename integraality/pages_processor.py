@@ -13,15 +13,15 @@ from redis import StrictRedis
 
 import pywikibot
 
-from cache import RedisCache
-from column import ColumnMaker, ColumnSyntaxException
-from grouping import (
+from .cache import RedisCache
+from .column import ColumnMaker, ColumnSyntaxException
+from .grouping import (
     GroupingConfigurationMaker,
     UnsupportedGroupingConfigurationException,
 )
-from page_saving import save_to_wiki_or_local
-from property_statistics import PropertyStatistics
-from sparql_utils import QueryException, SparqlEngineBuilder
+from .page_saving import save_to_wiki_or_local
+from .property_statistics import PropertyStatistics
+from .sparql_utils import QueryException, SparqlEngineBuilder
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 

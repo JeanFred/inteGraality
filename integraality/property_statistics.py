@@ -8,16 +8,16 @@ Calculate and generate statistics
 import collections
 import logging
 
-from column import ColumnMaker
-from grouping import GroupingConfiguration, ItemGroupingType
-from line import (
+from .column import ColumnMaker
+from .grouping import GroupingConfiguration, ItemGroupingType
+from .line import (
     NoGroupGrouping,
     TotalsGrouping,
     UnknownValueGrouping,
     YearGrouping,
 )
-from results_formatter import ResultsFormatter
-from sparql_utils import (
+from .results_formatter import ResultsFormatter
+from .sparql_utils import (
     UNKNOWN_VALUE_PREFIX,
     QueryException,
     WdqsSparqlQueryEngine,

@@ -2,10 +2,10 @@
 import unittest
 from unittest.mock import patch
 
-import column
-from app import app
-from pages_processor import ProcessingException
-from sparql_utils import QueryException
+from .. import column
+from ..app import app
+from ..pages_processor import ProcessingException
+from ..sparql_utils import QueryException
 
 
 class AppTests(unittest.TestCase):
@@ -34,7 +34,7 @@ class BasicTests(AppTests):
 class PagesProcessorTests(AppTests):
     def setUp(self):
         super().setUp()
-        patcher = patch("app.PagesProcessor", autospec=True)
+        patcher = patch("integraality.app.PagesProcessor", autospec=True)
         self.mock_pages_processor = patcher.start()
         self.addCleanup(patcher.stop)
         self.page_title = "Foo"
@@ -145,7 +145,7 @@ class QueriesTests(PagesProcessorTests):
         self.column_Lbr = column.LabelColumn(language="br")
         self.column_Dbr = column.DescriptionColumn(language="br")
 
-        patcher04 = patch("grouping.GroupingConfiguration", autospec=True)
+        patcher04 = patch("integraality.grouping.GroupingConfiguration", autospec=True)
         self.mock_grouping_configuration = patcher04.start()
         self.addCleanup(patcher04.stop)
         self.mock_grouping_configuration.format_predicate_html.return_value = (
@@ -153,7 +153,9 @@ class QueriesTests(PagesProcessorTests):
         )
         self.mock_grouping_configuration.property = "P495"
 
-        patcher1 = patch("pages_processor.PropertyStatistics", autospec=True)
+        patcher1 = patch(
+            "integraality.pages_processor.PropertyStatistics", autospec=True
+        )
         self.mock_property_statistics = patcher1.start()
         self.mock_property_statistics.grouping_configuration = (
             self.mock_grouping_configuration

@@ -16,5 +16,8 @@ dev = [
     "fakeredis",
 ]
 
+[tool.ruff.lint]
+select = ["I"]
+
 [tool.uv]
 package = false

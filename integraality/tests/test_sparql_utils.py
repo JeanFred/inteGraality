@@ -8,13 +8,13 @@ import pywikibot
 import requests
 
 from ..sparql_utils import (
-    add_prefixes_to_query,
-    get_label_for_variable,
     QLeverSparqlQueryEngine,
     QueryException,
     SparqlEngineBuilder,
     UnsupportedSparqlEngineException,
     WdqsSparqlQueryEngine,
+    add_prefixes_to_query,
+    get_label_for_variable,
 )
 
 

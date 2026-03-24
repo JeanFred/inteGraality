@@ -3,7 +3,7 @@
 
 import unittest
 from collections import OrderedDict
-from unittest.mock import patch, create_autospec
+from unittest.mock import create_autospec, patch
 
 from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType

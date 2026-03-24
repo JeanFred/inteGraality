@@ -9,9 +9,8 @@ import os
 import re
 from time import perf_counter
 
-from redis import StrictRedis
-
 import pywikibot
+from redis import StrictRedis
 
 from .cache import RedisCache
 from .column import ColumnMaker, ColumnSyntaxException

@@ -3,7 +3,6 @@
 
 import pywikibot
 import pywikibot.data.sparql
-
 import requests
 
 

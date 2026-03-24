@@ -1,6 +1,7 @@
 """Pytest configuration for integraality tests."""
 
 from unittest.mock import MagicMock, patch
+
 import pywikibot.site
 
 # Mock pywikibot.Site BEFORE any imports

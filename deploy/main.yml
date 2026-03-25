@@ -91,7 +91,7 @@
 
     - name: Symlink src directory
       file:
-        src: '{{ checkout_path }}/integraality/'
+        src: '{{ checkout_path }}'
         path: '{{ source_path }}'
         state: link
       tags:

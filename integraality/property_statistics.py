@@ -81,6 +81,19 @@ class PropertyStatistics:
             self.selector_sparql, self.sparql_query_engine
         )
 
+    def get_queries_for_column(self, column_key, grouping):
+        column = self.columns.get(column_key)
+        return {
+            "column": column,
+            "positive_query": self.get_query_for_items_for_property_positive(
+                column, grouping
+            ),
+            "negative_query": self.get_query_for_items_for_property_negative(
+                column, grouping
+            ),
+            "formatted_predicate": self.grouping_configuration.format_predicate_html(),
+        }
+
     def get_query_for_items_for_property_positive(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
         line, grouping = self._make_line_for_grouping(grouping)

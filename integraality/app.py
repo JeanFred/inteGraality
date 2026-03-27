@@ -99,21 +99,20 @@ def queries():
     try:
         stats = processor.make_stats_object_for_page_title(page_title)
         grouping = request.args.get("grouping")
-        column = stats.columns.get(column_key)
-        positive_query = stats.get_query_for_items_for_property_positive(
-            column, grouping
-        )
-        negative_query = stats.get_query_for_items_for_property_negative(
-            column, grouping
-        )
-        formatted_predicate = stats.grouping_configuration.format_predicate_html()
+        query_data = stats.get_queries_for_column(column_key, grouping)
+
+        column = query_data["column"]
+        positive_query = query_data["positive_query"]
+        negative_query = query_data["negative_query"]
+        formatted_predicate = query_data["formatted_predicate"]
         qlever_ui_url = get_qlever_ui_url(page_url)
+
         return render_template(
             "queries.html",
             page_title=page_title,
             page_url=page_url,
             column=column,
-            grouping=request.args.get("grouping"),
+            grouping=grouping,
             formatted_predicate=formatted_predicate,
             positive_query=positive_query,
             negative_query=negative_query,

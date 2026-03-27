@@ -19,7 +19,7 @@ class RedisCache:
         if cached_value:
             try:
                 return pickle.loads(cached_value)
-            except (AttributeError, pickle.UnpicklingError):
+            except (AttributeError, ModuleNotFoundError, pickle.UnpicklingError):
                 self.client.delete(ns_key)
                 return None
         else:

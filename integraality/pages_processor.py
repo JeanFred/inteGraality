@@ -128,6 +128,8 @@ class PagesProcessor:
             return PropertyStatistics(**config)
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
+        except UnsupportedGroupingConfigurationException as e:
+            raise ConfigException(e) from e
 
     def process_page(self, page):
         start_time = perf_counter()
@@ -246,6 +248,8 @@ class PagesProcessor:
             return PropertyStatistics(**result)
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
+        except UnsupportedGroupingConfigurationException as e:
+            raise ConfigException(e) from e
 
 
 def args_parser():

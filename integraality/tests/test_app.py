@@ -141,6 +141,14 @@ class UpdateTests(PagesProcessorTests):
 class QueriesTests(PagesProcessorTests):
     def setUp(self):
         super().setUp()
+
+        patcher_qlever = patch(
+            "integraality.app.get_qlever_ui_url",
+            return_value="https://qlever.dev/wikidata/",
+        )
+        patcher_qlever.start()
+        self.addCleanup(patcher_qlever.stop)
+
         self.column_P1 = column.PropertyColumn(property="P1")
         self.column_Lbr = column.LabelColumn(language="br")
         self.column_Dbr = column.DescriptionColumn(language="br")

@@ -9,6 +9,7 @@ import fakeredis
 
 from ..column import DescriptionColumn, LabelColumn, PropertyColumn
 from ..grouping import GroupingConfiguration
+from ..grouping_link import LabelGroupingLink
 from ..pages_processor import ConfigException, PagesProcessor, main
 from ..sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
 
@@ -79,7 +80,9 @@ class TestParseConfig(ProcessortTest):
         expected = {
             "grouping_configuration": GroupingConfiguration(
                 predicate="wdt:P400",
-                base_grouping_link="Wikidata:WikiProject Video games/Reports/Platform",
+                grouping_link_type=LabelGroupingLink(
+                    template="Wikidata:WikiProject Video games/Reports/Platform/{Len}",
+                ),
             ),
             "stats_for_no_group": True,
             "columns": [

@@ -5,6 +5,7 @@ import unittest
 from unittest.mock import create_autospec
 
 from .. import grouping
+from ..grouping_link import LabelGroupingLink
 from ..line import UnknownValueGrouping, YearGrouping
 from ..sparql_utils import WdqsSparqlQueryEngine
 
@@ -92,7 +93,7 @@ LIMIT 1000
             predicate="wdt:P1",
             grouping_type=grouping.ItemGroupingType(),
             higher_grouping="wdt:P2",
-            base_grouping_link="Foo",
+            grouping_link_type=LabelGroupingLink(template="Foo/{Len}"),
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """
@@ -158,7 +159,7 @@ LIMIT 1000
         grouping_configuration = grouping.GroupingConfiguration(
             predicate="wdt:P1",
             grouping_type=grouping.YearGroupingType(),
-            base_grouping_link="Foo",
+            grouping_link_type=LabelGroupingLink(template="Foo/{Len}"),
         )
         result = grouping_configuration.get_grouping_information_query("Q1")
         expected = """

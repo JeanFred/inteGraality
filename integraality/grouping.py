@@ -7,8 +7,9 @@ Grouping configuration classes
 import collections
 import re
 
+from .grouping_link import GroupingLinkMaker
 from .line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
-from .sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException, get_label_for_variable
+from .sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
 
 
 class UnsupportedGroupingConfigurationException(Exception):
@@ -185,7 +186,7 @@ class GroupingConfigurationMaker:
             predicate = grouping_property
         return GroupingConfiguration(
             predicate=predicate,
-            base_grouping_link=base_grouping_link,
+            grouping_link_type=GroupingLinkMaker.make(base_grouping_link),
             higher_grouping=higher_grouping,
             grouping_threshold=grouping_threshold,
             raw_explicit_groupings=explicit_groupings,
@@ -197,7 +198,7 @@ class GroupingConfiguration:
         self,
         predicate,
         higher_grouping=None,
-        base_grouping_link=None,
+        grouping_link_type=None,
         grouping_threshold=20,
         explicit_groupings=None,
         grouping_type=None,
@@ -205,7 +206,7 @@ class GroupingConfiguration:
     ):
         self.predicate = predicate
         self.higher_grouping = higher_grouping
-        self.base_grouping_link = base_grouping_link
+        self.grouping_link_type = grouping_link_type or GroupingLinkMaker.make(None)
         self.grouping_threshold = grouping_threshold
         self.explicit_groupings = explicit_groupings
         self.grouping_type = grouping_type
@@ -219,7 +220,7 @@ class GroupingConfiguration:
         return (
             self.predicate == other.predicate
             and self.higher_grouping == other.higher_grouping
-            and self.base_grouping_link == other.base_grouping_link
+            and self.grouping_link_type == other.grouping_link_type
             and self.grouping_threshold == other.grouping_threshold
             and self.explicit_groupings == other.explicit_groupings
         )
@@ -303,10 +304,7 @@ class GroupingConfiguration:
             return ""
 
     def get_select_for_grouping_link_value(self):
-        if self.base_grouping_link:
-            return "?grouping_link_value"
-        else:
-            return ""
+        return self.grouping_link_type.get_select_clause()
 
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
@@ -317,13 +315,7 @@ class GroupingConfiguration:
             return []
 
     def get_grouping_link_selector(self):
-        if self.base_grouping_link:
-            return (
-                get_label_for_variable("?grouping", "?grouping_link_value"),
-                "?grouping_link_value",
-            )
-        else:
-            return ([], None)
+        return self.grouping_link_type.get_sparql_fragment()
 
     def _detect_grouping_type(self, selector_sparql, sparql_query_engine):
         """Detect the grouping type by querying the datatype of values."""
@@ -409,13 +401,7 @@ class GroupingConfiguration:
                 else:
                     higher_grouping = None
 
-                if self.base_grouping_link:
-                    value = resultitem.get("grouping_link_value")
-                    if not value:
-                        value = qid
-                    grouping_link = f"{self.base_grouping_link}/{value}"
-                else:
-                    grouping_link = None
+                grouping_link = self.grouping_link_type.resolve(qid, resultitem)
 
                 property_grouping = self.line_type(
                     title=qid,
@@ -426,13 +412,10 @@ class GroupingConfiguration:
                 groupings[property_grouping.get_key()] = property_grouping
 
         if unknown_value_count:
-            if self.base_grouping_link:
-                unknown_value_grouping = UnknownValueGrouping(
-                    unknown_value_count,
-                    grouping_link=f"{self.base_grouping_link}/UNKNOWN_VALUE",
-                )
-            else:
-                unknown_value_grouping = UnknownValueGrouping(unknown_value_count)
+            unknown_link = self.grouping_link_type.resolve("UNKNOWN_VALUE", {})
+            unknown_value_grouping = UnknownValueGrouping(
+                unknown_value_count, grouping_link=unknown_link
+            )
             groupings[unknown_value_grouping.get_key()] = unknown_value_grouping
 
         return groupings

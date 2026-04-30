@@ -7,6 +7,7 @@ from unittest.mock import create_autospec, patch
 
 from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
+from ..grouping_link import LabelGroupingLink
 from ..line import (
     ItemGrouping,
     NoGroupGrouping,
@@ -1189,7 +1190,9 @@ SELECT ?grouping ?grouping_link_value ?count WHERE {
 ORDER BY DESC(?count)
 LIMIT 1000
 """
-        self.stats.grouping_configuration.base_grouping_link = "Foo"
+        self.stats.grouping_configuration.grouping_link_type = LabelGroupingLink(
+            template="Foo/{Len}"
+        )
         result = self.stats.get_grouping_information()
         self.assert_query_called(query)
         self.assertEqual(result, expected)

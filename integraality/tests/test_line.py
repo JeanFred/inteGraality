@@ -4,6 +4,7 @@ import collections
 import unittest
 
 from .. import line
+from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
 from ..grouping import GroupingConfiguration, ItemGroupingType
 
 
@@ -324,6 +325,103 @@ class FormatHigherGroupingTextTest(unittest.TestCase):
         result = grouping.format_higher_grouping_text(None)
         expected = '| data-sort-value="US%20CDC%20logo.svg"| [[File:US%20CDC%20logo.svg|center|100px]]\n'
         self.assertEqual(result, expected)
+
+
+class ItemGroupingListeriaTest(unittest.TestCase):
+    def test_format_listeria_wikitext(self):
+        grouping = line.ItemGrouping(count=10, title="Q751719")
+        columns = collections.OrderedDict(
+            [
+                ("P136", PropertyColumn("P136")),
+                ("P178", PropertyColumn("P178")),
+            ]
+        )
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31/wdt:P279* wd:Q7889",
+            grouping_predicate="wdt:P400",
+            columns=columns,
+        )
+        expected = (
+            "{{Wikidata list|sparql=\n"
+            "SELECT ?item WHERE {\n"
+            "  ?item wdt:P31/wdt:P279* wd:Q7889.\n"
+            "  ?item wdt:P400 wd:Q751719 .\n"
+            "}\n"
+            "|columns=P136,P178\n"
+            "|summary=itemnumber\n"
+            "}}\n"
+            "{{Wikidata list end}}"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_listeria_wikitext_with_label_and_description(self):
+        grouping = line.ItemGrouping(count=5, title="Q42")
+        columns = collections.OrderedDict(
+            [
+                ("Lde", LabelColumn("de")),
+                ("P21", PropertyColumn("P21")),
+                ("Dde", DescriptionColumn("de")),
+            ]
+        )
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31 wd:Q5",
+            grouping_predicate="wdt:P551",
+            columns=columns,
+        )
+        expected = (
+            "{{Wikidata list|sparql=\n"
+            "SELECT ?item WHERE {\n"
+            "  ?item wdt:P31 wd:Q5.\n"
+            "  ?item wdt:P551 wd:Q42 .\n"
+            "}\n"
+            "|columns=label/de,P21,description/de\n"
+            "|summary=itemnumber\n"
+            "}}\n"
+            "{{Wikidata list end}}"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_listeria_wikitext_with_entity_in_selector(self):
+        grouping = line.ItemGrouping(count=10, title="Q751719")
+        columns = collections.OrderedDict([("P136", PropertyColumn("P136"))])
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31/wdt:P279* wd:Q7889 . ?entity wdt:P400 wd:Q8093",
+            grouping_predicate="wdt:P400",
+            columns=columns,
+        )
+        self.assertNotIn("?entity", result)
+        self.assertIn(
+            "?item wdt:P31/wdt:P279* wd:Q7889 . ?item wdt:P400 wd:Q8093.", result
+        )
+
+    def test_format_listeria_wikitext_skips_sitelink_columns(self):
+        grouping = line.ItemGrouping(count=5, title="Q42")
+        columns = collections.OrderedDict(
+            [
+                ("P21", PropertyColumn("P21")),
+                ("brwiki", SitelinkColumn("brwiki")),
+            ]
+        )
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31 wd:Q5",
+            grouping_predicate="wdt:P551",
+            columns=columns,
+        )
+        self.assertIn("|columns=P21\n", result)
+        self.assertNotIn("brwiki", result)
+
+
+class YearGroupingListeriaTest(unittest.TestCase):
+    def test_format_listeria_wikitext_decade(self):
+        grouping = line.YearGrouping(count=10, title="1900", time_span=100)
+        columns = collections.OrderedDict([("P17", PropertyColumn("P17"))])
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31/wdt:P279* wd:Q811979",
+            grouping_predicate="wdt:P571",
+            columns=columns,
+        )
+        self.assertIn("FILTER(?year = 1900).", result)
+        self.assertNotIn("1900/100", result)
 
 
 class YearGroupingDisplayTest(unittest.TestCase):

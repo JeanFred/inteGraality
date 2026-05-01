@@ -346,3 +346,28 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("SomethingSomething", None)
+
+
+class TestListeriaKey(unittest.TestCase):
+    def test_property(self):
+        self.assertEqual(PropertyColumn("P136").get_listeria_key(), "P136")
+
+    def test_property_with_qualifier(self):
+        self.assertEqual(
+            PropertyColumn("P669", qualifier="P670").get_listeria_key(), "P669/P670"
+        )
+
+    def test_property_with_qualifier_and_value(self):
+        self.assertEqual(
+            PropertyColumn("P553", value="Q17459", qualifier="P670").get_listeria_key(),
+            "P553/Q17459/P670",
+        )
+
+    def test_label(self):
+        self.assertEqual(LabelColumn("de").get_listeria_key(), "label/de")
+
+    def test_description(self):
+        self.assertEqual(DescriptionColumn("de").get_listeria_key(), "description/de")
+
+    def test_sitelink(self):
+        self.assertIsNone(SitelinkColumn("brwiki").get_listeria_key())

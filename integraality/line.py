@@ -113,6 +113,24 @@ class Grouping(AbstractLine):
         query.extend(self.query_filter_out_fragment(grouping_predicate, grouping))
         return "\n".join(query)
 
+    def format_listeria_wikitext(self, selector_sparql, grouping_predicate, columns):
+        listeria_columns = [
+            col.get_listeria_key() for col in columns.values() if col.get_listeria_key()
+        ]
+
+        lines = []
+        lines.append("{{Wikidata list|sparql=")
+        lines.append("SELECT ?entity WHERE {")
+        lines.append(f"  ?entity {selector_sparql}.")
+        lines.extend(self.query_filter_out_fragment(grouping_predicate, self.title))
+        lines.append("}")
+        lines.append(f"|columns={','.join(listeria_columns)}")
+        lines.append("|summary=itemnumber")
+        lines.append("}}")
+        lines.append("{{Wikidata list end}}")
+
+        return "\n".join(lines).replace("?entity", "?item")
+
 
 class NoGroupGrouping(Grouping):
     """Group for items that do not belong to any group."""

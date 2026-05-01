@@ -140,6 +140,9 @@ class PropertyColumn(AbstractColumn):
     def get_key(self):
         return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
 
+    def get_listeria_key(self):
+        return self.get_key()
+
     def get_type_name(self):
         return "property"
 
@@ -247,6 +250,9 @@ class LabelColumn(TextColumn):
     def get_key(self):
         return "L%s" % self.language
 
+    def get_listeria_key(self):
+        return f"label/{self.language}"
+
     def get_selector(self):
         return "rdfs:label"
 
@@ -257,6 +263,9 @@ class LabelColumn(TextColumn):
 class DescriptionColumn(TextColumn):
     def get_key(self):
         return "D%s" % self.language
+
+    def get_listeria_key(self):
+        return f"description/{self.language}"
 
     def get_selector(self):
         return "schema:description"
@@ -282,6 +291,9 @@ class SitelinkColumn(AbstractColumn):
 
     def get_key(self):
         return self.project
+
+    def get_listeria_key(self):
+        return None
 
     def get_type_name(self):
         return "sitelink"

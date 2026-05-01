@@ -243,3 +243,14 @@ class GetLabelForVariableTest(unittest.TestCase):
             "  BIND(COALESCE(?itemlabelFR, ?itemlabelMUL) AS ?label).",
         ]
         self.assertListEqual(result, expected)
+
+    def test_get_label_for_variable_mul(self):
+        result = get_label_for_variable("?item", "?label", lang="mul")
+        expected = [
+            "  OPTIONAL {{",
+            "    ?item rdfs:label ?itemlabelMUL.",
+            "    FILTER(lang(?itemlabelMUL)='mul')",
+            "  }}.",
+            "  BIND(?itemlabelMUL AS ?label).",
+        ]
+        self.assertListEqual(result, expected)

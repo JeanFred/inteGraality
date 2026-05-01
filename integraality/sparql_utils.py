@@ -132,15 +132,25 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
 def get_label_for_variable(subject_variable, output_variable, lang="en"):
     """Generate SPARQL fragment to get label with fallback from given language to 'mul'."""
     variable_base = subject_variable.lstrip("?")
-    lang_upper = lang.upper()
-    return [
+    mul_label = f"?{variable_base}labelMUL"
+    lines = [
         "  OPTIONAL {{",
-        f"    {subject_variable} rdfs:label ?{variable_base}labelMUL.",
-        f"    FILTER(lang(?{variable_base}labelMUL)='mul')",
+        f"    {subject_variable} rdfs:label {mul_label}.",
+        f"    FILTER(lang({mul_label})='mul')",
         "  }}.",
-        "  OPTIONAL {{",
-        f"    {subject_variable} rdfs:label ?{variable_base}label{lang_upper}.",
-        f"    FILTER(lang(?{variable_base}label{lang_upper})='{lang}')",
-        "  }}.",
-        f"  BIND(COALESCE(?{variable_base}label{lang_upper}, ?{variable_base}labelMUL) AS {output_variable}).",
     ]
+    if lang == "mul":
+        lines.append(f"  BIND({mul_label} AS {output_variable}).")
+    else:
+        lang_upper = lang.upper()
+        lang_label = f"?{variable_base}label{lang_upper}"
+        lines.extend(
+            [
+                "  OPTIONAL {{",
+                f"    {subject_variable} rdfs:label {lang_label}.",
+                f"    FILTER(lang({lang_label})='{lang}')",
+                "  }}.",
+                f"  BIND(COALESCE({lang_label}, {mul_label}) AS {output_variable}).",
+            ]
+        )
+    return lines

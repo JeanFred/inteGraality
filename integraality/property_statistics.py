@@ -256,7 +256,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         groupings = self.grouping_configuration.post_process(groupings)
         return groupings
 
-    def process_data(self, groupings):
+    def prepare_report_groupings(self, groupings):
         sorted_groupings = sorted(
             groupings.values(), key=lambda t: t.count, reverse=True
         )
@@ -266,7 +266,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         sorted_groupings.append(self.make_totals())
 
-        return self.formatter.format_report(sorted_groupings)
+        return sorted_groupings
+
+    def process_data(self, groupings):
+        return self.formatter.format_report(self.prepare_report_groupings(groupings))
 
 
 def main(*args):

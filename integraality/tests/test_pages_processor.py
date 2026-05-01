@@ -90,6 +90,7 @@ class TestParseConfig(ProcessortTest):
                 PropertyColumn(property="P404"),
             ],
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
@@ -109,6 +110,7 @@ class TestParseConfig(ProcessortTest):
                 PropertyColumn(property="P404"),
             ],
             "stats_for_no_group": False,
+            "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
@@ -134,6 +136,7 @@ class TestParseConfig(ProcessortTest):
             ],
             "stats_for_no_group": True,
             "property_threshold": "2",
+            "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
@@ -149,6 +152,17 @@ class TestParseConfig(ProcessortTest):
         }
         with self.assertRaises(ConfigException):
             self.processor.parse_config(input_config)
+
+    def test_config_with_grouping_link_mode_create(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136,P404",
+            "grouping_link": "Foo",
+            "grouping_link_mode": "create",
+        }
+        result = self.processor.parse_config(input_config)
+        self.assertEqual(result["grouping_link_mode"], "create")
 
     def test_config_with_qlever_endpoint(self):
         input_config = {

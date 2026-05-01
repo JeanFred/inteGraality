@@ -19,6 +19,7 @@ from .grouping import (
     UnsupportedGroupingConfigurationException,
 )
 from .grouping_link import GroupingLinkSyntaxException
+from .grouping_page_creator import GroupingPageCreator
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException, SparqlEngineBuilder
@@ -125,17 +126,19 @@ class PagesProcessor:
 
     def make_stats_object_for_page(self, page):
         config = self.make_stats_object_arguments_for_page(page)
+        grouping_link_mode = config.pop("grouping_link_mode", "link")
         try:
-            return PropertyStatistics(**config)
+            stats = PropertyStatistics(**config)
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         except UnsupportedGroupingConfigurationException as e:
             raise ConfigException(e) from e
+        return stats, grouping_link_mode
 
     def process_page(self, page):
         start_time = perf_counter()
         self.cache.invalidate(self.make_cache_key(page.title()))
-        stats = self.make_stats_object_for_page(page)
+        stats, grouping_link_mode = self.make_stats_object_for_page(page)
         groupings = stats.retrieve_data()
         output = stats.process_data(groupings)
         elapsed_time = perf_counter() - start_time
@@ -145,6 +148,17 @@ class PagesProcessor:
             + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
         )
         save_to_wiki_or_local(page, summary, new_text)
+
+        if grouping_link_mode == "create":
+            creator = GroupingPageCreator(
+                site=self.site,
+                selector_sparql=stats.selector_sparql,
+                grouping_predicate=stats.grouping_configuration.get_predicate(),
+                columns=stats.columns,
+                page_title=page.title(),
+            )
+            creator.create_pages(groupings.values())
+
         return elapsed_time
 
     def parse_config(self, config):
@@ -165,6 +179,7 @@ class PagesProcessor:
         except GroupingLinkSyntaxException as e:
             raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
+        config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
         config["sparql_query_engine"] = SparqlEngineBuilder.make(
             config.pop("sparql_endpoint", None),
             site_url=self.url,
@@ -249,6 +264,7 @@ class PagesProcessor:
             print("No result in cache for %s, computing..." % key)
             page = pywikibot.Page(self.site, page_title)
             result = self.make_stats_object_arguments_for_page(page)
+        result.pop("grouping_link_mode", None)
         try:
             return PropertyStatistics(**result)
         except TypeError:

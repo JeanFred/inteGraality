@@ -8,6 +8,7 @@ from ..grouping_link import (
     IdGroupingLink,
     LabelGroupingLink,
     NoGroupingLink,
+    PropertyGroupingLink,
 )
 
 
@@ -47,6 +48,11 @@ class TestGroupingLinkMaker(unittest.TestCase):
     def test_id_placeholder(self):
         result = GroupingLinkMaker.make("Foo/{id}")
         expected = IdGroupingLink(template="Foo/{id}")
+        self.assertEqual(result, expected)
+
+    def test_property_placeholder(self):
+        result = GroupingLinkMaker.make("Foo/{P297}")
+        expected = PropertyGroupingLink(template="Foo/{P297}", property="P297")
         self.assertEqual(result, expected)
 
 
@@ -144,3 +150,27 @@ class TestIdGroupingLink(unittest.TestCase):
 
     def test_get_sparql_fragment(self):
         self.assertEqual(self.link.get_sparql_fragment(), ([], None))
+
+
+class TestPropertyGroupingLink(unittest.TestCase):
+    def setUp(self):
+        self.link = PropertyGroupingLink(template="Foo/{P297}", property="P297")
+
+    def test_resolve_with_value(self):
+        result = self.link.resolve("Q123", {"grouping_link_value": "DE"})
+        self.assertEqual(result, "Foo/DE")
+
+    def test_resolve_falls_back_to_qid(self):
+        result = self.link.resolve("Q123", {})
+        self.assertEqual(result, "Foo/Q123")
+
+    def test_get_select_clause(self):
+        self.assertEqual(self.link.get_select_clause(), "?grouping_link_value")
+
+    def test_get_sparql_fragment(self):
+        (fragment, group_by) = self.link.get_sparql_fragment()
+        self.assertEqual(group_by, "?grouping_link_value")
+        self.assertEqual(
+            fragment,
+            ["  OPTIONAL { ?grouping wdt:P297 ?grouping_link_value }."],
+        )

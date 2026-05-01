@@ -36,6 +36,9 @@ class GroupingLinkMaker:
         if inner == "id":
             return IdGroupingLink(template=base_grouping_link)
 
+        if inner.startswith("P"):
+            return PropertyGroupingLink(template=base_grouping_link, property=inner)
+
         raise GroupingLinkSyntaxException(
             f"Unsupported grouping link placeholder: {{{inner}}}"
         )
@@ -79,6 +82,32 @@ class IdGroupingLink(AbstractGroupingLink):
 
     def get_value(self, qid, resultitem):
         return qid
+
+
+class PropertyGroupingLink(AbstractGroupingLink):
+    def __init__(self, template, property):
+        super().__init__(template)
+        self.property = property
+        self.placeholder = f"{{{property}}}"
+
+    def get_select_clause(self):
+        return "?grouping_link_value"
+
+    def get_sparql_fragment(self):
+        return (
+            [f"  OPTIONAL {{ ?grouping wdt:{self.property} ?grouping_link_value }}."],
+            "?grouping_link_value",
+        )
+
+    def get_value(self, qid, resultitem):
+        return resultitem.get("grouping_link_value") or qid
+
+    def __eq__(self, other):
+        return (
+            type(self) is type(other)
+            and self.template == other.template
+            and self.property == other.property
+        )
 
 
 class LabelGroupingLink(AbstractGroupingLink):

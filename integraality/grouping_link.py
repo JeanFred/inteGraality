@@ -84,23 +84,27 @@ class IdGroupingLink(AbstractGroupingLink):
         return qid
 
 
-class PropertyGroupingLink(AbstractGroupingLink):
+class SparqlGroupingLink(AbstractGroupingLink):
+    """Base class for strategies that fetch a value via SPARQL."""
+
+    def get_select_clause(self):
+        return "?grouping_link_value"
+
+    def get_value(self, qid, resultitem):
+        return resultitem.get("grouping_link_value") or qid
+
+
+class PropertyGroupingLink(SparqlGroupingLink):
     def __init__(self, template, property):
         super().__init__(template)
         self.property = property
         self.placeholder = f"{{{property}}}"
-
-    def get_select_clause(self):
-        return "?grouping_link_value"
 
     def get_sparql_fragment(self):
         return (
             [f"  OPTIONAL {{ ?grouping wdt:{self.property} ?grouping_link_value }}."],
             "?grouping_link_value",
         )
-
-    def get_value(self, qid, resultitem):
-        return resultitem.get("grouping_link_value") or qid
 
     def __eq__(self, other):
         return (
@@ -110,23 +114,17 @@ class PropertyGroupingLink(AbstractGroupingLink):
         )
 
 
-class LabelGroupingLink(AbstractGroupingLink):
+class LabelGroupingLink(SparqlGroupingLink):
     def __init__(self, template, lang="en"):
         super().__init__(template)
         self.lang = lang
         self.placeholder = f"{{L{lang}}}"
-
-    def get_select_clause(self):
-        return "?grouping_link_value"
 
     def get_sparql_fragment(self):
         return (
             get_label_for_variable("?grouping", "?grouping_link_value", self.lang),
             "?grouping_link_value",
         )
-
-    def get_value(self, qid, resultitem):
-        return resultitem.get("grouping_link_value") or qid
 
     def __eq__(self, other):
         return (

@@ -4,7 +4,13 @@
 Grouping link strategy classes.
 """
 
+import re
+
 from .sparql_utils import get_label_for_variable
+
+
+class GroupingLinkSyntaxException(Exception):
+    pass
 
 
 class GroupingLinkMaker:
@@ -13,8 +19,23 @@ class GroupingLinkMaker:
         if not base_grouping_link:
             return NoGroupingLink()
 
-        # Backward compat: no placeholder → append /{Len}
-        return LabelGroupingLink(template=f"{base_grouping_link}/{{Len}}")
+        matches = re.findall(r"\{(.*?)\}", base_grouping_link)
+        if not matches:
+            # Backward compat: no placeholder → append /{Len}
+            return LabelGroupingLink(template=f"{base_grouping_link}/{{Len}}")
+
+        if len(matches) > 1:
+            raise GroupingLinkSyntaxException(
+                "Only one placeholder is supported in grouping link"
+            )
+
+        inner = matches[0]
+        if inner.startswith("L"):
+            return LabelGroupingLink(template=base_grouping_link, lang=inner[1:])
+
+        raise GroupingLinkSyntaxException(
+            f"Unsupported grouping link placeholder: {{{inner}}}"
+        )
 
 
 class AbstractGroupingLink:
@@ -49,18 +70,26 @@ class NoGroupingLink(AbstractGroupingLink):
 
 
 class LabelGroupingLink(AbstractGroupingLink):
-    def __init__(self, template):
+    def __init__(self, template, lang="en"):
         super().__init__(template)
-        self.placeholder = "{Len}"
+        self.lang = lang
+        self.placeholder = f"{{L{lang}}}"
 
     def get_select_clause(self):
         return "?grouping_link_value"
 
     def get_sparql_fragment(self):
         return (
-            get_label_for_variable("?grouping", "?grouping_link_value"),
+            get_label_for_variable("?grouping", "?grouping_link_value", self.lang),
             "?grouping_link_value",
         )
 
     def get_value(self, qid, resultitem):
         return resultitem.get("grouping_link_value") or qid
+
+    def __eq__(self, other):
+        return (
+            type(self) is type(other)
+            and self.template == other.template
+            and self.lang == other.lang
+        )

@@ -18,6 +18,7 @@ from .grouping import (
     GroupingConfigurationMaker,
     UnsupportedGroupingConfigurationException,
 )
+from .grouping_link import GroupingLinkSyntaxException
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException, SparqlEngineBuilder
@@ -152,13 +153,16 @@ class PagesProcessor:
                 raise ConfigException("A required field is missing: %s" % field)
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
-        config["grouping_configuration"] = GroupingConfigurationMaker.make(
-            config.pop("grouping_property"),
-            config.pop("higher_grouping", None),
-            int(config.pop("grouping_threshold", 20)),
-            config.pop("grouping_link", None),
-            config.pop("groupings", None),
-        )
+        try:
+            config["grouping_configuration"] = GroupingConfigurationMaker.make(
+                config.pop("grouping_property"),
+                config.pop("higher_grouping", None),
+                int(config.pop("grouping_threshold", 20)),
+                config.pop("grouping_link", None),
+                config.pop("groupings", None),
+            )
+        except GroupingLinkSyntaxException as e:
+            raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         config["sparql_query_engine"] = SparqlEngineBuilder.make(
             config.pop("sparql_endpoint", None),

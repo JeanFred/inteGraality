@@ -4,6 +4,7 @@ import unittest
 
 from ..grouping_link import (
     GroupingLinkMaker,
+    GroupingLinkSyntaxException,
     LabelGroupingLink,
     NoGroupingLink,
 )
@@ -18,6 +19,29 @@ class TestGroupingLinkMaker(unittest.TestCase):
         result = GroupingLinkMaker.make("Foo")
         expected = LabelGroupingLink(template="Foo/{Len}")
         self.assertEqual(result, expected)
+
+    def test_explicit_label_french(self):
+        result = GroupingLinkMaker.make("Foo/{Lfr}")
+        expected = LabelGroupingLink(template="Foo/{Lfr}", lang="fr")
+        self.assertEqual(result, expected)
+
+    def test_explicit_label_mul(self):
+        result = GroupingLinkMaker.make("Bar/{Lmul}")
+        expected = LabelGroupingLink(template="Bar/{Lmul}", lang="mul")
+        self.assertEqual(result, expected)
+
+    def test_explicit_label_zh_hans(self):
+        result = GroupingLinkMaker.make("Foo/{Lzh-hans}")
+        expected = LabelGroupingLink(template="Foo/{Lzh-hans}", lang="zh-hans")
+        self.assertEqual(result, expected)
+
+    def test_unsupported_placeholder(self):
+        with self.assertRaises(GroupingLinkSyntaxException):
+            GroupingLinkMaker.make("Foo/{foo}")
+
+    def test_multiple_placeholders(self):
+        with self.assertRaises(GroupingLinkSyntaxException):
+            GroupingLinkMaker.make("Foo/{Len}/{Lfr}")
 
 
 class TestNoGroupingLink(unittest.TestCase):
@@ -66,5 +90,32 @@ class TestLabelGroupingLink(unittest.TestCase):
                 "    FILTER(lang(?groupinglabelEN)='en')",
                 "  }}.",
                 "  BIND(COALESCE(?groupinglabelEN, ?groupinglabelMUL) AS ?grouping_link_value).",
+            ],
+        )
+
+
+class TestLabelGroupingLinkFrench(unittest.TestCase):
+    def setUp(self):
+        self.link = LabelGroupingLink(template="Foo/{Lfr}", lang="fr")
+
+    def test_resolve(self):
+        result = self.link.resolve("Q456", {"grouping_link_value": "Chose"})
+        self.assertEqual(result, "Foo/Chose")
+
+    def test_get_sparql_fragment(self):
+        (fragment, group_by) = self.link.get_sparql_fragment()
+        self.assertEqual(group_by, "?grouping_link_value")
+        self.assertEqual(
+            fragment,
+            [
+                "  OPTIONAL {{",
+                "    ?grouping rdfs:label ?groupinglabelMUL.",
+                "    FILTER(lang(?groupinglabelMUL)='mul')",
+                "  }}.",
+                "  OPTIONAL {{",
+                "    ?grouping rdfs:label ?groupinglabelFR.",
+                "    FILTER(lang(?groupinglabelFR)='fr')",
+                "  }}.",
+                "  BIND(COALESCE(?groupinglabelFR, ?groupinglabelMUL) AS ?grouping_link_value).",
             ],
         )

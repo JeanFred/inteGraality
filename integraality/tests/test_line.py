@@ -42,6 +42,16 @@ class GroupingTest(unittest.TestCase):
         expected = "| [[Foo/smth|1]] \n"
         self.assertEqual(result, expected)
 
+    def test_format_count_cell_with_external_grouping_link(self):
+        grouping = line.Grouping(
+            count=10,
+            grouping_link="https://scholia.toolforge.org/publisher/Q123",
+            title="Q123",
+        )
+        result = grouping.format_count_cell()
+        expected = "| [https://scholia.toolforge.org/publisher/Q123 10] \n"
+        self.assertEqual(result, expected)
+
     def test_postive_query(self):
         grouping = line.Grouping(count=1)
         result = grouping.postive_query(selector_sparql="wdt:P31 wd:Q41960")

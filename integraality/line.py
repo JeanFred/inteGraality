@@ -84,6 +84,8 @@ class Grouping(AbstractLine):
             return f"| {self.count} \n"
 
     def format_grouping_link(self):
+        if self.grouping_link.startswith(("http://", "https://")):
+            return f"| [{self.grouping_link} {self.count}] \n"
         return f"| [[{self.grouping_link}|{self.count}]] \n"
 
     def postive_query(self, selector_sparql, grouping_predicate=None, grouping=None):

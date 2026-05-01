@@ -33,6 +33,9 @@ class GroupingLinkMaker:
         if inner.startswith("L"):
             return LabelGroupingLink(template=base_grouping_link, lang=inner[1:])
 
+        if inner == "id":
+            return IdGroupingLink(template=base_grouping_link)
+
         raise GroupingLinkSyntaxException(
             f"Unsupported grouping link placeholder: {{{inner}}}"
         )
@@ -67,6 +70,15 @@ class NoGroupingLink(AbstractGroupingLink):
 
     def resolve(self, qid, resultitem):
         return None
+
+
+class IdGroupingLink(AbstractGroupingLink):
+    def __init__(self, template):
+        super().__init__(template)
+        self.placeholder = "{id}"
+
+    def get_value(self, qid, resultitem):
+        return qid
 
 
 class LabelGroupingLink(AbstractGroupingLink):

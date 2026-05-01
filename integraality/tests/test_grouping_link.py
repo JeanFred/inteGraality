@@ -5,6 +5,7 @@ import unittest
 from ..grouping_link import (
     GroupingLinkMaker,
     GroupingLinkSyntaxException,
+    IdGroupingLink,
     LabelGroupingLink,
     NoGroupingLink,
 )
@@ -42,6 +43,11 @@ class TestGroupingLinkMaker(unittest.TestCase):
     def test_multiple_placeholders(self):
         with self.assertRaises(GroupingLinkSyntaxException):
             GroupingLinkMaker.make("Foo/{Len}/{Lfr}")
+
+    def test_id_placeholder(self):
+        result = GroupingLinkMaker.make("Foo/{id}")
+        expected = IdGroupingLink(template="Foo/{id}")
+        self.assertEqual(result, expected)
 
 
 class TestNoGroupingLink(unittest.TestCase):
@@ -119,3 +125,22 @@ class TestLabelGroupingLinkFrench(unittest.TestCase):
                 "  BIND(COALESCE(?groupinglabelFR, ?groupinglabelMUL) AS ?grouping_link_value).",
             ],
         )
+
+
+class TestIdGroupingLink(unittest.TestCase):
+    def setUp(self):
+        self.link = IdGroupingLink(template="Foo/{id}")
+
+    def test_resolve(self):
+        result = self.link.resolve("Q123", {})
+        self.assertEqual(result, "Foo/Q123")
+
+    def test_resolve_ignores_label(self):
+        result = self.link.resolve("Q123", {"grouping_link_value": "Bar"})
+        self.assertEqual(result, "Foo/Q123")
+
+    def test_get_select_clause(self):
+        self.assertEqual(self.link.get_select_clause(), "")
+
+    def test_get_sparql_fragment(self):
+        self.assertEqual(self.link.get_sparql_fragment(), ([], None))

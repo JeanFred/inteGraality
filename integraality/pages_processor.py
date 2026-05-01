@@ -136,7 +136,8 @@ class PagesProcessor:
         start_time = perf_counter()
         self.cache.invalidate(self.make_cache_key(page.title()))
         stats = self.make_stats_object_for_page(page)
-        output = stats.retrieve_and_process_data()
+        groupings = stats.retrieve_data()
+        output = stats.process_data(groupings)
         elapsed_time = perf_counter() - start_time
         new_text = self.replace_in_page(output, page.get())
         summary = (

@@ -252,7 +252,7 @@ class GroupingConfiguration:
         outer_selects = [
             "?grouping",
             self.get_select_for_higher_grouping(),
-            self.get_select_for_grouping_link_value(),
+            self.grouping_link_type.get_select_clause(),
             "?count",
         ]
 
@@ -279,7 +279,7 @@ class GroupingConfiguration:
         query.extend(self.get_higher_grouping_selector())
 
         (grouping_link_select, grouping_link_group_by) = (
-            self.get_grouping_link_selector()
+            self.grouping_link_type.get_sparql_fragment()
         )
         query.extend(grouping_link_select)
         query.append("}")
@@ -303,9 +303,6 @@ class GroupingConfiguration:
         else:
             return ""
 
-    def get_select_for_grouping_link_value(self):
-        return self.grouping_link_type.get_select_clause()
-
     def get_higher_grouping_selector(self):
         if self.higher_grouping:
             return [
@@ -313,9 +310,6 @@ class GroupingConfiguration:
             ]
         else:
             return []
-
-    def get_grouping_link_selector(self):
-        return self.grouping_link_type.get_sparql_fragment()
 
     def _detect_grouping_type(self, selector_sparql, sparql_query_engine):
         """Detect the grouping type by querying the datatype of values."""

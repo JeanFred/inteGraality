@@ -635,3 +635,16 @@ class YearRebinningTest(unittest.TestCase):
 
         self.assertIn("UNKNOWN_VALUE", result)
         self.assertEqual(result["UNKNOWN_VALUE"].count, 5)
+
+    def test_rebin_resolves_grouping_link_with_rebinned_title(self):
+        groupings = collections.OrderedDict(
+            (
+                str(year),
+                YearGrouping(title=str(year), count=5, grouping_link=f"Foo/{year}"),
+            )
+            for year in range(1800, 2025)
+        )
+        result = self.config.post_process(groupings)
+
+        self.assertEqual(result["1900/10"].grouping_link, "Foo/1900")
+        self.assertEqual(result["1800/10"].grouping_link, "Foo/1800")

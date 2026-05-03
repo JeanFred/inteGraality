@@ -90,11 +90,14 @@ class YearGroupingType(AbstractGroupingType):
                 continue
 
             new_title = str((int(grouping.title) // time_span) * time_span)
+            grouping_link = grouping.grouping_link
+            if grouping_link and grouping.title != new_title:
+                grouping_link = grouping_link.replace(grouping.title, new_title)
             new_grouping = YearGrouping(
                 title=new_title,
                 count=grouping.count,
                 cells=grouping.cells.copy(),
-                grouping_link=grouping.grouping_link,
+                grouping_link=grouping_link,
                 higher_grouping=grouping.higher_grouping,
                 time_span=time_span,
             )

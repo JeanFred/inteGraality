@@ -46,7 +46,7 @@ class GroupingPageCreatorTest(unittest.TestCase):
         content = mock_save.call_args[0][2]
         self.assertIn("{{Wikidata list|sparql=", content)
         self.assertIn("?item wdt:P400 wd:Q751719", content)
-        self.assertIn("|columns=P136,P178", content)
+        self.assertIn("|columns=label,P136,P178", content)
         summary = mock_save.call_args[0][1]
         self.assertIn(
             "[[Wikidata:WikiProject Video games/Statistics/Platform]]", summary

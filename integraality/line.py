@@ -122,7 +122,7 @@ class Grouping(AbstractLine):
         others = [
             c for c in listeria_columns if c not in labels and c not in descriptions
         ]
-        listeria_columns = labels + descriptions + others
+        listeria_columns = (labels or ["label"]) + descriptions + others
 
         lines = []
         lines.append("{{Wikidata list|sparql=")

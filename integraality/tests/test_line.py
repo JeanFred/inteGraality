@@ -347,7 +347,7 @@ class ItemGroupingListeriaTest(unittest.TestCase):
             "  ?item wdt:P31/wdt:P279* wd:Q7889.\n"
             "  ?item wdt:P400 wd:Q751719 .\n"
             "}\n"
-            "|columns=P136,P178\n"
+            "|columns=label,P136,P178\n"
             "|summary=itemnumber\n"
             "}}\n"
             "{{Wikidata list end}}"
@@ -407,7 +407,7 @@ class ItemGroupingListeriaTest(unittest.TestCase):
             grouping_predicate="wdt:P551",
             columns=columns,
         )
-        self.assertIn("|columns=P21\n", result)
+        self.assertIn("|columns=label,P21\n", result)
         self.assertNotIn("brwiki", result)
 
 

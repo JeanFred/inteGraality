@@ -374,7 +374,7 @@ class ItemGroupingListeriaTest(unittest.TestCase):
             "  ?item wdt:P31 wd:Q5.\n"
             "  ?item wdt:P551 wd:Q42 .\n"
             "}\n"
-            "|columns=label/de,P21,description/de\n"
+            "|columns=label/de,description/de,P21\n"
             "|summary=itemnumber\n"
             "}}\n"
             "{{Wikidata list end}}"

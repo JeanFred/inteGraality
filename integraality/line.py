@@ -117,6 +117,12 @@ class Grouping(AbstractLine):
         listeria_columns = [
             col.get_listeria_key() for col in columns.values() if col.get_listeria_key()
         ]
+        labels = [c for c in listeria_columns if c.startswith("label")]
+        descriptions = [c for c in listeria_columns if c.startswith("description")]
+        others = [
+            c for c in listeria_columns if c not in labels and c not in descriptions
+        ]
+        listeria_columns = labels + descriptions + others
 
         lines = []
         lines.append("{{Wikidata list|sparql=")

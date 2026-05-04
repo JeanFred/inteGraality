@@ -119,7 +119,7 @@ class PagesProcessor:
         ]
 
         if len(start_templates_with_params) > 1:
-            pywikibot.warn("More than one template on the page %s" % page.title())
+            logger.warning("More than one template on the page %s", page.title())
 
         (template, params) = start_templates_with_params[0]
         parsed_config = self.parse_config_from_params(params)
@@ -170,7 +170,7 @@ class PagesProcessor:
     def parse_config(self, config):
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
-                pywikibot.output("Missing required field %s" % field)
+                logger.debug("Missing required field %s", field)
                 raise ConfigException("A required field is missing: %s" % field)
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
@@ -220,43 +220,41 @@ class PagesProcessor:
 
     def process_all(self):
         self.summary = "Weekly update of property usage stats"
-        pywikibot.output("Processing pages on site %s" % self.site.sitename)
+        logger.info("Processing pages on site %s", self.site.sitename)
         for page in self.get_all_pages():
-            pywikibot.output("Processing page %s" % page.title())
+            logger.info("Processing page %s", page.title())
             try:
                 self.process_page(page)
             except NoStartTemplateException:
-                pywikibot.output(
-                    "No start template on page %s, skipping" % page.title()
-                )
+                logger.warning("No start template on page %s, skipping", page.title())
             except NoEndTemplateException:
-                pywikibot.output("No end template on page %s, skipping" % page.title())
+                logger.warning("No end template on page %s, skipping", page.title())
             except ConfigException:
-                pywikibot.output(
-                    "Bad configuration on page %s, skipping" % page.title()
-                )
+                logger.warning("Bad configuration on page %s, skipping", page.title())
             except QueryException:
-                pywikibot.output(
-                    "A SPARQL query went wrong on page %s, skipping" % page.title()
+                logger.warning(
+                    "A SPARQL query went wrong on page %s, skipping", page.title()
                 )
             except UnsupportedGroupingConfigurationException:
-                pywikibot.output(
-                    "Unsupported grouping configuration on page %s, skipping"
-                    % page.title()
+                logger.warning(
+                    "Unsupported grouping configuration on page %s, skipping",
+                    page.title(),
                 )
             except (
                 pywikibot.exceptions.TimeoutError,
                 pywikibot.exceptions.ServerError,
             ) as e:
-                pywikibot.output(
-                    f"Temporary server issue with page {page.title()}: {e}. Will retry later."
+                logger.warning(
+                    "Temporary server issue with page %s: %s. Will retry later.",
+                    page.title(),
+                    e,
                 )
             except Exception as e:
-                pywikibot.output("Unknown error with page %s: %s" % (page.title(), e))
+                logger.error("Unknown error with page %s: %s", page.title(), e)
 
     def process_one_page(self, page_title):
         page = pywikibot.Page(self.site, page_title)
-        pywikibot.output("Processing page %s" % page.title())
+        logger.info("Processing page %s", page.title())
         try:
             return self.process_page(page)
         except (
@@ -271,7 +269,7 @@ class PagesProcessor:
         key = self.make_cache_key(page_title)
         result = self.cache.get_cache_value(key)
         if not result:
-            print("No result in cache for %s, computing..." % key)
+            logger.info("No result in cache for %s, computing...", key)
             page = pywikibot.Page(self.site, page_title)
             result = self.make_stats_object_arguments_for_page(page)
         result.pop("grouping_link_mode", None)
@@ -300,6 +298,7 @@ def main():
     """
     Main function. Bot does all the work.
     """
+    logging.basicConfig(level=logging.INFO)
     args = args_parser()
     processor = PagesProcessor(url=args.url)
     processor.process_all()

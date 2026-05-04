@@ -23,6 +23,8 @@ from .sparql_utils import (
     WdqsSparqlQueryEngine,
 )
 
+logger = logging.getLogger("integraality.update")
+
 
 class PropertyStatistics:
     """
@@ -226,7 +228,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return text
 
     def populate_groupings(self, groupings):
-        for column_entry_key, column_entry in self.columns.items():
+        column_keys = list(self.columns.keys())
+        for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
+            logger.info(
+                f"Querying column {column_entry_key}... ({i}/{len(column_keys)})"
+            )
             data = self._get_grouping_counts_from_sparql(
                 column_entry.get_info_query(self)
             )
@@ -243,15 +249,15 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return groupings
 
     def retrieve_data(self):
-        logging.info("Retrieving grouping information...")
+        logger.info("Retrieving grouping information...")
 
         try:
             groupings = self.get_grouping_information()
         except QueryException as e:
-            logging.error("No groupings found.")
+            logger.error("No groupings found.")
             raise e
 
-        logging.info(f"Grouping retrieved: {len(groupings)}")
+        logger.info(f"Groupings retrieved: {len(groupings)}")
         groupings = self.populate_groupings(groupings)
         groupings = self.grouping_configuration.post_process(groupings)
         return groupings
@@ -262,8 +268,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
         )
 
         if self.stats_for_no_group:
+            logger.info("Computing stats for items without grouping...")
             sorted_groupings.append(self.make_stats_for_no_group())
 
+        logger.info("Computing totals...")
         sorted_groupings.append(self.make_totals())
 
         return sorted_groupings

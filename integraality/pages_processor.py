@@ -5,6 +5,7 @@ Bot to generate statistics
 
 """
 
+import logging
 import os
 import re
 from time import perf_counter
@@ -23,6 +24,8 @@ from .grouping_page_creator import GroupingPageCreator
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException, SparqlEngineBuilder
+
+logger = logging.getLogger("integraality.update")
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 VALID_GROUPING_LINK_MODES = ("link", "create")
@@ -139,6 +142,7 @@ class PagesProcessor:
     def process_page(self, page):
         start_time = perf_counter()
         self.cache.invalidate(self.make_cache_key(page.title()))
+        logger.info("Parsing page configuration...")
         stats, grouping_link_mode = self.make_stats_object_for_page(page)
         groupings = stats.retrieve_data()
         output = stats.process_data(groupings)
@@ -148,6 +152,7 @@ class PagesProcessor:
             self.summary
             + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
         )
+        logger.info("Saving to wiki...")
         save_to_wiki_or_local(page, summary, new_text)
 
         if grouping_link_mode == "create":

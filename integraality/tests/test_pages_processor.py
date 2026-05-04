@@ -164,6 +164,16 @@ class TestParseConfig(ProcessortTest):
         result = self.processor.parse_config(input_config)
         self.assertEqual(result["grouping_link_mode"], "create")
 
+    def test_config_with_invalid_grouping_link_mode(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136,P404",
+            "grouping_link_mode": "crate",
+        }
+        with self.assertRaises(ConfigException):
+            self.processor.parse_config(input_config)
+
     def test_config_with_qlever_endpoint(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",

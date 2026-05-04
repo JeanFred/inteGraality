@@ -25,6 +25,7 @@ from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException, SparqlEngineBuilder
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
+VALID_GROUPING_LINK_MODES = ("link", "create")
 
 
 class ProcessingException(Exception):
@@ -180,6 +181,10 @@ class PagesProcessor:
             raise ConfigException(e)
         config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
         config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
+        if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:
+            raise ConfigException(
+                f"Unknown grouping_link_mode: {config['grouping_link_mode']}"
+            )
         config["sparql_query_engine"] = SparqlEngineBuilder.make(
             config.pop("sparql_endpoint", None),
             site_url=self.url,

@@ -141,6 +141,7 @@ class PagesProcessor:
 
     def process_page(self, page):
         start_time = perf_counter()
+        logger.debug("Invalidating cache key for %s", page.title())
         self.cache.invalidate(self.make_cache_key(page.title()))
         logger.info("Parsing page configuration...")
         stats, grouping_link_mode = self.make_stats_object_for_page(page)

@@ -35,15 +35,12 @@ class RedisCache:
 
     def invalidate(self, key):
         ns_key = self.make_key(key)
-        print("Invalidating key %s" % ns_key)
         pipe = self.client.pipeline()
         pipe.delete(ns_key)
         pipe.execute()
 
     def list_keys(self):
         keys = self.client.keys()
-        print("%s keys in Redis" % len(keys))
 
     def flushall(self):
-        print("Deleting all keys")
         self.client.flushall()

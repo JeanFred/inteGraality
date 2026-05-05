@@ -3,7 +3,7 @@
 
 import traceback
 
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, Response, jsonify, render_template, request
 
 from .pages_processor import (
     PagesProcessor,
@@ -16,6 +16,7 @@ from .sparql_utils import (
     SparqlEngineBuilder,
     add_prefixes_to_query,
 )
+from .sse import run_with_sse
 
 app = Flask(__name__)
 app.debug = True
@@ -49,6 +50,12 @@ def index():
 def update():
     page_url = request.args.get("url")
     page_title = request.args.get("page")
+    if "stream" in request.args:
+        return render_template(
+            "update_stream.html",
+            page_title=page_title,
+            page_url=page_url,
+        )
     processor = PagesProcessor(page_url)
     try:
         elapsed_time = processor.process_one_page(page_title)
@@ -88,6 +95,22 @@ def update():
             page_url=page_url,
             error_message=traceback.format_exception(type(e), e, e.__traceback__),
         )
+
+
+@app.route("/update/stream")
+def update_stream():
+    page_url = request.args.get("url")
+    page_title = request.args.get("page")
+
+    def do_update():
+        processor = PagesProcessor(page_url)
+        return processor.process_one_page(page_title)
+
+    return Response(
+        run_with_sse(do_update),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.route("/queries")

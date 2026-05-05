@@ -63,6 +63,22 @@ class PagesProcessorTests(AppTests):
 
 
 class UpdateTests(PagesProcessorTests):
+    def test_update_stream_page(self):
+        response = self.app.get(
+            "/update?page=%s&url=%s&stream=1" % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+        self.assertIn("EventSource", contents)
+        self.assertIn(self.page_title, contents)
+
+    def test_update_stream_endpoint(self):
+        self.mock_pages_processor.return_value.process_one_page.return_value = 1.23
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        self.assertIn("text/event-stream", response.content_type)
+
     def test_update_success(self):
         response = self.app.get(
             "/update?page=%s&url=%s" % (self.page_title, self.page_url)

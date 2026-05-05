@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
+<div id="progress"></div>
+<div id="result" style="display:none"></div>
+<script>
+(function() {
+    var progress = document.getElementById("progress");
+    var result = document.getElementById("result");
+    var url = "/update/stream?url=" + encodeURIComponent("{{ page_url }}") + "&page=" + encodeURIComponent("{{ page_title }}");
+    var source = new EventSource(url);
+
+    source.onmessage = function(e) {
+        var data = JSON.parse(e.data);
+        if (data.status === "progress") {
+            progress.innerHTML += "<p>⏳ " + data.message + "</p>";
+        } else if (data.status === "done") {
+            var elapsed = parseFloat(data.result).toFixed(2);
+            result.style.display = "block";
+            result.className = "alert alert-success";
+            result.innerHTML = "<p>✅ Updated page <a href=\"{{ page_url }}\">{{ page_title }}</a> (in " + elapsed + "s)</p>";
+            source.close();
+        } else if (data.status === "error") {
+            result.style.display = "block";
+            result.className = "alert alert-danger";
+            result.innerHTML = "<p>❌ Error: " + data.message + "</p>";
+            source.close();
+        }
+    };
+
+    source.onerror = function() {
+        result.style.display = "block";
+        result.className = "alert alert-danger";
+        result.innerHTML = "<p>❌ Connection lost.</p>";
+        source.close();
+    };
+})();
+</script>
+{% endblock %}

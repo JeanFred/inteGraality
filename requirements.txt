@@ -82,13 +82,13 @@ mwparserfromhell==0.7.2 \
     # via
     #   integraality
     #   pywikibot
-packaging==24.2 \
-    --hash=sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759 \
-    --hash=sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f
+packaging==26.2 \
+    --hash=sha256:5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e \
+    --hash=sha256:ff452ff5a3e828ce110190feff1178bb1f2ea2281fa2075aadb987c2fb221661
     # via pywikibot
-pywikibot==10.7.6 \
-    --hash=sha256:47dff243b5a74f292cd38261670156d036b6566338315d9eb4393ed78bc3f9de \
-    --hash=sha256:7c1cdcad5b6a45fede3a7afa6e12000bd546ce3b96a74e20f89abba91bae9e48
+pywikibot==11.2.0 \
+    --hash=sha256:464e13034499b719ebc7fd5c19baea667e34092565d601812171d51652550b0a \
+    --hash=sha256:68296eb7273dad44ad42e09b56c7538a0728057a8fc444e1b41cb4dabd800f46
     # via integraality
 redis==7.2.1 \
     --hash=sha256:49e231fbc8df2001436ae5252b3f0f3dc930430239bfeb6da4c7ee92b16e5d33 \

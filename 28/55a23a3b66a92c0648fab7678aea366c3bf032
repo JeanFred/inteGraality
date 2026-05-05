@@ -1,0 +1,9 @@
+integraality/sse.py
+  h_575df87e3f7308 1-5,7-12,14-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "2855a23a3b66a92c0648fab7678aea366c3bf032",
+  "prompts": {}
+}

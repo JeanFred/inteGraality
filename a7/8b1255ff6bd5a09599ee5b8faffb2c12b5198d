@@ -1,0 +1,14 @@
+integraality/sse.py
+  h_575df87e3f7308 1-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "a78b1255ff6bd5a09599ee5b8faffb2c12b5198d",
+  "prompts": {},
+  "humans": {
+    "h_575df87e3f7308": {
+      "author": "Jean-Frédéric"
+    }
+  }
+}

@@ -50,11 +50,13 @@ class PropertyStatistics:
         higher_grouping_type=None,
         stats_for_no_group=False,
         property_threshold=0,
-        sparql_query_engine=WdqsSparqlQueryEngine(),
+        sparql_query_engine=None,
     ):
         """
         Set what to work on and other variables here.
         """
+        if sparql_query_engine is None:
+            sparql_query_engine = WdqsSparqlQueryEngine()
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_configuration = grouping_configuration
         self.higher_grouping_type = higher_grouping_type

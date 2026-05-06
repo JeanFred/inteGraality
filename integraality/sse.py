@@ -15,6 +15,15 @@ def run_with_sse(func, logger_name="integraality.update"):
     logger.addHandler(handler)
     logger.setLevel(logging.DEBUG)
 
+    worker_thread = None
+
+    class ThreadFilter(logging.Filter):
+        def filter(self, record):
+            return record.thread == worker_thread.ident
+
+    thread_filter = ThreadFilter()
+    handler.addFilter(thread_filter)
+
     def target():
         try:
             result = func()
@@ -30,8 +39,8 @@ def run_with_sse(func, logger_name="integraality.update"):
                 }
             )
 
-    thread = threading.Thread(target=target)
-    thread.start()
+    worker_thread = threading.Thread(target=target)
+    worker_thread.start()
 
     try:
         while True:
@@ -51,4 +60,4 @@ def run_with_sse(func, logger_name="integraality.update"):
                 break
     finally:
         logger.removeHandler(handler)
-        thread.join(timeout=1)
+        worker_thread.join(timeout=1)

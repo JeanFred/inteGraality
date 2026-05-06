@@ -13,7 +13,8 @@
     source.onmessage = function(e) {
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
-            progress.innerHTML += "<p>⏳ " + data.message + "</p>";
+            var icon = data.phase === "end" ? "✅" : "⏳";
+            progress.innerHTML += "<p>" + icon + " " + data.message + "</p>";
         } else if (data.status === "done") {
             var elapsed = parseFloat(data.result).toFixed(2);
             result.style.display = "block";

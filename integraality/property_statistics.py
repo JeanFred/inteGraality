@@ -257,7 +257,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             logger.error("No groupings found.")
             raise e
 
-        logger.info(f"Groupings retrieved: {len(groupings)}")
+        logger.info(f"Retrieved {len(groupings)} groupings", extra={"phase": "end"})
         groupings = self.populate_groupings(groupings)
         groupings = self.grouping_configuration.post_process(groupings)
         return groupings

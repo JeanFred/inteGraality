@@ -51,7 +51,10 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
     name = "Wikidata Query Service"
 
     def __init__(self):
-        self.sq = pywikibot.data.sparql.SparqlQuery()
+        self.sq = pywikibot.data.sparql.SparqlQuery(
+            endpoint="https://query.wikidata.org/sparql",
+            entity_url="http://www.wikidata.org/entity/",
+        )
 
     def select(self, query):
         try:

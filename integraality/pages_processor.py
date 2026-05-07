@@ -56,7 +56,7 @@ class TransientServerException(Exception):
 class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.url = url
-        self.site = pywikibot.Site(url=url)
+        self._site = None
         self.template_name = "Property dashboard"
         self.end_template_name = "Property dashboard end"
         self.summary = "Update property usage stats"
@@ -67,6 +67,12 @@ class PagesProcessor:
             host = os.getenv("REDIS_HOST", "tools-redis.svc.eqiad.wmflabs")
             cache_client = StrictRedis(host=host, decode_responses=False)
         self.cache = RedisCache(cache_client=cache_client)
+
+    @property
+    def site(self):
+        if self._site is None:
+            self._site = pywikibot.Site(url=self.url)
+        return self._site
 
     def make_cache_key(self, page_title):
         return ":".join([self.site.code, page_title]).replace(" ", "_")

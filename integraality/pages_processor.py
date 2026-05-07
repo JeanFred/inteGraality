@@ -57,7 +57,6 @@ class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
         self.url = url
         self.site = pywikibot.Site(url=url)
-        self.repo = self.site.data_repository()
         self.template_name = "Property dashboard"
         self.end_template_name = "Property dashboard end"
         self.summary = "Update property usage stats"

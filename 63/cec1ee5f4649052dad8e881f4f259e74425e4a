@@ -1,0 +1,14 @@
+README.md
+  h_bc010f8da910ff 19-24,28-31,62
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "63cec1ee5f4649052dad8e881f4f259e74425e4a",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

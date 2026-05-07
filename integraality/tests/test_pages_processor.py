@@ -355,7 +355,7 @@ class TestMain(unittest.TestCase):
 
     def test_main_url_argument(self):
         url = "Foo"
-        self.mock_args.return_value = argparse.Namespace(url=url)
+        self.mock_args.return_value = argparse.Namespace(url=url, warm_cache_only=False)
         main()
         self.mock_pages_processor.assert_called_once_with(url)
         self.mock_pages_processor.return_value.process_all.assert_called_once_with()

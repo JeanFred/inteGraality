@@ -233,6 +233,18 @@ class PagesProcessor:
         new_text = re.sub(regex, r"\1\n%s\n\2" % output, page_text, count=1)
         return new_text
 
+    def warm_cache(self):
+        """Populate the Redis cache for all dashboard pages without running queries."""
+        logger.info("Warming cache for pages on site %s", self.site.sitename)
+        for page in self.get_all_pages():
+            try:
+                self.make_stats_object_arguments_for_page(page)
+                logger.info("Cached config for %s", page.title())
+            except (NoStartTemplateException, NoEndTemplateException, ConfigException):
+                logger.warning("Skipping %s", page.title())
+            except Exception as e:
+                logger.warning("Error caching %s: %s", page.title(), e)
+
     def process_all(self):
         self.summary = "Weekly update of property usage stats"
         logger.info("Processing pages on site %s", self.site.sitename)
@@ -306,6 +318,11 @@ def args_parser():
         help="the URL of the wiki to update",
         default="https://www.wikidata.org/wiki/",
     )
+    parser.add_argument(
+        "--warm-cache-only",
+        action="store_true",
+        help="only populate the cache, don't run queries or update pages",
+    )
     return parser.parse_args()
 
 
@@ -316,7 +333,10 @@ def main():
     logging.basicConfig(level=logging.INFO)
     args = args_parser()
     processor = PagesProcessor(url=args.url)
-    processor.process_all()
+    if args.warm_cache_only:
+        processor.warm_cache()
+    else:
+        processor.process_all()
 
 
 if __name__ == "__main__":

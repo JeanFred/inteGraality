@@ -74,8 +74,17 @@ class PagesProcessor:
             self._site = pywikibot.Site(url=self.url)
         return self._site
 
+    @staticmethod
+    def _site_code_from_url(url):
+        """Derive a stable site identifier from a wiki URL."""
+        from urllib.parse import urlparse
+
+        return urlparse(url).netloc
+
     def make_cache_key(self, page_title):
-        return ":".join([self.site.code, page_title]).replace(" ", "_")
+        return ":".join([self._site_code_from_url(self.url), page_title]).replace(
+            " ", "_"
+        )
 
     def get_all_pages(self):
         template = pywikibot.Page(self.site, self.template_name, ns=10)

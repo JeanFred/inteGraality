@@ -40,7 +40,7 @@ class RedisCache:
         pipe.execute()
 
     def list_keys(self):
-        keys = self.client.keys()
+        return self.client.keys()
 
     def flushall(self):
         self.client.flushall()

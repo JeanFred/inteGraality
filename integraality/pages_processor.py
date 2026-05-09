@@ -14,21 +14,14 @@ import pywikibot
 from redis import StrictRedis
 
 from .cache import RedisCache
-from .column import ColumnMaker, ColumnSyntaxException
-from .grouping import (
-    GroupingConfigurationMaker,
-    UnsupportedGroupingConfigurationException,
-)
-from .grouping_link import GroupingLinkSyntaxException
+from .config_assembler import ConfigAssembler, ConfigAssemblyException
+from .grouping import UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
-from .sparql_utils import QueryException, SparqlEngineBuilder
+from .sparql_utils import QueryException
 
 logger = logging.getLogger("integraality.update")
-
-REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
-VALID_GROUPING_LINK_MODES = ("link", "create")
 
 
 class ProcessingException(Exception):
@@ -62,6 +55,7 @@ class PagesProcessor:
         self.summary = "Update property usage stats"
 
         self.outputs = []
+        self.config_assembler = ConfigAssembler(site_url=url)
 
         if not cache_client:
             host = os.getenv("REDIS_HOST", "tools-redis.svc.eqiad.wmflabs")
@@ -89,21 +83,6 @@ class PagesProcessor:
     def get_all_pages(self):
         template = pywikibot.Page(self.site, self.template_name, ns=10)
         return template.getReferences(only_template_inclusion=True)
-
-    @staticmethod
-    def extract_elements_from_template_param(template_param):
-        """Extract and sanitize the contents of a parsed template param."""
-        (field, _, value) = template_param.partition("=")
-        return (field.strip(), value.replace("{{!}}", "|"))
-
-    def parse_config_from_params(self, params):
-        return {
-            key: value
-            for (key, value) in [
-                self.extract_elements_from_template_param(param) for param in params
-            ]
-            if key
-        }
 
     def make_stats_object_arguments_for_page(self, page):
         all_templates_with_params = page.templatesWithParams()
@@ -136,8 +115,11 @@ class PagesProcessor:
             logger.warning("More than one template on the page %s", page.title())
 
         (template, params) = start_templates_with_params[0]
-        parsed_config = self.parse_config_from_params(params)
-        config = self.parse_config(parsed_config)
+        parsed_config = self.config_assembler.parse_config_from_params(params)
+        try:
+            config = self.config_assembler.parse_config(parsed_config)
+        except ConfigAssemblyException as e:
+            raise ConfigException(e) from e
         key = self.make_cache_key(page.title())
         self.cache.set_cache_value(key, config)
         return config
@@ -181,51 +163,6 @@ class PagesProcessor:
             creator.create_pages(groupings.values())
 
         return elapsed_time
-
-    def parse_config(self, config):
-        for field in REQUIRED_CONFIG_FIELDS:
-            if field not in config:
-                logger.debug("Missing required field %s", field)
-                raise ConfigException("A required field is missing: %s" % field)
-        config["columns"] = self.parse_config_properties(config["properties"])
-        del config["properties"]
-        try:
-            config["grouping_configuration"] = GroupingConfigurationMaker.make(
-                config.pop("grouping_property"),
-                config.pop("higher_grouping", None),
-                int(config.pop("grouping_threshold", 20)),
-                config.pop("grouping_link", None),
-                config.pop("groupings", None),
-            )
-        except GroupingLinkSyntaxException as e:
-            raise ConfigException(e)
-        config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
-        config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
-        if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:
-            raise ConfigException(
-                f"Unknown grouping_link_mode: {config['grouping_link_mode']}"
-            )
-        config["sparql_query_engine"] = SparqlEngineBuilder.make(
-            config.pop("sparql_endpoint", None),
-            site_url=self.url,
-        )
-        return config
-
-    @staticmethod
-    def parse_config_properties(properties_string):
-        properties = [x.strip() for x in properties_string.split(",")]
-        properties_data = []
-        for prop in properties:
-            try:
-                (key, title) = prop.split(":")
-            except ValueError:
-                (key, title) = (prop, None)
-            if key:
-                try:
-                    properties_data.append(ColumnMaker.make(key, title))
-                except ColumnSyntaxException as e:
-                    raise ConfigException(e)
-        return properties_data
 
     def replace_in_page(self, output, page_text):
         regex_text = f"({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})"

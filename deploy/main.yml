@@ -34,11 +34,21 @@
       command: >
         webservice restart
 
-    - name: Display message
-      debug:
-        msg: >
-          Deploy done. Please update the Server Admin Log via IRC:
-          https://webchat.freenode.net/?channels=#wikimedia-labs
+    - name: Generate deploy messages
+      command: >
+        {{ checkout_path }}/bin/sal_messages_from_git_log.sh {{ git_result.before }}..{{ git_result.after }}
+      args:
+        chdir: "{{ checkout_path }}"
+      register: deploy_messages
+      listen: Log deploy to SAL
+
+    - name: Send deploy messages to Server Admin Log
+      command: >
+        dologmsg "{{ item }}"
+      loop: "{{ deploy_messages.stdout_lines }}"
+      loop_control:
+        pause: 1
+      listen: Log deploy to SAL
 
     - name: Load Toolforge jobs from file
       command: >
@@ -59,9 +69,10 @@
       git:
         repo: 'https://github.com/JeanFred/integraality'
         dest: '{{ checkout_path }}'
+      register: git_result
       notify:
         - Restart webservice
-        - Display message
+        - Log deploy to SAL
       tags:
         - git
         - skip_ansible_lint  # Skip E401, we always want latest version

@@ -17,14 +17,14 @@ Each cell in the dashboard links (via 🔍) to a live query showing exactly whic
 
 ## Documentation
 
-- **User guide (how to create a dashboard):** [Wikidata:Tools/inteGraality](https://www.wikidata.org/wiki/Wikidata:Tools/inteGraality)
+- **User guide (how to create a dashboard):** [Wikidata:inteGraality](https://www.wikidata.org/wiki/Wikidata:inteGraality)
 - **Template reference (all parameters):** [Template:Property dashboard](https://www.wikidata.org/wiki/Template:Property_dashboard)
 - **Operations & architecture:** [Wikitech Tool:InteGraality](https://wikitech.wikimedia.org/wiki/Tool:InteGraality)
 
 ## How to get help and report issues
 
 - Report issues or file feature requests on [Phabricator](https://phabricator.wikimedia.org/tag/tool-integraality/)
-- Ask questions or get help at [Wikidata_talk:Tools/inteGraality](https://www.wikidata.org/wiki/Wikidata_talk:Tools/inteGraality)
+- Ask questions or get help at [Wikidata_talk:inteGraality](https://www.wikidata.org/wiki/Wikidata_talk:inteGraality)
 
 ## Development
 

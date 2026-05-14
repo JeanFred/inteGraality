@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Bot to generate statistics
-
-"""
+"""Orchestration — reads wiki pages, triggers updates."""
 
 import logging
 import os

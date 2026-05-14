@@ -1,3 +1,5 @@
+"""Writing results to wiki or local files."""
+
 import os
 
 import pywikibot

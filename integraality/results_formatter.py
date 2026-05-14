@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Format integraality results.
-"""
+
+"""Results formatting as wikitext table."""
 
 
 class ResultsFormatter:

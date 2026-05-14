@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Column configuration classes
-"""
+"""Column types."""
 
 import json
 import os

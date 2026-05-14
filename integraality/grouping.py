@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Grouping configuration classes
-"""
+"""Grouping configuration and types."""
 
 import collections
 import re

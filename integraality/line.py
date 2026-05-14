@@ -1,8 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Line configuration classes
-"""
+"""Row types (item grouping, year grouping, totals, etc.)."""
 
 import collections
 import re

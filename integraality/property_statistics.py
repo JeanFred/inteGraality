@@ -1,9 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-"""
-Calculate and generate statistics
-
-"""
+"""Core logic — builds SPARQL queries, processes results."""
 
 import collections
 import logging

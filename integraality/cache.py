@@ -1,3 +1,5 @@
+"""Redis cache for parsed configs."""
+
 # Inspired/copied from https://github.com/taylorhakes/python-redis-cache/blob/master/redis_cache/__init__.py, MIT-licensed
 
 import pickle

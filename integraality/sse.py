@@ -1,3 +1,5 @@
+"""Server-Sent Events for live update progress."""
+
 import json
 import logging
 import queue

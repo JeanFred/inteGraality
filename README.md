@@ -30,27 +30,16 @@ Each cell in the dashboard links (via 🔍) to a live query showing exactly whic
 
 ### Technical overview
 
-A cron job periodically loops through all dashboard pages, runs SPARQL queries (via [WDQS](https://query.wikidata.org/) or [QLever](https://qlever.dev/wikidata)) to compute property coverage, and writes results back as wikitext tables. A [Flask](https://flask.palletsprojects.com/) web app handles on-demand updates (`/update`) and generates the SPARQL queries behind the 🔍 links (`/queries`). Both use [pywikibot](https://www.mediawiki.org/wiki/Manual:Pywikibot) to read template configs from wiki pages and write results back. [Redis](https://redis.io/) caches parsed configs to speed up the query endpoint.
+A cron job periodically loops through all dashboard pages, runs SPARQL queries (via [WDQS](https://query.wikidata.org/) or [QLever](https://qlever.dev/wikidata)) to compute property coverage, and writes results back as wikitext tables. A [Flask](https://flask.palletsprojects.com/) web app handles on-demand updates and generates the SPARQL queries behind the 🔍 links. Both use [pywikibot](https://www.mediawiki.org/wiki/Manual:Pywikibot) to read template configs from wiki pages and write results back. [Redis](https://redis.io/) caches parsed configs to speed up the query endpoint.
 
-### Prerequisites
-
-- Python 3.11
-- [uv](https://docs.astral.sh/uv/)
-- Docker & Docker Compose (for the full local stack)
-
-### Running locally with Docker
+### Running locally
 
 ```sh
-docker compose up -d
+docker compose up -d    # Flask app on localhost:5000, Redis, writes to docker_pages/
+uv run pytest           # Run tests
 ```
 
-This starts the Flask web app on <http://localhost:5000> and a Redis instance. Pages are written to `docker_pages/` instead of to the live wiki.
-
-### Running tests
-
-```sh
-uv run pytest
-```
+See [CONTRIBUTING.md](CONTRIBUTING.md#development-setup) for prerequisites and more options (running without Docker, functional tests, etc.).
 
 ### Project layout
 

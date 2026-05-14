@@ -10,7 +10,7 @@ For bugs, please include:
 - What you expected vs. what happened
 - Any error message shown on the page
 
-For questions or discussion, use [Wikidata_talk:Tools/inteGraality](https://www.wikidata.org/wiki/Wikidata_talk:Tools/inteGraality).
+For questions or discussion, use [Wikidata_talk:inteGraality](https://www.wikidata.org/wiki/Wikidata_talk:inteGraality).
 
 ## Development setup
 
@@ -72,16 +72,18 @@ The data flow is:
 
 1. A user places `{{Property dashboard}}` on a wiki page with config parameters
 1. `PagesProcessor` reads the page (via pywikibot), parses the template config
-1. `PropertyStatistics` runs SPARQL queries (via `WdqsSparqlQueryEngine` or `QLeverSparqlQueryEngine`) to compute coverage for each property × grouping
-1. `ResultsFormatter` formats the results as a wikitext table
+1. `PropertyStatistics` runs SPARQL queries to compute coverage and formats the results as a wikitext table
 1. The table is written back to the wiki page (or to `docker_pages/` locally)
+
+The stack uses [Flask](https://flask.palletsprojects.com/) for the web app, [pywikibot](https://www.mediawiki.org/wiki/Manual:Pywikibot) for wiki interaction, [Redis](https://redis.io/) for caching, and [WDQS](https://query.wikidata.org/)/[QLever](https://qlever.dev/wikidata) as SPARQL backends.
 
 Key modules:
 
 | Module | Role |
 | ------ | ---- |
 | `app.py` | Flask web app — `/update`, `/queries` endpoints |
-| `pages_processor.py` | Orchestration — reads wiki pages, parses config, triggers updates |
+| `pages_processor.py` | Orchestration — reads wiki pages, triggers updates |
+| `config_assembler.py` | Assembles dashboard configuration from template parameters |
 | `property_statistics.py` | Core logic — builds SPARQL queries, processes results |
 | `sparql_utils.py` | SPARQL engine abstraction (WDQS and QLever) |
 | `column.py` | Column types (property, label, description, sitelink) |

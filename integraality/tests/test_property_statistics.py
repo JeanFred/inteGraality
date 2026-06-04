@@ -530,6 +530,41 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 """
         self.assertEqual(result, expected)
 
+    def test_get_query_for_items_for_property_positive_qualifier_with_value(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.stats.columns.get("P3/Q4/P5"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  ?entity p:P3 ?statement .
+  ?statement ps:P3 wd:Q4 .
+  { ?statement pq:P5 ?value . }
+  UNION
+  { ?statement a wdno:P5 . BIND("no value"@en AS ?valueLabel) }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
 
 class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
     """Test that queries work when grouping_type is not yet resolved."""
@@ -760,6 +795,34 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     { ?statement pq:P2 ?value . }
     UNION
     { ?statement a wdno:P2 . }
+  }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_qualifier_with_value(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.stats.columns.get("P3/Q4/P5"), "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  MINUS {
+    ?entity p:P3 ?statement .
+    ?statement ps:P3 wd:Q4 .
+    { ?statement pq:P5 ?value . }
+    UNION
+    { ?statement a wdno:P5 . }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.

@@ -170,8 +170,13 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_positive_query(self):
         if self.qualifier:
+            restrict_statement_to_value = (
+                f"\n  ?statement ps:{self.property} wd:{self.value} ."
+                if self.value
+                else ""
+            )
             return f"""
-  ?entity p:{self.property} ?statement .
+  ?entity p:{self.property} ?statement .{restrict_statement_to_value}
   {{ ?statement pq:{self.qualifier} ?value . }}
   UNION
   {{ ?statement a wdno:{self.qualifier} . BIND("no value"@en AS ?valueLabel) }}
@@ -183,9 +188,14 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_negative_query(self):
         if self.qualifier:
+            restrict_statement_to_value = (
+                f"\n    ?statement ps:{self.property} wd:{self.value} ."
+                if self.value
+                else ""
+            )
             return f"""
   MINUS {{
-    ?entity p:{self.property} ?statement .
+    ?entity p:{self.property} ?statement .{restrict_statement_to_value}
     {{ ?statement pq:{self.qualifier} ?value . }}
     UNION
     {{ ?statement a wdno:{self.qualifier} . }}

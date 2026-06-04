@@ -229,6 +229,56 @@ class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
+class TestPropertyColumnWithQualifierAndVariableValue(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = PropertyColumn(
+            property="P166", value="?grouping", qualifier="P585"
+        )
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+
 class TestSitelinkColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
@@ -323,6 +373,16 @@ class TestColumnMaker(PropertyStatisticsTest):
             property="P553", value="Q17459", qualifier="P670", title="street number"
         )
         self.assertEqual(result, expected)
+
+    def test_property_with_qualifier_and_variable_value(self):
+        key = "P166/?grouping/P585"
+        result = ColumnMaker.make(key, None)
+        expected = PropertyColumn(property="P166", value="?grouping", qualifier="P585")
+        self.assertEqual(result, expected)
+
+    def test_property_with_qualifier_and_invalid_variable_value(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P166/?foo/P585", None)
 
     def test_label(self):
         result = ColumnMaker.make("Lxy", None)

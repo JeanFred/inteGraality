@@ -27,6 +27,10 @@ class ColumnMaker:
                 (property_name, value, qualifier) = (splitted[0], None, splitted[1])
             else:
                 (property_name, value, qualifier) = (key, None, None)
+            if value and value.startswith("?") and value != "?grouping":
+                raise ColumnSyntaxException(
+                    "Only ?grouping is supported as a variable value, got %s" % value
+                )
             return PropertyColumn(
                 property=property_name, title=title, qualifier=qualifier, value=value
             )
@@ -161,7 +165,12 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_info(self):
         if self.qualifier:
-            property_value = f"wd:{self.value}" if self.value else "[]"
+            if not self.value:
+                property_value = "[]"
+            elif self.value.startswith("?"):
+                property_value = self.value
+            else:
+                property_value = f"wd:{self.value}"
             return f"""
     ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
         else:
@@ -170,11 +179,15 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_positive_query(self):
         if self.qualifier:
-            restrict_statement_to_value = (
-                f"\n  ?statement ps:{self.property} wd:{self.value} ."
-                if self.value
-                else ""
-            )
+            if self.value:
+                value_ref = (
+                    self.value if self.value.startswith("?") else f"wd:{self.value}"
+                )
+                restrict_statement_to_value = (
+                    f"\n  ?statement ps:{self.property} {value_ref} ."
+                )
+            else:
+                restrict_statement_to_value = ""
             return f"""
   ?entity p:{self.property} ?statement .{restrict_statement_to_value}
   {{ ?statement pq:{self.qualifier} ?value . }}
@@ -188,11 +201,15 @@ class PropertyColumn(AbstractColumn):
 
     def get_filter_for_negative_query(self):
         if self.qualifier:
-            restrict_statement_to_value = (
-                f"\n    ?statement ps:{self.property} wd:{self.value} ."
-                if self.value
-                else ""
-            )
+            if self.value:
+                value_ref = (
+                    self.value if self.value.startswith("?") else f"wd:{self.value}"
+                )
+                restrict_statement_to_value = (
+                    f"\n    ?statement ps:{self.property} {value_ref} ."
+                )
+            else:
+                restrict_statement_to_value = ""
             return f"""
   MINUS {{
     ?entity p:{self.property} ?statement .{restrict_statement_to_value}

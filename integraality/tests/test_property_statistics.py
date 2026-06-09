@@ -277,7 +277,7 @@ class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
-  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -310,7 +310,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   MINUS {
     ?entity wdt:P551 [] .
   }
-  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -340,7 +340,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
-  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -397,7 +397,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
-  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -440,7 +440,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P577 ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
-  ?entity p:P21 ?prop . OPTIONAL { ?prop ps:P21 ?value }
+  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -643,7 +643,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P551 wd:Q3115846 .
   MINUS {
     {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?prop .}
+    {?entity wdt:P21 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -670,7 +670,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   MINUS {
     {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?prop .}
+    {?entity wdt:P21 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -694,7 +694,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   MINUS {
     {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?prop .}
+    {?entity wdt:P21 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -745,7 +745,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   MINUS {
     {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?prop .}
+    {?entity wdt:P21 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -782,7 +782,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   FILTER(?year = 2006).
   MINUS {
     {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?prop .}
+    {?entity wdt:P21 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.

@@ -196,7 +196,7 @@ class PropertyColumn(AbstractColumn):
 """
         else:
             return f"""
-  ?entity p:{self.property} ?prop . OPTIONAL {{ ?prop ps:{self.property} ?value }}
+  ?entity p:{self.property} ?statement . OPTIONAL {{ ?statement ps:{self.property} ?value }}
 """
 
     def get_filter_for_negative_query(self):
@@ -222,7 +222,7 @@ class PropertyColumn(AbstractColumn):
             return f"""
   MINUS {{
     {{?entity a wdno:{self.property} .}} UNION
-    {{?entity wdt:{self.property} ?prop .}}
+    {{?entity wdt:{self.property} ?statement .}}
   }}
 """
 

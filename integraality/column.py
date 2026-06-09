@@ -31,9 +31,14 @@ class ColumnMaker:
                 raise ColumnSyntaxException(
                     "Only ?grouping is supported as a variable value, got %s" % value
                 )
-            return PropertyColumn(
-                property=property_name, title=title, qualifier=qualifier, value=value
-            )
+            if qualifier:
+                return QualifierColumn(
+                    property=property_name,
+                    title=title,
+                    qualifier=qualifier,
+                    value=value,
+                )
+            return PropertyColumn(property=property_name, title=title)
         elif key.startswith("L"):
             return LabelColumn(language=key[1:])
         elif key.startswith("D"):
@@ -125,22 +130,15 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 
 
 class PropertyColumn(AbstractColumn):
-    def __init__(self, property, title=None, value=None, qualifier=None):
+    def __init__(self, property, title=None):
         self.property = property
         self.title = title
-        self.value = value
-        self.qualifier = qualifier
 
     def __eq__(self, other):
-        return (
-            self.property == other.property
-            and self.title == other.title
-            and self.value == other.value
-            and self.qualifier == other.qualifier
-        )
+        return self.property == other.property and self.title == other.title
 
     def get_key(self):
-        return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
+        return self.property
 
     def get_listeria_key(self):
         return self.get_key()
@@ -152,74 +150,23 @@ class PropertyColumn(AbstractColumn):
         return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
 
     def make_column_header(self):
-        if self.qualifier:
-            property_link = self.qualifier
-        else:
-            property_link = self.property
-
         if self.title:
-            label = f"[[Property:{property_link}|{self.title}]]"
+            label = f"[[Property:{self.property}|{self.title}]]"
         else:
-            label = f"{{{{Property|{property_link}}}}}"
+            label = f"{{{{Property|{self.property}}}}}"
         return f'! data-sort-type="number"|{label}\n'
 
     def get_filter_for_info(self):
-        if self.qualifier:
-            if not self.value:
-                property_value = "[]"
-            elif self.value.startswith("?"):
-                property_value = self.value
-            else:
-                property_value = f"wd:{self.value}"
-            return f"""
-    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
-        else:
-            return f"""
+        return f"""
     ?entity p:{self.property}[]"""
 
     def get_filter_for_positive_query(self):
-        if self.qualifier:
-            if self.value:
-                value_ref = (
-                    self.value if self.value.startswith("?") else f"wd:{self.value}"
-                )
-                restrict_statement_to_value = (
-                    f"\n  ?statement ps:{self.property} {value_ref} ."
-                )
-            else:
-                restrict_statement_to_value = ""
-            return f"""
-  ?entity p:{self.property} ?statement .{restrict_statement_to_value}
-  {{ ?statement pq:{self.qualifier} ?value . }}
-  UNION
-  {{ ?statement a wdno:{self.qualifier} . BIND("no value"@en AS ?valueLabel) }}
-"""
-        else:
-            return f"""
+        return f"""
   ?entity p:{self.property} ?statement . OPTIONAL {{ ?statement ps:{self.property} ?value }}
 """
 
     def get_filter_for_negative_query(self):
-        if self.qualifier:
-            if self.value:
-                value_ref = (
-                    self.value if self.value.startswith("?") else f"wd:{self.value}"
-                )
-                restrict_statement_to_value = (
-                    f"\n    ?statement ps:{self.property} {value_ref} ."
-                )
-            else:
-                restrict_statement_to_value = ""
-            return f"""
-  MINUS {{
-    ?entity p:{self.property} ?statement .{restrict_statement_to_value}
-    {{ ?statement pq:{self.qualifier} ?value . }}
-    UNION
-    {{ ?statement a wdno:{self.qualifier} . }}
-  }}
-"""
-        else:
-            return f"""
+        return f"""
   MINUS {{
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?statement .}}
@@ -229,6 +176,72 @@ class PropertyColumn(AbstractColumn):
     def get_variable_labels_for_positive_query(self):
         """Generate SPARQL for entity and value labels using native SPARQL."""
         return self._get_entity_and_value_labels()
+
+
+class QualifierColumn(PropertyColumn):
+    def __init__(self, property, qualifier, value=None, title=None):
+        super().__init__(property, title)
+        self.qualifier = qualifier
+        self.value = value
+
+    def __eq__(self, other):
+        return (
+            super().__eq__(other)
+            and self.qualifier == other.qualifier
+            and self.value == other.value
+        )
+
+    def get_key(self):
+        return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
+
+    def make_column_header(self):
+        if self.title:
+            label = f"[[Property:{self.qualifier}|{self.title}]]"
+        else:
+            label = f"{{{{Property|{self.qualifier}}}}}"
+        return f'! data-sort-type="number"|{label}\n'
+
+    def get_filter_for_info(self):
+        if not self.value:
+            property_value = "[]"
+        elif self.value.startswith("?"):
+            property_value = self.value
+        else:
+            property_value = f"wd:{self.value}"
+        return f"""
+    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
+
+    def get_filter_for_positive_query(self):
+        if self.value:
+            value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
+            restrict_statement_to_value = (
+                f"\n  ?statement ps:{self.property} {value_ref} ."
+            )
+        else:
+            restrict_statement_to_value = ""
+        return f"""
+  ?entity p:{self.property} ?statement .{restrict_statement_to_value}
+  {{ ?statement pq:{self.qualifier} ?value . }}
+  UNION
+  {{ ?statement a wdno:{self.qualifier} . BIND("no value"@en AS ?valueLabel) }}
+"""
+
+    def get_filter_for_negative_query(self):
+        if self.value:
+            value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
+            restrict_statement_to_value = (
+                f"\n    ?statement ps:{self.property} {value_ref} ."
+            )
+        else:
+            restrict_statement_to_value = ""
+        return f"""
+  MINUS {{
+    ?entity p:{self.property} ?statement .{restrict_statement_to_value}
+    {{ ?statement pq:{self.qualifier} ?value . }}
+    UNION
+    {{ ?statement a wdno:{self.qualifier} . }}
+  }}
+"""
 
 
 class TextColumn(AbstractColumn):

@@ -8,6 +8,7 @@ from ..column import (
     DescriptionColumn,
     LabelColumn,
     PropertyColumn,
+    QualifierColumn,
     SitelinkColumn,
 )
 from ..grouping import GroupingConfiguration, ItemGroupingType
@@ -19,8 +20,8 @@ class PropertyStatisticsTest(unittest.TestCase):
         columns = [
             PropertyColumn(property="P21"),
             PropertyColumn(property="P19"),
-            PropertyColumn(property="P1", qualifier="P2"),
-            PropertyColumn(property="P3", value="Q4", qualifier="P5"),
+            QualifierColumn(property="P1", qualifier="P2"),
+            QualifierColumn(property="P3", value="Q4", qualifier="P5"),
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
         ]
@@ -102,7 +103,7 @@ class TestPropertyColumnWithTitle(PropertyStatisticsTest):
 class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn("P669", qualifier="P670")
+        self.column = QualifierColumn("P669", qualifier="P670")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -155,7 +156,7 @@ LIMIT 1000
 class TestPropertyColumnWithQualifierAndLabel(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn("P669", title="street", qualifier="P670")
+        self.column = QualifierColumn("P669", title="street", qualifier="P670")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -166,7 +167,7 @@ class TestPropertyColumnWithQualifierAndLabel(PropertyStatisticsTest):
 class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn(property="P3", value="Q4", qualifier="P5")
+        self.column = QualifierColumn(property="P3", value="Q4", qualifier="P5")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
@@ -219,7 +220,7 @@ LIMIT 1000
 class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn(
+        self.column = QualifierColumn(
             property="P3", title="Some property", value="Q4", qualifier="P5"
         )
 
@@ -232,7 +233,7 @@ class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
 class TestPropertyColumnWithQualifierAndVariableValue(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn(
+        self.column = QualifierColumn(
             property="P166", value="?grouping", qualifier="P585"
         )
 
@@ -349,13 +350,13 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_property_with_qualifier(self):
         key = "P669/P670"
         result = ColumnMaker.make(key, None)
-        expected = PropertyColumn(property="P669", qualifier="P670")
+        expected = QualifierColumn(property="P669", qualifier="P670")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_title(self):
         key = "P669/P670"
         result = ColumnMaker.make(key, "street number")
-        expected = PropertyColumn(
+        expected = QualifierColumn(
             property="P669", qualifier="P670", title="street number"
         )
         self.assertEqual(result, expected)
@@ -363,13 +364,13 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_property_with_qualifier_and_value(self):
         key = "P553/Q17459/P670"
         result = ColumnMaker.make(key, None)
-        expected = PropertyColumn(property="P553", value="Q17459", qualifier="P670")
+        expected = QualifierColumn(property="P553", value="Q17459", qualifier="P670")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value_and_title(self):
         key = "P553/Q17459/P670"
         result = ColumnMaker.make(key, "street number")
-        expected = PropertyColumn(
+        expected = QualifierColumn(
             property="P553", value="Q17459", qualifier="P670", title="street number"
         )
         self.assertEqual(result, expected)
@@ -377,7 +378,7 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_property_with_qualifier_and_variable_value(self):
         key = "P166/?grouping/P585"
         result = ColumnMaker.make(key, None)
-        expected = PropertyColumn(property="P166", value="?grouping", qualifier="P585")
+        expected = QualifierColumn(property="P166", value="?grouping", qualifier="P585")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_invalid_variable_value(self):
@@ -414,12 +415,14 @@ class TestListeriaKey(unittest.TestCase):
 
     def test_property_with_qualifier(self):
         self.assertEqual(
-            PropertyColumn("P669", qualifier="P670").get_listeria_key(), "P669/P670"
+            QualifierColumn("P669", qualifier="P670").get_listeria_key(), "P669/P670"
         )
 
     def test_property_with_qualifier_and_value(self):
         self.assertEqual(
-            PropertyColumn("P553", value="Q17459", qualifier="P670").get_listeria_key(),
+            QualifierColumn(
+                "P553", value="Q17459", qualifier="P670"
+            ).get_listeria_key(),
             "P553/Q17459/P670",
         )
 

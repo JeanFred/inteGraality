@@ -3,7 +3,7 @@
 
 import unittest
 
-from ..column import DescriptionColumn, LabelColumn, PropertyColumn
+from ..column import DescriptionColumn, LabelColumn, PropertyColumn, QualifierColumn
 from ..config_assembler import ConfigAssembler, ConfigAssemblyException
 from ..grouping import GroupingConfiguration
 from ..grouping_link import LabelGroupingLink
@@ -245,7 +245,7 @@ class TestParseConfigProperties(unittest.TestCase):
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
-            PropertyColumn(property="P669", qualifier="P670"),
+            QualifierColumn(property="P669", qualifier="P670"),
         ]
         self.assertEqual(result, expected)
 
@@ -255,7 +255,7 @@ class TestParseConfigProperties(unittest.TestCase):
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
-            PropertyColumn(property="P553", value="Q17459", qualifier="P670"),
+            QualifierColumn(property="P553", value="Q17459", qualifier="P670"),
         ]
         self.assertEqual(result, expected)
 

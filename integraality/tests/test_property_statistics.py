@@ -5,7 +5,13 @@ import unittest
 from collections import OrderedDict
 from unittest.mock import create_autospec, patch
 
-from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
+from ..column import (
+    DescriptionColumn,
+    LabelColumn,
+    PropertyColumn,
+    QualifierColumn,
+    SitelinkColumn,
+)
 from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
 from ..grouping_link import LabelGroupingLink
 from ..line import (
@@ -24,8 +30,8 @@ class PropertyStatisticsTest(unittest.TestCase):
         self.columns = [
             PropertyColumn(property="P21"),
             PropertyColumn(property="P19"),
-            PropertyColumn(property="P1", qualifier="P2"),
-            PropertyColumn(property="P3", value="Q4", qualifier="P5"),
+            QualifierColumn(property="P1", qualifier="P2"),
+            QualifierColumn(property="P3", value="Q4", qualifier="P5"),
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
             SitelinkColumn(project="brwiki"),
@@ -568,7 +574,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     def test_get_query_for_items_for_property_positive_qualifier_with_variable_value(
         self,
     ):
-        self.stats.columns["P166/?grouping/P585"] = PropertyColumn(
+        self.stats.columns["P166/?grouping/P585"] = QualifierColumn(
             property="P166", value="?grouping", qualifier="P585"
         )
         result = self.stats.get_query_for_items_for_property_positive(
@@ -880,7 +886,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     def test_get_query_for_items_for_property_negative_qualifier_with_variable_value(
         self,
     ):
-        self.stats.columns["P166/?grouping/P585"] = PropertyColumn(
+        self.stats.columns["P166/?grouping/P585"] = QualifierColumn(
             property="P166", value="?grouping", qualifier="P585"
         )
         result = self.stats.get_query_for_items_for_property_negative(

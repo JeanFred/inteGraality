@@ -128,6 +128,9 @@ SELECT (COUNT(*) AS ?count) WHERE {{
             + "\n"
         )
 
+    def make_column_header(self):
+        return f'! data-sort-type="number"|{self.get_column_label()}\n'
+
 
 class PropertyColumn(AbstractColumn):
     def __init__(self, property, title=None):
@@ -149,12 +152,10 @@ class PropertyColumn(AbstractColumn):
     def format_html_snippet(self):
         return f'<a href="https://wikidata.org/wiki/Property:{self.property}">{self.property}</a>'
 
-    def make_column_header(self):
+    def get_column_label(self):
         if self.title:
-            label = f"[[Property:{self.property}|{self.title}]]"
-        else:
-            label = f"{{{{Property|{self.property}}}}}"
-        return f'! data-sort-type="number"|{label}\n'
+            return f"[[Property:{self.property}|{self.title}]]"
+        return f"{{{{Property|{self.property}}}}}"
 
     def get_filter_for_info(self):
         return f"""
@@ -194,12 +195,10 @@ class QualifierColumn(PropertyColumn):
     def get_key(self):
         return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
 
-    def make_column_header(self):
+    def get_column_label(self):
         if self.title:
-            label = f"[[Property:{self.qualifier}|{self.title}]]"
-        else:
-            label = f"{{{{Property|{self.qualifier}}}}}"
-        return f'! data-sort-type="number"|{label}\n'
+            return f"[[Property:{self.qualifier}|{self.title}]]"
+        return f"{{{{Property|{self.qualifier}}}}}"
 
     def get_filter_for_info(self):
         if not self.value:
@@ -255,12 +254,10 @@ class TextColumn(AbstractColumn):
     def format_html_snippet(self):
         return f"{self.language} {self.get_type_name()}"
 
-    def make_column_header(self):
+    def get_column_label(self):
         if self.title:
-            text = f"{self.title}"
-        else:
-            text = f"{{{{#language:{self.language}}}}}"
-        return f'! data-sort-type="number"|{text}\n'
+            return f"{self.title}"
+        return f"{{{{#language:{self.language}}}}}"
 
     def get_filter_for_info(self):
         return f"""
@@ -339,12 +336,10 @@ class SitelinkColumn(AbstractColumn):
     def format_html_snippet(self):
         return f'<a href="{self.url}">{self.get_key()} {self.get_type_name()}</a>'
 
-    def make_column_header(self):
+    def get_column_label(self):
         if self.title:
-            label = f"[[{self.item}|{self.title}]]"
-        else:
-            label = f"{{{{Q|{self.item}}}}}"
-        return f'! data-sort-type="number"|{label}\n'
+            return f"[[{self.item}|{self.title}]]"
+        return f"{{{{Q|{self.item}}}}}"
 
     def get_filter_for_info(self):
         return f"""

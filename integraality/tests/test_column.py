@@ -9,6 +9,7 @@ from ..column import (
     LabelColumn,
     PropertyColumn,
     QualifierColumn,
+    ReferenceColumn,
     SitelinkColumn,
 )
 from ..grouping import GroupingConfiguration, ItemGroupingType
@@ -409,6 +410,38 @@ class TestColumnMaker(PropertyStatisticsTest):
             ColumnMaker.make("SomethingSomething", None)
 
 
+class TestColumnMakerReference(PropertyStatisticsTest):
+    def test_reference_any(self):
+        result = ColumnMaker.make("P21/S*", None)
+        expected = ReferenceColumn(property="P21")
+        self.assertEqual(result, expected)
+
+    def test_reference_with_title(self):
+        result = ColumnMaker.make("P21/S*", "sourced")
+        expected = ReferenceColumn(property="P21", title="sourced")
+        self.assertEqual(result, expected)
+
+    def test_reference_unsupported_syntax(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P21/S+", None)
+
+    def test_reference_unsupported_syntax_specific(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P21/S248", None)
+
+    def test_reference_value_scoped_not_supported(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P123/Q456/S*", None)
+
+    def test_reference_on_qualifier_not_supported(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P123/P789/S*", None)
+
+    def test_reference_on_qualifier_with_value_not_supported(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P123/Q456/P789/S*", None)
+
+
 class TestListeriaKey(unittest.TestCase):
     def test_property(self):
         self.assertEqual(PropertyColumn("P136").get_listeria_key(), "P136")
@@ -434,3 +467,125 @@ class TestListeriaKey(unittest.TestCase):
 
     def test_sitelink(self):
         self.assertIsNone(SitelinkColumn("brwiki").get_listeria_key())
+
+    def test_reference(self):
+        self.assertEqual(ReferenceColumn("P136").get_listeria_key(), "P136")
+
+
+class TestReferenceColumn(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P19")
+
+    def test_get_key(self):
+        result = self.column.get_key()
+        self.assertEqual(result, "P19/S*")
+
+    def test_get_type_name(self):
+        result = self.column.get_type_name()
+        self.assertEqual(result, "reference")
+
+    def test_make_column_header(self):
+        result = self.column.make_column_header()
+        expected = '! data-sort-type="number"|{{Property|P19}}📚\n'
+        self.assertEqual(result, expected)
+
+    def test_make_column_header_with_title(self):
+        column = ReferenceColumn("P19", title="sourced birth")
+        result = column.make_column_header()
+        expected = '! data-sort-type="number"|[[Property:P19|sourced birth]]\n'
+        self.assertEqual(result, expected)
+
+    def test_format_html_snippet(self):
+        result = self.column.format_html_snippet()
+        expected = '<a href="https://wikidata.org/wiki/Property:P19">P19</a>'
+        self.assertEqual(result, expected)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P19 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P19 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P19 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P19 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P19 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P19 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_positive_query(self):
+        result = self.column.get_filter_for_positive_query()
+        expected = """
+  ?entity p:P19 ?statement .
+  ?statement ps:P19 ?value .
+  FILTER NOT EXISTS {
+    ?entity p:P19 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_negative_query(self):
+        result = self.column.get_filter_for_negative_query()
+        expected = """
+  OPTIONAL {
+    ?entity p:P19 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+  OPTIONAL { ?entity p:P19 ?_any_stmt . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+"""
+        self.assertEqual(result, expected)
+
+
+class TestReferenceColumnWithTitle(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P19", title="sourced birth")
+
+    def test_make_column_header(self):
+        result = self.column.make_column_header()
+        expected = '! data-sort-type="number"|[[Property:P19|sourced birth]]\n'
+        self.assertEqual(result, expected)

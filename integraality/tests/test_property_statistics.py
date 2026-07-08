@@ -10,6 +10,7 @@ from ..column import (
     LabelColumn,
     PropertyColumn,
     QualifierColumn,
+    ReferenceColumn,
     SitelinkColumn,
 )
 from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
@@ -636,6 +637,159 @@ class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
             stats.columns.get("P21"), 2007
         )
         self.assertIn("FILTER(?year = 2007)", result)
+
+
+class TestReferenceColumn(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn(property="P21")
+        self.stats.columns["P21/S*"] = self.column
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        query = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P21 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P21 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+GROUP BY ?grouping
+HAVING (?count >= 10)
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, query)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        query = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS { ?entity wdt:P551 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P21 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P21 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+"""
+        self.assertEqual(result, query)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        query = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q41960
+  FILTER(EXISTS {
+    ?entity p:P21 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P21 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }
+  })
+}
+"""
+        self.assertEqual(result, query)
+
+    def test_get_query_for_items_for_property_positive(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.column, "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  ?entity p:P21 ?statement .
+  ?statement ps:P21 ?value .
+  FILTER NOT EXISTS {
+    ?entity p:P21 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.column, "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  OPTIONAL {
+    ?entity p:P21 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative_no_grouping(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.column, NoGroupGrouping.MARKER
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  MINUS {
+    ?entity wdt:P551 [] .
+  }
+  OPTIONAL {
+    ?entity p:P21 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+}
+"""
+        self.assertEqual(result, expected)
 
 
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):

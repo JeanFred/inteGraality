@@ -21,6 +21,19 @@ class ColumnMaker:
 
         if key.startswith("P"):
             splitted = key.split("/")
+            if splitted[-1].startswith("S"):
+                if len(splitted) != 2:
+                    raise ColumnSyntaxException(
+                        "References on qualified statements "
+                        "(e.g. P123/P789/S*) are not yet supported"
+                    )
+                reference_syntax = splitted[-1]
+                if reference_syntax != "S*":
+                    raise ColumnSyntaxException(
+                        f"Unsupported reference syntax: {reference_syntax} "
+                        f"(only S* is currently supported)"
+                    )
+                return ReferenceColumn(property=splitted[0], title=title)
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
             elif len(splitted) == 2:
@@ -240,6 +253,61 @@ class QualifierColumn(PropertyColumn):
     UNION
     {{ ?statement a wdno:{self.qualifier} . }}
   }}
+"""
+
+
+class ReferenceColumn(PropertyColumn):
+    """Column tracking whether all statements for a property are referenced."""
+
+    def get_key(self):
+        return f"{self.property}/S*"
+
+    def get_listeria_key(self):
+        return self.property
+
+    def get_type_name(self):
+        return "reference"
+
+    def get_column_label(self):
+        if self.title:
+            return super().get_column_label()
+        return f"{{{{Property|{self.property}}}}}📚"
+
+    def get_filter_for_info(self):
+        return f"""
+    ?entity p:{self.property} [] .
+    FILTER NOT EXISTS {{
+      ?entity p:{self.property} ?_unreferenced_stmt .
+      FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+    }}"""
+
+    def get_filter_for_positive_query(self):
+        return f"""
+  ?entity p:{self.property} ?statement .
+  ?statement ps:{self.property} ?value .
+  FILTER NOT EXISTS {{
+    ?entity p:{self.property} ?_unreferenced_stmt .
+    FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+  }}
+"""
+
+    def get_filter_for_negative_query(self):
+        # Matches items that either lack the property entirely,
+        # or have at least one unreferenced statement:
+        # - First OPTIONAL binds ?_unreferenced_stmt only if an unreferenced statement exists
+        # - Second OPTIONAL binds ?_any_stmt if any statement exists at all
+        # - FILTER keeps the item if ?_any_stmt is unbound (no property)
+        #   or ?_unreferenced_stmt is bound (has an unreferenced statement)
+        #
+        # This avoids nested EXISTS inside OR (broken on WDQS)
+        # and bare FILTER in UNION branches (broken on QLever).
+        return f"""
+  OPTIONAL {{
+    ?entity p:{self.property} ?_unreferenced_stmt .
+    FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+  }}
+  OPTIONAL {{ ?entity p:{self.property} ?_any_stmt . }}
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
 
 

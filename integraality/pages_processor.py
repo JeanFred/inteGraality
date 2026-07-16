@@ -12,6 +12,7 @@ from redis import StrictRedis
 
 from .cache import RedisCache
 from .config_assembler import ConfigAssembler, ConfigAssemblyException
+from .error_category import ErrorCategory
 from .grouping import UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
 from .page_saving import save_to_wiki_or_local
@@ -22,7 +23,7 @@ logger = logging.getLogger("integraality.update")
 
 
 class ProcessingException(Exception):
-    pass
+    error_category = ErrorCategory.CONFIG
 
 
 class ConfigException(ProcessingException):
@@ -40,7 +41,7 @@ class NoStartTemplateException(ProcessingException):
 class TransientServerException(Exception):
     """Exception for temporary server issues that may resolve on retry."""
 
-    pass
+    error_category = ErrorCategory.TRANSIENT
 
 
 class PagesProcessor:

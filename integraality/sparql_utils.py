@@ -6,8 +6,12 @@ import pywikibot
 import pywikibot.data.sparql
 import requests
 
+from .error_category import ErrorCategory
+
 
 class QueryException(Exception):
+    error_category = ErrorCategory.QUERY
+
     def __init__(self, message, query):
         super().__init__(message)
         self.query = query

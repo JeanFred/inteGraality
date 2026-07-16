@@ -5,14 +5,14 @@
 <div id="result" style="display:none"></div>
 <script>
 (function() {
-    var pageUrl = { { page_url | tojson } };
-    var pageTitle = { { page_title | tojson } };
+    var pageUrl = {{ page_url|tojson }};
+    var pageTitle = {{ page_title|tojson }};
     var progress = document.getElementById("progress");
     var result = document.getElementById("result");
-    var url = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
-    var source = new EventSource(url);
+    var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
+    var source = new EventSource(streamUrl);
 
-    source.onmessage = function(e) {
+    function onMessage(e) {
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
             var icon = data.phase === "end" ? "✅" : "⏳";
@@ -29,14 +29,17 @@
             result.innerHTML = "<p>❌ Error: " + data.message + "</p>";
             source.close();
         }
-    };
+    }
 
-    source.onerror = function() {
+    function onError() {
         result.style.display = "block";
         result.className = "alert alert-danger";
         result.innerHTML = "<p>❌ Connection lost.</p>";
         source.close();
-    };
+    }
+
+    source.onmessage = onMessage;
+    source.onerror = onError;
 })();
 </script>
 {% endblock %}

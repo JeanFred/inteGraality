@@ -12,21 +12,27 @@
     var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
     var source = new EventSource(streamUrl);
 
+    function escapeHtml(text) {
+        var div = document.createElement("div");
+        div.appendChild(document.createTextNode(text));
+        return div.innerHTML;
+    }
+
     function onMessage(e) {
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
             var icon = data.phase === "end" ? "✅" : "⏳";
-            progress.innerHTML += "<p>" + icon + " " + data.message + "</p>";
+            progress.innerHTML += "<p>" + icon + " " + escapeHtml(data.message) + "</p>";
         } else if (data.status === "done") {
             var elapsed = parseFloat(data.result).toFixed(2);
             result.style.display = "block";
             result.className = "alert alert-success";
-            result.innerHTML = "<p>✅ Updated page <a href=\"" + pageUrl + "\">" + pageTitle + "</a> (in " + elapsed + "s)</p>";
+            result.innerHTML = "<p>✅ Updated page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a> (in " + elapsed + "s)</p>";
             source.close();
         } else if (data.status === "error") {
             result.style.display = "block";
             result.className = "alert alert-danger";
-            result.innerHTML = "<p>❌ Error: " + data.message + "</p>";
+            result.innerHTML = "<p>❌ Error: " + escapeHtml(data.message) + "</p>";
             source.close();
         }
     }

@@ -8,6 +8,22 @@ import traceback
 from logging.handlers import QueueHandler
 
 
+def _classify_error(e):
+    """Build a structured error event dict from an exception."""
+    event = {
+        "status": "error",
+        "error_type": type(e).__name__,
+        "error_category": getattr(e, "error_category", "bug"),
+        "message": str(e),
+        "traceback": traceback.format_exception(type(e), e, e.__traceback__),
+    }
+
+    if hasattr(e, "query"):
+        event["query"] = e.query
+
+    return event
+
+
 def run_with_sse(func, logger_name="integraality.update"):
     """Run func in a background thread, yielding SSE events from its log messages."""
     q = queue.Queue()
@@ -31,15 +47,7 @@ def run_with_sse(func, logger_name="integraality.update"):
             result = func()
             q.put({"status": "done", "result": result})
         except Exception as e:
-            q.put(
-                {
-                    "status": "error",
-                    "message": str(e),
-                    "traceback": traceback.format_exception(
-                        type(e), e, e.__traceback__
-                    ),
-                }
-            )
+            q.put(_classify_error(e))
 
     worker_thread = threading.Thread(target=target)
     worker_thread.start()

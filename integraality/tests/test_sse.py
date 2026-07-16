@@ -39,3 +39,86 @@ class RunWithSSETest(unittest.TestCase):
         errors = [e for e in parsed if e["status"] == "error"]
         self.assertEqual(len(errors), 1)
         self.assertIn("boom", errors[0]["message"])
+
+    def test_error_includes_error_type(self):
+        def func():
+            raise RuntimeError("unexpected")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "RuntimeError")
+        self.assertEqual(error["error_category"], "bug")
+        self.assertIn("traceback", error)
+
+    def test_error_query_exception(self):
+        from ..sparql_utils import QueryException
+
+        def func():
+            raise QueryException("Timeout", "SELECT ?x WHERE {}")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "QueryException")
+        self.assertEqual(error["error_category"], "query")
+        self.assertEqual(error["query"], "SELECT ?x WHERE {}")
+        self.assertIn("Timeout", error["message"])
+
+    def test_error_processing_exception(self):
+        from ..pages_processor import ProcessingException
+
+        def func():
+            raise ProcessingException("Bad config")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "ProcessingException")
+        self.assertEqual(error["error_category"], "config")
+        self.assertIn("Bad config", error["message"])
+
+    def test_error_transient_server_exception(self):
+        from ..pages_processor import TransientServerException
+
+        def func():
+            raise TransientServerException("503")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "TransientServerException")
+        self.assertEqual(error["error_category"], "transient")
+        self.assertIn("503", error["message"])
+
+    def test_error_category_for_subclass(self):
+        from ..pages_processor import ConfigException
+
+        def func():
+            raise ConfigException("missing property")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "ConfigException")
+        self.assertEqual(error["error_category"], "config")

@@ -11,12 +11,22 @@
     var progress = document.getElementById("progress");
     var result = document.getElementById("result");
     var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
-    var source = new EventSource(streamUrl);
+    var source;
 
     function escapeHtml(text) {
         var div = document.createElement("div");
         div.appendChild(document.createTextNode(text));
         return div.innerHTML;
+    }
+
+    function startStream() {
+        progress.innerHTML = "";
+        result.style.display = "none";
+        result.className = "";
+        result.innerHTML = "";
+        source = new EventSource(streamUrl);
+        source.onmessage = onMessage;
+        source.onerror = onError;
     }
 
     function onMessage(e) {
@@ -39,9 +49,15 @@
     function onError() {
         result.style.display = "block";
         result.className = "alert alert-danger";
-        result.innerHTML = "<p>❌ Connection lost.</p>";
+        result.innerHTML = "<p>❌ Connection lost.</p>" + retryButton();
         source.close();
     }
+
+    function retryButton() {
+        return "<button class=\"btn btn-primary\" onclick=\"window.__retryStream()\">🔄 Retry</button>";
+    }
+
+    window.__retryStream = startStream;
 
     function showError(data) {
         result.style.display = "block";
@@ -64,7 +80,8 @@
                 "<p>A temporary server issue occurred when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>. " +
                 "This is usually caused by high server load and is not a bug.</p>" +
                 "<p>" + escapeHtml(data.message) + "</p>" +
-                "<p>Please try again later.</p>";
+                "<p>Please try again later.</p>" +
+                retryButton();
         } else if (category === "config") {
             result.className = "alert alert-danger";
             result.innerHTML =
@@ -82,8 +99,7 @@
         }
     }
 
-    source.onmessage = onMessage;
-    source.onerror = onError;
+    startStream();
 })();
 </script>
 {% endblock %}

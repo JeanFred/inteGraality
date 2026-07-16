@@ -7,6 +7,7 @@
 (function() {
     var pageUrl = {{ page_url|tojson }};
     var pageTitle = {{ page_title|tojson }};
+    var qleverUiUrl = {{ qlever_ui_url|tojson }};
     var progress = document.getElementById("progress");
     var result = document.getElementById("result");
     var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
@@ -30,9 +31,7 @@
             result.innerHTML = "<p>✅ Updated page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a> (in " + elapsed + "s)</p>";
             source.close();
         } else if (data.status === "error") {
-            result.style.display = "block";
-            result.className = "alert alert-danger";
-            result.innerHTML = "<p>❌ Error: " + escapeHtml(data.message) + "</p>";
+            showError(data);
             source.close();
         }
     }
@@ -42,6 +41,45 @@
         result.className = "alert alert-danger";
         result.innerHTML = "<p>❌ Connection lost.</p>";
         source.close();
+    }
+
+    function showError(data) {
+        result.style.display = "block";
+        var category = data.error_category || "bug";
+
+        if (category === "query") {
+            result.className = "alert alert-danger";
+            var query = data.query || "";
+            result.innerHTML =
+                "<p>Something went wrong when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>.</p>" +
+                "<p>The following SPARQL query timed out or returned no result:</p>" +
+                "<pre><code>" + escapeHtml(query) + "</code></pre>" +
+                "<p>" +
+                "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +
+                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(query) + "\">Try it in QLever</a>" +
+                "</p>";
+        } else if (category === "transient") {
+            result.className = "alert alert-warning";
+            result.innerHTML =
+                "<p>A temporary server issue occurred when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>. " +
+                "This is usually caused by high server load and is not a bug.</p>" +
+                "<p>" + escapeHtml(data.message) + "</p>" +
+                "<p>Please try again later.</p>";
+        } else if (category === "config") {
+            result.className = "alert alert-danger";
+            result.innerHTML =
+                "<p>Something went wrong when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>. Please check your configuration.</p>" +
+                "<p>" + escapeHtml(data.message) + "</p>";
+        } else {
+            result.className = "alert alert-danger";
+            var tb = (data.traceback || []).join("");
+            var phabUrl = "https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=" + encodeURIComponent("```\n" + tb + "```");
+            result.innerHTML =
+                "<p>Something catastrophic happened when processing page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>.</p>" +
+                "<p>This is very likely a bug in inteGraality itself, not a configuration issue.</p>" +
+                "<p><a class=\"btn btn-warning\" href=\"" + phabUrl + "\">Report this on Phabricator</a></p>" +
+                "<pre>" + escapeHtml(tb) + "</pre>";
+        }
     }
 
     source.onmessage = onMessage;

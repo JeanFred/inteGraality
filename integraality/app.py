@@ -56,6 +56,7 @@ def update():
             "update_stream.html",
             page_title=page_title,
             page_url=page_url,
+            qlever_ui_url=get_qlever_ui_url(page_url),
         )
     processor = PagesProcessor(page_url)
     try:

@@ -1,10 +1,11 @@
 # -*- coding: utf-8  -*-
+import json
 import unittest
 from unittest.mock import patch
 
 from .. import column
 from ..app import app
-from ..pages_processor import ProcessingException
+from ..pages_processor import ProcessingException, TransientServerException
 from ..sparql_utils import QueryException
 
 
@@ -78,6 +79,84 @@ class UpdateTests(PagesProcessorTests):
             "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
         )
         self.assertIn("text/event-stream", response.content_type)
+
+    def _parse_sse_events(self, response):
+        """Parse SSE events from a streaming response into a list of dicts."""
+        data = response.get_data(as_text=True)
+        events = []
+        for line in data.strip().split("\n"):
+            if line.startswith("data: "):
+                events.append(json.loads(line[len("data: ") :]))
+        return events
+
+    def test_update_stream_success_end_to_end(self):
+        self.mock_pages_processor.return_value.process_one_page.return_value = 4.56
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        events = self._parse_sse_events(response)
+        self.assertTrue(len(events) >= 1)
+        done_event = events[-1]
+        self.assertEqual(done_event["status"], "done")
+        self.assertEqual(done_event["result"], 4.56)
+
+    def test_update_stream_error_query_exception(self):
+        self.mock_pages_processor.return_value.process_one_page.side_effect = (
+            QueryException("Timeout", "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
+        )
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        events = self._parse_sse_events(response)
+        error_event = events[-1]
+        self.assertEqual(error_event["status"], "error")
+        self.assertEqual(error_event["error_type"], "QueryException")
+        self.assertEqual(error_event["error_category"], "query")
+        self.assertEqual(error_event["query"], "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
+        self.assertIn("Timeout", error_event["message"])
+
+    def test_update_stream_error_transient_server_exception(self):
+        self.mock_pages_processor.return_value.process_one_page.side_effect = (
+            TransientServerException("503 Service Unavailable")
+        )
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        events = self._parse_sse_events(response)
+        error_event = events[-1]
+        self.assertEqual(error_event["status"], "error")
+        self.assertEqual(error_event["error_type"], "TransientServerException")
+        self.assertEqual(error_event["error_category"], "transient")
+        self.assertIn("503", error_event["message"])
+
+    def test_update_stream_error_processing_exception(self):
+        self.mock_pages_processor.return_value.process_one_page.side_effect = (
+            ProcessingException("Bad config")
+        )
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        events = self._parse_sse_events(response)
+        error_event = events[-1]
+        self.assertEqual(error_event["status"], "error")
+        self.assertEqual(error_event["error_type"], "ProcessingException")
+        self.assertEqual(error_event["error_category"], "config")
+        self.assertIn("Bad config", error_event["message"])
+
+    def test_update_stream_error_unknown_exception(self):
+        self.mock_pages_processor.return_value.process_one_page.side_effect = (
+            RuntimeError("unexpected")
+        )
+        response = self.app.get(
+            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+        )
+        events = self._parse_sse_events(response)
+        error_event = events[-1]
+        self.assertEqual(error_event["status"], "error")
+        self.assertEqual(error_event["error_type"], "RuntimeError")
+        self.assertEqual(error_event["error_category"], "bug")
+        self.assertIn("unexpected", error_event["message"])
+        self.assertIn("traceback", error_event)
 
     def test_update_success(self):
         response = self.app.get(

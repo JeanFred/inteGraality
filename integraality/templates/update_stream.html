@@ -5,9 +5,11 @@
 <div id="result" style="display:none"></div>
 <script>
 (function() {
+    var pageUrl = { { page_url | tojson } };
+    var pageTitle = { { page_title | tojson } };
     var progress = document.getElementById("progress");
     var result = document.getElementById("result");
-    var url = "/update/stream?url=" + encodeURIComponent("{{ page_url }}") + "&page=" + encodeURIComponent("{{ page_title }}");
+    var url = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
     var source = new EventSource(url);
 
     source.onmessage = function(e) {
@@ -19,7 +21,7 @@
             var elapsed = parseFloat(data.result).toFixed(2);
             result.style.display = "block";
             result.className = "alert alert-success";
-            result.innerHTML = "<p>✅ Updated page <a href=\"{{ page_url }}\">{{ page_title }}</a> (in " + elapsed + "s)</p>";
+            result.innerHTML = "<p>✅ Updated page <a href=\"" + pageUrl + "\">" + pageTitle + "</a> (in " + elapsed + "s)</p>";
             source.close();
         } else if (data.status === "error") {
             result.style.display = "block";

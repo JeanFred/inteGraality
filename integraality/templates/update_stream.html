@@ -67,7 +67,6 @@
             result.className = "alert alert-danger";
             var query = data.query || "";
             result.innerHTML =
-                "<p>Something went wrong when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>.</p>" +
                 "<p>The following SPARQL query timed out or returned no result:</p>" +
                 "<pre><code>" + escapeHtml(query) + "</code></pre>" +
                 "<p>" +
@@ -77,23 +76,21 @@
         } else if (category === "transient") {
             result.className = "alert alert-warning";
             result.innerHTML =
-                "<p>A temporary server issue occurred when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>. " +
-                "This is usually caused by high server load and is not a bug.</p>" +
+                "<p>A temporary server issue occurred. This is usually caused by high server load and is not a bug.</p>" +
                 "<p>" + escapeHtml(data.message) + "</p>" +
                 "<p>Please try again later.</p>" +
                 retryButton();
         } else if (category === "config") {
             result.className = "alert alert-danger";
             result.innerHTML =
-                "<p>Something went wrong when updating page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>. Please check your configuration.</p>" +
+                "<p>Please check your configuration.</p>" +
                 "<p>" + escapeHtml(data.message) + "</p>";
         } else {
             result.className = "alert alert-danger";
             var tb = (data.traceback || []).join("");
             var phabUrl = "https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=" + encodeURIComponent("```\n" + tb + "```");
             result.innerHTML =
-                "<p>Something catastrophic happened when processing page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a>.</p>" +
-                "<p>This is very likely a bug in inteGraality itself, not a configuration issue.</p>" +
+                "<p>Something catastrophic happened. This is very likely a bug in inteGraality itself, not a configuration issue.</p>" +
                 "<p><a class=\"btn btn-warning\" href=\"" + phabUrl + "\">Report this on Phabricator</a></p>" +
                 "<pre>" + escapeHtml(tb) + "</pre>";
         }

@@ -20,7 +20,6 @@ from .sparql_utils import (
 from .sse import run_with_sse
 
 app = Flask(__name__)
-app.debug = True
 
 
 def get_qlever_ui_url(page_url):

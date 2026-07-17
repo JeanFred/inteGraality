@@ -3,10 +3,9 @@ services:
     build:
       context: .
       dockerfile: conf/Dockerfile.web
-    command: flask run --host=0.0.0.0
+    command: flask run --host=0.0.0.0 --debug
     environment:
       - FLASK_APP=integraality.app
-      - FLASK_ENV=development
       - PYWIKIBOT_NO_USER_CONFIG=1
       - REDIS_HOST=redis
       - LOCAL_WRITE_PATH=docker_pages

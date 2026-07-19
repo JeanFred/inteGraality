@@ -8,6 +8,7 @@
     var pageUrl = {{ page_url|tojson }};
     var pageTitle = {{ page_title|tojson }};
     var qleverUiUrl = {{ qlever_ui_url|tojson }};
+    var sparqlPrefixes = {{ sparql_prefixes|tojson }};
     var progress = document.getElementById("progress");
     var result = document.getElementById("result");
     var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
@@ -17,6 +18,10 @@
         var div = document.createElement("div");
         div.appendChild(document.createTextNode(text));
         return div.innerHTML;
+    }
+
+    function addPrefixes(query) {
+        return sparqlPrefixes + query;
     }
 
     function startStream() {
@@ -71,7 +76,7 @@
                 "<pre><code>" + escapeHtml(query) + "</code></pre>" +
                 "<p>" +
                 "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +
-                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(query) + "\">Try it in QLever</a>" +
+                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">Try it in QLever</a>" +
                 "</p>";
         } else if (category === "transient") {
             result.className = "alert alert-warning";

@@ -56,6 +56,7 @@ def update():
             page_title=page_title,
             page_url=page_url,
             qlever_ui_url=get_qlever_ui_url(page_url),
+            sparql_prefixes=add_prefixes_to_query(""),
         )
     processor = PagesProcessor(page_url)
     try:

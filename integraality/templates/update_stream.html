@@ -39,10 +39,18 @@
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
             var icon = data.phase === "end" ? "✅" : "⏳";
-            if (data.query) {
+            if (data.phase === "end" && data.step_key) {
+                var el = document.getElementById("step-" + data.step_key);
+                if (el) {
+                    var summary = el.querySelector("summary");
+                    summary.innerHTML = "✅ " + escapeHtml(data.message) +
+                        " <small class=\"text-muted\">▸ show query</small>";
+                }
+            } else if (data.query) {
                 var query = data.query.trim();
+                var elId = data.step_key ? " id=\"step-" + escapeHtml(data.step_key) + "\"" : "";
                 progress.innerHTML +=
-                    "<details><summary>" + icon + " " + escapeHtml(data.message) +
+                    "<details" + elId + "><summary>" + icon + " " + escapeHtml(data.message) +
                     " <small class=\"text-muted\">▸ show query</small></summary>" +
                     "<pre><code>" + escapeHtml(query) + "</code></pre>" +
                     "<p>" +

@@ -232,9 +232,13 @@ SELECT (COUNT(*) as ?count) WHERE {{
             query = column_entry.get_info_query(self)
             logger.info(
                 f"Querying column {column_entry_key}... ({i}/{len(column_keys)})",
-                extra={"query": query},
+                extra={"query": query, "step_key": column_entry_key},
             )
             data = self._get_grouping_counts_from_sparql(query)
+            logger.info(
+                f"Column {column_entry_key} done ({i}/{len(column_keys)})",
+                extra={"phase": "end", "step_key": column_entry_key},
+            )
             if not data:
                 continue
             for grouping_item, value in data.items():
@@ -252,7 +256,8 @@ SELECT (COUNT(*) as ?count) WHERE {{
             self.selector_sparql
         )
         logger.info(
-            "Retrieving grouping information...", extra={"query": grouping_query}
+            "Retrieving grouping information...",
+            extra={"query": grouping_query, "step_key": "groupings"},
         )
 
         try:
@@ -261,7 +266,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
             logger.error("No groupings found.")
             raise e
 
-        logger.info(f"Retrieved {len(groupings)} groupings", extra={"phase": "end"})
+        logger.info(
+            f"Retrieved {len(groupings)} groupings",
+            extra={"phase": "end", "step_key": "groupings"},
+        )
         groupings = self.populate_groupings(groupings)
         groupings = self.grouping_configuration.post_process(groupings)
         return groupings

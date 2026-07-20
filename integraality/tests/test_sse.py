@@ -122,3 +122,36 @@ class RunWithSSETest(unittest.TestCase):
         error = [e for e in parsed if e["status"] == "error"][0]
         self.assertEqual(error["error_type"], "ConfigException")
         self.assertEqual(error["error_category"], "config")
+
+    def test_progress_with_query_extra(self):
+        def func():
+            logger = logging.getLogger("integraality.update")
+            logger.info("Querying P569...", extra={"query": "SELECT ?x WHERE {}"})
+            return 1.0
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        progress = [e for e in parsed if e["status"] == "progress"]
+        self.assertEqual(len(progress), 1)
+        self.assertEqual(progress[0]["query"], "SELECT ?x WHERE {}")
+        self.assertIn("P569", progress[0]["message"])
+
+    def test_progress_without_query_extra(self):
+        def func():
+            logger = logging.getLogger("integraality.update")
+            logger.info("Saving to wiki...")
+            return 1.0
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        progress = [e for e in parsed if e["status"] == "progress"]
+        self.assertEqual(len(progress), 1)
+        self.assertIsNone(progress[0]["query"])

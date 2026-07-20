@@ -62,6 +62,7 @@ def run_with_sse(func, logger_name="integraality.update"):
                     "message": event.getMessage(),
                     "level": event.levelname,
                     "phase": getattr(event, "phase", "start"),
+                    "query": getattr(event, "query", None),
                 }
 
             yield f"data: {json.dumps(event)}\n\n"

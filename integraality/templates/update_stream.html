@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block content %}
 <h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
+<style>#progress details { margin: 1em 0; }</style>
 <div id="progress"></div>
 <div id="result" style="display:none"></div>
 <script>
@@ -38,7 +39,19 @@
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
             var icon = data.phase === "end" ? "✅" : "⏳";
-            progress.innerHTML += "<p>" + icon + " " + escapeHtml(data.message) + "</p>";
+            if (data.query) {
+                var query = data.query.trim();
+                progress.innerHTML +=
+                    "<details><summary>" + icon + " " + escapeHtml(data.message) +
+                    " <small class=\"text-muted\">▸ show query</small></summary>" +
+                    "<pre><code>" + escapeHtml(query) + "</code></pre>" +
+                    "<p>" +
+                    "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
+                    "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
+                    "</p></details>";
+            } else {
+                progress.innerHTML += "<p>" + icon + " " + escapeHtml(data.message) + "</p>";
+            }
         } else if (data.status === "done") {
             var elapsed = parseFloat(data.result).toFixed(2);
             result.style.display = "block";

@@ -229,12 +229,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def populate_groupings(self, groupings):
         column_keys = list(self.columns.keys())
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
+            query = column_entry.get_info_query(self)
             logger.info(
-                f"Querying column {column_entry_key}... ({i}/{len(column_keys)})"
+                f"Querying column {column_entry_key}... ({i}/{len(column_keys)})",
+                extra={"query": query},
             )
-            data = self._get_grouping_counts_from_sparql(
-                column_entry.get_info_query(self)
-            )
+            data = self._get_grouping_counts_from_sparql(query)
             if not data:
                 continue
             for grouping_item, value in data.items():
@@ -248,7 +248,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return groupings
 
     def retrieve_data(self):
-        logger.info("Retrieving grouping information...")
+        grouping_query = self.grouping_configuration.get_grouping_information_query(
+            self.selector_sparql
+        )
+        logger.info(
+            "Retrieving grouping information...", extra={"query": grouping_query}
+        )
 
         try:
             groupings = self.get_grouping_information()

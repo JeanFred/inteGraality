@@ -19,6 +19,17 @@
         max-width: 800px;
         padding: 0 15px;
     }
+
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    body > .container {
+        flex: 1;
+    }
     </style>
 </head>
 
@@ -37,28 +48,28 @@
         <hr />
         <!-- Content -->
         {% block content %}{% endblock %}
-        <!-- Footer -->
-        <footer class="footer navbar-fixed-bottom">
-            <div class="container">
-                <hr />
-                <ul class="pull-left list-inline">
-                    <li>Source available on <a href="https://github.com/JeanFred/integraality/">GitHub</a> (mirrored on <a href="https://phabricator.wikimedia.org/source/tool-integraality/">Wikimedia Phabricator</a>)
-                    </li>
-                </ul>
-                <ul class="pull-right list-inline">
-                    <li>
-                        <a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality">Report a bug</a>
-                    </li>
-                    <li>
-                        <a href="https://phabricator.wikimedia.org/tag/tool-integraality/">Open tasks</a>
-                    </li>
-                    <li>
-                        <a href="https://sal.toolforge.org/tools.integraality">Server Admin log</a>
-                    </li>
-                </ul>
-            </div>
-        </footer>
     </div>
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <hr />
+            <ul class="pull-left list-inline">
+                <li>Source available on <a href="https://github.com/JeanFred/integraality/">GitHub</a> (mirrored on <a href="https://phabricator.wikimedia.org/source/tool-integraality/">Wikimedia Phabricator</a>)
+                </li>
+            </ul>
+            <ul class="pull-right list-inline">
+                <li>
+                    <a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality">Report a bug</a>
+                </li>
+                <li>
+                    <a href="https://phabricator.wikimedia.org/tag/tool-integraality/">Open tasks</a>
+                </li>
+                <li>
+                    <a href="https://sal.toolforge.org/tools.integraality">Server Admin log</a>
+                </li>
+            </ul>
+        </div>
+    </footer>
 </body>
 
 </html>

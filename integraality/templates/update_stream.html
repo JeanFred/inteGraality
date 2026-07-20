@@ -61,9 +61,11 @@
                     "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
                     "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
                     "</p></details>";
+                progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
             } else {
                 var elId = data.step_key ? " id=\"step-" + escapeHtml(data.step_key) + "\"" : "";
                 progress.innerHTML += "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>";
+                progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
             }
         } else if (data.status === "done") {
             var elapsed = parseFloat(data.result).toFixed(2);

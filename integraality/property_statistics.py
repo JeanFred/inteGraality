@@ -139,12 +139,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
 """
         logger.info(
             "Querying count of items without grouping...",
-            extra={"query": query, "step_key": "no_group_count"},
+            extra={"query": query, "step_key": "nogroup_count"},
         )
         result = self._get_count_from_sparql(query)
         logger.info(
             "Count of items without grouping done",
-            extra={"phase": "end", "step_key": "no_group_count"},
+            extra={"phase": "end", "step_key": "nogroup_count"},
         )
         return result
 
@@ -215,7 +215,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         column_keys = list(self.columns.keys())
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
             query = column_entry.get_info_no_grouping_query(self)
-            step_key = f"no_group_{column_entry_key}"
+            step_key = f"nogroup_{column_entry_key}"
             logger.info(
                 f"Querying column {column_entry_key} without grouping... ({i}/{len(column_keys)})",
                 extra={"query": query, "step_key": step_key},
@@ -266,16 +266,20 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def populate_groupings(self, groupings):
         column_keys = list(self.columns.keys())
+        logger.info(
+            f"Querying columns ({len(column_keys)})...",
+            extra={"step_key": "columns"},
+        )
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
             query = column_entry.get_info_query(self)
             logger.info(
                 f"Querying column {column_entry_key}... ({i}/{len(column_keys)})",
-                extra={"query": query, "step_key": column_entry_key},
+                extra={"query": query, "step_key": f"columns_{column_entry_key}"},
             )
             data = self._get_grouping_counts_from_sparql(query)
             logger.info(
                 f"Column {column_entry_key} done ({i}/{len(column_keys)})",
-                extra={"phase": "end", "step_key": column_entry_key},
+                extra={"phase": "end", "step_key": f"columns_{column_entry_key}"},
             )
             if not data:
                 continue
@@ -287,6 +291,10 @@ SELECT (COUNT(*) as ?count) WHERE {{
                     logging.debug(
                         f"Discarding data on {grouping_item}, not in the groupings"
                     )
+        logger.info(
+            f"All columns queried ({len(column_keys)}/{len(column_keys)})",
+            extra={"phase": "end", "step_key": "columns"},
+        )
         return groupings
 
     def retrieve_data(self):
@@ -320,12 +328,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
         if self.stats_for_no_group:
             logger.info(
                 "Computing stats for items without grouping...",
-                extra={"step_key": "no_group"},
+                extra={"step_key": "nogroup"},
             )
             sorted_groupings.append(self.make_stats_for_no_group())
             logger.info(
                 "Computing stats for items without grouping done",
-                extra={"phase": "end", "step_key": "no_group"},
+                extra={"phase": "end", "step_key": "nogroup"},
             )
 
         logger.info("Computing totals...", extra={"step_key": "totals"})

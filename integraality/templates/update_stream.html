@@ -1,7 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
 <h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
-<style>#progress details { margin: 1em 0; }</style>
+<style>
+#progress details { margin: 1em 0; }
+#progress [id^="section-"] > :not(summary) { margin-left: 1.5em; }
+</style>
 <div id="progress"></div>
 <div id="result" style="display:none"></div>
 <script>
@@ -25,6 +28,17 @@
         return sparqlPrefixes + query;
     }
 
+    function findSection(stepKey) {
+        var idx = stepKey.indexOf("_");
+        if (idx > 0) {
+            var prefix = stepKey.substring(0, idx);
+            if (document.getElementById("section-" + prefix)) {
+                return prefix;
+            }
+        }
+        return null;
+    }
+
     function startStream() {
         progress.innerHTML = "";
         result.style.display = "none";
@@ -39,21 +53,34 @@
         var data = JSON.parse(e.data);
         if (data.status === "progress") {
             var icon = data.phase === "end" ? "✅" : "⏳";
-            if (data.phase === "end" && data.step_key) {
-                var el = document.getElementById("step-" + data.step_key);
-                if (el) {
-                    var summary = el.querySelector("summary");
-                    if (summary) {
-                        summary.innerHTML = "✅ " + escapeHtml(data.message) +
-                            " <small class=\"text-muted\">▸ show query</small>";
-                    } else {
-                        el.innerHTML = "✅ " + escapeHtml(data.message);
+            var stepKey = data.step_key || "";
+            var section = findSection(stepKey);
+
+            if (data.phase === "end" && stepKey) {
+                // End of a section header → collapse the section
+                var sectionEl = document.getElementById("section-" + stepKey);
+                if (sectionEl) {
+                    sectionEl.removeAttribute("open");
+                    var sectionSummary = sectionEl.querySelector("summary");
+                    sectionSummary.innerHTML = "✅ " + escapeHtml(data.message) +
+                        " <small class=\"text-muted\">▸ details</small>";
+                } else {
+                    // End of an individual step → mutate its icon
+                    var el = document.getElementById("step-" + stepKey);
+                    if (el) {
+                        var summary = el.querySelector("summary");
+                        if (summary) {
+                            summary.innerHTML = "✅ " + escapeHtml(data.message) +
+                                " <small class=\"text-muted\">▸ show query</small>";
+                        } else {
+                            el.innerHTML = "✅ " + escapeHtml(data.message);
+                        }
                     }
                 }
             } else if (data.query) {
                 var query = data.query.trim();
-                var elId = data.step_key ? " id=\"step-" + escapeHtml(data.step_key) + "\"" : "";
-                progress.innerHTML +=
+                var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
+                var html =
                     "<details" + elId + "><summary>" + icon + " " + escapeHtml(data.message) +
                     " <small class=\"text-muted\">▸ show query</small></summary>" +
                     "<pre><code>" + escapeHtml(query) + "</code></pre>" +
@@ -61,10 +88,32 @@
                     "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
                     "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
                     "</p></details>";
+                var container = section ? document.getElementById("section-" + section) : null;
+                if (container) {
+                    container.insertAdjacentHTML("beforeend", html);
+                } else {
+                    progress.insertAdjacentHTML("beforeend", html);
+                }
                 progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
             } else {
-                var elId = data.step_key ? " id=\"step-" + escapeHtml(data.step_key) + "\"" : "";
-                progress.innerHTML += "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>";
+                // Plain message — could be a section header or a standalone step
+                if (stepKey && !section) {
+                    // Section header: create a collapsible wrapper
+                    progress.insertAdjacentHTML("beforeend",
+                        "<details open id=\"section-" + escapeHtml(stepKey) + "\">" +
+                        "<summary>" + icon + " " + escapeHtml(data.message) + "</summary>" +
+                        "</details>");
+                } else {
+                    var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
+                    var container = section ? document.getElementById("section-" + section) : null;
+                    if (container) {
+                        container.insertAdjacentHTML("beforeend",
+                            "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                    } else {
+                        progress.insertAdjacentHTML("beforeend",
+                            "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                    }
+                }
                 progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
             }
         } else if (data.status === "done") {

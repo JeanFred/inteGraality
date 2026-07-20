@@ -137,7 +137,16 @@ SELECT (COUNT(*) as ?count) WHERE {{
   MINUS {{ ?entity {grouping_predicate} _:b28. }}
 }}
 """
-        return self._get_count_from_sparql(query)
+        logger.info(
+            "Querying count of items without grouping...",
+            extra={"query": query, "step_key": "no_group_count"},
+        )
+        result = self._get_count_from_sparql(query)
+        logger.info(
+            "Count of items without grouping done",
+            extra={"phase": "end", "step_key": "no_group_count"},
+        )
+        return result
 
     def get_totals(self):
         query = f"""
@@ -145,7 +154,16 @@ SELECT (COUNT(*) as ?count) WHERE {{
   ?entity {self.selector_sparql}
 }}
 """
-        return self._get_count_from_sparql(query)
+        logger.info(
+            "Querying total item count...",
+            extra={"query": query, "step_key": "totals_count"},
+        )
+        result = self._get_count_from_sparql(query)
+        logger.info(
+            "Total item count done",
+            extra={"phase": "end", "step_key": "totals_count"},
+        )
+        return result
 
     def _get_count_from_sparql(self, query):
         try:
@@ -194,9 +212,18 @@ SELECT (COUNT(*) as ?count) WHERE {{
             count=count, higher_grouping=self.grouping_configuration.higher_grouping
         )
 
-        for column_entry_key, column_entry in self.columns.items():
-            value = self._get_count_from_sparql(
-                column_entry.get_info_no_grouping_query(self)
+        column_keys = list(self.columns.keys())
+        for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
+            query = column_entry.get_info_no_grouping_query(self)
+            step_key = f"no_group_{column_entry_key}"
+            logger.info(
+                f"Querying column {column_entry_key} without grouping... ({i}/{len(column_keys)})",
+                extra={"query": query, "step_key": step_key},
+            )
+            value = self._get_count_from_sparql(query)
+            logger.info(
+                f"Column {column_entry_key} without grouping done ({i}/{len(column_keys)})",
+                extra={"phase": "end", "step_key": step_key},
             )
             grouping_object.cells[column_entry_key] = value
 
@@ -212,8 +239,19 @@ SELECT (COUNT(*) as ?count) WHERE {{
             higher_grouping=self.grouping_configuration.higher_grouping,
         )
 
-        for column_entry_key, column_entry in self.columns.items():
-            value = self._get_count_from_sparql(column_entry.get_totals_query(self))
+        column_keys = list(self.columns.keys())
+        for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
+            query = column_entry.get_totals_query(self)
+            step_key = f"totals_{column_entry_key}"
+            logger.info(
+                f"Querying totals for column {column_entry_key}... ({i}/{len(column_keys)})",
+                extra={"query": query, "step_key": step_key},
+            )
+            value = self._get_count_from_sparql(query)
+            logger.info(
+                f"Totals for column {column_entry_key} done ({i}/{len(column_keys)})",
+                extra={"phase": "end", "step_key": step_key},
+            )
             grouping_object.cells[column_entry_key] = value
 
         return grouping_object
@@ -280,11 +318,21 @@ SELECT (COUNT(*) as ?count) WHERE {{
         )
 
         if self.stats_for_no_group:
-            logger.info("Computing stats for items without grouping...")
+            logger.info(
+                "Computing stats for items without grouping...",
+                extra={"step_key": "no_group"},
+            )
             sorted_groupings.append(self.make_stats_for_no_group())
+            logger.info(
+                "Computing stats for items without grouping done",
+                extra={"phase": "end", "step_key": "no_group"},
+            )
 
-        logger.info("Computing totals...")
+        logger.info("Computing totals...", extra={"step_key": "totals"})
         sorted_groupings.append(self.make_totals())
+        logger.info(
+            "Computing totals done", extra={"phase": "end", "step_key": "totals"}
+        )
 
         return sorted_groupings
 

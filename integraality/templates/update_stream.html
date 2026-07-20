@@ -43,8 +43,12 @@
                 var el = document.getElementById("step-" + data.step_key);
                 if (el) {
                     var summary = el.querySelector("summary");
-                    summary.innerHTML = "✅ " + escapeHtml(data.message) +
-                        " <small class=\"text-muted\">▸ show query</small>";
+                    if (summary) {
+                        summary.innerHTML = "✅ " + escapeHtml(data.message) +
+                            " <small class=\"text-muted\">▸ show query</small>";
+                    } else {
+                        el.innerHTML = "✅ " + escapeHtml(data.message);
+                    }
                 }
             } else if (data.query) {
                 var query = data.query.trim();
@@ -58,7 +62,8 @@
                     "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
                     "</p></details>";
             } else {
-                progress.innerHTML += "<p>" + icon + " " + escapeHtml(data.message) + "</p>";
+                var elId = data.step_key ? " id=\"step-" + escapeHtml(data.step_key) + "\"" : "";
+                progress.innerHTML += "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>";
             }
         } else if (data.status === "done") {
             var elapsed = parseFloat(data.result).toFixed(2);

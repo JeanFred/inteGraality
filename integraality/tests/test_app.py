@@ -66,7 +66,7 @@ class PagesProcessorTests(AppTests):
 class UpdateTests(PagesProcessorTests):
     def test_update_stream_page(self):
         response = self.app.get(
-            "/update?page=%s&url=%s&stream=1" % (self.page_title, self.page_url)
+            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
         )
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
@@ -160,7 +160,7 @@ class UpdateTests(PagesProcessorTests):
 
     def test_update_success(self):
         response = self.app.get(
-            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
+            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
@@ -174,7 +174,7 @@ class UpdateTests(PagesProcessorTests):
             ProcessingException
         )
         response = self.app.get(
-            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
+            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
@@ -188,7 +188,7 @@ class UpdateTests(PagesProcessorTests):
     def test_update_error_unknown_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = ValueError
         response = self.app.get(
-            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
+            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
@@ -204,7 +204,7 @@ class UpdateTests(PagesProcessorTests):
             QueryException("Error", "SELECT X")
         )
         response = self.app.get(
-            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
+            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
@@ -224,7 +224,9 @@ class UpdateTests(PagesProcessorTests):
 
     def test_update_success_meta(self):
         page_url = "https://meta.wikimedia.org/wiki/%s" % self.page_title
-        response = self.app.get("/update?page=%s&url=%s" % (self.page_title, page_url))
+        response = self.app.get(
+            "/update?page=%s&url=%s&nostream" % (self.page_title, page_url)
+        )
         self.mock_pages_processor.assert_called_once_with(page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title

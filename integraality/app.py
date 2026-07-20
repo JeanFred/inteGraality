@@ -50,14 +50,18 @@ def index():
 def update():
     page_url = request.args.get("url")
     page_title = request.args.get("page")
-    if "stream" in request.args:
-        return render_template(
-            "update_stream.html",
-            page_title=page_title,
-            page_url=page_url,
-            qlever_ui_url=get_qlever_ui_url(page_url),
-            sparql_prefixes=add_prefixes_to_query(""),
-        )
+    if "nostream" in request.args:
+        return _update_sync(page_url, page_title)
+    return render_template(
+        "update_stream.html",
+        page_title=page_title,
+        page_url=page_url,
+        qlever_ui_url=get_qlever_ui_url(page_url),
+        sparql_prefixes=add_prefixes_to_query(""),
+    )
+
+
+def _update_sync(page_url, page_title):
     processor = PagesProcessor(page_url)
     try:
         elapsed_time = processor.process_one_page(page_title)

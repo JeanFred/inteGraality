@@ -1,6 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
 <h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
+<noscript>
+<div class="alert alert-info">
+    <p>This page requires JavaScript for real-time progress updates.</p>
+    <p><a href="{{ url_for('update', page=page_title, url=page_url, nostream='') }}">Run the update without JavaScript</a></p>
+</div>
+</noscript>
 <style>
 #progress details { margin: 1em 0; }
 #progress [id^="section-"] > :not(summary) { margin-left: 1.5em; }

@@ -447,9 +447,28 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P21/Sabc", None)
 
-    def test_reference_value_scoped_not_supported(self):
+    def test_reference_value_scoped(self):
+        result = ColumnMaker.make("P123/Q456/S*", None)
+        expected = ReferenceColumn(property="P123", value="Q456")
+        self.assertEqual(result, expected)
+
+    def test_reference_value_scoped_grouping(self):
+        result = ColumnMaker.make("P27/?grouping/S*", None)
+        expected = ReferenceColumn(property="P27", value="?grouping")
+        self.assertEqual(result, expected)
+
+    def test_reference_value_scoped_with_specific_property(self):
+        result = ColumnMaker.make("P27/Q142/S248", None)
+        expected = ReferenceColumn(
+            property="P27",
+            value="Q142",
+            reference_check=PropertyReferenceCheck("P248"),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_value_scoped_invalid_variable(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make("P123/Q456/S*", None)
+            ColumnMaker.make("P27/?foo/S*", None)
 
     def test_reference_on_qualifier_not_supported(self):
         with self.assertRaises(ColumnSyntaxException):
@@ -740,6 +759,79 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
         col2 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P248"))
         col3 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P854"))
         col4 = ReferenceColumn("P19")
+        self.assertEqual(col1, col2)
+        self.assertNotEqual(col1, col3)
+        self.assertNotEqual(col1, col4)
+
+
+class TestReferenceColumnValueScoped(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P27", value="Q142")
+
+    def test_get_key(self):
+        self.assertEqual(self.column.get_key(), "P27/Q142/S*")
+
+    def test_get_key_grouping(self):
+        column = ReferenceColumn("P27", value="?grouping")
+        self.assertEqual(column.get_key(), "P27/?grouping/S*")
+
+    def test_get_filter_for_info(self):
+        result = self.column.get_filter_for_info()
+        expected = """
+    ?entity p:P27 ?_s . ?_s ps:P27 wd:Q142 .
+    FILTER NOT EXISTS {
+      ?entity p:P27 ?_unreferenced_stmt .
+      ?_unreferenced_stmt ps:P27 wd:Q142 .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_info_grouping(self):
+        column = ReferenceColumn("P27", value="?grouping")
+        result = column.get_filter_for_info()
+        expected = """
+    ?entity p:P27 ?_s . ?_s ps:P27 ?grouping .
+    FILTER NOT EXISTS {
+      ?entity p:P27 ?_unreferenced_stmt .
+      ?_unreferenced_stmt ps:P27 ?grouping .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    }"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_positive_query(self):
+        result = self.column.get_filter_for_positive_query()
+        expected = """
+  ?entity p:P27 ?statement .
+  ?statement ps:P27 ?value .
+  ?statement ps:P27 wd:Q142 .
+  FILTER NOT EXISTS {
+    ?entity p:P27 ?_unreferenced_stmt .
+    ?_unreferenced_stmt ps:P27 wd:Q142 .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_negative_query(self):
+        result = self.column.get_filter_for_negative_query()
+        expected = """
+  OPTIONAL {
+    ?entity p:P27 ?_unreferenced_stmt .
+    ?_unreferenced_stmt ps:P27 wd:Q142 .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+  }
+  OPTIONAL { ?entity p:P27 ?_any_stmt .
+    ?_any_stmt ps:P27 wd:Q142 . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+"""
+        self.assertEqual(result, expected)
+
+    def test_equality(self):
+        col1 = ReferenceColumn("P27", value="Q142")
+        col2 = ReferenceColumn("P27", value="Q142")
+        col3 = ReferenceColumn("P27", value="Q183")
+        col4 = ReferenceColumn("P27")
         self.assertEqual(col1, col2)
         self.assertNotEqual(col1, col3)
         self.assertNotEqual(col1, col4)

@@ -23,19 +23,36 @@ class ColumnMaker:
         if key.startswith("P"):
             splitted = key.split("/")
             if splitted[-1].startswith("S"):
-                if len(splitted) != 2:
+                if len(splitted) == 2:
+                    value = None
+                elif len(splitted) == 3:
+                    value = splitted[1]
+                    if value.startswith("P"):
+                        raise ColumnSyntaxException(
+                            "References on qualified statements "
+                            "(e.g. P123/P789/S*) are not yet supported"
+                        )
+                    if value.startswith("?") and value != "?grouping":
+                        raise ColumnSyntaxException(
+                            "Only ?grouping is supported as a variable value, got %s"
+                            % value
+                        )
+                else:
                     raise ColumnSyntaxException(
                         "References on qualified statements "
                         "(e.g. P123/P789/S*) are not yet supported"
                     )
                 reference_syntax = splitted[-1]
                 if reference_syntax == "S*":
-                    return ReferenceColumn(property=splitted[0], title=title)
+                    return ReferenceColumn(
+                        property=splitted[0], title=title, value=value
+                    )
                 if reference_syntax[1:].isdigit():
                     reference_property = "P" + reference_syntax[1:]
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
+                        value=value,
                         reference_check=PropertyReferenceCheck(reference_property),
                     )
                 raise ColumnSyntaxException(
@@ -337,17 +354,31 @@ class PropertyReferenceCheck(ReferenceCheck):
 class ReferenceColumn(PropertyColumn):
     """Column tracking whether all statements for a property are referenced."""
 
-    def __init__(self, property, title=None, reference_check=None):
+    def __init__(self, property, title=None, reference_check=None, value=None):
         super().__init__(property, title)
         if reference_check is None:
             reference_check = AnyReferenceCheck()
         self.reference_check = reference_check
+        self.value = value
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.reference_check == other.reference_check
+        return (
+            super().__eq__(other)
+            and self.reference_check == other.reference_check
+            and self.value == other.value
+        )
+
+    def _value_constraint(self, stmt_var):
+        """SPARQL triple restricting a statement variable to a specific value, or None."""
+        if not self.value:
+            return None
+        value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
+        return f"{stmt_var} ps:{self.property} {value_ref} ."
 
     def get_key(self):
-        return f"{self.property}/{self.reference_check.key_suffix()}"
+        return "/".join(
+            filter(None, [self.property, self.value, self.reference_check.key_suffix()])
+        )
 
     def get_listeria_key(self):
         return self.property
@@ -365,41 +396,59 @@ class ReferenceColumn(PropertyColumn):
 
     def get_filter_for_info(self):
         ref_pattern = self.reference_check.sparql_pattern()
+        has_value_pattern = self._value_constraint("?_s")
+        if has_value_pattern:
+            outer_pattern = f"?entity p:{self.property} ?_s . {has_value_pattern}"
+        else:
+            outer_pattern = f"?entity p:{self.property} [] ."
+        vc = self._value_constraint("?_unreferenced_stmt")
+        value_line = f"\n      {vc}" if vc else ""
         return f"""
-    ?entity p:{self.property} [] .
+    {outer_pattern}
     FILTER NOT EXISTS {{
-      ?entity p:{self.property} ?_unreferenced_stmt .
+      ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
       FILTER NOT EXISTS {{ {ref_pattern} }}
     }}"""
 
     def get_filter_for_positive_query(self):
         ref_pattern = self.reference_check.sparql_pattern()
+        vc = self._value_constraint("?_unreferenced_stmt")
+        value_line = f"\n    {vc}" if vc else ""
+        if self.value:
+            vc_statement = self._value_constraint("?statement")
+            statement_value = f"\n  {vc_statement}"
+        else:
+            statement_value = ""
         return f"""
   ?entity p:{self.property} ?statement .
-  ?statement ps:{self.property} ?value .
+  ?statement ps:{self.property} ?value .{statement_value}
   FILTER NOT EXISTS {{
-    ?entity p:{self.property} ?_unreferenced_stmt .
+    ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
     FILTER NOT EXISTS {{ {ref_pattern} }}
   }}
 """
 
     def get_filter_for_negative_query(self):
-        # Matches items that either lack the property entirely,
+        # Matches items that either lack the property (or specific value) entirely,
         # or have at least one unreferenced statement:
         # - First OPTIONAL binds ?_unreferenced_stmt only if an unreferenced statement exists
-        # - Second OPTIONAL binds ?_any_stmt if any statement exists at all
-        # - FILTER keeps the item if ?_any_stmt is unbound (no property)
+        # - Second OPTIONAL binds ?_any_stmt if any matching statement exists at all
+        # - FILTER keeps the item if ?_any_stmt is unbound (no property/value)
         #   or ?_unreferenced_stmt is bound (has an unreferenced statement)
         #
         # This avoids nested EXISTS inside OR (broken on WDQS)
         # and bare FILTER in UNION branches (broken on QLever).
         ref_pattern = self.reference_check.sparql_pattern()
+        vc_unreferenced = self._value_constraint("?_unreferenced_stmt")
+        unreferenced_value_line = f"\n    {vc_unreferenced}" if vc_unreferenced else ""
+        vc_any = self._value_constraint("?_any_stmt")
+        any_value_line = f"\n    {vc_any}" if vc_any else ""
         return f"""
   OPTIONAL {{
-    ?entity p:{self.property} ?_unreferenced_stmt .
+    ?entity p:{self.property} ?_unreferenced_stmt .{unreferenced_value_line}
     FILTER NOT EXISTS {{ {ref_pattern} }}
   }}
-  OPTIONAL {{ ?entity p:{self.property} ?_any_stmt . }}
+  OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line} }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
 

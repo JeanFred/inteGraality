@@ -4,6 +4,7 @@
 
 import json
 import os
+from abc import ABC, abstractmethod
 
 from .sparql_utils import get_label_for_variable
 
@@ -256,11 +257,56 @@ class QualifierColumn(PropertyColumn):
 """
 
 
+class ReferenceCheck(ABC):
+    """Base class for reference check strategies."""
+
+    @abstractmethod
+    def sparql_pattern(self):
+        """SPARQL pattern (using ?_unreferenced_stmt) that is true when referenced."""
+
+    @abstractmethod
+    def key_suffix(self):
+        """Suffix for the column key (e.g. 'S*', 'S248')."""
+
+    @abstractmethod
+    def column_label_suffix(self):
+        """Wikitext suffix appended after the property template in the column header."""
+
+    @abstractmethod
+    def format_html_label(self, prop_link):
+        """HTML label for the queries page, given the property link."""
+
+
+class AnyReferenceCheck(ReferenceCheck):
+    """S* − statement has any reference (prov:wasDerivedFrom)."""
+
+    def __eq__(self, other):
+        return isinstance(other, AnyReferenceCheck)
+
+    def sparql_pattern(self):
+        return "?_unreferenced_stmt prov:wasDerivedFrom []"
+
+    def key_suffix(self):
+        return "S*"
+
+    def column_label_suffix(self):
+        return "📚"
+
+    def format_html_label(self, prop_link):
+        return f"{prop_link} referenced"
+
+
 class ReferenceColumn(PropertyColumn):
     """Column tracking whether all statements for a property are referenced."""
 
+    def __init__(self, property, title=None, reference_check=None):
+        super().__init__(property, title)
+        if reference_check is None:
+            reference_check = AnyReferenceCheck()
+        self.reference_check = reference_check
+
     def get_key(self):
-        return f"{self.property}/S*"
+        return f"{self.property}/{self.reference_check.key_suffix()}"
 
     def get_listeria_key(self):
         return self.property
@@ -269,28 +315,30 @@ class ReferenceColumn(PropertyColumn):
         return "reference"
 
     def format_html_snippet(self):
-        return f"{super().format_html_snippet()} referenced"
+        return self.reference_check.format_html_label(super().format_html_snippet())
 
     def get_column_label(self):
         if self.title:
             return super().get_column_label()
-        return f"{{{{Property|{self.property}}}}}📚"
+        return f"{{{{Property|{self.property}}}}}{self.reference_check.column_label_suffix()}"
 
     def get_filter_for_info(self):
+        ref_pattern = self.reference_check.sparql_pattern()
         return f"""
     ?entity p:{self.property} [] .
     FILTER NOT EXISTS {{
       ?entity p:{self.property} ?_unreferenced_stmt .
-      FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+      FILTER NOT EXISTS {{ {ref_pattern} }}
     }}"""
 
     def get_filter_for_positive_query(self):
+        ref_pattern = self.reference_check.sparql_pattern()
         return f"""
   ?entity p:{self.property} ?statement .
   ?statement ps:{self.property} ?value .
   FILTER NOT EXISTS {{
     ?entity p:{self.property} ?_unreferenced_stmt .
-    FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+    FILTER NOT EXISTS {{ {ref_pattern} }}
   }}
 """
 
@@ -304,10 +352,11 @@ class ReferenceColumn(PropertyColumn):
         #
         # This avoids nested EXISTS inside OR (broken on WDQS)
         # and bare FILTER in UNION branches (broken on QLever).
+        ref_pattern = self.reference_check.sparql_pattern()
         return f"""
   OPTIONAL {{
     ?entity p:{self.property} ?_unreferenced_stmt .
-    FILTER NOT EXISTS {{ ?_unreferenced_stmt prov:wasDerivedFrom [] }}
+    FILTER NOT EXISTS {{ {ref_pattern} }}
   }}
   OPTIONAL {{ ?entity p:{self.property} ?_any_stmt . }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))

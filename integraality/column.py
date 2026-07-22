@@ -268,6 +268,9 @@ class ReferenceColumn(PropertyColumn):
     def get_type_name(self):
         return "reference"
 
+    def format_html_snippet(self):
+        return f"{super().format_html_snippet()} referenced"
+
     def get_column_label(self):
         if self.title:
             return super().get_column_label()

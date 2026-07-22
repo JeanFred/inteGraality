@@ -498,7 +498,7 @@ class TestReferenceColumn(PropertyStatisticsTest):
 
     def test_format_html_snippet(self):
         result = self.column.format_html_snippet()
-        expected = '<a href="https://wikidata.org/wiki/Property:P19">P19</a>'
+        expected = '<a href="https://wikidata.org/wiki/Property:P19">P19</a> referenced'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):

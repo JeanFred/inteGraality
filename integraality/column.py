@@ -29,12 +29,19 @@ class ColumnMaker:
                         "(e.g. P123/P789/S*) are not yet supported"
                     )
                 reference_syntax = splitted[-1]
-                if reference_syntax != "S*":
-                    raise ColumnSyntaxException(
-                        f"Unsupported reference syntax: {reference_syntax} "
-                        f"(only S* is currently supported)"
+                if reference_syntax == "S*":
+                    return ReferenceColumn(property=splitted[0], title=title)
+                if reference_syntax[1:].isdigit():
+                    reference_property = "P" + reference_syntax[1:]
+                    return ReferenceColumn(
+                        property=splitted[0],
+                        title=title,
+                        reference_check=PropertyReferenceCheck(reference_property),
                     )
-                return ReferenceColumn(property=splitted[0], title=title)
+                raise ColumnSyntaxException(
+                    f"Unsupported reference syntax: {reference_syntax} "
+                    f"(supported: S* or S followed by digits, e.g. S248)"
+                )
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
             elif len(splitted) == 2:
@@ -284,6 +291,7 @@ class AnyReferenceCheck(ReferenceCheck):
         return isinstance(other, AnyReferenceCheck)
 
     def sparql_pattern(self):
+        """SPARQL pattern that is true when the statement IS referenced."""
         return "?_unreferenced_stmt prov:wasDerivedFrom []"
 
     def key_suffix(self):
@@ -296,6 +304,36 @@ class AnyReferenceCheck(ReferenceCheck):
         return f"{prop_link} referenced"
 
 
+class PropertyReferenceCheck(ReferenceCheck):
+    """S248 − statement has a reference using a specific property."""
+
+    def __init__(self, property):
+        self.property = property
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, PropertyReferenceCheck)
+            and self.property == other.property
+        )
+
+    def sparql_pattern(self):
+        """SPARQL pattern that is true when the statement has a ref with this property."""
+        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.property} []"
+
+    def key_suffix(self):
+        return f"S{self.property[1:]}"
+
+    def column_label_suffix(self):
+        return f"📚{{{{Property|{self.property}}}}}"
+
+    def format_html_label(self, prop_link):
+        ref_link = (
+            f'<a href="https://wikidata.org/wiki/Property:{self.property}">'
+            f"{self.property}</a>"
+        )
+        return f"{prop_link} referenced with {ref_link}"
+
+
 class ReferenceColumn(PropertyColumn):
     """Column tracking whether all statements for a property are referenced."""
 
@@ -304,6 +342,9 @@ class ReferenceColumn(PropertyColumn):
         if reference_check is None:
             reference_check = AnyReferenceCheck()
         self.reference_check = reference_check
+
+    def __eq__(self, other):
+        return super().__eq__(other) and self.reference_check == other.reference_check
 
     def get_key(self):
         return f"{self.property}/{self.reference_check.key_suffix()}"

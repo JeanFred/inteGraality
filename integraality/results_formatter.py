@@ -40,7 +40,8 @@ class ResultsFormatter:
         text = '{| class="wikitable sortable"\n'
         colspan = 3 if self.grouping_configuration.higher_grouping else 2
         text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_configuration.grouping_threshold} items)\n'
-        text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'
+        if self.columns:
+            text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'
         text += "|-\n"
 
         if self.grouping_configuration.higher_grouping:

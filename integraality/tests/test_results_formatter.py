@@ -69,6 +69,22 @@ class TestFormatHeader(ResultsFormatterTest):
         )
         self.assertEqual(result, expected)
 
+    def test_format_header_no_columns(self):
+        formatter = ResultsFormatter(
+            columns={},
+            grouping_configuration=self.grouping_configuration,
+            property_threshold=0,
+        )
+        result = formatter._format_header()
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            "|-\n"
+            "! Name\n"
+            "! Count\n"
+        )
+        self.assertEqual(result, expected)
+
 
 class TestFormatGrouping(ResultsFormatterTest):
     def test_format_grouping(self):
@@ -404,6 +420,42 @@ class TestFormatReport(ResultsFormatterTest):
             "| 10 \n"
             "| {{Integraality cell|80.0|8|column=P21|grouping=Q123}}\n"
             "| {{Integraality cell|60.0|6|column=enwiki|grouping=Q123}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_report_no_columns(self):
+        """Test formatting with no columns hides the Top Properties header."""
+        formatter = ResultsFormatter(
+            columns={},
+            grouping_configuration=self.grouping_configuration,
+            property_threshold=0,
+        )
+
+        grouping1 = ItemGrouping(title="Q46", count=6124)
+        grouping2 = ItemGrouping(title="Q49", count=1683)
+        no_group = NoGroupGrouping(count=26)
+        totals = TotalsGrouping(count=9744, title="")
+
+        result = formatter.format_report([grouping1, grouping2, no_group, totals])
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            "|-\n"
+            "! Name\n"
+            "! Count\n"
+            "|-\n"
+            "| {{Q|Q46}}\n"
+            "| 6124 \n"
+            "|-\n"
+            "| {{Q|Q49}}\n"
+            "| 1683 \n"
+            "|-\n"
+            "| No grouping\n"
+            "| 26 \n"
+            '|- class="sortbottom"\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            "| 9744 \n"
             "|}\n"
         )
         self.assertEqual(result, expected)

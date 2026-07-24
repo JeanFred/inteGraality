@@ -101,6 +101,7 @@ class PropertyStatistics:
 
         query = "\n"
         query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
+        query += line.grouping_bind(grouping)
         query += column.get_filter_for_positive_query()
         query += column.get_variable_labels_for_positive_query()
         query += """}
@@ -113,6 +114,7 @@ class PropertyStatistics:
 
         query = "\n"
         query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
+        query += line.grouping_bind(grouping)
         query += column.get_filter_for_negative_query()
         query += column.get_variable_labels_for_negative_query()
         query += """}

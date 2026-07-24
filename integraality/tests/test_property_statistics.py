@@ -284,6 +284,7 @@ class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -378,6 +379,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br").
@@ -447,6 +449,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P577 ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
+  BIND(2006 AS ?grouping) .
   ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -478,6 +481,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?sitelink schema:about ?entity;
     schema:isPartOf <https://br.wikipedia.org/>;
     schema:name ?value.
@@ -511,6 +515,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P1 ?statement .
   { ?statement pq:P2 ?value . }
   UNION
@@ -545,6 +550,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P3 ?statement .
   ?statement ps:P3 wd:Q4 .
   { ?statement pq:P5 ?value . }
@@ -585,6 +591,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P166 ?statement .
   ?statement ps:P166 ?grouping .
   { ?statement pq:P585 ?value . }
@@ -707,6 +714,7 @@ SELECT (COUNT(*) as ?count) WHERE {
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
   ?statement ps:P21 ?value .
   FILTER NOT EXISTS {
@@ -743,6 +751,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
     ?entity p:P21 ?_unreferenced_stmt .
     FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
@@ -801,6 +810,7 @@ class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?statement .}
@@ -877,6 +887,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     { ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br") }
@@ -940,6 +951,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P577 ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
+  BIND(2006 AS ?grouping) .
   MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?statement .}
@@ -965,6 +977,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
@@ -990,6 +1003,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     ?entity p:P1 ?statement .
     { ?statement pq:P2 ?value . }
@@ -1017,6 +1031,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     ?entity p:P3 ?statement .
     ?statement ps:P3 wd:Q4 .
@@ -1050,6 +1065,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
     ?entity p:P166 ?statement .
     ?statement ps:P166 ?grouping .

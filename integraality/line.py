@@ -100,6 +100,10 @@ class Grouping(AbstractLine):
     def query_filter_out_fragment(self, grouping_predicate=None, grouping=None):
         return []
 
+    def grouping_bind(self, grouping):
+        """SPARQL BIND for ?grouping in drill-down queries. Override in subclasses."""
+        return ""
+
     def negative_query(self, selector_sparql, grouping_predicate=None, grouping=None):
         query = []
         query.extend(
@@ -184,6 +188,9 @@ class ItemGrouping(Grouping):
     def query_filter_out_fragment(self, grouping_predicate, grouping):
         return [f"  ?entity {grouping_predicate} wd:{grouping} ."]
 
+    def grouping_bind(self, grouping):
+        return f"\n  BIND(wd:{grouping} AS ?grouping) ."
+
 
 class SitelinkGrouping(Grouping):
     def heading(self):
@@ -239,6 +246,9 @@ class YearGrouping(Grouping):
             f"  BIND({self.bind_expression} as ?year).",
             f"  FILTER(?year = {grouping}).",
         ]
+
+    def grouping_bind(self, grouping):
+        return f"\n  BIND({grouping} AS ?grouping) ."
 
 
 class UnknownValueGrouping(Grouping):

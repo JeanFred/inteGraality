@@ -47,6 +47,13 @@ class ColumnMaker:
                     return ReferenceColumn(
                         property=splitted[0], title=title, value=value
                     )
+                if reference_syntax == "S!":
+                    return ReferenceColumn(
+                        property=splitted[0],
+                        title=title,
+                        value=value,
+                        reference_check=GoodReferenceCheck(),
+                    )
                 if reference_syntax[1:].isdigit():
                     reference_property = "P" + reference_syntax[1:]
                     return ReferenceColumn(
@@ -57,7 +64,7 @@ class ColumnMaker:
                     )
                 raise ColumnSyntaxException(
                     f"Unsupported reference syntax: {reference_syntax} "
-                    f"(supported: S* or S followed by digits, e.g. S248)"
+                    f"(supported: S*, S!, or S followed by digits, e.g. S248)"
                 )
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
@@ -349,6 +356,31 @@ class PropertyReferenceCheck(ReferenceCheck):
             f"{self.property}</a>"
         )
         return f"{prop_link} referenced with {ref_link}"
+
+
+class GoodReferenceCheck(ReferenceCheck):
+    """S! − statement has a reference that is not from a known-subpar source."""
+
+    BAD_PROPERTIES = ["P143", "P3452", "P887"]
+
+    def __eq__(self, other):
+        return isinstance(other, GoodReferenceCheck)
+
+    def sparql_pattern(self):
+        """SPARQL pattern: ref exists and none of the subpar properties are used."""
+        lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
+        for prop in self.BAD_PROPERTIES:
+            lines.append(f"FILTER NOT EXISTS {{ ?_ref pr:{prop} [] }}")
+        return "\n      ".join(lines)
+
+    def key_suffix(self):
+        return "S!"
+
+    def column_label_suffix(self):
+        return "📚✓"
+
+    def format_html_label(self, prop_link):
+        return f"{prop_link} well-referenced"
 
 
 class ReferenceColumn(PropertyColumn):

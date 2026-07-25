@@ -7,6 +7,7 @@ from ..column import (
     ColumnMaker,
     ColumnSyntaxException,
     DescriptionColumn,
+    GoodReferenceCheck,
     LabelColumn,
     PropertyColumn,
     PropertyReferenceCheck,
@@ -439,6 +440,18 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
+    def test_reference_good(self):
+        result = ColumnMaker.make("P21/S!", None)
+        expected = ReferenceColumn(property="P21", reference_check=GoodReferenceCheck())
+        self.assertEqual(result, expected)
+
+    def test_reference_good_value_scoped(self):
+        result = ColumnMaker.make("P27/Q142/S!", None)
+        expected = ReferenceColumn(
+            property="P27", value="Q142", reference_check=GoodReferenceCheck()
+        )
+        self.assertEqual(result, expected)
+
     def test_reference_unsupported_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P21/S+", None)
@@ -677,6 +690,32 @@ class TestReferenceCheckStrategies(unittest.TestCase):
 
     def test_different_checks_not_equal(self):
         self.assertNotEqual(AnyReferenceCheck(), PropertyReferenceCheck("P248"))
+        self.assertNotEqual(AnyReferenceCheck(), GoodReferenceCheck())
+        self.assertNotEqual(PropertyReferenceCheck("P248"), GoodReferenceCheck())
+
+    def test_good_reference_check_pattern(self):
+        check = GoodReferenceCheck()
+        result = check.sparql_pattern()
+        expected = (
+            "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
+            "      FILTER NOT EXISTS { ?_ref pr:P143 [] }\n"
+            "      FILTER NOT EXISTS { ?_ref pr:P3452 [] }\n"
+            "      FILTER NOT EXISTS { ?_ref pr:P887 [] }"
+        )
+        self.assertEqual(result, expected)
+
+    def test_good_reference_check_key_suffix(self):
+        self.assertEqual(GoodReferenceCheck().key_suffix(), "S!")
+
+    def test_good_reference_check_column_label_suffix(self):
+        self.assertEqual(GoodReferenceCheck().column_label_suffix(), "📚✓")
+
+    def test_good_reference_check_format_html_label(self):
+        result = GoodReferenceCheck().format_html_label("<a>P19</a>")
+        self.assertEqual(result, "<a>P19</a> well-referenced")
+
+    def test_good_reference_check_equality(self):
+        self.assertEqual(GoodReferenceCheck(), GoodReferenceCheck())
 
 
 class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
@@ -835,3 +874,67 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
         self.assertEqual(col1, col2)
         self.assertNotEqual(col1, col3)
         self.assertNotEqual(col1, col4)
+
+
+class TestReferenceColumnGood(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P19", reference_check=GoodReferenceCheck())
+
+    def test_get_key(self):
+        self.assertEqual(self.column.get_key(), "P19/S!")
+
+    def test_make_column_header(self):
+        result = self.column.make_column_header()
+        expected = '! data-sort-type="number"|{{Property|P19}}📚✓\n'
+        self.assertEqual(result, expected)
+
+    def test_format_html_snippet(self):
+        result = self.column.format_html_snippet()
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P19">P19</a> well-referenced'
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_info(self):
+        result = self.column.get_filter_for_info()
+        expected = """
+    ?entity p:P19 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P19 ?_unreferenced_stmt .
+      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      FILTER NOT EXISTS { ?_ref pr:P143 [] }
+      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+    }"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_positive_query(self):
+        result = self.column.get_filter_for_positive_query()
+        expected = """
+  ?entity p:P19 ?statement .
+  ?statement ps:P19 ?value .
+  FILTER NOT EXISTS {
+    ?entity p:P19 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      FILTER NOT EXISTS { ?_ref pr:P143 [] }
+      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+  }
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_negative_query(self):
+        result = self.column.get_filter_for_negative_query()
+        expected = """
+  OPTIONAL {
+    ?entity p:P19 ?_unreferenced_stmt .
+    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      FILTER NOT EXISTS { ?_ref pr:P143 [] }
+      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+  }
+  OPTIONAL { ?entity p:P19 ?_any_stmt . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+"""
+        self.assertEqual(result, expected)

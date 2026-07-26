@@ -371,7 +371,7 @@ class GoodReferenceCheck(ReferenceCheck):
         lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
         for prop in self.BAD_PROPERTIES:
             lines.append(f"FILTER NOT EXISTS {{ ?_ref pr:{prop} [] }}")
-        return "\n      ".join(lines)
+        return "\n".join(lines)
 
     def key_suffix(self):
         return "S!"
@@ -429,6 +429,7 @@ class ReferenceColumn(PropertyColumn):
     def get_filter_for_info(self):
         ref_pattern = self.reference_check.sparql_pattern()
         has_value_pattern = self._value_constraint("?_s")
+        indented_ref = ref_pattern.replace("\n", "\n        ")
         if has_value_pattern:
             outer_pattern = f"?entity p:{self.property} ?_s . {has_value_pattern}"
         else:
@@ -439,11 +440,14 @@ class ReferenceColumn(PropertyColumn):
     {outer_pattern}
     FILTER NOT EXISTS {{
       ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
-      FILTER NOT EXISTS {{ {ref_pattern} }}
+      FILTER NOT EXISTS {{
+        {indented_ref}
+      }}
     }}"""
 
     def get_filter_for_positive_query(self):
         ref_pattern = self.reference_check.sparql_pattern()
+        indented_ref = ref_pattern.replace("\n", "\n      ")
         vc = self._value_constraint("?_unreferenced_stmt")
         value_line = f"\n    {vc}" if vc else ""
         if self.value:
@@ -456,7 +460,9 @@ class ReferenceColumn(PropertyColumn):
   ?statement ps:{self.property} ?value .{statement_value}
   FILTER NOT EXISTS {{
     ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
-    FILTER NOT EXISTS {{ {ref_pattern} }}
+    FILTER NOT EXISTS {{
+      {indented_ref}
+    }}
   }}
 """
 
@@ -471,6 +477,7 @@ class ReferenceColumn(PropertyColumn):
         # This avoids nested EXISTS inside OR (broken on WDQS)
         # and bare FILTER in UNION branches (broken on QLever).
         ref_pattern = self.reference_check.sparql_pattern()
+        indented_ref = ref_pattern.replace("\n", "\n      ")
         vc_unreferenced = self._value_constraint("?_unreferenced_stmt")
         unreferenced_value_line = f"\n    {vc_unreferenced}" if vc_unreferenced else ""
         vc_any = self._value_constraint("?_any_stmt")
@@ -478,7 +485,9 @@ class ReferenceColumn(PropertyColumn):
         return f"""
   OPTIONAL {{
     ?entity p:{self.property} ?_unreferenced_stmt .{unreferenced_value_line}
-    FILTER NOT EXISTS {{ {ref_pattern} }}
+    FILTER NOT EXISTS {{
+      {indented_ref}
+    }}
   }}
   OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line} }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))

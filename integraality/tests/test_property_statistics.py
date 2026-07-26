@@ -663,7 +663,9 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
     ?entity p:P21 [] .
     FILTER NOT EXISTS {
       ?entity p:P21 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -684,7 +686,9 @@ SELECT (COUNT(*) AS ?count) WHERE {
     ?entity p:P21 [] .
     FILTER NOT EXISTS {
       ?entity p:P21 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -700,7 +704,9 @@ SELECT (COUNT(*) as ?count) WHERE {
     ?entity p:P21 [] .
     FILTER NOT EXISTS {
       ?entity p:P21 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -720,7 +726,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?statement ps:P21 ?value .
   FILTER NOT EXISTS {
     ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -755,7 +763,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
     ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
@@ -784,7 +794,9 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL {
     ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
@@ -823,10 +835,12 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?statement ps:P21 ?value .
   FILTER NOT EXISTS {
     ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
       FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+    }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -861,10 +875,12 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
     ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
       FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+    }
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))

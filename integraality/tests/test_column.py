@@ -560,7 +560,9 @@ SELECT (COUNT(*) as ?count) WHERE {
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
       ?entity p:P19 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -577,7 +579,9 @@ SELECT (COUNT(*) AS ?count) WHERE {
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
       ?entity p:P19 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -594,7 +598,9 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
       ?entity p:P19 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
   })
 }
@@ -612,7 +618,9 @@ LIMIT 1000
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
 """
         self.assertEqual(result, expected)
@@ -622,7 +630,9 @@ LIMIT 1000
         expected = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
@@ -698,9 +708,9 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         result = check.sparql_pattern()
         expected = (
             "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
-            "      FILTER NOT EXISTS { ?_ref pr:P143 [] }\n"
-            "      FILTER NOT EXISTS { ?_ref pr:P3452 [] }\n"
-            "      FILTER NOT EXISTS { ?_ref pr:P887 [] }"
+            "FILTER NOT EXISTS { ?_ref pr:P143 [] }\n"
+            "FILTER NOT EXISTS { ?_ref pr:P3452 [] }\n"
+            "FILTER NOT EXISTS { ?_ref pr:P887 [] }"
         )
         self.assertEqual(result, expected)
 
@@ -765,7 +775,9 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
       ?entity p:P19 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+      }
     }"""
         self.assertEqual(result, expected)
 
@@ -776,7 +788,9 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+    }
   }
 """
         self.assertEqual(result, expected)
@@ -786,7 +800,9 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
         expected = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+    }
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
@@ -822,7 +838,9 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
     FILTER NOT EXISTS {
       ?entity p:P27 ?_unreferenced_stmt .
       ?_unreferenced_stmt ps:P27 wd:Q142 .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }"""
         self.assertEqual(result, expected)
 
@@ -834,7 +852,9 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
     FILTER NOT EXISTS {
       ?entity p:P27 ?_unreferenced_stmt .
       ?_unreferenced_stmt ps:P27 ?grouping .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }"""
         self.assertEqual(result, expected)
 
@@ -847,7 +867,9 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
   FILTER NOT EXISTS {
     ?entity p:P27 ?_unreferenced_stmt .
     ?_unreferenced_stmt ps:P27 wd:Q142 .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
 """
         self.assertEqual(result, expected)
@@ -858,7 +880,9 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
   OPTIONAL {
     ?entity p:P27 ?_unreferenced_stmt .
     ?_unreferenced_stmt ps:P27 wd:Q142 .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom [] }
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
   }
   OPTIONAL { ?entity p:P27 ?_any_stmt .
     ?_any_stmt ps:P27 wd:Q142 . }
@@ -902,10 +926,12 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
       ?entity p:P19 ?_unreferenced_stmt .
-      FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      FILTER NOT EXISTS { ?_ref pr:P143 [] }
-      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        FILTER NOT EXISTS { ?_ref pr:P143 [] }
+        FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+        FILTER NOT EXISTS { ?_ref pr:P887 [] }
+      }
     }"""
         self.assertEqual(result, expected)
 
@@ -916,10 +942,12 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
       FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+    }
   }
 """
         self.assertEqual(result, expected)
@@ -929,10 +957,12 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
         expected = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
-    FILTER NOT EXISTS { ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
       FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] } }
+      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+    }
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))

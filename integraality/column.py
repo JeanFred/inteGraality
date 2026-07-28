@@ -62,9 +62,25 @@ class ColumnMaker:
                         value=value,
                         reference_check=PropertyReferenceCheck([reference_property]),
                     )
+                if ";" in reference_syntax:
+                    parts = reference_syntax.split(";")
+                    properties = []
+                    for part in parts:
+                        if not part.startswith("S") or not part[1:].isdigit():
+                            raise ColumnSyntaxException(
+                                f"Invalid reference property in list: {part}"
+                            )
+                        properties.append("P" + part[1:])
+                    return ReferenceColumn(
+                        property=splitted[0],
+                        title=title,
+                        value=value,
+                        reference_check=PropertyReferenceCheck(properties),
+                    )
                 raise ColumnSyntaxException(
                     f"Unsupported reference syntax: {reference_syntax} "
-                    f"(supported: S*, S!, or S followed by digits, e.g. S248)"
+                    f"(supported: S*, S!, S followed by digits, "
+                    f"or semicolon-separated e.g. S248;S854)"
                 )
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
@@ -329,7 +345,7 @@ class AnyReferenceCheck(ReferenceCheck):
 
 
 class PropertyReferenceCheck(ReferenceCheck):
-    """S248 − statement has a reference using a specific property."""
+    """S248 or S248;S854 − statement has a reference using one of the specified properties."""
 
     def __init__(self, properties):
         self.properties = properties
@@ -341,21 +357,27 @@ class PropertyReferenceCheck(ReferenceCheck):
         )
 
     def sparql_pattern(self):
-        """SPARQL pattern that is true when the statement has a ref with this property."""
-        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.properties[0]} []"
+        """SPARQL pattern that is true when the statement has a ref with any of the properties."""
+        if len(self.properties) == 1:
+            return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.properties[0]} []"
+        lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
+        union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
+        lines.append(" UNION ".join(union_parts))
+        return "\n".join(lines)
 
     def key_suffix(self):
-        return f"S{self.properties[0][1:]}"
+        return ";".join(f"S{prop[1:]}" for prop in self.properties)
 
     def column_label_suffix(self):
-        return f"📚{{{{Property|{self.properties[0]}}}}}"
+        props = "/".join(f"{{{{Property|{prop}}}}}" for prop in self.properties)
+        return f"📚{props}"
 
     def format_html_label(self, prop_link):
-        ref_link = (
-            f'<a href="https://wikidata.org/wiki/Property:{self.properties[0]}">'
-            f"{self.properties[0]}</a>"
-        )
-        return f"{prop_link} referenced with {ref_link}"
+        ref_links = [
+            f'<a href="https://wikidata.org/wiki/Property:{prop}">{prop}</a>'
+            for prop in self.properties
+        ]
+        return f"{prop_link} referenced with {' / '.join(ref_links)}"
 
 
 class GoodReferenceCheck(ReferenceCheck):

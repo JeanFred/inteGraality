@@ -452,6 +452,26 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
+    def test_reference_multiple_properties(self):
+        result = ColumnMaker.make("P21/S248;S854", None)
+        expected = ReferenceColumn(
+            property="P21",
+            reference_check=PropertyReferenceCheck(["P248", "P854"]),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_multiple_properties_three(self):
+        result = ColumnMaker.make("P21/S248;S854;S813", None)
+        expected = ReferenceColumn(
+            property="P21",
+            reference_check=PropertyReferenceCheck(["P248", "P854", "P813"]),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_multiple_properties_invalid_part(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P21/S248;Sabc", None)
+
     def test_reference_unsupported_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P21/S+", None)
@@ -699,6 +719,46 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         self.assertNotEqual(
             PropertyReferenceCheck(["P248"]), PropertyReferenceCheck(["P854"])
         )
+        self.assertEqual(
+            PropertyReferenceCheck(["P248", "P854"]),
+            PropertyReferenceCheck(["P248", "P854"]),
+        )
+        self.assertNotEqual(
+            PropertyReferenceCheck(["P248", "P854"]),
+            PropertyReferenceCheck(["P248"]),
+        )
+
+    def test_property_reference_check_multi_pattern(self):
+        check = PropertyReferenceCheck(["P248", "P854"])
+        result = check.sparql_pattern()
+        expected = (
+            "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
+            "{ ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }"
+        )
+        self.assertEqual(result, expected)
+
+    def test_property_reference_check_multi_key_suffix(self):
+        self.assertEqual(
+            PropertyReferenceCheck(["P248", "P854"]).key_suffix(), "S248;S854"
+        )
+
+    def test_property_reference_check_multi_column_label_suffix(self):
+        self.assertEqual(
+            PropertyReferenceCheck(["P248", "P854"]).column_label_suffix(),
+            "📚{{Property|P248}}/{{Property|P854}}",
+        )
+
+    def test_property_reference_check_multi_format_html_label(self):
+        result = PropertyReferenceCheck(["P248", "P854"]).format_html_label(
+            "<a>P19</a>"
+        )
+        expected = (
+            "<a>P19</a> referenced with "
+            '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
+            " / "
+            '<a href="https://wikidata.org/wiki/Property:P854">P854</a>'
+        )
+        self.assertEqual(result, expected)
 
     def test_different_checks_not_equal(self):
         self.assertNotEqual(AnyReferenceCheck(), PropertyReferenceCheck(["P248"]))

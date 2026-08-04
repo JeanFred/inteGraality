@@ -25,12 +25,26 @@ class ColumnMaker:
             if splitted[-1].startswith("S"):
                 if len(splitted) == 2:
                     value = None
+                    qualifier = None
                 elif len(splitted) == 3:
+                    middle = splitted[1]
+                    if middle.startswith("P"):
+                        value = None
+                        qualifier = middle
+                    else:
+                        value = middle
+                        qualifier = None
+                        if value.startswith("?") and value != "?grouping":
+                            raise ColumnSyntaxException(
+                                "Only ?grouping is supported as a variable value,"
+                                " got %s" % value
+                            )
+                elif len(splitted) == 4:
                     value = splitted[1]
-                    if value.startswith("P"):
+                    qualifier = splitted[2]
+                    if not qualifier.startswith("P"):
                         raise ColumnSyntaxException(
-                            "References on qualified statements "
-                            "(e.g. P123/P789/S*) are not yet supported"
+                            f"Expected qualifier property, got {qualifier}"
                         )
                     if value.startswith("?") and value != "?grouping":
                         raise ColumnSyntaxException(
@@ -39,19 +53,22 @@ class ColumnMaker:
                         )
                 else:
                     raise ColumnSyntaxException(
-                        "References on qualified statements "
-                        "(e.g. P123/P789/S*) are not yet supported"
+                        f"Too many parts in reference column syntax: {key}"
                     )
                 reference_syntax = splitted[-1]
                 if reference_syntax == "S*":
                     return ReferenceColumn(
-                        property=splitted[0], title=title, value=value
+                        property=splitted[0],
+                        title=title,
+                        value=value,
+                        qualifier=qualifier,
                     )
                 if reference_syntax == "S!":
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
                         value=value,
+                        qualifier=qualifier,
                         reference_check=GoodReferenceCheck(),
                     )
                 if reference_syntax[1:].isdigit():
@@ -60,6 +77,7 @@ class ColumnMaker:
                         property=splitted[0],
                         title=title,
                         value=value,
+                        qualifier=qualifier,
                         reference_check=PropertyReferenceCheck([reference_property]),
                     )
                 if ";" in reference_syntax:
@@ -75,6 +93,7 @@ class ColumnMaker:
                         property=splitted[0],
                         title=title,
                         value=value,
+                        qualifier=qualifier,
                         reference_check=PropertyReferenceCheck(properties),
                     )
                 raise ColumnSyntaxException(
@@ -408,18 +427,22 @@ class GoodReferenceCheck(ReferenceCheck):
 class ReferenceColumn(PropertyColumn):
     """Column tracking whether all statements for a property are referenced."""
 
-    def __init__(self, property, title=None, reference_check=None, value=None):
+    def __init__(
+        self, property, title=None, reference_check=None, value=None, qualifier=None
+    ):
         super().__init__(property, title)
         if reference_check is None:
             reference_check = AnyReferenceCheck()
         self.reference_check = reference_check
         self.value = value
+        self.qualifier = qualifier
 
     def __eq__(self, other):
         return (
             super().__eq__(other)
             and self.reference_check == other.reference_check
             and self.value == other.value
+            and self.qualifier == other.qualifier
         )
 
     def _value_constraint(self, stmt_var):
@@ -429,9 +452,23 @@ class ReferenceColumn(PropertyColumn):
         value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
         return f"{stmt_var} ps:{self.property} {value_ref} ."
 
+    def _qualifier_constraint(self, stmt_var):
+        """SPARQL triple restricting a statement variable to having a qualifier, or None."""
+        if not self.qualifier:
+            return None
+        return f"{stmt_var} pq:{self.qualifier} [] ."
+
     def get_key(self):
         return "/".join(
-            filter(None, [self.property, self.value, self.reference_check.key_suffix()])
+            filter(
+                None,
+                [
+                    self.property,
+                    self.value,
+                    self.qualifier,
+                    self.reference_check.key_suffix(),
+                ],
+            )
         )
 
     def get_listeria_key(self):
@@ -441,27 +478,51 @@ class ReferenceColumn(PropertyColumn):
         return "reference"
 
     def format_html_snippet(self):
-        return self.reference_check.format_html_label(super().format_html_snippet())
+        prop_link = (
+            f'<a href="https://wikidata.org/wiki/Property:{self.property}">'
+            f"{self.property}</a>"
+        )
+        parts = [prop_link]
+        if self.value:
+            value_ref = self.value if self.value.startswith("?") else self.value
+            parts.append(f"= {value_ref}")
+        if self.qualifier:
+            qualifier_link = (
+                f'<a href="https://wikidata.org/wiki/Property:{self.qualifier}">'
+                f"{self.qualifier}</a>"
+            )
+            parts.append(f"qualifier {qualifier_link}")
+        base = " ".join(parts)
+        return self.reference_check.format_html_label(base)
 
     def get_column_label(self):
         if self.title:
             return super().get_column_label()
-        return f"{{{{Property|{self.property}}}}}{self.reference_check.column_label_suffix()}"
+        display_property = self.qualifier if self.qualifier else self.property
+        return f"{{{{Property|{display_property}}}}}{self.reference_check.column_label_suffix()}"
 
     def get_filter_for_info(self):
         ref_pattern = self.reference_check.sparql_pattern()
         has_value_pattern = self._value_constraint("?_s")
+        has_qualifier_pattern = self._qualifier_constraint("?_s")
         indented_ref = ref_pattern.replace("\n", "\n        ")
-        if has_value_pattern:
-            outer_pattern = f"?entity p:{self.property} ?_s . {has_value_pattern}"
+        if has_value_pattern or has_qualifier_pattern:
+            parts = [f"?entity p:{self.property} ?_s ."]
+            if has_value_pattern:
+                parts.append(has_value_pattern)
+            if has_qualifier_pattern:
+                parts.append(has_qualifier_pattern)
+            outer_pattern = "\n    ".join(parts)
         else:
             outer_pattern = f"?entity p:{self.property} [] ."
         vc = self._value_constraint("?_unreferenced_stmt")
         value_line = f"\n      {vc}" if vc else ""
+        qc = self._qualifier_constraint("?_unreferenced_stmt")
+        qualifier_line = f"\n      {qc}" if qc else ""
         return f"""
     {outer_pattern}
     FILTER NOT EXISTS {{
-      ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
+      ?entity p:{self.property} ?_unreferenced_stmt .{value_line}{qualifier_line}
       FILTER NOT EXISTS {{
         {indented_ref}
       }}
@@ -472,16 +533,23 @@ class ReferenceColumn(PropertyColumn):
         indented_ref = ref_pattern.replace("\n", "\n      ")
         vc = self._value_constraint("?_unreferenced_stmt")
         value_line = f"\n    {vc}" if vc else ""
+        qc = self._qualifier_constraint("?_unreferenced_stmt")
+        qualifier_line = f"\n    {qc}" if qc else ""
         if self.value:
             vc_statement = self._value_constraint("?statement")
             statement_value = f"\n  {vc_statement}"
         else:
             statement_value = ""
+        if self.qualifier:
+            qc_statement = self._qualifier_constraint("?statement")
+            statement_qualifier = f"\n  {qc_statement}"
+        else:
+            statement_qualifier = ""
         return f"""
   ?entity p:{self.property} ?statement .
-  ?statement ps:{self.property} ?value .{statement_value}
+  ?statement ps:{self.property} ?value .{statement_value}{statement_qualifier}
   FILTER NOT EXISTS {{
-    ?entity p:{self.property} ?_unreferenced_stmt .{value_line}
+    ?entity p:{self.property} ?_unreferenced_stmt .{value_line}{qualifier_line}
     FILTER NOT EXISTS {{
       {indented_ref}
     }}
@@ -502,16 +570,22 @@ class ReferenceColumn(PropertyColumn):
         indented_ref = ref_pattern.replace("\n", "\n      ")
         vc_unreferenced = self._value_constraint("?_unreferenced_stmt")
         unreferenced_value_line = f"\n    {vc_unreferenced}" if vc_unreferenced else ""
+        qc_unreferenced = self._qualifier_constraint("?_unreferenced_stmt")
+        unreferenced_qualifier_line = (
+            f"\n    {qc_unreferenced}" if qc_unreferenced else ""
+        )
         vc_any = self._value_constraint("?_any_stmt")
         any_value_line = f"\n    {vc_any}" if vc_any else ""
+        qc_any = self._qualifier_constraint("?_any_stmt")
+        any_qualifier_line = f"\n    {qc_any}" if qc_any else ""
         return f"""
   OPTIONAL {{
-    ?entity p:{self.property} ?_unreferenced_stmt .{unreferenced_value_line}
+    ?entity p:{self.property} ?_unreferenced_stmt .{unreferenced_value_line}{unreferenced_qualifier_line}
     FILTER NOT EXISTS {{
       {indented_ref}
     }}
   }}
-  OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line} }}
+  OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line}{any_qualifier_line} }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
 

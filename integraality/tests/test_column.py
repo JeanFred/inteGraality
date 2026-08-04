@@ -503,13 +503,38 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P27/?foo/S*", None)
 
-    def test_reference_on_qualifier_not_supported(self):
-        with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make("P123/P789/S*", None)
+    def test_reference_on_qualifier(self):
+        result = ColumnMaker.make("P123/P789/S*", None)
+        expected = ReferenceColumn(property="P123", qualifier="P789")
+        self.assertEqual(result, expected)
 
-    def test_reference_on_qualifier_with_value_not_supported(self):
+    def test_reference_on_qualifier_with_value(self):
+        result = ColumnMaker.make("P123/Q456/P789/S*", None)
+        expected = ReferenceColumn(property="P123", value="Q456", qualifier="P789")
+        self.assertEqual(result, expected)
+
+    def test_reference_on_qualifier_with_specific_property(self):
+        result = ColumnMaker.make("P123/P789/S248", None)
+        expected = ReferenceColumn(
+            property="P123",
+            qualifier="P789",
+            reference_check=PropertyReferenceCheck(["P248"]),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_on_qualifier_with_value_and_specific_property(self):
+        result = ColumnMaker.make("P123/Q456/P789/S!", None)
+        expected = ReferenceColumn(
+            property="P123",
+            value="Q456",
+            qualifier="P789",
+            reference_check=GoodReferenceCheck(),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_too_many_parts(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make("P123/Q456/P789/S*", None)
+            ColumnMaker.make("P1/Q2/P3/Q4/S*", None)
 
 
 class TestListeriaKey(unittest.TestCase):
@@ -896,7 +921,8 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
     def test_get_filter_for_info(self):
         result = self.column.get_filter_for_info()
         expected = """
-    ?entity p:P27 ?_s . ?_s ps:P27 wd:Q142 .
+    ?entity p:P27 ?_s .
+    ?_s ps:P27 wd:Q142 .
     FILTER NOT EXISTS {
       ?entity p:P27 ?_unreferenced_stmt .
       ?_unreferenced_stmt ps:P27 wd:Q142 .
@@ -910,7 +936,8 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
         column = ReferenceColumn("P27", value="?grouping")
         result = column.get_filter_for_info()
         expected = """
-    ?entity p:P27 ?_s . ?_s ps:P27 ?grouping .
+    ?entity p:P27 ?_s .
+    ?_s ps:P27 ?grouping .
     FILTER NOT EXISTS {
       ?entity p:P27 ?_unreferenced_stmt .
       ?_unreferenced_stmt ps:P27 ?grouping .
@@ -1030,3 +1057,113 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
         self.assertEqual(result, expected)
+
+
+class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P123", qualifier="P789")
+
+    def test_get_key(self):
+        self.assertEqual(self.column.get_key(), "P123/P789/S*")
+
+    def test_get_key_with_value(self):
+        col = ReferenceColumn("P123", value="Q456", qualifier="P789")
+        self.assertEqual(col.get_key(), "P123/Q456/P789/S*")
+
+    def test_make_column_header(self):
+        result = self.column.make_column_header()
+        expected = '! data-sort-type="number"|{{Property|P789}}📚\n'
+        self.assertEqual(result, expected)
+
+    def test_format_html_snippet(self):
+        result = self.column.format_html_snippet()
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P123">P123</a>'
+            ' qualifier <a href="https://wikidata.org/wiki/Property:P789">P789</a>'
+            " referenced"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_html_snippet_with_value(self):
+        col = ReferenceColumn("P166", value="Q594550", qualifier="P585")
+        result = col.format_html_snippet()
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P166">P166</a>'
+            " = Q594550"
+            ' qualifier <a href="https://wikidata.org/wiki/Property:P585">P585</a>'
+            " referenced"
+        )
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_info(self):
+        result = self.column.get_filter_for_info()
+        expected = """
+    ?entity p:P123 ?_s .
+    ?_s pq:P789 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P123 ?_unreferenced_stmt .
+      ?_unreferenced_stmt pq:P789 [] .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
+    }"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_info_with_value(self):
+        col = ReferenceColumn("P123", value="Q456", qualifier="P789")
+        result = col.get_filter_for_info()
+        expected = """
+    ?entity p:P123 ?_s .
+    ?_s ps:P123 wd:Q456 .
+    ?_s pq:P789 [] .
+    FILTER NOT EXISTS {
+      ?entity p:P123 ?_unreferenced_stmt .
+      ?_unreferenced_stmt ps:P123 wd:Q456 .
+      ?_unreferenced_stmt pq:P789 [] .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
+    }"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_positive_query(self):
+        result = self.column.get_filter_for_positive_query()
+        expected = """
+  ?entity p:P123 ?statement .
+  ?statement ps:P123 ?value .
+  ?statement pq:P789 [] .
+  FILTER NOT EXISTS {
+    ?entity p:P123 ?_unreferenced_stmt .
+    ?_unreferenced_stmt pq:P789 [] .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
+  }
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_negative_query(self):
+        result = self.column.get_filter_for_negative_query()
+        expected = """
+  OPTIONAL {
+    ?entity p:P123 ?_unreferenced_stmt .
+    ?_unreferenced_stmt pq:P789 [] .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom []
+    }
+  }
+  OPTIONAL { ?entity p:P123 ?_any_stmt .
+    ?_any_stmt pq:P789 [] . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+"""
+        self.assertEqual(result, expected)
+
+    def test_equality(self):
+        col1 = ReferenceColumn("P123", qualifier="P789")
+        col2 = ReferenceColumn("P123", qualifier="P789")
+        col3 = ReferenceColumn("P123", qualifier="P790")
+        col4 = ReferenceColumn("P123")
+        self.assertEqual(col1, col2)
+        self.assertNotEqual(col1, col3)
+        self.assertNotEqual(col1, col4)

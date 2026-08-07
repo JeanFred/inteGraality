@@ -393,30 +393,26 @@ class PropertyReferenceCheck(ReferenceCheck):
         return f"{prop_link} referenced with {ref_link}"
 
 
-class AnyOfPropertiesReferenceCheck(ReferenceCheck):
-    """S248;S854 − statement has a reference using any of the specified properties (OR)."""
+class MultiPropertyReferenceCheck(ReferenceCheck):
+    """Base for reference checks involving a list of properties."""
+
+    _key_separator = NotImplemented
+    _label_separator = NotImplemented
+    _html_separator = NotImplemented
 
     def __init__(self, properties):
         self.properties = properties
 
     def __eq__(self, other):
-        return (
-            isinstance(other, AnyOfPropertiesReferenceCheck)
-            and self.properties == other.properties
-        )
-
-    def sparql_pattern(self):
-        """SPARQL pattern that is true when the statement has a ref with any of the properties."""
-        lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
-        union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
-        lines.append(" UNION ".join(union_parts))
-        return "\n".join(lines)
+        return type(self) is type(other) and self.properties == other.properties
 
     def key_suffix(self):
-        return ";".join(f"S{prop[1:]}" for prop in self.properties)
+        return self._key_separator.join(f"S{prop[1:]}" for prop in self.properties)
 
     def column_label_suffix(self):
-        props = "/".join(f"{{{{Property|{prop}}}}}" for prop in self.properties)
+        props = self._label_separator.join(
+            f"{{{{Property|{prop}}}}}" for prop in self.properties
+        )
         return f"📚{props}"
 
     def format_html_label(self, prop_link):
@@ -424,7 +420,22 @@ class AnyOfPropertiesReferenceCheck(ReferenceCheck):
             f'<a href="https://wikidata.org/wiki/Property:{prop}">{prop}</a>'
             for prop in self.properties
         ]
-        return f"{prop_link} referenced with {' / '.join(ref_links)}"
+        return f"{prop_link} referenced with {self._html_separator.join(ref_links)}"
+
+
+class AnyOfPropertiesReferenceCheck(MultiPropertyReferenceCheck):
+    """S248;S854 − statement has a reference using any of the specified properties (OR)."""
+
+    _key_separator = ";"
+    _label_separator = "/"
+    _html_separator = " / "
+
+    def sparql_pattern(self):
+        """SPARQL pattern that is true when the statement has a ref with any of the properties."""
+        lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
+        union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
+        lines.append(" UNION ".join(union_parts))
+        return "\n".join(lines)
 
 
 class GoodReferenceCheck(ReferenceCheck):

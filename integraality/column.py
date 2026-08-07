@@ -78,7 +78,7 @@ class ColumnMaker:
                         title=title,
                         value=value,
                         qualifier=qualifier,
-                        reference_check=PropertyReferenceCheck([reference_property]),
+                        reference_check=PropertyReferenceCheck(reference_property),
                     )
                 if ";" in reference_syntax:
                     parts = reference_syntax.split(";")
@@ -366,29 +366,29 @@ class AnyReferenceCheck(ReferenceCheck):
 class PropertyReferenceCheck(ReferenceCheck):
     """S248 − statement has a reference using a specific property."""
 
-    def __init__(self, properties):
-        self.properties = properties
+    def __init__(self, property):
+        self.property = property
 
     def __eq__(self, other):
         return (
             isinstance(other, PropertyReferenceCheck)
-            and self.properties == other.properties
+            and self.property == other.property
         )
 
     def sparql_pattern(self):
         """SPARQL pattern that is true when the statement has a ref with this property."""
-        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.properties[0]} []"
+        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.property} []"
 
     def key_suffix(self):
-        return f"S{self.properties[0][1:]}"
+        return f"S{self.property[1:]}"
 
     def column_label_suffix(self):
-        return f"📚{{{{Property|{self.properties[0]}}}}}"
+        return f"📚{{{{Property|{self.property}}}}}"
 
     def format_html_label(self, prop_link):
         ref_link = (
-            f'<a href="https://wikidata.org/wiki/Property:{self.properties[0]}">'
-            f"{self.properties[0]}</a>"
+            f'<a href="https://wikidata.org/wiki/Property:{self.property}">'
+            f"{self.property}</a>"
         )
         return f"{prop_link} referenced with {ref_link}"
 

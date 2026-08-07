@@ -820,7 +820,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21", reference_check=PropertyReferenceCheck(["P248"])
+            property="P21", reference_check=PropertyReferenceCheck("P248")
         )
         self.stats.columns["P21/S248"] = self.column
 

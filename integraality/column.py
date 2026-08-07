@@ -94,7 +94,7 @@ class ColumnMaker:
                         title=title,
                         value=value,
                         qualifier=qualifier,
-                        reference_check=PropertyReferenceCheck(properties),
+                        reference_check=AnyOfPropertiesReferenceCheck(properties),
                     )
                 raise ColumnSyntaxException(
                     f"Unsupported reference syntax: {reference_syntax} "
@@ -364,7 +364,7 @@ class AnyReferenceCheck(ReferenceCheck):
 
 
 class PropertyReferenceCheck(ReferenceCheck):
-    """S248 or S248;S854 − statement has a reference using one of the specified properties."""
+    """S248 − statement has a reference using a specific property."""
 
     def __init__(self, properties):
         self.properties = properties
@@ -376,9 +376,37 @@ class PropertyReferenceCheck(ReferenceCheck):
         )
 
     def sparql_pattern(self):
+        """SPARQL pattern that is true when the statement has a ref with this property."""
+        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.properties[0]} []"
+
+    def key_suffix(self):
+        return f"S{self.properties[0][1:]}"
+
+    def column_label_suffix(self):
+        return f"📚{{{{Property|{self.properties[0]}}}}}"
+
+    def format_html_label(self, prop_link):
+        ref_link = (
+            f'<a href="https://wikidata.org/wiki/Property:{self.properties[0]}">'
+            f"{self.properties[0]}</a>"
+        )
+        return f"{prop_link} referenced with {ref_link}"
+
+
+class AnyOfPropertiesReferenceCheck(ReferenceCheck):
+    """S248;S854 − statement has a reference using any of the specified properties (OR)."""
+
+    def __init__(self, properties):
+        self.properties = properties
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, AnyOfPropertiesReferenceCheck)
+            and self.properties == other.properties
+        )
+
+    def sparql_pattern(self):
         """SPARQL pattern that is true when the statement has a ref with any of the properties."""
-        if len(self.properties) == 1:
-            return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.properties[0]} []"
         lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
         union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
         lines.append(" UNION ".join(union_parts))

@@ -3,6 +3,7 @@
 import unittest
 
 from ..column import (
+    AnyOfPropertiesReferenceCheck,
     AnyReferenceCheck,
     ColumnMaker,
     ColumnSyntaxException,
@@ -456,7 +457,7 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         result = ColumnMaker.make("P21/S248;S854", None)
         expected = ReferenceColumn(
             property="P21",
-            reference_check=PropertyReferenceCheck(["P248", "P854"]),
+            reference_check=AnyOfPropertiesReferenceCheck(["P248", "P854"]),
         )
         self.assertEqual(result, expected)
 
@@ -464,7 +465,7 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         result = ColumnMaker.make("P21/S248;S854;S813", None)
         expected = ReferenceColumn(
             property="P21",
-            reference_check=PropertyReferenceCheck(["P248", "P854", "P813"]),
+            reference_check=AnyOfPropertiesReferenceCheck(["P248", "P854", "P813"]),
         )
         self.assertEqual(result, expected)
 
@@ -744,17 +745,9 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         self.assertNotEqual(
             PropertyReferenceCheck(["P248"]), PropertyReferenceCheck(["P854"])
         )
-        self.assertEqual(
-            PropertyReferenceCheck(["P248", "P854"]),
-            PropertyReferenceCheck(["P248", "P854"]),
-        )
-        self.assertNotEqual(
-            PropertyReferenceCheck(["P248", "P854"]),
-            PropertyReferenceCheck(["P248"]),
-        )
 
-    def test_property_reference_check_multi_pattern(self):
-        check = PropertyReferenceCheck(["P248", "P854"])
+    def test_any_of_properties_reference_check_pattern(self):
+        check = AnyOfPropertiesReferenceCheck(["P248", "P854"])
         result = check.sparql_pattern()
         expected = (
             "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
@@ -762,19 +755,19 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         )
         self.assertEqual(result, expected)
 
-    def test_property_reference_check_multi_key_suffix(self):
+    def test_any_of_properties_reference_check_key_suffix(self):
         self.assertEqual(
-            PropertyReferenceCheck(["P248", "P854"]).key_suffix(), "S248;S854"
+            AnyOfPropertiesReferenceCheck(["P248", "P854"]).key_suffix(), "S248;S854"
         )
 
-    def test_property_reference_check_multi_column_label_suffix(self):
+    def test_any_of_properties_reference_check_column_label_suffix(self):
         self.assertEqual(
-            PropertyReferenceCheck(["P248", "P854"]).column_label_suffix(),
+            AnyOfPropertiesReferenceCheck(["P248", "P854"]).column_label_suffix(),
             "📚{{Property|P248}}/{{Property|P854}}",
         )
 
-    def test_property_reference_check_multi_format_html_label(self):
-        result = PropertyReferenceCheck(["P248", "P854"]).format_html_label(
+    def test_any_of_properties_reference_check_format_html_label(self):
+        result = AnyOfPropertiesReferenceCheck(["P248", "P854"]).format_html_label(
             "<a>P19</a>"
         )
         expected = (
@@ -785,10 +778,24 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         )
         self.assertEqual(result, expected)
 
+    def test_any_of_properties_reference_check_equality(self):
+        self.assertEqual(
+            AnyOfPropertiesReferenceCheck(["P248", "P854"]),
+            AnyOfPropertiesReferenceCheck(["P248", "P854"]),
+        )
+        self.assertNotEqual(
+            AnyOfPropertiesReferenceCheck(["P248", "P854"]),
+            AnyOfPropertiesReferenceCheck(["P248"]),
+        )
+
     def test_different_checks_not_equal(self):
         self.assertNotEqual(AnyReferenceCheck(), PropertyReferenceCheck(["P248"]))
         self.assertNotEqual(AnyReferenceCheck(), GoodReferenceCheck())
         self.assertNotEqual(PropertyReferenceCheck(["P248"]), GoodReferenceCheck())
+        self.assertNotEqual(
+            PropertyReferenceCheck(["P248"]),
+            AnyOfPropertiesReferenceCheck(["P248"]),
+        )
 
     def test_good_reference_check_pattern(self):
         check = GoodReferenceCheck()

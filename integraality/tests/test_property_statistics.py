@@ -6,6 +6,7 @@ from collections import OrderedDict
 from unittest.mock import create_autospec, patch
 
 from ..column import (
+    AnyOfPropertiesReferenceCheck,
     DescriptionColumn,
     GoodReferenceCheck,
     LabelColumn,
@@ -897,7 +898,8 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21", reference_check=PropertyReferenceCheck(["P248", "P854"])
+            property="P21",
+            reference_check=AnyOfPropertiesReferenceCheck(["P248", "P854"]),
         )
         self.stats.columns["P21/S248;S854"] = self.column
 

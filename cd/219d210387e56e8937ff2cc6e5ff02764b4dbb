@@ -1,0 +1,19 @@
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 1003-1004,1042-1043
+integraality/column.py
+  h_bc010f8da910ff 74-103,414,416,418,424,428-430,433-436,439-442,449-453,513
+integraality/tests/test_column.py
+  h_bc010f8da910ff 497-530,849-850,887-911,913-933,946-949
+  h_bc010f8da910ff 912
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "cd219d210387e56e8937ff2cc6e5ff02764b4dbb",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

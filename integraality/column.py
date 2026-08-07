@@ -71,6 +71,36 @@ class ColumnMaker:
                         qualifier=qualifier,
                         reference_check=GoodReferenceCheck(),
                     )
+                if (
+                    "=" in reference_syntax
+                    and ";" not in reference_syntax
+                    and "+" not in reference_syntax
+                ):
+                    parts = reference_syntax.split("=", 1)
+                    ref_prop_part = parts[0]
+                    ref_value = parts[1]
+                    if (
+                        not ref_prop_part.startswith("S")
+                        or not ref_prop_part[1:].isdigit()
+                    ):
+                        raise ColumnSyntaxException(
+                            f"Invalid reference property in value syntax: {ref_prop_part}"
+                        )
+                    if not ref_value.startswith("Q") or not ref_value[1:].isdigit():
+                        raise ColumnSyntaxException(
+                            f"Invalid reference value: {ref_value} "
+                            f"(expected Q followed by digits)"
+                        )
+                    reference_property = "P" + ref_prop_part[1:]
+                    return ReferenceColumn(
+                        property=splitted[0],
+                        title=title,
+                        value=value,
+                        qualifier=qualifier,
+                        reference_check=PropertyReferenceCheck(
+                            reference_property, ref_value
+                        ),
+                    )
                 if reference_syntax[1:].isdigit():
                     reference_property = "P" + reference_syntax[1:]
                     return ReferenceColumn(
@@ -115,6 +145,7 @@ class ColumnMaker:
                 raise ColumnSyntaxException(
                     f"Unsupported reference syntax: {reference_syntax} "
                     f"(supported: S*, S!, S followed by digits, "
+                    f"S=value e.g. S248=Q19216625, "
                     f"semicolon-separated e.g. S248;S854, "
                     f"or plus-separated e.g. S248+S304)"
                 )
@@ -381,32 +412,46 @@ class AnyReferenceCheck(ReferenceCheck):
 
 
 class PropertyReferenceCheck(ReferenceCheck):
-    """S248 − statement has a reference using a specific property."""
+    """S248 or S248=Q19216625 − statement has a reference using a specific property (optionally with a specific value)."""
 
-    def __init__(self, property):
+    def __init__(self, property, value=None):
         self.property = property
+        self.value = value
 
     def __eq__(self, other):
         return (
             isinstance(other, PropertyReferenceCheck)
             and self.property == other.property
+            and self.value == other.value
         )
 
     def sparql_pattern(self):
-        """SPARQL pattern that is true when the statement has a ref with this property."""
-        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.property} []"
+        """SPARQL pattern that is true when the statement has a ref with this property (and value)."""
+        target = f"wd:{self.value}" if self.value else "[]"
+        return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.property} {target}"
 
     def key_suffix(self):
-        return f"S{self.property[1:]}"
+        suffix = f"S{self.property[1:]}"
+        if self.value:
+            suffix += f"={self.value}"
+        return suffix
 
     def column_label_suffix(self):
-        return f"📚{{{{Property|{self.property}}}}}"
+        label = f"📚{{{{Property|{self.property}}}}}"
+        if self.value:
+            label += f"={{{{Q|{self.value}}}}}"
+        return label
 
     def format_html_label(self, prop_link):
         ref_link = (
             f'<a href="https://wikidata.org/wiki/Property:{self.property}">'
             f"{self.property}</a>"
         )
+        if self.value:
+            value_link = (
+                f'<a href="https://wikidata.org/wiki/{self.value}">{self.value}</a>'
+            )
+            return f"{prop_link} referenced with {ref_link}={value_link}"
         return f"{prop_link} referenced with {ref_link}"
 
 

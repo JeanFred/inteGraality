@@ -1,0 +1,114 @@
+.kiro/settings/mcp.json
+  h_bc010f8da910ff 1-7
+docker_pages/[wikidata_wikidata][User]Jean-Frédéric_Integraality_Prix_Goncourt_winners.wiki
+  h_bc010f8da910ff 1-685
+docker_pages/[wikidata_wikidata][User]Jean-Frédéric_Integraality_T428637.wiki
+  h_bc010f8da910ff 1-126
+docker_pages/[wikidata_wikidata][User]Jean-Frédéric_Integraality_T428637_2.wiki
+  h_bc010f8da910ff 1-112
+docker_pages/[wikidata_wikidata][Wikidata]WikiProject_Lighthouses_numbers_by_continent_and_property.wiki
+  h_bc010f8da910ff 1-170
+docker_pages/[wikidata_wikidata][Wikidata]WikiProject_Video_games_Statistics_Visual_style.wiki
+  h_bc010f8da910ff 1-177
+integraality/column.py
+  h_bc010f8da910ff 81,369-370,375,380,383,386,390-391
+integraality/tests/test_column.py
+  h_bc010f8da910ff 431,439,499,522,720,725,729,734,742,744,790,792,794,827,849,905-907
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 823
+integraality/tests/test_sparql_functional.py
+  h_bc010f8da910ff 1-157
+scripts/download_documentation.py
+  h_bc010f8da910ff 1-63
+scripts/sync_tickets.py
+  h_bc010f8da910ff 1-91
+tickets/README.md
+  h_bc010f8da910ff 1
+tickets/T224229.md
+  h_bc010f8da910ff 1-27
+tickets/T236937.md
+  h_bc010f8da910ff 1-13
+tickets/T245752.md
+  h_bc010f8da910ff 1-17
+tickets/T251008.md
+  h_bc010f8da910ff 1-14
+tickets/T251867.md
+  h_bc010f8da910ff 1-38
+tickets/T278101.md
+  h_bc010f8da910ff 1-16
+tickets/T294889.md
+  h_bc010f8da910ff 1-10
+tickets/T294892.md
+  h_bc010f8da910ff 1-15
+tickets/T295296.md
+  h_bc010f8da910ff 1-16
+tickets/T312724.md
+  h_bc010f8da910ff 1-14
+tickets/T325911.md
+  h_bc010f8da910ff 1-46
+tickets/T328527.md
+  h_bc010f8da910ff 1-33
+tickets/T328534.md
+  h_bc010f8da910ff 1-24
+tickets/T336129.md
+  h_bc010f8da910ff 1-10
+tickets/T347897.md
+  h_bc010f8da910ff 1-13
+tickets/T348053.md
+  h_bc010f8da910ff 1-8
+tickets/T368001.md
+  h_bc010f8da910ff 1-52
+tickets/T371178.md
+  h_bc010f8da910ff 1-10
+tickets/T376902.md
+  h_bc010f8da910ff 1-20
+tickets/T393166.md
+  h_bc010f8da910ff 1-18
+tickets/T395203.md
+  h_bc010f8da910ff 1-23
+tickets/T421301.md
+  h_bc010f8da910ff 1-8
+tickets/T421552.md
+  h_bc010f8da910ff 1-14
+tickets/T425477.md
+  h_bc010f8da910ff 1-12
+tickets/T428144.md
+  h_bc010f8da910ff 1-65
+tickets/T428637.md
+  h_bc010f8da910ff 1-41
+tickets/T429918.md
+  h_bc010f8da910ff 1-70
+tmp_documentation/README.md
+  h_bc010f8da910ff 1
+tmp_documentation/Wikidata/Concepts.txt
+  h_bc010f8da910ff 1-262
+tmp_documentation/Wikidata/Header.txt
+  h_bc010f8da910ff 1-10
+"tmp_documentation/Wikidata/How-to guides.txt"
+  h_bc010f8da910ff 1-116
+tmp_documentation/Wikidata/News.txt
+  h_bc010f8da910ff 1-135
+tmp_documentation/Wikidata/Overview.txt
+  h_bc010f8da910ff 1-56
+"tmp_documentation/Wikidata/Template docs.txt"
+  h_bc010f8da910ff 1-223
+tmp_documentation/Wikidata/Tutorial.txt
+  h_bc010f8da910ff 1-93
+"tmp_documentation/Wikitech/Wikitech docs.txt"
+  h_bc010f8da910ff 1-85
+tmp_documentation/todo.md
+  h_bc010f8da910ff 1-42
+tmp_documentation/todo.txt
+  h_bc010f8da910ff 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "4c6b9b881a59be5d63c561015e005263de9c2629",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

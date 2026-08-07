@@ -96,10 +96,27 @@ class ColumnMaker:
                         qualifier=qualifier,
                         reference_check=AnyOfPropertiesReferenceCheck(properties),
                     )
+                if "+" in reference_syntax:
+                    parts = reference_syntax.split("+")
+                    properties = []
+                    for part in parts:
+                        if not part.startswith("S") or not part[1:].isdigit():
+                            raise ColumnSyntaxException(
+                                f"Invalid reference property in list: {part}"
+                            )
+                        properties.append("P" + part[1:])
+                    return ReferenceColumn(
+                        property=splitted[0],
+                        title=title,
+                        value=value,
+                        qualifier=qualifier,
+                        reference_check=AllPropertiesReferenceCheck(properties),
+                    )
                 raise ColumnSyntaxException(
                     f"Unsupported reference syntax: {reference_syntax} "
                     f"(supported: S*, S!, S followed by digits, "
-                    f"or semicolon-separated e.g. S248;S854)"
+                    f"semicolon-separated e.g. S248;S854, "
+                    f"or plus-separated e.g. S248+S304)"
                 )
             if len(splitted) == 3:
                 (property_name, value, qualifier) = splitted
@@ -435,6 +452,21 @@ class AnyOfPropertiesReferenceCheck(MultiPropertyReferenceCheck):
         lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
         union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
         lines.append(" UNION ".join(union_parts))
+        return "\n".join(lines)
+
+
+class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
+    """S248+S304 − reference node has all of the specified properties (AND)."""
+
+    _key_separator = "+"
+    _label_separator = "+"
+    _html_separator = " + "
+
+    def sparql_pattern(self):
+        """SPARQL pattern: a single ref node has all listed properties."""
+        lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
+        for prop in self.properties:
+            lines.append(f"?_ref pr:{prop} [] .")
         return "\n".join(lines)
 
 

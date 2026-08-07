@@ -6,6 +6,7 @@ from collections import OrderedDict
 from unittest.mock import create_autospec, patch
 
 from ..column import (
+    AllPropertiesReferenceCheck,
     AnyOfPropertiesReferenceCheck,
     DescriptionColumn,
     GoodReferenceCheck,
@@ -970,6 +971,143 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+
+class TestReferenceColumnAllProperties(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn(
+            property="P21",
+            reference_check=AllPropertiesReferenceCheck(["P248", "P304"]),
+        )
+        self.stats.columns["P21/S248+S304"] = self.column
+
+    def test_get_query_for_items_for_property_positive(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.column, "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity p:P21 ?statement .
+  ?statement ps:P21 ?value .
+  FILTER NOT EXISTS {
+    ?entity p:P21 ?_unreferenced_stmt .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      ?_ref pr:P248 [] .
+      ?_ref pr:P304 [] .
+    }
+  }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_query_for_items_for_property_negative(self):
+        result = self.stats.get_query_for_items_for_property_negative(
+            self.column, "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
+  OPTIONAL {
+    ?entity p:P21 ?_unreferenced_stmt .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      ?_ref pr:P248 [] .
+      ?_ref pr:P304 [] .
+    }
+  }
+  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+}
+"""
+        self.assertEqual(result, expected)
+
+
+class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn(
+            property="P27",
+            value="Q142",
+            reference_check=AllPropertiesReferenceCheck(["P248", "P304"]),
+        )
+        self.stats.columns["P27/Q142/S248+S304"] = self.column
+
+    def test_get_query_for_items_for_property_positive(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.column, "Q3115846"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P551 wd:Q3115846 .
+  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity p:P27 ?statement .
+  ?statement ps:P27 ?value .
+  ?statement ps:P27 wd:Q142 .
+  FILTER NOT EXISTS {
+    ?entity p:P27 ?_unreferenced_stmt .
+    ?_unreferenced_stmt ps:P27 wd:Q142 .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      ?_ref pr:P248 [] .
+      ?_ref pr:P304 [] .
+    }
+  }
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)

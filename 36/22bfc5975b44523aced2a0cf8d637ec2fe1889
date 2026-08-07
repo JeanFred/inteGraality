@@ -1,0 +1,26 @@
+integraality/tests/test_column.py
+  s_882bdea775b339::t_7553debc547fa8 6,477-496,810-852,861-864
+integraality/column.py
+  s_882bdea775b339::t_0006bb9860aa40 99-114,118-119,458-472
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "3622bfc5975b44523aced2a0cf8d637ec2fe1889",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_882bdea775b339": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "787f87af-8ba0-4dc0-ae02-11b49d7346b6",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -502,6 +502,30 @@ class TestColumnMakerReference(PropertyStatisticsTest):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P21/S248+Sabc", None)
 
+    def test_reference_all_properties_with_value(self):
+        result = ColumnMaker.make("P21/S248=Q135436770+S813", None)
+        expected = ReferenceColumn(
+            property="P21",
+            reference_check=AllPropertiesReferenceCheck(
+                [("P248", "Q135436770"), ("P813", None)]
+            ),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_multiple_properties_with_value(self):
+        result = ColumnMaker.make("P21/S248=Q135436770;S854", None)
+        expected = ReferenceColumn(
+            property="P21",
+            reference_check=AnyOfPropertiesReferenceCheck(
+                [("P248", "Q135436770"), ("P854", None)]
+            ),
+        )
+        self.assertEqual(result, expected)
+
+    def test_reference_all_properties_with_value_invalid(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P21/S248=P123+S813", None)
+
     def test_reference_property_value(self):
         result = ColumnMaker.make("P21/S248=Q19216625", None)
         expected = ReferenceColumn(
@@ -854,6 +878,15 @@ class TestReferenceCheckStrategies(unittest.TestCase):
             AnyOfPropertiesReferenceCheck([("P248", None)]),
         )
 
+    def test_any_of_properties_reference_check_with_value_pattern(self):
+        check = AnyOfPropertiesReferenceCheck([("P248", "Q135436770"), ("P854", None)])
+        result = check.sparql_pattern()
+        expected = (
+            "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
+            "{ ?_ref pr:P248 wd:Q135436770 } UNION { ?_ref pr:P854 [] }"
+        )
+        self.assertEqual(result, expected)
+
     def test_all_properties_reference_check_pattern(self):
         check = AllPropertiesReferenceCheck([("P248", None), ("P304", None)])
         result = check.sparql_pattern()
@@ -899,6 +932,45 @@ class TestReferenceCheckStrategies(unittest.TestCase):
             AllPropertiesReferenceCheck([("P248", None), ("P304", None)]),
             AllPropertiesReferenceCheck([("P248", None)]),
         )
+
+    def test_all_properties_reference_check_with_value_pattern(self):
+        check = AllPropertiesReferenceCheck([("P248", "Q135436770"), ("P813", None)])
+        result = check.sparql_pattern()
+        expected = (
+            "?_unreferenced_stmt prov:wasDerivedFrom ?_ref .\n"
+            "?_ref pr:P248 wd:Q135436770 .\n"
+            "?_ref pr:P813 [] ."
+        )
+        self.assertEqual(result, expected)
+
+    def test_all_properties_reference_check_with_value_key_suffix(self):
+        self.assertEqual(
+            AllPropertiesReferenceCheck(
+                [("P248", "Q135436770"), ("P813", None)]
+            ).key_suffix(),
+            "S248=Q135436770+S813",
+        )
+
+    def test_all_properties_reference_check_with_value_column_label(self):
+        self.assertEqual(
+            AllPropertiesReferenceCheck(
+                [("P248", "Q135436770"), ("P813", None)]
+            ).column_label_suffix(),
+            "📚{{Property|P248}}={{Q|Q135436770}}+{{Property|P813}}",
+        )
+
+    def test_all_properties_reference_check_with_value_html_label(self):
+        result = AllPropertiesReferenceCheck(
+            [("P248", "Q135436770"), ("P813", None)]
+        ).format_html_label("<a>P136</a>")
+        expected = (
+            "<a>P136</a> referenced with "
+            '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
+            '=<a href="https://wikidata.org/wiki/Q135436770">Q135436770</a>'
+            " + "
+            '<a href="https://wikidata.org/wiki/Property:P813">P813</a>'
+        )
+        self.assertEqual(result, expected)
 
     def test_property_value_reference_check_pattern(self):
         check = PropertyReferenceCheck("P248", "Q19216625")

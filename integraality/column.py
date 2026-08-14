@@ -114,11 +114,7 @@ class ColumnMaker:
                     parts = reference_syntax.split(";")
                     properties = []
                     for part in parts:
-                        if not part.startswith("S") or not part[1:].isdigit():
-                            raise ColumnSyntaxException(
-                                f"Invalid reference property in list: {part}"
-                            )
-                        properties.append(("P" + part[1:], None))
+                        properties.append(ColumnMaker._parse_reference_part(part))
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
@@ -130,11 +126,7 @@ class ColumnMaker:
                     parts = reference_syntax.split("+")
                     properties = []
                     for part in parts:
-                        if not part.startswith("S") or not part[1:].isdigit():
-                            raise ColumnSyntaxException(
-                                f"Invalid reference property in list: {part}"
-                            )
-                        properties.append(("P" + part[1:], None))
+                        properties.append(ColumnMaker._parse_reference_part(part))
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
@@ -176,6 +168,31 @@ class ColumnMaker:
             return SitelinkColumn(project=key, project_data=wikiproject, title=title)
         else:
             raise ColumnSyntaxException("Unknown column syntax %s" % key)
+
+    @staticmethod
+    def _parse_reference_part(part):
+        """Parse a single part of a multi-property reference syntax.
+
+        Returns a (property, value) tuple, e.g. ("P248", None) or ("P248", "Q135436770").
+        """
+        if "=" in part:
+            ref_prop_part, ref_value = part.split("=", 1)
+            if not ref_prop_part.startswith("S") or not ref_prop_part[1:].isdigit():
+                raise ColumnSyntaxException(
+                    f"Invalid reference property in list: {ref_prop_part}"
+                )
+            if not ref_value.startswith("Q") or not ref_value[1:].isdigit():
+                raise ColumnSyntaxException(
+                    f"Invalid reference value in list: {ref_value} "
+                    f"(expected Q followed by digits)"
+                )
+            return ("P" + ref_prop_part[1:], ref_value)
+        else:
+            if not part.startswith("S") or not part[1:].isdigit():
+                raise ColumnSyntaxException(
+                    f"Invalid reference property in list: {part}"
+                )
+            return ("P" + part[1:], None)
 
 
 class AbstractColumn:

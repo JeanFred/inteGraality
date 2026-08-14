@@ -979,7 +979,9 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
         super().setUp()
         self.column = ReferenceColumn(
             property="P21",
-            reference_check=AnyOfPropertiesReferenceCheck(["P248", "P854"]),
+            reference_check=AnyOfPropertiesReferenceCheck(
+                [("P248", None), ("P854", None)]
+            ),
         )
         self.stats.columns["P21/S248;S854"] = self.column
 
@@ -1060,7 +1062,9 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
         super().setUp()
         self.column = ReferenceColumn(
             property="P21",
-            reference_check=AllPropertiesReferenceCheck(["P248", "P304"]),
+            reference_check=AllPropertiesReferenceCheck(
+                [("P248", None), ("P304", None)]
+            ),
         )
         self.stats.columns["P21/S248+S304"] = self.column
 
@@ -1144,7 +1148,9 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
         self.column = ReferenceColumn(
             property="P27",
             value="Q142",
-            reference_check=AllPropertiesReferenceCheck(["P248", "P304"]),
+            reference_check=AllPropertiesReferenceCheck(
+                [("P248", None), ("P304", None)]
+            ),
         )
         self.stats.columns["P27/Q142/S248+S304"] = self.column
 

@@ -118,7 +118,7 @@ class ColumnMaker:
                             raise ColumnSyntaxException(
                                 f"Invalid reference property in list: {part}"
                             )
-                        properties.append("P" + part[1:])
+                        properties.append(("P" + part[1:], None))
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
@@ -134,7 +134,7 @@ class ColumnMaker:
                             raise ColumnSyntaxException(
                                 f"Invalid reference property in list: {part}"
                             )
-                        properties.append("P" + part[1:])
+                        properties.append(("P" + part[1:], None))
                     return ReferenceColumn(
                         property=splitted[0],
                         title=title,
@@ -456,31 +456,52 @@ class PropertyReferenceCheck(ReferenceCheck):
 
 
 class MultiPropertyReferenceCheck(ReferenceCheck):
-    """Base for reference checks involving a list of properties."""
+    """Base for reference checks involving a list of properties (with optional values)."""
 
     _key_separator = NotImplemented
     _label_separator = NotImplemented
     _html_separator = NotImplemented
 
     def __init__(self, properties):
+        """Properties is a list of (property, value) tuples, e.g. [("P248", "Q135436770"), ("P813", None)]."""
         self.properties = properties
 
     def __eq__(self, other):
         return type(self) is type(other) and self.properties == other.properties
 
+    def _key_for_item(self, prop, value):
+        suffix = f"S{prop[1:]}"
+        if value:
+            suffix += f"={value}"
+        return suffix
+
+    def _label_for_item(self, prop, value):
+        label = f"{{{{Property|{prop}}}}}"
+        if value:
+            label += f"={{{{Q|{value}}}}}"
+        return label
+
+    def _html_for_item(self, prop, value):
+        link = f'<a href="https://wikidata.org/wiki/Property:{prop}">{prop}</a>'
+        if value:
+            value_link = f'<a href="https://wikidata.org/wiki/{value}">{value}</a>'
+            link += f"={value_link}"
+        return link
+
     def key_suffix(self):
-        return self._key_separator.join(f"S{prop[1:]}" for prop in self.properties)
+        return self._key_separator.join(
+            self._key_for_item(prop, value) for prop, value in self.properties
+        )
 
     def column_label_suffix(self):
         props = self._label_separator.join(
-            f"{{{{Property|{prop}}}}}" for prop in self.properties
+            self._label_for_item(prop, value) for prop, value in self.properties
         )
         return f"📚{props}"
 
     def format_html_label(self, prop_link):
         ref_links = [
-            f'<a href="https://wikidata.org/wiki/Property:{prop}">{prop}</a>'
-            for prop in self.properties
+            self._html_for_item(prop, value) for prop, value in self.properties
         ]
         return f"{prop_link} referenced with {self._html_separator.join(ref_links)}"
 
@@ -495,7 +516,10 @@ class AnyOfPropertiesReferenceCheck(MultiPropertyReferenceCheck):
     def sparql_pattern(self):
         """SPARQL pattern that is true when the statement has a ref with any of the properties."""
         lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
-        union_parts = [f"{{ ?_ref pr:{prop} [] }}" for prop in self.properties]
+        union_parts = []
+        for prop, value in self.properties:
+            target = f"wd:{value}" if value else "[]"
+            union_parts.append(f"{{ ?_ref pr:{prop} {target} }}")
         lines.append(" UNION ".join(union_parts))
         return "\n".join(lines)
 
@@ -510,8 +534,9 @@ class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
     def sparql_pattern(self):
         """SPARQL pattern: a single ref node has all listed properties."""
         lines = ["?_unreferenced_stmt prov:wasDerivedFrom ?_ref ."]
-        for prop in self.properties:
-            lines.append(f"?_ref pr:{prop} [] .")
+        for prop, value in self.properties:
+            target = f"wd:{value}" if value else "[]"
+            lines.append(f"?_ref pr:{prop} {target} .")
         return "\n".join(lines)
 
 

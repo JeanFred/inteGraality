@@ -15,159 +15,139 @@ class ColumnSyntaxException(Exception):
 
 class ColumnMaker:
     @staticmethod
-    def make(key, title):
+    def _load_wikiprojects():
         current_dir = os.path.dirname(__file__)
         wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
-        wikiprojects = json.load(open(wikiprojects_path, "r"))
+        return json.load(open(wikiprojects_path, "r"))
 
+    @staticmethod
+    def make(key, title):
         if key.startswith("P"):
-            splitted = key.split("/")
-            if splitted[-1].startswith("S"):
-                if len(splitted) == 2:
-                    value = None
-                    qualifier = None
-                elif len(splitted) == 3:
-                    middle = splitted[1]
-                    if middle.startswith("P"):
-                        value = None
-                        qualifier = middle
-                    else:
-                        value = middle
-                        qualifier = None
-                        if value.startswith("?") and value != "?grouping":
-                            raise ColumnSyntaxException(
-                                "Only ?grouping is supported as a variable value,"
-                                " got %s" % value
-                            )
-                elif len(splitted) == 4:
-                    value = splitted[1]
-                    qualifier = splitted[2]
-                    if not qualifier.startswith("P"):
-                        raise ColumnSyntaxException(
-                            f"Expected qualifier property, got {qualifier}"
-                        )
-                    if value.startswith("?") and value != "?grouping":
-                        raise ColumnSyntaxException(
-                            "Only ?grouping is supported as a variable value, got %s"
-                            % value
-                        )
-                else:
-                    raise ColumnSyntaxException(
-                        f"Too many parts in reference column syntax: {key}"
-                    )
-                reference_syntax = splitted[-1]
-                if reference_syntax == "S*":
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                    )
-                if reference_syntax == "S!":
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                        reference_check=GoodReferenceCheck(),
-                    )
-                if (
-                    "=" in reference_syntax
-                    and ";" not in reference_syntax
-                    and "+" not in reference_syntax
-                ):
-                    parts = reference_syntax.split("=", 1)
-                    ref_prop_part = parts[0]
-                    ref_value = parts[1]
-                    if (
-                        not ref_prop_part.startswith("S")
-                        or not ref_prop_part[1:].isdigit()
-                    ):
-                        raise ColumnSyntaxException(
-                            f"Invalid reference property in value syntax: {ref_prop_part}"
-                        )
-                    if not ref_value.startswith("Q") or not ref_value[1:].isdigit():
-                        raise ColumnSyntaxException(
-                            f"Invalid reference value: {ref_value} "
-                            f"(expected Q followed by digits)"
-                        )
-                    reference_property = "P" + ref_prop_part[1:]
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                        reference_check=PropertyReferenceCheck(
-                            reference_property, ref_value
-                        ),
-                    )
-                if reference_syntax[1:].isdigit():
-                    reference_property = "P" + reference_syntax[1:]
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                        reference_check=PropertyReferenceCheck(reference_property),
-                    )
-                if ";" in reference_syntax:
-                    parts = reference_syntax.split(";")
-                    properties = []
-                    for part in parts:
-                        properties.append(ColumnMaker._parse_reference_part(part))
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                        reference_check=AnyOfPropertiesReferenceCheck(properties),
-                    )
-                if "+" in reference_syntax:
-                    parts = reference_syntax.split("+")
-                    properties = []
-                    for part in parts:
-                        properties.append(ColumnMaker._parse_reference_part(part))
-                    return ReferenceColumn(
-                        property=splitted[0],
-                        title=title,
-                        value=value,
-                        qualifier=qualifier,
-                        reference_check=AllPropertiesReferenceCheck(properties),
-                    )
-                raise ColumnSyntaxException(
-                    f"Unsupported reference syntax: {reference_syntax} "
-                    f"(supported: S*, S!, S followed by digits, "
-                    f"S=value e.g. S248=Q19216625, "
-                    f"semicolon-separated e.g. S248;S854, "
-                    f"or plus-separated e.g. S248+S304)"
-                )
-            if len(splitted) == 3:
-                (property_name, value, qualifier) = splitted
-            elif len(splitted) == 2:
-                (property_name, value, qualifier) = (splitted[0], None, splitted[1])
-            else:
-                (property_name, value, qualifier) = (key, None, None)
-            if value and value.startswith("?") and value != "?grouping":
-                raise ColumnSyntaxException(
-                    "Only ?grouping is supported as a variable value, got %s" % value
-                )
-            if qualifier:
-                return QualifierColumn(
-                    property=property_name,
-                    title=title,
-                    qualifier=qualifier,
-                    value=value,
-                )
-            return PropertyColumn(property=property_name, title=title)
+            return ColumnMaker._make_property_column(key, title)
         elif key.startswith("L"):
             return LabelColumn(language=key[1:])
         elif key.startswith("D"):
             return DescriptionColumn(language=key[1:])
-        elif key in wikiprojects:
-            wikiproject = wikiprojects.get(key)
-            return SitelinkColumn(project=key, project_data=wikiproject, title=title)
         else:
-            raise ColumnSyntaxException("Unknown column syntax %s" % key)
+            wikiprojects = ColumnMaker._load_wikiprojects()
+            if key in wikiprojects:
+                return SitelinkColumn(
+                    project=key, project_data=wikiprojects[key], title=title
+                )
+            raise ColumnSyntaxException(f"Unknown column syntax {key}")
+
+    @staticmethod
+    def _make_property_column(key, title):
+        splitted = key.split("/")
+
+        if splitted[-1].startswith("S"):
+            return ColumnMaker._make_reference_column(splitted, title)
+
+        if len(splitted) == 3:
+            (property_name, value, qualifier) = splitted
+        elif len(splitted) == 2:
+            (property_name, value, qualifier) = (splitted[0], None, splitted[1])
+        else:
+            (property_name, value, qualifier) = (splitted[0], None, None)
+        if value:
+            ColumnMaker._validate_value(value)
+
+        if qualifier:
+            return QualifierColumn(
+                property=property_name,
+                title=title,
+                qualifier=qualifier,
+                value=value,
+            )
+        return PropertyColumn(property=property_name, title=title)
+
+    @staticmethod
+    def _make_reference_column(splitted, title):
+        """Build a ReferenceColumn from slash-split parts ending with S..."""
+        property_name, value, qualifier, ref_syntax = (
+            ColumnMaker._parse_reference_column_parts(splitted)
+        )
+        reference_check = ColumnMaker._parse_reference_check(ref_syntax)
+        return ReferenceColumn(
+            property=property_name,
+            title=title,
+            value=value,
+            qualifier=qualifier,
+            reference_check=reference_check,
+        )
+
+    @staticmethod
+    def _parse_reference_column_parts(splitted):
+        """Extract (property, value, qualifier, reference_syntax) from split parts."""
+        ref_syntax = splitted[-1]
+        if len(splitted) == 2:
+            return splitted[0], None, None, ref_syntax
+        elif len(splitted) == 3:
+            middle = splitted[1]
+            if middle.startswith("P"):
+                return splitted[0], None, middle, ref_syntax
+            else:
+                ColumnMaker._validate_value(middle)
+                return splitted[0], middle, None, ref_syntax
+        elif len(splitted) == 4:
+            value, qualifier = splitted[1], splitted[2]
+            ColumnMaker._validate_value(value)
+            if not qualifier.startswith("P"):
+                raise ColumnSyntaxException(
+                    f"Expected qualifier property, got {qualifier}"
+                )
+            return splitted[0], value, qualifier, ref_syntax
+        else:
+            raise ColumnSyntaxException(
+                f"Too many parts in reference column syntax: {'/'.join(splitted)}"
+            )
+
+    @staticmethod
+    def _validate_value(value):
+        """Raise if a value placeholder is not the supported ?grouping variable."""
+        if value.startswith("?") and value != "?grouping":
+            raise ColumnSyntaxException(
+                f"Only ?grouping is supported as a variable value, got {value}"
+            )
+
+    @staticmethod
+    def _parse_reference_check(syntax):
+        """Parse a reference syntax string (e.g. 'S*', 'S248', 'S248=Q123') into a ReferenceCheck."""
+        if syntax == "S*":
+            return AnyReferenceCheck()
+        if syntax == "S!":
+            return GoodReferenceCheck()
+        if syntax[1:].isdigit():
+            return PropertyReferenceCheck("P" + syntax[1:])
+        if "=" in syntax and ";" not in syntax and "+" not in syntax:
+            return ColumnMaker._parse_value_constrained_reference(syntax)
+        if ";" in syntax:
+            parts = [ColumnMaker._parse_reference_part(p) for p in syntax.split(";")]
+            return AnyOfPropertiesReferenceCheck(parts)
+        if "+" in syntax:
+            parts = [ColumnMaker._parse_reference_part(p) for p in syntax.split("+")]
+            return AllPropertiesReferenceCheck(parts)
+        raise ColumnSyntaxException(
+            f"Unsupported reference syntax: {syntax} "
+            f"(supported: S*, S!, S followed by digits, "
+            f"S=value e.g. S248=Q19216625, "
+            f"semicolon-separated e.g. S248;S854, "
+            f"or plus-separated e.g. S248+S304)"
+        )
+
+    @staticmethod
+    def _parse_value_constrained_reference(syntax):
+        """Parse S248=Q19216625 into a PropertyReferenceCheck with a value constraint."""
+        ref_prop_part, ref_value = syntax.split("=", 1)
+        if not ref_prop_part.startswith("S") or not ref_prop_part[1:].isdigit():
+            raise ColumnSyntaxException(
+                f"Invalid reference property in value syntax: {ref_prop_part}"
+            )
+        if not ref_value.startswith("Q") or not ref_value[1:].isdigit():
+            raise ColumnSyntaxException(
+                f"Invalid reference value: {ref_value} (expected Q followed by digits)"
+            )
+        return PropertyReferenceCheck("P" + ref_prop_part[1:], ref_value)
 
     @staticmethod
     def _parse_reference_part(part):

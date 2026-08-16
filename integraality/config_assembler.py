@@ -11,6 +11,9 @@ from .sparql_utils import SparqlEngineBuilder
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
 VALID_GROUPING_LINK_MODES = ("link", "create")
+PARAM_RENAMES = {
+    "stats_for_no_group": "row_no_group",
+}
 
 
 class ConfigAssemblyException(Exception):
@@ -45,6 +48,9 @@ class ConfigAssembler:
         }
 
     def parse_config(self, config):
+        for old, new in PARAM_RENAMES.items():
+            if old in config:
+                config.setdefault(new, config.pop(old))
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
                 raise ConfigAssemblyException("A required field is missing: %s" % field)
@@ -60,8 +66,8 @@ class ConfigAssembler:
             )
         except GroupingLinkSyntaxException as e:
             raise ConfigAssemblyException(e)
-        config["stats_for_no_group"] = _parse_bool_param(
-            config, "stats_for_no_group", default=False
+        config["row_no_group"] = _parse_bool_param(
+            config, "row_no_group", default=False
         )
         config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
         if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:

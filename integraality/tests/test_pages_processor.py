@@ -24,7 +24,7 @@ Head
 {{Property dashboard start
 |properties=P136:genre,P404
 |grouping_property=P400
-|stats_for_no_group=1
+|row_no_group=1
 |selector_sparql=wdt:P31/wdt:P279* wd:Q7889
 |target_page_title=Wikidata:WikiProject Video games/Statistics/Platform
 |grouping_link=Wikidata::WikiProject Video games/Reports/Platform
@@ -38,7 +38,7 @@ Head
 {{Property dashboard start
 |properties=P136:genre,P404
 |grouping_property=P400
-|stats_for_no_group=1
+|row_no_group=1
 |selector_sparql=wdt:P31/wdt:P279* wd:Q7889
 |target_page_title=Wikidata:WikiProject Video games/Statistics/Platform
 |grouping_link=Wikidata::WikiProject Video games/Reports/Platform

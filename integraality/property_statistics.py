@@ -45,7 +45,7 @@ class PropertyStatistics:
         grouping_configuration,
         grouping_type=None,
         higher_grouping_type=None,
-        stats_for_no_group=False,
+        row_no_group=False,
         property_threshold=0,
         sparql_query_engine=None,
     ):
@@ -58,7 +58,7 @@ class PropertyStatistics:
         self.grouping_configuration = grouping_configuration
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
-        self.stats_for_no_group = stats_for_no_group
+        self.row_no_group = row_no_group
         self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
@@ -327,7 +327,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             groupings.values(), key=lambda t: t.count, reverse=True
         )
 
-        if self.stats_for_no_group:
+        if self.row_no_group:
             logger.info(
                 "Computing stats for items without grouping...",
                 extra={"step_key": "nogroup"},
@@ -367,7 +367,7 @@ def main(*args):
         grouping_configuration=GroupingConfiguration(
             predicate="wdt:P551", grouping_type=ItemGroupingType(), grouping_threshold=5
         ),
-        stats_for_no_group=True,
+        row_no_group=True,
         property_threshold=1,
     )
     print(stats.retrieve_and_process_data())

@@ -18,7 +18,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "grouping_property": "P400",
-            "stats_for_no_group": "1",
+            "row_no_group": "1",
             "properties": "P136:genre,P404",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
         }
@@ -30,7 +30,7 @@ class TestParseConfig(unittest.TestCase):
                     template="Wikidata:WikiProject Video games/Reports/Platform/{Len}",
                 ),
             ),
-            "stats_for_no_group": True,
+            "row_no_group": True,
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
@@ -55,7 +55,7 @@ class TestParseConfig(unittest.TestCase):
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
-            "stats_for_no_group": False,
+            "row_no_group": False,
             "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
@@ -64,7 +64,7 @@ class TestParseConfig(unittest.TestCase):
     def test_full_config(self):
         input_config = {
             "grouping_property": "P400",
-            "stats_for_no_group": "1",
+            "row_no_group": "1",
             "properties": "P136:genre,P404",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_threshold": "1",
@@ -80,12 +80,34 @@ class TestParseConfig(unittest.TestCase):
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
-            "stats_for_no_group": True,
+            "row_no_group": True,
             "property_threshold": "2",
             "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
         self.assertEqual(result, expected)
+
+    def test_legacy_stats_for_no_group(self):
+        """Backwards compatibility: old template param stats_for_no_group still works."""
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136",
+            "stats_for_no_group": "1",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertTrue(result["row_no_group"])
+
+    def test_legacy_stats_for_no_group_disabled(self):
+        """stats_for_no_group=0 should be treated as disabled."""
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136",
+            "stats_for_no_group": "0",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertFalse(result["row_no_group"])
 
     def test_empty_config(self):
         input_config = {}

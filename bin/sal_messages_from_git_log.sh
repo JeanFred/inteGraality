@@ -10,5 +10,5 @@ if [ $# -lt 1 ]; then
 fi
 
 git log "$1" --reverse -C --no-merges \
-    --format="Deploy %h (%s)%(trailers:key=Bug,valueonly,separator=%x2c )" \
-    | sed -e 's/)T/) for T/' -e 's/`//g'
+    --format="Deploy %h (%s)%(trailers:key=Bug,valueonly,separator=%x2c )" |
+    sed -e 's/)T/) for T/' -e 's/`//g'

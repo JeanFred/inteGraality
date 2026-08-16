@@ -124,6 +124,7 @@ def queries():
     page_url = request.args.get("url")
     page_title = request.args.get("page")
     column_key = request.args.get("column") or request.args.get("property")
+    output_format = request.args.get("format")
     processor = PagesProcessor(page_url)
     try:
         stats = processor.make_stats_object_for_page_title(page_title)
@@ -135,6 +136,18 @@ def queries():
         negative_query = query_data["negative_query"]
         formatted_predicate = query_data["formatted_predicate"]
         qlever_ui_url = get_qlever_ui_url(page_url)
+
+        if output_format == "json":
+            return jsonify(
+                page_title=page_title,
+                page_url=page_url,
+                column=column.get_key(),
+                grouping=grouping,
+                formatted_predicate=formatted_predicate,
+                positive_query=positive_query,
+                negative_query=negative_query,
+                qlever_ui_url=qlever_ui_url,
+            )
 
         return render_template(
             "queries.html",
@@ -148,6 +161,8 @@ def queries():
             qlever_ui_url=qlever_ui_url,
         )
     except ProcessingException as e:
+        if output_format == "json":
+            return jsonify(error=str(e)), 422
         return render_template(
             "queries_error.html",
             page_title=page_title,
@@ -155,6 +170,8 @@ def queries():
             error_message=e,
         )
     except Exception as e:
+        if output_format == "json":
+            return jsonify(error=str(e)), 500
         return render_template(
             "queries_unknown_error.html",
             page_title=page_title,

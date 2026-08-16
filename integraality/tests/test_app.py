@@ -513,3 +513,54 @@ class QueriesTests(PagesProcessorTests):
             '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
         )
         self.assertPresent(expected_qlever, content)
+
+    def test_queries_json_format(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_property_statistics.get_queries_for_column.return_value = (
+            self._make_query_data(
+                self.column_P1, positive="SELECT ?x", negative="SELECT ?y"
+            )
+        )
+        response = self.app.get(
+            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
+            % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(
+            response.get_json(),
+            {
+                "page_title": self.page_title,
+                "page_url": self.page_url,
+                "column": "P1",
+                "grouping": "Q2",
+                "formatted_predicate": '<a href="https://wikidata.org/wiki/Property:P495">P495</a>',
+                "positive_query": "SELECT ?x",
+                "negative_query": "SELECT ?y",
+                "qlever_ui_url": "https://qlever.dev/wikidata/",
+            },
+        )
+
+    def test_queries_json_format_processing_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ProcessingException(
+            "bad config"
+        )
+        response = self.app.get(
+            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
+            % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.get_json(), {"error": "bad config"})
+
+    def test_queries_json_format_unknown_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ValueError(
+            "boom"
+        )
+        response = self.app.get(
+            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
+            % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.get_json(), {"error": "boom"})

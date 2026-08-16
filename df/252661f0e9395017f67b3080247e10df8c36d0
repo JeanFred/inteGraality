@@ -1,0 +1,14 @@
+integraality/column.py
+  h_bc010f8da910ff 20,25-33,36-107,109-158
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "df252661f0e9395017f67b3080247e10df8c36d0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

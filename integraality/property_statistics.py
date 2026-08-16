@@ -46,6 +46,7 @@ class PropertyStatistics:
         grouping_type=None,
         higher_grouping_type=None,
         row_no_group=False,
+        row_totals=True,
         property_threshold=0,
         sparql_query_engine=None,
     ):
@@ -59,6 +60,7 @@ class PropertyStatistics:
         self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
         self.row_no_group = row_no_group
+        self.row_totals = row_totals
         self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
@@ -338,11 +340,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
                 extra={"phase": "end", "step_key": "nogroup"},
             )
 
-        logger.info("Computing totals...", extra={"step_key": "totals"})
-        sorted_groupings.append(self.make_totals())
-        logger.info(
-            "Computing totals done", extra={"phase": "end", "step_key": "totals"}
-        )
+        if self.row_totals:
+            logger.info("Computing totals...", extra={"step_key": "totals"})
+            sorted_groupings.append(self.make_totals())
+            logger.info(
+                "Computing totals done", extra={"phase": "end", "step_key": "totals"}
+            )
 
         return sorted_groupings
 

@@ -31,6 +31,7 @@ class TestParseConfig(unittest.TestCase):
                 ),
             ),
             "row_no_group": True,
+            "row_totals": True,
             "columns": [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
@@ -56,6 +57,7 @@ class TestParseConfig(unittest.TestCase):
                 PropertyColumn(property="P404"),
             ],
             "row_no_group": False,
+            "row_totals": True,
             "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
@@ -81,6 +83,7 @@ class TestParseConfig(unittest.TestCase):
                 PropertyColumn(property="P404"),
             ],
             "row_no_group": True,
+            "row_totals": True,
             "property_threshold": "2",
             "grouping_link_mode": "link",
         }
@@ -108,6 +111,35 @@ class TestParseConfig(unittest.TestCase):
         }
         result = self.assembler.parse_config(input_config)
         self.assertFalse(result["row_no_group"])
+
+    def test_row_totals_disabled(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136",
+            "row_totals": "0",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertFalse(result["row_totals"])
+
+    def test_row_totals_default(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertTrue(result["row_totals"])
+
+    def test_row_totals_explicit_enabled(self):
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136",
+            "row_totals": "1",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertTrue(result["row_totals"])
 
     def test_empty_config(self):
         input_config = {}

@@ -2695,6 +2695,22 @@ class ProcessDataTest(PropertyStatisticsTest):
 
         self.assertEqual(result, expected)
 
+    def test_prepare_report_groupings_no_totals(self):
+        self.stats.row_totals = False
+        result = self.stats.prepare_report_groupings({})
+        self.assertFalse(
+            any(isinstance(g, TotalsGrouping) for g in result),
+            "TotalsGrouping should not be present when row_totals=False",
+        )
+
+    def test_prepare_report_groupings_with_totals(self):
+        self.stats.row_totals = True
+        result = self.stats.prepare_report_groupings({})
+        self.assertTrue(
+            any(isinstance(g, TotalsGrouping) for g in result),
+            "TotalsGrouping should be present when row_totals=True",
+        )
+
 
 class RetrieveAndProcessDataTest(PropertyStatisticsTest):
     def test_retrieve_and_process_data(self):

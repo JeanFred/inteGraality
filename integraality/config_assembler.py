@@ -69,6 +69,7 @@ class ConfigAssembler:
         config["row_no_group"] = _parse_bool_param(
             config, "row_no_group", default=False
         )
+        config["row_totals"] = _parse_bool_param(config, "row_totals", default=True)
         config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
         if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:
             raise ConfigAssemblyException(

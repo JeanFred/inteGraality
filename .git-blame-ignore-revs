@@ -11,3 +11,6 @@ de6335d4ab04c55a90f9e4fec93db981599b6bae
 
 # Reformat HTML files using HTMLPrettify/js-beautify
 19a63b0399c0a6449ee99c93b961c41a3e202b22
+
+# Reformat sal_messages_from_git_log.sh with shfmt
+6bd797208f3853d03ff175246c1d942f4d528c58

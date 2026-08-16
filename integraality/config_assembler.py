@@ -17,6 +17,14 @@ class ConfigAssemblyException(Exception):
     pass
 
 
+def _parse_bool_param(config, key, default=False):
+    """Parse a template boolean: '1' → True, '0'/absent → False."""
+    value = config.pop(key, None)
+    if value is None:
+        return default
+    return value not in ("", "0")
+
+
 class ConfigAssembler:
     def __init__(self, site_url):
         self.site_url = site_url
@@ -52,7 +60,9 @@ class ConfigAssembler:
             )
         except GroupingLinkSyntaxException as e:
             raise ConfigAssemblyException(e)
-        config["stats_for_no_group"] = bool(config.get("stats_for_no_group", False))
+        config["stats_for_no_group"] = _parse_bool_param(
+            config, "stats_for_no_group", default=False
+        )
         config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
         if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:
             raise ConfigAssemblyException(

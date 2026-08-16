@@ -1,0 +1,20 @@
+integraality/config_assembler.py
+  h_bc010f8da910ff 55-57
+integraality/property_statistics.py
+  h_bc010f8da910ff 48,61,330,370
+integraality/tests/test_config_assembler.py
+  h_bc010f8da910ff 21,33,58,67,83,90-100
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 27,41
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.21",
+  "base_commit_sha": "dcf2f5a9444135c1d7b458e0bb5d759f43200e81",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

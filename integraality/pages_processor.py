@@ -7,11 +7,12 @@ import os
 import re
 from time import perf_counter
 
+import mwparserfromhell
 import pywikibot
 from redis import StrictRedis
 
 from .cache import RedisCache
-from .config_assembler import ConfigAssembler, ConfigAssemblyException
+from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
 from .error_category import ErrorCategory
 from .grouping import UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
@@ -143,6 +144,7 @@ class PagesProcessor:
         output = stats.process_data(groupings)
         elapsed_time = perf_counter() - start_time
         new_text = self.replace_in_page(output, page.get())
+        new_text = self.migrate_template_params(new_text)
         summary = (
             self.summary
             + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
@@ -167,6 +169,16 @@ class PagesProcessor:
         regex = re.compile(regex_text, re.MULTILINE | re.DOTALL)
         new_text = re.sub(regex, r"\1\n%s\n\2" % output, page_text, count=1)
         return new_text
+
+    def migrate_template_params(self, page_text):
+        """Rename deprecated template parameter names within the start template."""
+        code = mwparserfromhell.parse(page_text)
+        for template in code.filter_templates():
+            if template.name.matches(self.template_name):
+                for old, new in PARAM_RENAMES.items():
+                    if template.has(old):
+                        template.get(old).name = new
+        return str(code)
 
     def warm_cache(self):
         """Populate the Redis cache for all dashboard pages without running queries."""

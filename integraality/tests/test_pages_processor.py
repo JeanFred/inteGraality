@@ -59,6 +59,55 @@ Bottom
         self.assertEqual(result, final_text)
 
 
+class TestMigrateTemplateParams(ProcessortTest):
+    def test_renames_deprecated_param(self):
+        text = (
+            "{{Property dashboard\n|stats_for_no_group=1\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertIn("|row_no_group=1", result)
+        self.assertNotIn("stats_for_no_group", result)
+
+    def test_leaves_current_param_unchanged(self):
+        text = (
+            "{{Property dashboard\n|row_no_group=1\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertEqual(result, text)
+
+    def test_no_false_match(self):
+        text = (
+            "{{Property dashboard\n|properties=P136\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertEqual(result, text)
+
+    def test_does_not_match_substring(self):
+        """A param whose name contains the old name as a substring is not affected."""
+        text = (
+            "{{Property dashboard\n|my_stats_for_no_group=1\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertEqual(result, text)
+
+    def test_scoped_to_template(self):
+        """Text outside the template block is not modified."""
+        text = (
+            "Some docs mentioning |stats_for_no_group=1 outside.\n"
+            "{{Property dashboard\n|stats_for_no_group=1\n}}\n"
+            "Table content\n"
+            "{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertIn("|row_no_group=1", result)
+        # The occurrence outside the template is preserved
+        self.assertIn("Some docs mentioning |stats_for_no_group=1 outside.", result)
+
+
 class TestMain(unittest.TestCase):
     def setUp(self):
         patcher1 = patch("integraality.pages_processor.PagesProcessor", autospec=True)

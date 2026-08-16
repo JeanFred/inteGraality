@@ -15,6 +15,12 @@ repos:
       - id: ruff-check
       - id: ruff-format
 
+  - repo: https://github.com/scop/pre-commit-shfmt
+    rev: v3.11.0-1
+    hooks:
+      - id: shfmt
+        args: [--indent, "4", --write]
+
   - repo: https://github.com/openstack/bashate
     rev: 2.1.1
     hooks:

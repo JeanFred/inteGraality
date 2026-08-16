@@ -1,0 +1,34 @@
+tmp_documentation/README.md
+  h_bc010f8da910ff 1
+tmp_documentation/Wikidata/Concepts.txt
+  h_bc010f8da910ff 1-272
+tmp_documentation/Wikidata/Header.txt
+  h_bc010f8da910ff 1-10
+"tmp_documentation/Wikidata/How-to guides.txt"
+  h_bc010f8da910ff 1-116
+tmp_documentation/Wikidata/News.txt
+  h_bc010f8da910ff 1-142
+tmp_documentation/Wikidata/Overview.txt
+  h_bc010f8da910ff 1-56
+"tmp_documentation/Wikidata/Template docs.txt"
+  h_bc010f8da910ff 1-232
+tmp_documentation/Wikidata/Tutorial.txt
+  h_bc010f8da910ff 1-93
+"tmp_documentation/Wikitech/Wikitech docs.txt"
+  h_bc010f8da910ff 1-85
+tmp_documentation/todo.md
+  h_bc010f8da910ff 1-42
+tmp_documentation/todo.txt
+  h_bc010f8da910ff 1-18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5c8347c3afcfd826054d6a9718f63e163b317700",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

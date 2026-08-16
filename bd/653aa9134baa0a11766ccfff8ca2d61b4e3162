@@ -1,0 +1,14 @@
+bin/deploy-to-toolforge.sh
+  h_bc010f8da910ff 7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "bd653aa9134baa0a11766ccfff8ca2d61b4e3162",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -266,6 +266,10 @@ def args_parser():
         default="https://www.wikidata.org/wiki/",
     )
     parser.add_argument(
+        "--page",
+        help="process a single page by title (instead of all pages)",
+    )
+    parser.add_argument(
         "--warm-cache-only",
         action="store_true",
         help="only populate the cache, don't run queries or update pages",
@@ -282,6 +286,8 @@ def main():
     processor = PagesProcessor(url=args.url)
     if args.warm_cache_only:
         processor.warm_cache()
+    elif args.page:
+        processor.process_one_page(args.page)
     else:
         processor.process_all()
 

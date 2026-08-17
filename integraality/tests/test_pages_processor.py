@@ -120,7 +120,20 @@ class TestMain(unittest.TestCase):
 
     def test_main_url_argument(self):
         url = "Foo"
-        self.mock_args.return_value = argparse.Namespace(url=url, warm_cache_only=False)
+        self.mock_args.return_value = argparse.Namespace(
+            url=url, warm_cache_only=False, page=None
+        )
         main()
         self.mock_pages_processor.assert_called_once_with(url)
         self.mock_pages_processor.return_value.process_all.assert_called_once_with()
+
+    def test_main_page_argument(self):
+        url = "Foo"
+        self.mock_args.return_value = argparse.Namespace(
+            url=url, warm_cache_only=False, page="Bar/Dashboard"
+        )
+        main()
+        self.mock_pages_processor.assert_called_once_with(url)
+        self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
+            "Bar/Dashboard"
+        )

@@ -783,8 +783,9 @@ LIMIT 1000
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
 """
-        self.assertEqual(result, (expected_fragment, ["?entity"]))
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
 
 class TestReferenceColumnWithTitle(PropertyStatisticsTest):
@@ -1153,8 +1154,9 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
 """
-        self.assertEqual(result, (expected_fragment, ["?entity"]))
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P248"))
@@ -1236,8 +1238,9 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
   OPTIONAL { ?entity p:P27 ?_any_stmt .
     ?_any_stmt ps:P27 wd:Q142 . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P27 ?_show_stmt . ?_show_stmt ps:P27 wd:Q142 . BIND(wd:Q142 AS ?value) }
 """
-        self.assertEqual(result, (expected_fragment, ["?entity"]))
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P27", value="Q142")
@@ -1315,8 +1318,9 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
   }
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
 """
-        self.assertEqual(result, (expected_fragment, ["?entity"]))
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
 
 class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
@@ -1416,8 +1420,9 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
   OPTIONAL { ?entity p:P123 ?_any_stmt .
     ?_any_stmt pq:P789 [] . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P123 ?_show_stmt . ?_show_stmt ps:P123 ?value . }
 """
-        self.assertEqual(result, (expected_fragment, ["?entity"]))
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P123", qualifier="P789")

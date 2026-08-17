@@ -705,6 +705,13 @@ class ReferenceColumn(PropertyColumn):
         any_value_line = f"\n    {vc_any}" if vc_any else ""
         qc_any = self._qualifier_constraint("?_any_stmt")
         any_qualifier_line = f"\n    {qc_any}" if qc_any else ""
+        # Show the statement value in the drill-down results.
+        # Use explicit two-triple pattern (not property path) for QLever compatibility.
+        if self.value:
+            value_ref = _format_value_sparql(self.value)
+            show_value = f"  OPTIONAL {{ ?entity p:{self.property} ?_show_stmt . ?_show_stmt ps:{self.property} {value_ref} . BIND({value_ref} AS ?value) }}"
+        else:
+            show_value = f"  OPTIONAL {{ ?entity p:{self.property} ?_show_stmt . ?_show_stmt ps:{self.property} ?value . }}"
         return (
             f"""
   OPTIONAL {{
@@ -715,8 +722,9 @@ class ReferenceColumn(PropertyColumn):
   }}
   OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line}{any_qualifier_line} }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+{show_value}
 """,
-            ["?entity"],
+            ["?entity", "?value"],
         )
 
 

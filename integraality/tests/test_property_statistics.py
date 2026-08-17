@@ -760,7 +760,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -772,6 +772,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -781,6 +782,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -790,7 +800,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.column, NoGroupGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   MINUS {
     ?entity wdt:P551 [] .
@@ -803,6 +813,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -812,6 +823,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -869,7 +889,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -881,6 +901,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -890,6 +911,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -948,7 +978,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -960,6 +990,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -969,6 +1000,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1030,7 +1070,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1043,6 +1083,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1052,6 +1093,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1114,7 +1164,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1128,6 +1178,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1137,6 +1188,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1255,7 +1315,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1269,6 +1329,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1278,6 +1339,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1338,7 +1408,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1353,6 +1423,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   }
   OPTIONAL { ?entity p:P21 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1362,6 +1433,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1419,7 +1499,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1433,6 +1513,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
   OPTIONAL { ?entity p:P21 ?_any_stmt .
     ?_any_stmt pq:P580 [] . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1442,6 +1523,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     FILTER(lang(?entitylabelEN)='en')
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)

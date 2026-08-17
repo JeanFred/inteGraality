@@ -358,9 +358,75 @@ class QualifierColumn(PropertyColumn):
 class ReferenceCheck(ABC):
     """Base class for reference check strategies."""
 
+    # Properties to prioritize when showing reference values in drill-down.
+    # Checked in order via COALESCE.
+    HIGH_PRIORITY_REF_PROPERTIES = ["P248", "P854"]
+
+    # Properties shown only as last resort (e.g. dates, import metadata).
+    LOW_PRIORITY_REF_PROPERTIES = ["P813", "P4656", "P1065"]
+
     @abstractmethod
     def sparql_pattern(self):
         """SPARQL pattern (using ?_unreferenced_stmt) that is true when referenced."""
+
+    def sparql_ref_value_binding(self, stmt_var):
+        """SPARQL fragment extracting reference value(s) from a statement.
+
+        Returns (lines, vars) where:
+        - lines: list of SPARQL lines to add to the WHERE body
+        - vars: list of variable names (e.g. ["?refValue"]) to add to SELECT
+
+        Returns None if no meaningful value can be shown.
+        """
+        return None
+
+    def _priority_ref_value_binding(self, stmt_var):
+        """Shared implementation: bind ?refValue using priority list + fallback.
+
+        COALESCE order: priority properties > any other property > deprioritized properties.
+        """
+        lines = [f"{stmt_var} prov:wasDerivedFrom ?_refNode ."]
+        coalesce_vars = []
+        # 1. Priority properties (P248, P854)
+        for prop in self.HIGH_PRIORITY_REF_PROPERTIES:
+            var = f"?_refNode_{prop}"
+            lines.append(f"OPTIONAL {{ ?_refNode pr:{prop} {var} . }}")
+            coalesce_vars.append(var)
+        # 2. Fallback: any pr: property except priority and deprioritized
+        all_excluded = (
+            self.HIGH_PRIORITY_REF_PROPERTIES + self.LOW_PRIORITY_REF_PROPERTIES
+        )
+        excluded_list = ", ".join(f"pr:{prop}" for prop in all_excluded)
+        lines.append(
+            f"OPTIONAL {{ ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . "
+            f'FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) '
+            f"FILTER(?_refNode_fallback_prop NOT IN ({excluded_list})) }}"
+        )
+        coalesce_vars.append("?_refNode_fallback")
+        # 3. Deprioritized properties as last resort
+        depri_list = ", ".join(
+            f"pr:{prop}" for prop in self.LOW_PRIORITY_REF_PROPERTIES
+        )
+        lines.append(
+            f"OPTIONAL {{ ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . "
+            f"FILTER(?_refNode_depri_prop IN ({depri_list})) }}"
+        )
+        coalesce_vars.append("?_refNode_deprioritized")
+        lines.append(f"BIND(COALESCE({', '.join(coalesce_vars)}) AS ?refValue)")
+        # Also bind the reference property as an entity URI (wd:) for label resolution
+        prop_coalesce_parts = []
+        for prop in self.HIGH_PRIORITY_REF_PROPERTIES:
+            prop_coalesce_parts.append(f"IF(BOUND(?_refNode_{prop}), wd:{prop}, 1/0)")
+        prop_coalesce_parts.append(
+            'IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))'
+        )
+        prop_coalesce_parts.append(
+            'IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))'
+        )
+        lines.append(
+            f"BIND(COALESCE({', '.join(prop_coalesce_parts)}) AS ?refProperty)"
+        )
+        return (lines, ["?refProperty", "?refValue"])
 
     @abstractmethod
     def key_suffix(self):
@@ -384,6 +450,10 @@ class AnyReferenceCheck(ReferenceCheck):
     def sparql_pattern(self):
         """SPARQL pattern that is true when the statement IS referenced."""
         return "?_unreferenced_stmt prov:wasDerivedFrom []"
+
+    def sparql_ref_value_binding(self, stmt_var):
+        """Bind ?refValue using priority list with fallback."""
+        return self._priority_ref_value_binding(stmt_var)
 
     def key_suffix(self):
         return "S*"
@@ -413,6 +483,16 @@ class PropertyReferenceCheck(ReferenceCheck):
         """SPARQL pattern that is true when the statement has a ref with this property (and value)."""
         target = f"wd:{self.value}" if self.value else "[]"
         return f"?_unreferenced_stmt prov:wasDerivedFrom/pr:{self.property} {target}"
+
+    def sparql_ref_value_binding(self, stmt_var):
+        """Bind ?refValue to the reference property value."""
+        if self.value:
+            # Fixed value − showing it is redundant
+            return None
+        return (
+            [f"{stmt_var} prov:wasDerivedFrom/pr:{self.property} ?refValue ."],
+            ["?refValue"],
+        )
 
     def key_suffix(self):
         suffix = f"S{self.property[1:]}"
@@ -507,6 +587,21 @@ class AnyOfPropertiesReferenceCheck(MultiPropertyReferenceCheck):
         lines.append(" UNION ".join(union_parts))
         return "\n".join(lines)
 
+    def sparql_ref_value_binding(self, stmt_var):
+        """Bind ?refValue using COALESCE over all listed properties (in order)."""
+        coalesce_vars = []
+        lines = [f"{stmt_var} prov:wasDerivedFrom ?_refNode ."]
+        for i, (prop, value) in enumerate(self.properties):
+            if value:
+                continue  # Fixed value, skip
+            var = f"?_refNode_val_{i}"
+            lines.append(f"OPTIONAL {{ ?_refNode pr:{prop} {var} . }}")
+            coalesce_vars.append(var)
+        if not coalesce_vars:
+            return None
+        lines.append(f"BIND(COALESCE({', '.join(coalesce_vars)}) AS ?refValue)")
+        return (lines, ["?refValue"])
+
 
 class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
     """S248+S304 − reference node has all of the specified properties (AND)."""
@@ -523,6 +618,19 @@ class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
             lines.append(f"?_ref pr:{prop} {target} .")
         return "\n".join(lines)
 
+    def sparql_ref_value_binding(self, stmt_var):
+        """Bind a variable for each non-fixed property value on the reference node."""
+        lines = [f"{stmt_var} prov:wasDerivedFrom ?_refNode ."]
+        vars = []
+        for prop, value in self.properties:
+            if not value:
+                var = f"?ref_{prop}"
+                lines.append(f"?_refNode pr:{prop} {var} .")
+                vars.append(var)
+        if not vars:
+            return None  # All properties have fixed values
+        return (lines, vars)
+
 
 class GoodReferenceCheck(ReferenceCheck):
     """S! − statement has a reference that is not from a known-subpar source."""
@@ -538,6 +646,10 @@ class GoodReferenceCheck(ReferenceCheck):
         for prop in self.BAD_PROPERTIES:
             lines.append(f"FILTER NOT EXISTS {{ ?_ref pr:{prop} [] }}")
         return "\n".join(lines)
+
+    def sparql_ref_value_binding(self, stmt_var):
+        """Bind ?refValue using priority list with fallback."""
+        return self._priority_ref_value_binding(stmt_var)
 
     def key_suffix(self):
         return "S!"
@@ -669,6 +781,16 @@ class ReferenceColumn(PropertyColumn):
             statement_qualifier = f"\n  {qc_statement}"
         else:
             statement_qualifier = ""
+        # Optionally bind reference value(s) from the reference node
+        ref_value_result = self.reference_check.sparql_ref_value_binding("?statement")
+        if ref_value_result:
+            ref_value_lines, ref_vars = ref_value_result
+            ref_value_fragment = "\n".join(f"  {line}" for line in ref_value_lines)
+            ref_value_fragment = f"\n{ref_value_fragment}"
+            select_vars = ["?entity", "?value"] + ref_vars
+        else:
+            ref_value_fragment = ""
+            select_vars = ["?entity", "?value"]
         return (
             f"""
   ?entity p:{self.property} ?statement .
@@ -678,9 +800,9 @@ class ReferenceColumn(PropertyColumn):
     FILTER NOT EXISTS {{
       {indented_ref}
     }}
-  }}
+  }}{ref_value_fragment}
 """,
-            ["?entity", "?value"],
+            select_vars,
         )
 
     def get_filter_for_negative_query(self):

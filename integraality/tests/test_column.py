@@ -769,8 +769,18 @@ LIMIT 1000
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
 """
-        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+        self.assertEqual(
+            result,
+            (expected_fragment, ["?entity", "?value", "?refProperty", "?refValue"]),
+        )
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
@@ -1140,8 +1150,11 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
   }
+  ?statement prov:wasDerivedFrom/pr:P248 ?refValue .
 """
-        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+        self.assertEqual(
+            result, (expected_fragment, ["?entity", "?value", "?refValue"])
+        )
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
@@ -1222,8 +1235,18 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
 """
-        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+        self.assertEqual(
+            result,
+            (expected_fragment, ["?entity", "?value", "?refProperty", "?refValue"]),
+        )
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
@@ -1301,8 +1324,18 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
       FILTER NOT EXISTS { ?_ref pr:P887 [] }
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
 """
-        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+        self.assertEqual(
+            result,
+            (expected_fragment, ["?entity", "?value", "?refProperty", "?refValue"]),
+        )
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
@@ -1404,8 +1437,18 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
 """
-        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+        self.assertEqual(
+            result,
+            (expected_fragment, ["?entity", "?value", "?refProperty", "?refValue"]),
+        )
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()

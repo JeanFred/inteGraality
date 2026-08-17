@@ -721,7 +721,7 @@ SELECT (COUNT(*) as ?count) WHERE {
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -733,6 +733,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -751,6 +758,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelMUL.
+    FILTER(lang(?refPropertylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelEN.
+    FILTER(lang(?refPropertylabelEN)='en')
+  }}.
+  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelMUL.
+    FILTER(lang(?refValuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelEN.
+    FILTER(lang(?refValuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -850,7 +875,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -862,6 +887,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
   }
+  ?statement prov:wasDerivedFrom/pr:P248 ?refValue .
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -880,6 +906,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelMUL.
+    FILTER(lang(?refValuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelEN.
+    FILTER(lang(?refValuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1030,7 +1065,7 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1043,6 +1078,10 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_val_0 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_val_1 . }
+  BIND(COALESCE(?_refNode_val_0, ?_refNode_val_1) AS ?refValue)
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1061,6 +1100,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelMUL.
+    FILTER(lang(?refValuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelEN.
+    FILTER(lang(?refValuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1123,7 +1171,7 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1137,6 +1185,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_ref pr:P304 [] .
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  ?_refNode pr:P248 ?ref_P248 .
+  ?_refNode pr:P304 ?ref_P304 .
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1155,6 +1206,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?ref_P248 rdfs:label ?ref_P248labelMUL.
+    FILTER(lang(?ref_P248labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P248 rdfs:label ?ref_P248labelEN.
+    FILTER(lang(?ref_P248labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P248labelEN, ?ref_P248labelMUL) AS ?ref_P248Label).
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelMUL.
+    FILTER(lang(?ref_P304labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelEN.
+    FILTER(lang(?ref_P304labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1219,7 +1288,7 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1235,6 +1304,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_ref pr:P304 [] .
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  ?_refNode pr:P248 ?ref_P248 .
+  ?_refNode pr:P304 ?ref_P304 .
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1253,6 +1325,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?ref_P248 rdfs:label ?ref_P248labelMUL.
+    FILTER(lang(?ref_P248labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P248 rdfs:label ?ref_P248labelEN.
+    FILTER(lang(?ref_P248labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P248labelEN, ?ref_P248labelMUL) AS ?ref_P248Label).
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelMUL.
+    FILTER(lang(?ref_P304labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelEN.
+    FILTER(lang(?ref_P304labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1274,7 +1364,7 @@ class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1288,6 +1378,8 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_ref pr:P813 [] .
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  ?_refNode pr:P813 ?ref_P813 .
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1306,6 +1398,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?ref_P813 rdfs:label ?ref_P813labelMUL.
+    FILTER(lang(?ref_P813labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P813 rdfs:label ?ref_P813labelEN.
+    FILTER(lang(?ref_P813labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P813labelEN, ?ref_P813labelMUL) AS ?ref_P813Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1366,7 +1467,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1381,6 +1482,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       FILTER NOT EXISTS { ?_ref pr:P887 [] }
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1399,6 +1507,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelMUL.
+    FILTER(lang(?refPropertylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelEN.
+    FILTER(lang(?refPropertylabelEN)='en')
+  }}.
+  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelMUL.
+    FILTER(lang(?refValuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelEN.
+    FILTER(lang(?refValuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1458,7 +1584,7 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
             self.column, "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
@@ -1472,6 +1598,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1490,6 +1623,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     FILTER(lang(?valuelabelEN)='en')
   }}.
   BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelMUL.
+    FILTER(lang(?refPropertylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refProperty rdfs:label ?refPropertylabelEN.
+    FILTER(lang(?refPropertylabelEN)='en')
+  }}.
+  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelMUL.
+    FILTER(lang(?refValuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?refValue rdfs:label ?refValuelabelEN.
+    FILTER(lang(?refValuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)

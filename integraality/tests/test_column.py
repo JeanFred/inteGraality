@@ -342,6 +342,20 @@ LIMIT 1000
         self.assertEqual(result, expected)
 
 
+class TestDescriptionColumn(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = DescriptionColumn("de")
+
+    def test_get_filter_for_positive_query(self):
+        result = self.column.get_filter_for_positive_query()
+        expected_fragment = """
+  ?entity schema:description ?value .
+  FILTER(LANG(?value) = "de")
+"""
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+
+
 class TestColumnMaker(PropertyStatisticsTest):
     def test_property_without_title(self):
         result = ColumnMaker.make("P136", None)

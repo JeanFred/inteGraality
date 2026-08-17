@@ -791,6 +791,15 @@ class DescriptionColumn(TextColumn):
     def get_type_name(self):
         return "description"
 
+    def get_filter_for_positive_query(self):
+        return (
+            f"""
+  ?entity schema:description ?value .
+  FILTER(LANG(?value) = "{self.language}")
+""",
+            ["?entity", "?value"],
+        )
+
 
 class SitelinkColumn(AbstractColumn):
     def __init__(self, project, project_data=None, title=None):

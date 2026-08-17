@@ -11,6 +11,11 @@ class ColumnSyntaxException(Exception):
     pass
 
 
+def _format_value_sparql(value):
+    """Format a value as a SPARQL term: variable as-is, QID with wd: prefix."""
+    return value if value.startswith("?") else f"wd:{value}"
+
+
 class ColumnMaker:
     @staticmethod
     def _load_wikiprojects():
@@ -319,10 +324,7 @@ class QualifierColumn(PropertyColumn):
 
     def get_filter_for_positive_query(self):
         if self.value:
-            value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
-            restrict_statement_to_value = (
-                f"\n  ?statement ps:{self.property} {value_ref} ."
-            )
+            restrict_statement_to_value = f"\n  ?statement ps:{self.property} {_format_value_sparql(self.value)} ."
         else:
             restrict_statement_to_value = ""
         return (
@@ -337,10 +339,7 @@ class QualifierColumn(PropertyColumn):
 
     def get_filter_for_negative_query(self):
         if self.value:
-            value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
-            restrict_statement_to_value = (
-                f"\n    ?statement ps:{self.property} {value_ref} ."
-            )
+            restrict_statement_to_value = f"\n    ?statement ps:{self.property} {_format_value_sparql(self.value)} ."
         else:
             restrict_statement_to_value = ""
         return (
@@ -575,8 +574,7 @@ class ReferenceColumn(PropertyColumn):
         """SPARQL triple restricting a statement variable to a specific value, or None."""
         if not self.value:
             return None
-        value_ref = self.value if self.value.startswith("?") else f"wd:{self.value}"
-        return f"{stmt_var} ps:{self.property} {value_ref} ."
+        return f"{stmt_var} ps:{self.property} {_format_value_sparql(self.value)} ."
 
     def _qualifier_constraint(self, stmt_var):
         """SPARQL triple restricting a statement variable to having a qualifier, or None."""

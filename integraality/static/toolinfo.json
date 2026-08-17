@@ -1,6 +1,6 @@
 [
   {
-    "name" : "integraality",
+    "name" : "toolforge-integraality",
     "title" : "inteGraality",
     "description" : "Generate dashboards of property coverage for a given part of Wikidata.",
     "url" : "https://integraality.toolforge.org/",

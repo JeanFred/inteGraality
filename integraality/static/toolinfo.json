@@ -2,7 +2,7 @@
   {
     "name" : "toolforge-integraality",
     "title" : "inteGraality",
-    "description" : "Generate dashboards of property coverage for a given part of Wikidata.",
+    "description" : "Assess data quality on Wikidata. Find the gaps, spot patterns, and focus your editing where it matters.",
     "url" : "https://integraality.toolforge.org/",
     "keywords" : "wikidata, statistics",
     "author" : [
@@ -14,12 +14,16 @@
       }
     ],
     "repository" : "https://github.com/JeanFred/integraality",
-    "for_wikis": ["wikidata.wikimedia.org"],
+    "for_wikis": ["wikidata.org", "commons.wikimedia.org"],
+    "available_ui_languages": ["en"],
+    "technology_used": ["Python", "Flask", "SPARQL", "Redis"],
     "license": "MIT",
-    "tool_type": "bot",
-    "user_docs_url": "https://www.wikidata.org/wiki/Wikidata:Tools/inteGraality",
+    "tool_type": ["bot", "web app"],
+    "bot_username": "InteGraalityBot",
+    "user_docs_url": "https://www.wikidata.org/wiki/Wikidata:InteGraality",
+    "feedback_url": "https://www.wikidata.org/wiki/Wikidata_talk:InteGraality",
     "bugtracker_url": "https://phabricator.wikimedia.org/tag/tool-integraality/",
     "developer_docs_url": "https://wikitech.wikimedia.org/wiki/Tool:InteGraality",
-    "_schema": "/toolinfo/1.2.1"
+    "_schema": "/toolinfo/1.2.2"
   }
 ]

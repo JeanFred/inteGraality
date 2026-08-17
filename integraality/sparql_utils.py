@@ -139,6 +139,26 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
         return []
 
 
+def expand_select_vars(vars_list):
+    """Expand a list of SPARQL variables into a SELECT clause with labels.
+
+    ['?entity', '?value'] → '?entity ?entityLabel ?value ?valueLabel'
+    """
+    return " ".join(f"{var} {var}Label" for var in vars_list)
+
+
+def get_labels_for_select_vars(vars_list):
+    """Derive label-resolution SPARQL from a list of SPARQL variables.
+
+    For each variable, generates OPTIONAL/BIND blocks that resolve
+    rdfs:label into a corresponding ?varLabel variable.
+    """
+    lines = []
+    for var in vars_list:
+        lines.extend(get_label_for_variable(var, f"{var}Label"))
+    return "\n".join(lines) + "\n"
+
+
 def get_label_for_variable(subject_variable, output_variable, lang="en"):
     """Generate SPARQL fragment to get label with fallback from given language to 'mul'."""
     variable_base = subject_variable.lstrip("?")

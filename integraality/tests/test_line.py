@@ -55,7 +55,10 @@ class GroupingTest(unittest.TestCase):
 
     def test_postive_query(self):
         grouping = line.Grouping(count=1)
-        result = grouping.postive_query(selector_sparql="wdt:P31 wd:Q41960")
+        result = grouping.postive_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
+        )
         expected = "\n".join(
             [
                 "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
@@ -66,7 +69,10 @@ class GroupingTest(unittest.TestCase):
 
     def test_negative_query(self):
         grouping = line.Grouping(count=1)
-        result = grouping.negative_query(selector_sparql="wdt:P31 wd:Q41960")
+        result = grouping.negative_query(
+            selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
+        )
         expected = "\n".join(
             [
                 "SELECT DISTINCT ?entity ?entityLabel WHERE {",
@@ -87,6 +93,7 @@ class NoGroupGroupingTest(unittest.TestCase):
         grouping = line.NoGroupGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(
@@ -104,6 +111,7 @@ class NoGroupGroupingTest(unittest.TestCase):
         grouping = line.NoGroupGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(
@@ -146,6 +154,7 @@ class ItemGroupingTest(unittest.TestCase):
         grouping = line.ItemGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
             grouping_predicate="wdt:P551",
             grouping="Q1",
         )
@@ -162,6 +171,7 @@ class ItemGroupingTest(unittest.TestCase):
         grouping = line.ItemGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
             grouping_predicate="wdt:P551",
             grouping="Q1",
         )
@@ -186,6 +196,7 @@ class YearGroupingTest(unittest.TestCase):
         grouping = line.YearGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
             grouping_predicate="wdt:P551",
             grouping="2001",
         )
@@ -204,6 +215,7 @@ class YearGroupingTest(unittest.TestCase):
         grouping = line.YearGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
             grouping_predicate="wdt:P551",
             grouping="2001",
         )
@@ -230,6 +242,7 @@ class UnknownValueGroupingTest(unittest.TestCase):
         grouping = line.UnknownValueGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(
@@ -246,6 +259,7 @@ class UnknownValueGroupingTest(unittest.TestCase):
         grouping = line.UnknownValueGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(
@@ -270,6 +284,7 @@ class TotalsGroupingTest(unittest.TestCase):
         grouping = line.TotalsGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel ?value ?valueLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(
@@ -284,6 +299,7 @@ class TotalsGroupingTest(unittest.TestCase):
         grouping = line.TotalsGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q41960",
+            select_clause="?entity ?entityLabel",
             grouping_predicate="wdt:P551",
         )
         expected = "\n".join(

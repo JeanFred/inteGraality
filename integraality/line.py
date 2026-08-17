@@ -86,11 +86,13 @@ class Grouping(AbstractLine):
             return f"| [{self.grouping_link} {self.count}] \n"
         return f"| [[{self.grouping_link}|{self.count}]] \n"
 
-    def postive_query(self, selector_sparql, grouping_predicate=None, grouping=None):
+    def postive_query(
+        self, selector_sparql, select_clause, grouping_predicate=None, grouping=None
+    ):
         query = []
         query.extend(
             [
-                "SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {",
+                f"SELECT DISTINCT {select_clause} WHERE {{",
                 f"  ?entity {selector_sparql} .",
             ]
         )
@@ -104,11 +106,13 @@ class Grouping(AbstractLine):
         """SPARQL BIND for ?grouping in drill-down queries. Override in subclasses."""
         return ""
 
-    def negative_query(self, selector_sparql, grouping_predicate=None, grouping=None):
+    def negative_query(
+        self, selector_sparql, select_clause, grouping_predicate=None, grouping=None
+    ):
         query = []
         query.extend(
             [
-                "SELECT DISTINCT ?entity ?entityLabel WHERE {",
+                f"SELECT DISTINCT {select_clause} WHERE {{",
                 f"  ?entity {selector_sparql} .",
             ]
         )

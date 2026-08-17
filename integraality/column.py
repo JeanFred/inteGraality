@@ -6,8 +6,6 @@ import json
 import os
 from abc import ABC, abstractmethod
 
-from .sparql_utils import get_label_for_variable
-
 
 class ColumnSyntaxException(Exception):
     pass
@@ -235,24 +233,6 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 """
         return query
 
-    def get_variable_labels_for_positive_query(self):
-        """Generate SPARQL for entity labels using native SPARQL."""
-        return "\n".join(get_label_for_variable("?entity", "?entityLabel")) + "\n"
-
-    def get_variable_labels_for_negative_query(self):
-        """Generate SPARQL for entity labels using native SPARQL."""
-        return "\n".join(get_label_for_variable("?entity", "?entityLabel")) + "\n"
-
-    def _get_entity_and_value_labels(self):
-        """Helper for classes that need both entity and value labels."""
-        return (
-            "\n".join(
-                get_label_for_variable("?entity", "?entityLabel")
-                + get_label_for_variable("?value", "?valueLabel")
-            )
-            + "\n"
-        )
-
     def make_column_header(self):
         return f'! data-sort-type="number"|{self.get_column_label()}\n'
 
@@ -287,21 +267,23 @@ class PropertyColumn(AbstractColumn):
     ?entity p:{self.property}[]"""
 
     def get_filter_for_positive_query(self):
-        return f"""
+        return (
+            f"""
   ?entity p:{self.property} ?statement . OPTIONAL {{ ?statement ps:{self.property} ?value }}
-"""
+""",
+            ["?entity", "?value"],
+        )
 
     def get_filter_for_negative_query(self):
-        return f"""
+        return (
+            f"""
   MINUS {{
     {{?entity a wdno:{self.property} .}} UNION
     {{?entity wdt:{self.property} ?statement .}}
   }}
-"""
-
-    def get_variable_labels_for_positive_query(self):
-        """Generate SPARQL for entity and value labels using native SPARQL."""
-        return self._get_entity_and_value_labels()
+""",
+            ["?entity"],
+        )
 
 
 class QualifierColumn(PropertyColumn):
@@ -343,12 +325,15 @@ class QualifierColumn(PropertyColumn):
             )
         else:
             restrict_statement_to_value = ""
-        return f"""
+        return (
+            f"""
   ?entity p:{self.property} ?statement .{restrict_statement_to_value}
   {{ ?statement pq:{self.qualifier} ?value . }}
   UNION
   {{ ?statement a wdno:{self.qualifier} . BIND("no value"@en AS ?valueLabel) }}
-"""
+""",
+            ["?entity", "?value"],
+        )
 
     def get_filter_for_negative_query(self):
         if self.value:
@@ -358,14 +343,17 @@ class QualifierColumn(PropertyColumn):
             )
         else:
             restrict_statement_to_value = ""
-        return f"""
+        return (
+            f"""
   MINUS {{
     ?entity p:{self.property} ?statement .{restrict_statement_to_value}
     {{ ?statement pq:{self.qualifier} ?value . }}
     UNION
     {{ ?statement a wdno:{self.qualifier} . }}
   }}
-"""
+""",
+            ["?entity"],
+        )
 
 
 class ReferenceCheck(ABC):
@@ -683,7 +671,8 @@ class ReferenceColumn(PropertyColumn):
             statement_qualifier = f"\n  {qc_statement}"
         else:
             statement_qualifier = ""
-        return f"""
+        return (
+            f"""
   ?entity p:{self.property} ?statement .
   ?statement ps:{self.property} ?value .{statement_value}{statement_qualifier}
   FILTER NOT EXISTS {{
@@ -692,7 +681,9 @@ class ReferenceColumn(PropertyColumn):
       {indented_ref}
     }}
   }}
-"""
+""",
+            ["?entity", "?value"],
+        )
 
     def get_filter_for_negative_query(self):
         # Matches items that either lack the property (or specific value) entirely,
@@ -716,7 +707,8 @@ class ReferenceColumn(PropertyColumn):
         any_value_line = f"\n    {vc_any}" if vc_any else ""
         qc_any = self._qualifier_constraint("?_any_stmt")
         any_qualifier_line = f"\n    {qc_any}" if qc_any else ""
-        return f"""
+        return (
+            f"""
   OPTIONAL {{
     ?entity p:{self.property} ?_unreferenced_stmt .{unreferenced_value_line}{unreferenced_qualifier_line}
     FILTER NOT EXISTS {{
@@ -725,7 +717,9 @@ class ReferenceColumn(PropertyColumn):
   }}
   OPTIONAL {{ ?entity p:{self.property} ?_any_stmt .{any_value_line}{any_qualifier_line} }}
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-"""
+""",
+            ["?entity"],
+        )
 
 
 class TextColumn(AbstractColumn):
@@ -750,20 +744,26 @@ class TextColumn(AbstractColumn):
     FILTER((LANG(?lang_label)) = '{self.language}')."""
 
     def get_filter_for_positive_query(self):
-        return f"""
+        return (
+            f"""
   FILTER(EXISTS {{
     ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}").
   }})
-"""
+""",
+            ["?entity"],
+        )
 
     def get_filter_for_negative_query(self):
-        return f"""
+        return (
+            f"""
   MINUS {{
     {{ ?entity {self.get_selector()} ?lang_label.
     FILTER((LANG(?lang_label)) = "{self.language}") }}
   }}
-"""
+""",
+            ["?entity"],
+        )
 
 
 class LabelColumn(TextColumn):
@@ -832,20 +832,22 @@ class SitelinkColumn(AbstractColumn):
       schema:isPartOf <{self.url}>."""
 
     def get_filter_for_positive_query(self):
-        return f"""
+        return (
+            f"""
   ?sitelink schema:about ?entity;
     schema:isPartOf <{self.url}>;
     schema:name ?value.
-"""
+""",
+            ["?entity", "?value"],
+        )
 
     def get_filter_for_negative_query(self):
-        return f"""
+        return (
+            f"""
   MINUS {{
     ?sitelink schema:about ?entity;
       schema:isPartOf <{self.url}>.
   }}
-"""
-
-    def get_variable_labels_for_positive_query(self):
-        """Generate SPARQL for entity and value labels using native SPARQL."""
-        return self._get_entity_and_value_labels()
+""",
+            ["?entity"],
+        )

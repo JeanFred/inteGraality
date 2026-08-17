@@ -18,6 +18,8 @@ from .sparql_utils import (
     UNKNOWN_VALUE_PREFIX,
     QueryException,
     WdqsSparqlQueryEngine,
+    expand_select_vars,
+    get_labels_for_select_vars,
 )
 
 logger = logging.getLogger("integraality.update")
@@ -101,11 +103,16 @@ class PropertyStatistics:
         grouping_predicate = self.grouping_configuration.get_predicate()
         line, grouping = self._make_line_for_grouping(grouping)
 
+        column_filter, select_vars = column.get_filter_for_positive_query()
+        select_clause = expand_select_vars(select_vars)
+
         query = "\n"
-        query += line.postive_query(self.selector_sparql, grouping_predicate, grouping)
+        query += line.postive_query(
+            self.selector_sparql, select_clause, grouping_predicate, grouping
+        )
         query += line.grouping_bind(grouping)
-        query += column.get_filter_for_positive_query()
-        query += column.get_variable_labels_for_positive_query()
+        query += column_filter
+        query += get_labels_for_select_vars(select_vars)
         query += """}
 """
         return query
@@ -114,11 +121,16 @@ class PropertyStatistics:
         grouping_predicate = self.grouping_configuration.get_predicate()
         line, grouping = self._make_line_for_grouping(grouping)
 
+        column_filter, select_vars = column.get_filter_for_negative_query()
+        select_clause = expand_select_vars(select_vars)
+
         query = "\n"
-        query += line.negative_query(self.selector_sparql, grouping_predicate, grouping)
+        query += line.negative_query(
+            self.selector_sparql, select_clause, grouping_predicate, grouping
+        )
         query += line.grouping_bind(grouping)
-        query += column.get_filter_for_negative_query()
-        query += column.get_variable_labels_for_negative_query()
+        query += column_filter
+        query += get_labels_for_select_vars(select_vars)
         query += """}
 """
         return query

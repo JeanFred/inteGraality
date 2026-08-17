@@ -746,7 +746,7 @@ LIMIT 1000
 
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
-        expected = """
+        expected_fragment = """
   ?entity p:P19 ?statement .
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
@@ -756,11 +756,11 @@ LIMIT 1000
     }
   }
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
-        expected = """
+        expected_fragment = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
@@ -770,7 +770,7 @@ LIMIT 1000
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity"]))
 
 
 class TestReferenceColumnWithTitle(PropertyStatisticsTest):
@@ -1116,7 +1116,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
 
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
-        expected = """
+        expected_fragment = """
   ?entity p:P19 ?statement .
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
@@ -1126,11 +1126,11 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     }
   }
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
-        expected = """
+        expected_fragment = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
@@ -1140,7 +1140,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P248"))
@@ -1195,7 +1195,7 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
 
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
-        expected = """
+        expected_fragment = """
   ?entity p:P27 ?statement .
   ?statement ps:P27 ?value .
   ?statement ps:P27 wd:Q142 .
@@ -1207,11 +1207,11 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
     }
   }
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
-        expected = """
+        expected_fragment = """
   OPTIONAL {
     ?entity p:P27 ?_unreferenced_stmt .
     ?_unreferenced_stmt ps:P27 wd:Q142 .
@@ -1223,7 +1223,7 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
     ?_any_stmt ps:P27 wd:Q142 . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P27", value="Q142")
@@ -1272,7 +1272,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
 
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
-        expected = """
+        expected_fragment = """
   ?entity p:P19 ?statement .
   ?statement ps:P19 ?value .
   FILTER NOT EXISTS {
@@ -1285,11 +1285,11 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
     }
   }
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
-        expected = """
+        expected_fragment = """
   OPTIONAL {
     ?entity p:P19 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
@@ -1302,7 +1302,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
   OPTIONAL { ?entity p:P19 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity"]))
 
 
 class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
@@ -1375,7 +1375,7 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
 
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
-        expected = """
+        expected_fragment = """
   ?entity p:P123 ?statement .
   ?statement ps:P123 ?value .
   ?statement pq:P789 [] .
@@ -1387,11 +1387,11 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
     }
   }
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_get_filter_for_negative_query(self):
         result = self.column.get_filter_for_negative_query()
-        expected = """
+        expected_fragment = """
   OPTIONAL {
     ?entity p:P123 ?_unreferenced_stmt .
     ?_unreferenced_stmt pq:P789 [] .
@@ -1403,7 +1403,7 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
     ?_any_stmt pq:P789 [] . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
 """
-        self.assertEqual(result, expected)
+        self.assertEqual(result, (expected_fragment, ["?entity"]))
 
     def test_equality(self):
         col1 = ReferenceColumn("P123", qualifier="P789")

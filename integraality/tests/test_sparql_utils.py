@@ -14,7 +14,9 @@ from ..sparql_utils import (
     UnsupportedSparqlEngineException,
     WdqsSparqlQueryEngine,
     add_prefixes_to_query,
+    expand_select_vars,
     get_label_for_variable,
+    get_labels_for_select_vars,
 )
 
 
@@ -254,3 +256,39 @@ class GetLabelForVariableTest(unittest.TestCase):
             "  BIND(?itemlabelMUL AS ?label).",
         ]
         self.assertListEqual(result, expected)
+
+
+class ExpandSelectVarsTest(unittest.TestCase):
+    def test_single_variable(self):
+        result = expand_select_vars(["?entity"])
+        self.assertEqual(result, "?entity ?entityLabel")
+
+    def test_two_variables(self):
+        result = expand_select_vars(["?entity", "?value"])
+        self.assertEqual(result, "?entity ?entityLabel ?value ?valueLabel")
+
+    def test_three_variables(self):
+        result = expand_select_vars(["?entity", "?value", "?refValue"])
+        self.assertEqual(
+            result, "?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel"
+        )
+
+    def test_empty_list(self):
+        result = expand_select_vars([])
+        self.assertEqual(result, "")
+
+
+class GetLabelsForSelectVarsTest(unittest.TestCase):
+    def test_single_variable(self):
+        result = get_labels_for_select_vars(["?entity"])
+        self.assertIn("?entity rdfs:label", result)
+        self.assertIn("?entityLabel", result)
+
+    def test_two_variables(self):
+        result = get_labels_for_select_vars(["?entity", "?value"])
+        self.assertIn("?entityLabel", result)
+        self.assertIn("?valueLabel", result)
+
+    def test_empty_list(self):
+        result = get_labels_for_select_vars([])
+        self.assertEqual(result, "\n")

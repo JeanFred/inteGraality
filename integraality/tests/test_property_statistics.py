@@ -380,7 +380,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("Lbr"), "Q3115846"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
+SELECT DISTINCT ?entity ?entityLabel WHERE {
   ?entity wdt:P31 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .

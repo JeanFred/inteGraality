@@ -33,22 +33,22 @@ from ..sparql_utils import QueryException, WdqsSparqlQueryEngine
 class PropertyStatisticsTest(unittest.TestCase):
     def setUp(self):
         self.columns = [
-            PropertyColumn(property="P21"),
-            PropertyColumn(property="P19"),
-            QualifierColumn(property="P1", qualifier="P2"),
-            QualifierColumn(property="P3", value="Q4", qualifier="P5"),
+            PropertyColumn(property="P1435"),
+            PropertyColumn(property="P131"),
+            QualifierColumn(property="P2929", qualifier="P462"),
+            QualifierColumn(property="P1435", value="Q10387575", qualifier="P580"),
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
             SitelinkColumn(project="brwiki"),
         ]
         self.grouping_configuration = GroupingConfiguration(
-            predicate="wdt:P551", grouping_type=ItemGroupingType()
+            predicate="wdt:P17", grouping_type=ItemGroupingType()
         )
         self.mock_sparql_query = create_autospec(WdqsSparqlQueryEngine, instance=True)
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
@@ -75,7 +75,7 @@ class TestLabelColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -88,8 +88,8 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -106,8 +106,8 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -135,7 +135,7 @@ class TestDescriptionColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -148,8 +148,8 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -166,8 +166,8 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -206,10 +206,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 2),
-                ("P19", 10),
-                ("P1/P2", 15),
-                ("P3/Q4/P5", 5),
+                ("P1435", 2),
+                ("P131", 10),
+                ("P2929/P462", 15),
+                ("P1435/Q10387575/P580", 5),
                 ("Lbr", 4),
                 ("Dxy", 8),
                 ("brwiki", 4),
@@ -227,10 +227,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 2),
-                ("P19", 10),
-                ("P1/P2", 15),
-                ("P3/Q4/P5", 5),
+                ("P1435", 2),
+                ("P131", 10),
+                ("P2929/P462", 15),
+                ("P1435/Q10387575/P580", 5),
                 ("Lbr", 4),
                 ("Dxy", 8),
                 ("brwiki", 4),
@@ -247,10 +247,10 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 2),
-                ("P19", 10),
-                ("P1/P2", 15),
-                ("P3/Q4/P5", 5),
+                ("P1435", 2),
+                ("P131", 10),
+                ("P2929/P462", 15),
+                ("P1435/Q10387575/P580", 5),
                 ("Lbr", 4),
                 ("Dxy", 8),
                 ("brwiki", 4),
@@ -282,14 +282,14 @@ class FindSpecialGroupingTest(unittest.TestCase):
 class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), "Q3115846"
+            self.stats.columns.get("P1435"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -314,15 +314,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_no_grouping(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), NoGroupGrouping.MARKER
+            self.stats.columns.get("P1435"), NoGroupGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
+  ?entity wdt:P31 wd:Q39715 .
   MINUS {
-    ?entity wdt:P551 [] .
+    ?entity wdt:P17 [] .
   }
-  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
+  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -347,12 +347,12 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_totals(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), TotalsGrouping.MARKER
+            self.stats.columns.get("P1435"), TotalsGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -377,13 +377,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_label(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("Lbr"), "Q3115846"
+            self.stats.columns.get("Lbr"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br").
@@ -403,14 +403,14 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_unknown_value_grouping(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), UnknownValueGrouping.MARKER
+            self.stats.columns.get("P1435"), UnknownValueGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping.
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping.
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
-  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
+  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -437,24 +437,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=GroupingConfiguration(
-                predicate="wdt:P577", grouping_type=YearGroupingType()
+                predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P21"), 2006
+            self.stats.columns.get("P1435"), 1892
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P577 ?date.
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P571 ?date.
   BIND(YEAR(?date) as ?year).
-  FILTER(?year = 2006).
-  BIND(2006 AS ?grouping) .
-  ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
+  FILTER(?year = 1892).
+  BIND(1892 AS ?grouping) .
+  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -479,13 +479,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_sitelink(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("brwiki"), "Q3115846"
+            self.stats.columns.get("brwiki"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   ?sitelink schema:about ?entity;
     schema:isPartOf <https://br.wikipedia.org/>;
     schema:name ?value.
@@ -513,17 +513,17 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_qualifier(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P1/P2"), "Q3115846"
+            self.stats.columns.get("P2929/P462"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P1 ?statement .
-  { ?statement pq:P2 ?value . }
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P2929 ?statement .
+  { ?statement pq:P462 ?value . }
   UNION
-  { ?statement a wdno:P2 . BIND("no value"@en AS ?valueLabel) }
+  { ?statement a wdno:P462 . BIND("no value"@en AS ?valueLabel) }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -548,18 +548,18 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_positive_qualifier_with_value(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P3/Q4/P5"), "Q3115846"
+            self.stats.columns.get("P1435/Q10387575/P580"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P3 ?statement .
-  ?statement ps:P3 wd:Q4 .
-  { ?statement pq:P5 ?value . }
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 wd:Q10387575 .
+  { ?statement pq:P580 ?value . }
   UNION
-  { ?statement a wdno:P5 . BIND("no value"@en AS ?valueLabel) }
+  { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -585,22 +585,22 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
     def test_get_query_for_items_for_property_positive_qualifier_with_variable_value(
         self,
     ):
-        self.stats.columns["P166/?grouping/P585"] = QualifierColumn(
-            property="P166", value="?grouping", qualifier="P585"
+        self.stats.columns["P17/?grouping/P580"] = QualifierColumn(
+            property="P17", value="?grouping", qualifier="P580"
         )
         result = self.stats.get_query_for_items_for_property_positive(
-            self.stats.columns.get("P166/?grouping/P585"), "Q3115846"
+            self.stats.columns.get("P17/?grouping/P580"), "Q159"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P166 ?statement .
-  ?statement ps:P166 ?grouping .
-  { ?statement pq:P585 ?value . }
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q159 .
+  BIND(wd:Q159 AS ?grouping) .
+  ?entity p:P17 ?statement .
+  ?statement ps:P17 ?grouping .
+  { ?statement pq:P580 ?value . }
   UNION
-  { ?statement a wdno:P585 . BIND("no value"@en AS ?valueLabel) }
+  { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -632,40 +632,40 @@ class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
             {"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}
         ]
         config = GroupingConfiguration(
-            predicate="wdt:P577",
+            predicate="wdt:P571",
             grouping_type=None,
             raw_explicit_groupings=None,
         )
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=config,
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
         self.mock_sparql_query.reset_mock()
         result = stats.get_query_for_items_for_property_positive(
-            stats.columns.get("P21"), 2007
+            stats.columns.get("P1435"), 1893
         )
-        self.assertIn("FILTER(?year = 2007)", result)
+        self.assertIn("FILTER(?year = 1893)", result)
 
 
 class TestReferenceColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = ReferenceColumn(property="P21")
-        self.stats.columns["P21/S*"] = self.column
+        self.column = ReferenceColumn(property="P2923")
+        self.stats.columns["P2923/S*"] = self.column
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P21 [] .
+    ?entity p:P2923 [] .
     FILTER NOT EXISTS {
-      ?entity p:P21 ?_unreferenced_stmt .
+      ?entity p:P2923 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -683,12 +683,12 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P21 [] .
+    ?entity p:P2923 [] .
     FILTER NOT EXISTS {
-      ?entity p:P21 ?_unreferenced_stmt .
+      ?entity p:P2923 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -702,11 +702,11 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P21 [] .
+    ?entity p:P2923 [] .
     FILTER NOT EXISTS {
-      ?entity p:P21 ?_unreferenced_stmt .
+      ?entity p:P2923 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -718,17 +718,17 @@ SELECT (COUNT(*) as ?count) WHERE {
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P2923 ?statement .
+  ?statement ps:P2923 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2923 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
@@ -782,22 +782,22 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2923 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P2923 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -826,19 +826,19 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
+  ?entity wdt:P31 wd:Q39715 .
   MINUS {
-    ?entity wdt:P551 [] .
+    ?entity wdt:P17 [] .
   }
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2923 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P2923 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -866,23 +866,23 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21", reference_check=PropertyReferenceCheck("P248")
+            property="P1435", reference_check=PropertyReferenceCheck("P248")
         )
-        self.stats.columns["P21/S248"] = self.column
+        self.stats.columns["P1435/S248"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
@@ -921,22 +921,22 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -964,26 +964,26 @@ class TestReferenceColumnSpecificPropertyValue(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21",
-            reference_check=PropertyReferenceCheck("P248", "Q19216625"),
+            property="P1435",
+            reference_check=PropertyReferenceCheck("P248", "Q809830"),
         )
-        self.stats.columns["P21/S248=Q19216625"] = self.column
+        self.stats.columns["P1435/S248=Q809830"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q19216625
+      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
     }
   }
   OPTIONAL {{
@@ -1010,22 +1010,22 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q19216625
+      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1053,26 +1053,26 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21",
+            property="P1435",
             reference_check=AnyOfPropertiesReferenceCheck(
                 [("P248", None), ("P854", None)]
             ),
         )
-        self.stats.columns["P21/S248;S854"] = self.column
+        self.stats.columns["P1435/S248;S854"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
@@ -1115,23 +1115,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1159,26 +1159,26 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21",
+            property="P2929",
             reference_check=AllPropertiesReferenceCheck(
                 [("P248", None), ("P304", None)]
             ),
         )
-        self.stats.columns["P21/S248+S304"] = self.column
+        self.stats.columns["P2929/S248+S304"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P2929 ?statement .
+  ?statement ps:P2929 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2929 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       ?_ref pr:P248 [] .
@@ -1230,24 +1230,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2929 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       ?_ref pr:P248 [] .
       ?_ref pr:P304 [] .
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P2929 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1275,111 +1275,38 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P27",
-            value="Q142",
+            property="P793",
+            value="Q24410992",
             reference_check=AllPropertiesReferenceCheck(
-                [("P248", None), ("P304", None)]
+                [("P813", None), ("P854", None)]
             ),
         )
-        self.stats.columns["P27/Q142/S248+S304"] = self.column
+        self.stats.columns["P793/Q24410992/S813+S854"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P27 ?statement .
-  ?statement ps:P27 ?value .
-  ?statement ps:P27 wd:Q142 .
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label ?ref_P854 ?ref_P854Label WHERE {
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P793 ?statement .
+  ?statement ps:P793 ?value .
+  ?statement ps:P793 wd:Q24410992 .
   FILTER NOT EXISTS {
-    ?entity p:P27 ?_unreferenced_stmt .
-    ?_unreferenced_stmt ps:P27 wd:Q142 .
+    ?entity p:P793 ?_unreferenced_stmt .
+    ?_unreferenced_stmt ps:P793 wd:Q24410992 .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 [] .
-      ?_ref pr:P304 [] .
-    }
-  }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  ?_refNode pr:P248 ?ref_P248 .
-  ?_refNode pr:P304 ?ref_P304 .
-  OPTIONAL {{
-    ?entity rdfs:label ?entitylabelMUL.
-    FILTER(lang(?entitylabelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?entity rdfs:label ?entitylabelEN.
-    FILTER(lang(?entitylabelEN)='en')
-  }}.
-  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
-  OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
-  }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
-  OPTIONAL {{
-    ?ref_P248 rdfs:label ?ref_P248labelMUL.
-    FILTER(lang(?ref_P248labelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?ref_P248 rdfs:label ?ref_P248labelEN.
-    FILTER(lang(?ref_P248labelEN)='en')
-  }}.
-  BIND(COALESCE(?ref_P248labelEN, ?ref_P248labelMUL) AS ?ref_P248Label).
-  OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelMUL.
-    FILTER(lang(?ref_P304labelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelEN.
-    FILTER(lang(?ref_P304labelEN)='en')
-  }}.
-  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
-}
-"""
-        self.assertEqual(result, expected)
-
-
-class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
-    def setUp(self):
-        super().setUp()
-        self.column = ReferenceColumn(
-            property="P21",
-            reference_check=AllPropertiesReferenceCheck(
-                [("P248", "Q135436770"), ("P813", None)]
-            ),
-        )
-        self.stats.columns["P21/S248=Q135436770+S813"] = self.column
-
-    def test_get_query_for_items_for_property_positive(self):
-        result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
-        )
-        expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 wd:Q135436770 .
       ?_ref pr:P813 [] .
+      ?_ref pr:P854 [] .
     }
   }
   ?statement prov:wasDerivedFrom ?_refNode .
   ?_refNode pr:P813 ?ref_P813 .
+  ?_refNode pr:P854 ?ref_P854 .
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1407,30 +1334,103 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label
     FILTER(lang(?ref_P813labelEN)='en')
   }}.
   BIND(COALESCE(?ref_P813labelEN, ?ref_P813labelMUL) AS ?ref_P813Label).
+  OPTIONAL {{
+    ?ref_P854 rdfs:label ?ref_P854labelMUL.
+    FILTER(lang(?ref_P854labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P854 rdfs:label ?ref_P854labelEN.
+    FILTER(lang(?ref_P854labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P854labelEN, ?ref_P854labelMUL) AS ?ref_P854Label).
+}
+"""
+        self.assertEqual(result, expected)
+
+
+class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn(
+            property="P2929",
+            reference_check=AllPropertiesReferenceCheck(
+                [("P248", "Q25198336"), ("P304", None)]
+            ),
+        )
+        self.stats.columns["P2929/S248=Q25198336+S813"] = self.column
+
+    def test_get_query_for_items_for_property_positive(self):
+        result = self.stats.get_query_for_items_for_property_positive(
+            self.column, "Q142"
+        )
+        expected = """
+SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P2929 ?statement .
+  ?statement ps:P2929 ?value .
+  FILTER NOT EXISTS {
+    ?entity p:P2929 ?_unreferenced_stmt .
+    FILTER NOT EXISTS {
+      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+      ?_ref pr:P248 wd:Q25198336 .
+      ?_ref pr:P304 [] .
+    }
+  }
+  ?statement prov:wasDerivedFrom ?_refNode .
+  ?_refNode pr:P304 ?ref_P304 .
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelMUL.
+    FILTER(lang(?entitylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?entity rdfs:label ?entitylabelEN.
+    FILTER(lang(?entitylabelEN)='en')
+  }}.
+  BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelMUL.
+    FILTER(lang(?valuelabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?value rdfs:label ?valuelabelEN.
+    FILTER(lang(?valuelabelEN)='en')
+  }}.
+  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelMUL.
+    FILTER(lang(?ref_P304labelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?ref_P304 rdfs:label ?ref_P304labelEN.
+    FILTER(lang(?ref_P304labelEN)='en')
+  }}.
+  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
 }
 """
         self.assertEqual(result, expected)
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P2929 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 wd:Q135436770 .
-      ?_ref pr:P813 [] .
+      ?_ref pr:P248 wd:Q25198336 .
+      ?_ref pr:P304 [] .
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P2929 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1458,23 +1458,23 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            property="P21", reference_check=GoodReferenceCheck()
+            property="P1435", reference_check=GoodReferenceCheck()
         )
-        self.stats.columns["P21/S!"] = self.column
+        self.stats.columns["P1435/S!"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
@@ -1531,15 +1531,15 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
@@ -1547,9 +1547,9 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
       FILTER NOT EXISTS { ?_ref pr:P887 [] }
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt . }
+  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1576,23 +1576,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = ReferenceColumn(property="P21", qualifier="P580")
-        self.stats.columns["P21/P580/S*"] = self.column
+        self.column = ReferenceColumn(property="P1435", qualifier="P580")
+        self.stats.columns["P1435/P580/S*"] = self.column
 
     def test_get_query_for_items_for_property_positive(self):
         result = self.stats.get_query_for_items_for_property_positive(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
-  ?entity p:P21 ?statement .
-  ?statement ps:P21 ?value .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
+  ?entity p:P1435 ?statement .
+  ?statement ps:P1435 ?value .
   ?statement pq:P580 [] .
   FILTER NOT EXISTS {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     ?_unreferenced_stmt pq:P580 [] .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
@@ -1647,24 +1647,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
 
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.column, "Q3115846"
+            self.column, "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   OPTIONAL {
-    ?entity p:P21 ?_unreferenced_stmt .
+    ?entity p:P1435 ?_unreferenced_stmt .
     ?_unreferenced_stmt pq:P580 [] .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
-  OPTIONAL { ?entity p:P21 ?_any_stmt .
+  OPTIONAL { ?entity p:P1435 ?_any_stmt .
     ?_any_stmt pq:P580 [] . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P21 ?_show_stmt . ?_show_stmt ps:P21 ?value . }
+  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1691,16 +1691,16 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
 class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
     def test_get_query_for_items_for_property_negative(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), "Q3115846"
+            self.stats.columns.get("P1435"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   MINUS {
-    {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?statement .}
+    {?entity a wdno:P1435 .} UNION
+    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1717,17 +1717,17 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_no_grouping(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), NoGroupGrouping.MARKER
+            self.stats.columns.get("P1435"), NoGroupGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
+  ?entity wdt:P31 wd:Q39715 .
   MINUS {
-    ?entity wdt:P551 [] .
+    ?entity wdt:P17 [] .
   }
   MINUS {
-    {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?statement .}
+    {?entity a wdno:P1435 .} UNION
+    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1744,14 +1744,14 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_totals(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), TotalsGrouping.MARKER
+            self.stats.columns.get("P1435"), TotalsGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
+  ?entity wdt:P31 wd:Q39715 .
   MINUS {
-    {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?statement .}
+    {?entity a wdno:P1435 .} UNION
+    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1768,13 +1768,13 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_label(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("Lbr"), "Q3115846"
+            self.stats.columns.get("Lbr"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   MINUS {
     { ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = "br") }
@@ -1794,16 +1794,16 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_unknown_value_grouping(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), UnknownValueGrouping.MARKER
+            self.stats.columns.get("P1435"), UnknownValueGrouping.MARKER
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping.
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping.
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   MINUS {
-    {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?statement .}
+    {?entity a wdno:P1435 .} UNION
+    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1822,26 +1822,26 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=GroupingConfiguration(
-                predicate="wdt:P577", grouping_type=YearGroupingType()
+                predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P21"), 2006
+            self.stats.columns.get("P1435"), 1892
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P577 ?date.
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P571 ?date.
   BIND(YEAR(?date) as ?year).
-  FILTER(?year = 2006).
-  BIND(2006 AS ?grouping) .
+  FILTER(?year = 1892).
+  BIND(1892 AS ?grouping) .
   MINUS {
-    {?entity a wdno:P21 .} UNION
-    {?entity wdt:P21 ?statement .}
+    {?entity a wdno:P1435 .} UNION
+    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1858,13 +1858,13 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_sitelink(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("brwiki"), "Q3115846"
+            self.stats.columns.get("brwiki"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   MINUS {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
@@ -1884,18 +1884,18 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_qualifier(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P1/P2"), "Q3115846"
+            self.stats.columns.get("P2929/P462"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   MINUS {
-    ?entity p:P1 ?statement .
-    { ?statement pq:P2 ?value . }
+    ?entity p:P2929 ?statement .
+    { ?statement pq:P462 ?value . }
     UNION
-    { ?statement a wdno:P2 . }
+    { ?statement a wdno:P462 . }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1912,19 +1912,19 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
 
     def test_get_query_for_items_for_property_negative_qualifier_with_value(self):
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P3/Q4/P5"), "Q3115846"
+            self.stats.columns.get("P1435/Q10387575/P580"), "Q142"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q142 .
+  BIND(wd:Q142 AS ?grouping) .
   MINUS {
-    ?entity p:P3 ?statement .
-    ?statement ps:P3 wd:Q4 .
-    { ?statement pq:P5 ?value . }
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 wd:Q10387575 .
+    { ?statement pq:P580 ?value . }
     UNION
-    { ?statement a wdno:P5 . }
+    { ?statement a wdno:P580 . }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1942,23 +1942,23 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
     def test_get_query_for_items_for_property_negative_qualifier_with_variable_value(
         self,
     ):
-        self.stats.columns["P166/?grouping/P585"] = QualifierColumn(
-            property="P166", value="?grouping", qualifier="P585"
+        self.stats.columns["P17/?grouping/P580"] = QualifierColumn(
+            property="P17", value="?grouping", qualifier="P580"
         )
         result = self.stats.get_query_for_items_for_property_negative(
-            self.stats.columns.get("P166/?grouping/P585"), "Q3115846"
+            self.stats.columns.get("P17/?grouping/P580"), "Q159"
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 wd:Q3115846 .
-  BIND(wd:Q3115846 AS ?grouping) .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 wd:Q159 .
+  BIND(wd:Q159 AS ?grouping) .
   MINUS {
-    ?entity p:P166 ?statement .
-    ?statement ps:P166 ?grouping .
-    { ?statement pq:P585 ?value . }
+    ?entity p:P17 ?statement .
+    ?statement ps:P17 ?grouping .
+    { ?statement pq:P580 ?value . }
     UNION
-    { ?statement a wdno:P585 . }
+    { ?statement a wdno:P580 . }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -2045,8 +2045,8 @@ class SparqlCountTest(PropertyStatisticsTest):
         result = self.stats.get_totals_no_grouping()
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715
+  MINUS { ?entity wdt:P17 _:b28. }
 }
 """
         self.assert_query_called(query)
@@ -2056,7 +2056,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.stats.get_totals()
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
 }
 """
         self.assert_query_called(query)
@@ -2066,12 +2066,12 @@ SELECT (COUNT(*) as ?count) WHERE {
 class GetGroupingInformationTest(PropertyStatisticsTest):
     def test_get_grouping_information(self):
         self.mock_sparql_query.select.return_value = [
-            {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
+            {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
@@ -2079,8 +2079,8 @@ class GetGroupingInformationTest(PropertyStatisticsTest):
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2095,12 +2095,12 @@ LIMIT 1000
 
     def test_get_grouping_information_with_grouping_threshold(self):
         self.mock_sparql_query.select.return_value = [
-            {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
+            {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
@@ -2109,8 +2109,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 5)
@@ -2126,7 +2126,7 @@ LIMIT 1000
     def test_get_grouping_information_with_higher_grouping(self):
         self.mock_sparql_query.select.return_value = [
             {
-                "grouping": "http://www.wikidata.org/entity/Q3115846",
+                "grouping": "http://www.wikidata.org/entity/Q142",
                 "higher_grouping": "NZL",
                 "count": "10",
             },
@@ -2142,7 +2142,7 @@ LIMIT 1000
             },
         ]
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10, higher_grouping="NZL"),
+            "Q142": ItemGrouping(title="Q142", count=10, higher_grouping="NZL"),
             "Q5087901": ItemGrouping(title="Q5087901", count=6, higher_grouping="USA"),
             "Q623333": ItemGrouping(title="Q623333", count=6, higher_grouping="USA"),
         }
@@ -2151,8 +2151,8 @@ LIMIT 1000
 SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2173,8 +2173,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2193,8 +2193,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2213,8 +2213,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2229,7 +2229,7 @@ LIMIT 1000
 
     def test_get_grouping_information_unknown_value(self):
         self.mock_sparql_query.select.return_value = [
-            {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
+            {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {
                 "grouping": "http://www.wikidata.org/.well-known/genid/6ab4c2d7cb4ac72721335af5b8ba09c7",
@@ -2241,7 +2241,7 @@ LIMIT 1000
             },
         ]
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "UNKNOWN_VALUE": UnknownValueGrouping(count=3),
         }
@@ -2249,8 +2249,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2267,9 +2267,9 @@ LIMIT 1000
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=GroupingConfiguration(
-                predicate="wdt:P577", grouping_type=YearGroupingType()
+                predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -2287,8 +2287,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P577 ?date .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P571 ?date .
       BIND(YEAR(?date) as ?grouping) .
     }
     GROUP BY ?grouping
@@ -2306,9 +2306,9 @@ LIMIT 1000
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=GroupingConfiguration(
-                predicate="wdt:P577", grouping_type=YearGroupingType()
+                predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -2328,8 +2328,8 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P577 ?date .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P571 ?date .
       BIND(YEAR(?date) as ?grouping) .
     }
     GROUP BY ?grouping
@@ -2346,7 +2346,7 @@ LIMIT 1000
     def test_get_grouping_information_with_grouping_link(self):
         self.mock_sparql_query.select.return_value = [
             {
-                "grouping": "http://www.wikidata.org/entity/Q3115846",
+                "grouping": "http://www.wikidata.org/entity/Q142",
                 "grouping_link_value": "A",
                 "count": "10",
             },
@@ -2362,7 +2362,7 @@ LIMIT 1000
             },
         ]
         expected = {
-            "Q3115846": ItemGrouping(title="Q3115846", grouping_link="Foo/A", count=10),
+            "Q142": ItemGrouping(title="Q142", grouping_link="Foo/A", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", grouping_link="Foo/B", count=6),
             "Q623333": ItemGrouping(title="Q623333", grouping_link="Foo/C", count=6),
         }
@@ -2370,8 +2370,8 @@ LIMIT 1000
 SELECT ?grouping ?grouping_link_value ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P10241 wd:Q41960 .
-      ?entity wdt:P551 ?grouping .
+      ?entity wdt:P31 wd:Q39715 .
+      ?entity wdt:P17 ?grouping .
     }
     GROUP BY ?grouping
     HAVING (?count >= 20)
@@ -2420,10 +2420,10 @@ class MakeTotalsTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 30),
-                ("P19", 80),
-                ("P1/P2", 10),
-                ("P3/Q4/P5", 12),
+                ("P1435", 30),
+                ("P131", 80),
+                ("P2929/P462", 10),
+                ("P1435/Q10387575/P580", 12),
                 ("Lbr", 24),
                 ("Dxy", 36),
                 ("brwiki", 24),
@@ -2441,10 +2441,10 @@ class MakeTotalsTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 30),
-                ("P19", 80),
-                ("P1/P2", 10),
-                ("P3/Q4/P5", 12),
+                ("P1435", 30),
+                ("P131", 80),
+                ("P2929/P462", 10),
+                ("P1435/Q10387575/P580", 12),
                 ("Lbr", 24),
                 ("Dxy", 36),
                 ("brwiki", 24),
@@ -2461,10 +2461,10 @@ class MakeTotalsTest(PropertyStatisticsTest):
         )
         expected.cells = OrderedDict(
             [
-                ("P21", 30),
-                ("P19", 80),
-                ("P1/P2", 10),
-                ("P3/Q4/P5", 12),
+                ("P1435", 30),
+                ("P131", 80),
+                ("P2929/P462", 10),
+                ("P1435/Q10387575/P580", 12),
                 ("Lbr", 24),
                 ("Dxy", 36),
                 ("brwiki", 24),
@@ -2480,7 +2480,7 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
 
     def test_populate_groupings_no_columns(self):
         groupings = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
@@ -2489,49 +2489,49 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
 
     def test_populate_groupings_with_columns(self):
         groupings = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         self.mock_sparql_query.select.side_effect = [
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "1"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "1"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "2"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "3"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "4"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "5"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "5"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "7"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "8"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "9"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "9"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "10"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "11"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "12"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "13"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "13"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "14"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "15"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "16"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "17"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "17"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "18"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "19"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "20"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "21"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "21"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "22"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "23"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "24"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "25"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "25"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "26"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "27"},
                 {"grouping": "http://www.wikidata.org/entity/Q11953090", "count": "28"},
@@ -2539,15 +2539,15 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
         ]
         result = self.stats.populate_groupings(groupings)
         expected = {
-            "Q3115846": ItemGrouping(
-                title="Q3115846",
+            "Q142": ItemGrouping(
+                title="Q142",
                 count=10,
                 cells=OrderedDict(
                     [
-                        ("P21", 1),
-                        ("P19", 5),
-                        ("P1/P2", 9),
-                        ("P3/Q4/P5", 13),
+                        ("P1435", 1),
+                        ("P131", 5),
+                        ("P2929/P462", 9),
+                        ("P1435/Q10387575/P580", 13),
                         ("Lbr", 17),
                         ("Dxy", 21),
                         ("brwiki", 25),
@@ -2559,10 +2559,10 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 2),
-                        ("P19", 6),
-                        ("P1/P2", 10),
-                        ("P3/Q4/P5", 14),
+                        ("P1435", 2),
+                        ("P131", 6),
+                        ("P2929/P462", 10),
+                        ("P1435/Q10387575/P580", 14),
                         ("Lbr", 18),
                         ("Dxy", 22),
                         ("brwiki", 26),
@@ -2574,10 +2574,10 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 3),
-                        ("P19", 7),
-                        ("P1/P2", 11),
-                        ("P3/Q4/P5", 15),
+                        ("P1435", 3),
+                        ("P131", 7),
+                        ("P2929/P462", 11),
+                        ("P1435/Q10387575/P580", 15),
                         ("Lbr", 19),
                         ("Dxy", 23),
                         ("brwiki", 27),
@@ -2589,53 +2589,53 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
 
     def test_populate_groupings_with_columns_one_empty(self):
         groupings = {
-            "Q3115846": ItemGrouping(title="Q3115846", count=10),
+            "Q142": ItemGrouping(title="Q142", count=10),
             "Q5087901": ItemGrouping(title="Q5087901", count=6),
             "Q623333": ItemGrouping(title="Q623333", count=6),
         }
         self.mock_sparql_query.select.side_effect = [
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "1"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "1"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "2"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "3"},
             ],
             None,
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "9"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "9"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "10"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "11"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "13"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "13"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "14"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "15"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "17"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "17"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "18"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "19"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "21"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "21"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "22"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "23"},
             ],
             [
-                {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "24"},
+                {"grouping": "http://www.wikidata.org/entity/Q142", "count": "24"},
                 {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "25"},
                 {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "26"},
             ],
         ]
         result = self.stats.populate_groupings(groupings)
         expected = {
-            "Q3115846": ItemGrouping(
-                title="Q3115846",
+            "Q142": ItemGrouping(
+                title="Q142",
                 count=10,
                 cells=OrderedDict(
                     [
-                        ("P21", 1),
-                        ("P1/P2", 9),
-                        ("P3/Q4/P5", 13),
+                        ("P1435", 1),
+                        ("P2929/P462", 9),
+                        ("P1435/Q10387575/P580", 13),
                         ("Lbr", 17),
                         ("Dxy", 21),
                         ("brwiki", 24),
@@ -2647,9 +2647,9 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 2),
-                        ("P1/P2", 10),
-                        ("P3/Q4/P5", 14),
+                        ("P1435", 2),
+                        ("P2929/P462", 10),
+                        ("P1435/Q10387575/P580", 14),
                         ("Lbr", 18),
                         ("Dxy", 22),
                         ("brwiki", 25),
@@ -2661,9 +2661,9 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 3),
-                        ("P1/P2", 11),
-                        ("P3/Q4/P5", 15),
+                        ("P1435", 3),
+                        ("P2929/P462", 11),
+                        ("P1435/Q10387575/P580", 15),
                         ("Lbr", 19),
                         ("Dxy", 23),
                         ("brwiki", 26),
@@ -2682,21 +2682,21 @@ class RetrieveDataTest(PropertyStatisticsTest):
 
     def test_retrieve_data(self):
         self.mock_sparql_query.select.return_value = [
-            {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
+            {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
         result = self.stats.retrieve_data()
         expected = {
-            "Q3115846": ItemGrouping(
-                title="Q3115846",
+            "Q142": ItemGrouping(
+                title="Q142",
                 count=10,
                 cells=OrderedDict(
                     [
-                        ("P21", 10),
-                        ("P19", 10),
-                        ("P1/P2", 10),
-                        ("P3/Q4/P5", 10),
+                        ("P1435", 10),
+                        ("P131", 10),
+                        ("P2929/P462", 10),
+                        ("P1435/Q10387575/P580", 10),
                         ("Lbr", 10),
                         ("Dxy", 10),
                         ("brwiki", 10),
@@ -2708,10 +2708,10 @@ class RetrieveDataTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 6),
-                        ("P19", 6),
-                        ("P1/P2", 6),
-                        ("P3/Q4/P5", 6),
+                        ("P1435", 6),
+                        ("P131", 6),
+                        ("P2929/P462", 6),
+                        ("P1435/Q10387575/P580", 6),
                         ("Lbr", 6),
                         ("Dxy", 6),
                         ("brwiki", 6),
@@ -2723,10 +2723,10 @@ class RetrieveDataTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 6),
-                        ("P19", 6),
-                        ("P1/P2", 6),
-                        ("P3/Q4/P5", 6),
+                        ("P1435", 6),
+                        ("P131", 6),
+                        ("P2929/P462", 6),
+                        ("P1435/Q10387575/P580", 6),
                         ("Lbr", 6),
                         ("Dxy", 6),
                         ("brwiki", 6),
@@ -2747,20 +2747,20 @@ class ProcessDataTest(PropertyStatisticsTest):
             "|-\n"
             "! Name\n"
             "! Count\n"
-            '! data-sort-type="number"|{{Property|P21}}\n'
-            '! data-sort-type="number"|{{Property|P19}}\n'
-            '! data-sort-type="number"|{{Property|P2}}\n'
-            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{Property|P1435}}\n'
+            '! data-sort-type="number"|{{Property|P131}}\n'
+            '! data-sort-type="number"|{{Property|P462}}\n'
+            '! data-sort-type="number"|{{Property|P580}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '! data-sort-type="number"|{{Q|Q846871}}\n'
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P21|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P19|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
@@ -2770,15 +2770,15 @@ class ProcessDataTest(PropertyStatisticsTest):
 
     def test_process_data(self):
         grouping_data = {
-            "Q3115846": ItemGrouping(
-                title="Q3115846",
+            "Q142": ItemGrouping(
+                title="Q142",
                 count=10,
                 cells=OrderedDict(
                     [
-                        ("P21", 10),
-                        ("P19", 8),
-                        ("P1/P2", 2),
-                        ("P3/Q4/P5", 7),
+                        ("P1435", 10),
+                        ("P131", 8),
+                        ("P2929/P462", 2),
+                        ("P1435/Q10387575/P580", 7),
                         ("Lbr", 1),
                         ("Dxy", 2),
                         ("brwiki", 1),
@@ -2790,10 +2790,10 @@ class ProcessDataTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 6),
-                        ("P19", 0),
-                        ("P1/P2", 0),
-                        ("P3/Q4/P5", 0),
+                        ("P1435", 6),
+                        ("P131", 0),
+                        ("P2929/P462", 0),
+                        ("P1435/Q10387575/P580", 0),
                         ("Lbr", 0),
                         ("Dxy", 0),
                         ("brwiki", 0),
@@ -2810,40 +2810,40 @@ class ProcessDataTest(PropertyStatisticsTest):
             "|-\n"
             "! Name\n"
             "! Count\n"
-            '! data-sort-type="number"|{{Property|P21}}\n'
-            '! data-sort-type="number"|{{Property|P19}}\n'
-            '! data-sort-type="number"|{{Property|P2}}\n'
-            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{Property|P1435}}\n'
+            '! data-sort-type="number"|{{Property|P131}}\n'
+            '! data-sort-type="number"|{{Property|P462}}\n'
+            '! data-sort-type="number"|{{Property|P580}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '! data-sort-type="number"|{{Q|Q846871}}\n'
             "|-\n"
-            "| {{Q|Q3115846}}\n"
+            "| {{Q|Q142}}\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n"
-            "| {{Integraality cell|80.0|8|column=P19|grouping=Q3115846}}\n"
-            "| {{Integraality cell|20.0|2|column=P1/P2|grouping=Q3115846}}\n"
-            "| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=Q3115846}}\n"
-            "| {{Integraality cell|10.0|1|column=Lbr|grouping=Q3115846}}\n"
-            "| {{Integraality cell|20.0|2|column=Dxy|grouping=Q3115846}}\n"
-            "| {{Integraality cell|10.0|1|column=brwiki|grouping=Q3115846}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=Q142}}\n"
+            "| {{Integraality cell|80.0|8|column=P131|grouping=Q142}}\n"
+            "| {{Integraality cell|20.0|2|column=P2929/P462|grouping=Q142}}\n"
+            "| {{Integraality cell|70.0|7|column=P1435/Q10387575/P580|grouping=Q142}}\n"
+            "| {{Integraality cell|10.0|1|column=Lbr|grouping=Q142}}\n"
+            "| {{Integraality cell|20.0|2|column=Dxy|grouping=Q142}}\n"
+            "| {{Integraality cell|10.0|1|column=brwiki|grouping=Q142}}\n"
             "|-\n"
             "| {{Q|Q5087901}}\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P19|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P1/P2|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=Q5087901}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=Q5087901}}\n"
+            "| {{Integraality cell|0|0|column=P131|grouping=Q5087901}}\n"
+            "| {{Integraality cell|0|0|column=P2929/P462|grouping=Q5087901}}\n"
+            "| {{Integraality cell|0|0|column=P1435/Q10387575/P580|grouping=Q5087901}}\n"
             "| {{Integraality cell|0|0|column=Lbr|grouping=Q5087901}}\n"
             "| {{Integraality cell|0|0|column=Dxy|grouping=Q5087901}}\n"
             "| {{Integraality cell|0|0|column=brwiki|grouping=Q5087901}}\n"
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P21|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P19|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
@@ -2859,10 +2859,10 @@ class ProcessDataTest(PropertyStatisticsTest):
                 count=10,
                 cells=OrderedDict(
                     [
-                        ("P21", 10),
-                        ("P19", 8),
-                        ("P1/P2", 2),
-                        ("P3/Q4/P5", 7),
+                        ("P1435", 10),
+                        ("P131", 8),
+                        ("P2929/P462", 2),
+                        ("P1435/Q10387575/P580", 7),
                         ("Lbr", 1),
                         ("Dxy", 2),
                         ("brwiki", 1),
@@ -2874,10 +2874,10 @@ class ProcessDataTest(PropertyStatisticsTest):
                 count=6,
                 cells=OrderedDict(
                     [
-                        ("P21", 6),
-                        ("P19", 0),
-                        ("P1/P2", 0),
-                        ("P3/Q4/P5", 0),
+                        ("P1435", 6),
+                        ("P131", 0),
+                        ("P2929/P462", 0),
+                        ("P1435/Q10387575/P580", 0),
                         ("Lbr", 0),
                         ("Dxy", 0),
                         ("brwiki", 0),
@@ -2894,40 +2894,40 @@ class ProcessDataTest(PropertyStatisticsTest):
             "|-\n"
             "! Name\n"
             "! Count\n"
-            '! data-sort-type="number"|{{Property|P21}}\n'
-            '! data-sort-type="number"|{{Property|P19}}\n'
-            '! data-sort-type="number"|{{Property|P2}}\n'
-            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{Property|P1435}}\n'
+            '! data-sort-type="number"|{{Property|P131}}\n'
+            '! data-sort-type="number"|{{Property|P462}}\n'
+            '! data-sort-type="number"|{{Property|P580}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '! data-sort-type="number"|{{Q|Q846871}}\n'
             "|-\n"
             "| 2001\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=2001}}\n"
-            "| {{Integraality cell|80.0|8|column=P19|grouping=2001}}\n"
-            "| {{Integraality cell|20.0|2|column=P1/P2|grouping=2001}}\n"
-            "| {{Integraality cell|70.0|7|column=P3/Q4/P5|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=2001}}\n"
+            "| {{Integraality cell|80.0|8|column=P131|grouping=2001}}\n"
+            "| {{Integraality cell|20.0|2|column=P2929/P462|grouping=2001}}\n"
+            "| {{Integraality cell|70.0|7|column=P1435/Q10387575/P580|grouping=2001}}\n"
             "| {{Integraality cell|10.0|1|column=Lbr|grouping=2001}}\n"
             "| {{Integraality cell|20.0|2|column=Dxy|grouping=2001}}\n"
             "| {{Integraality cell|10.0|1|column=brwiki|grouping=2001}}\n"
             "|-\n"
             "| 2018\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P19|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P1/P2|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P3/Q4/P5|grouping=2018}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P131|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P2929/P462|grouping=2018}}\n"
+            "| {{Integraality cell|0|0|column=P1435/Q10387575/P580|grouping=2018}}\n"
             "| {{Integraality cell|0|0|column=Lbr|grouping=2018}}\n"
             "| {{Integraality cell|0|0|column=Dxy|grouping=2018}}\n"
             "| {{Integraality cell|0|0|column=brwiki|grouping=2018}}\n"
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P21|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P19|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
+            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
             "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
@@ -2956,7 +2956,7 @@ class ProcessDataTest(PropertyStatisticsTest):
 class RetrieveAndProcessDataTest(PropertyStatisticsTest):
     def test_retrieve_and_process_data(self):
         self.mock_sparql_query.select.return_value = [
-            {"grouping": "http://www.wikidata.org/entity/Q3115846", "count": "10"},
+            {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
@@ -2968,50 +2968,50 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
             "|-\n"
             "! Name\n"
             "! Count\n"
-            '! data-sort-type="number"|{{Property|P21}}\n'
-            '! data-sort-type="number"|{{Property|P19}}\n'
-            '! data-sort-type="number"|{{Property|P2}}\n'
-            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{Property|P1435}}\n'
+            '! data-sort-type="number"|{{Property|P131}}\n'
+            '! data-sort-type="number"|{{Property|P462}}\n'
+            '! data-sort-type="number"|{{Property|P580}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '! data-sort-type="number"|{{Q|Q846871}}\n'
             "|-\n"
-            "| {{Q|Q3115846}}\n"
+            "| {{Q|Q142}}\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=P19|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=Lbr|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=Dxy|grouping=Q3115846}}\n"
-            "| {{Integraality cell|100.0|10|column=brwiki|grouping=Q3115846}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=P131|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=P2929/P462|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435/Q10387575/P580|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=Lbr|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=Dxy|grouping=Q142}}\n"
+            "| {{Integraality cell|100.0|10|column=brwiki|grouping=Q142}}\n"
             "|-\n"
             "| {{Q|Q5087901}}\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=Q5087901}}\n"
-            "| {{Integraality cell|100.0|6|column=P19|grouping=Q5087901}}\n"
-            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=Q5087901}}\n"
-            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=Q5087901}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=Q5087901}}\n"
+            "| {{Integraality cell|100.0|6|column=P131|grouping=Q5087901}}\n"
+            "| {{Integraality cell|100.0|6|column=P2929/P462|grouping=Q5087901}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435/Q10387575/P580|grouping=Q5087901}}\n"
             "| {{Integraality cell|100.0|6|column=Lbr|grouping=Q5087901}}\n"
             "| {{Integraality cell|100.0|6|column=Dxy|grouping=Q5087901}}\n"
             "| {{Integraality cell|100.0|6|column=brwiki|grouping=Q5087901}}\n"
             "|-\n"
             "| {{Q|Q623333}}\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=Q623333}}\n"
-            "| {{Integraality cell|100.0|6|column=P19|grouping=Q623333}}\n"
-            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=Q623333}}\n"
-            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=Q623333}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=Q623333}}\n"
+            "| {{Integraality cell|100.0|6|column=P131|grouping=Q623333}}\n"
+            "| {{Integraality cell|100.0|6|column=P2929/P462|grouping=Q623333}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435/Q10387575/P580|grouping=Q623333}}\n"
             "| {{Integraality cell|100.0|6|column=Lbr|grouping=Q623333}}\n"
             "| {{Integraality cell|100.0|6|column=Dxy|grouping=Q623333}}\n"
             "| {{Integraality cell|100.0|6|column=brwiki|grouping=Q623333}}\n"
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P19|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P131|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P2929/P462|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=Dxy|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=brwiki|grouping=}}\n"
@@ -3021,12 +3021,12 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
 
     def test_retrieve_and_process_data_year_grouping(self):
         self.grouping_configuration = GroupingConfiguration(
-            predicate="wdt:P551", grouping_type=YearGroupingType()
+            predicate="wdt:P17", grouping_type=YearGroupingType()
         )
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
@@ -3044,50 +3044,50 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
             "|-\n"
             "! Name\n"
             "! Count\n"
-            '! data-sort-type="number"|{{Property|P21}}\n'
-            '! data-sort-type="number"|{{Property|P19}}\n'
-            '! data-sort-type="number"|{{Property|P2}}\n'
-            '! data-sort-type="number"|{{Property|P5}}\n'
+            '! data-sort-type="number"|{{Property|P1435}}\n'
+            '! data-sort-type="number"|{{Property|P131}}\n'
+            '! data-sort-type="number"|{{Property|P462}}\n'
+            '! data-sort-type="number"|{{Property|P580}}\n'
             '! data-sort-type="number"|{{#language:br}}\n'
             '! data-sort-type="number"|{{#language:xy}}\n'
             '! data-sort-type="number"|{{Q|Q846871}}\n'
             "|-\n"
             "| 2001\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=2001}}\n"
-            "| {{Integraality cell|100.0|10|column=P19|grouping=2001}}\n"
-            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=2001}}\n"
-            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P131|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P2929/P462|grouping=2001}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435/Q10387575/P580|grouping=2001}}\n"
             "| {{Integraality cell|100.0|10|column=Lbr|grouping=2001}}\n"
             "| {{Integraality cell|100.0|10|column=Dxy|grouping=2001}}\n"
             "| {{Integraality cell|100.0|10|column=brwiki|grouping=2001}}\n"
             "|-\n"
             "| 2012\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=2012}}\n"
-            "| {{Integraality cell|100.0|6|column=P19|grouping=2012}}\n"
-            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=2012}}\n"
-            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P131|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P2929/P462|grouping=2012}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435/Q10387575/P580|grouping=2012}}\n"
             "| {{Integraality cell|100.0|6|column=Lbr|grouping=2012}}\n"
             "| {{Integraality cell|100.0|6|column=Dxy|grouping=2012}}\n"
             "| {{Integraality cell|100.0|6|column=brwiki|grouping=2012}}\n"
             "|-\n"
             "| 2023\n"
             "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P21|grouping=2023}}\n"
-            "| {{Integraality cell|100.0|6|column=P19|grouping=2023}}\n"
-            "| {{Integraality cell|100.0|6|column=P1/P2|grouping=2023}}\n"
-            "| {{Integraality cell|100.0|6|column=P3/Q4/P5|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P131|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P2929/P462|grouping=2023}}\n"
+            "| {{Integraality cell|100.0|6|column=P1435/Q10387575/P580|grouping=2023}}\n"
             "| {{Integraality cell|100.0|6|column=Lbr|grouping=2023}}\n"
             "| {{Integraality cell|100.0|6|column=Dxy|grouping=2023}}\n"
             "| {{Integraality cell|100.0|6|column=brwiki|grouping=2023}}\n"
             '|- class="sortbottom"\n'
             "| '''Totals''' <small>(all items)</small>\n"
             "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P21|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P19|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P1/P2|grouping=}}\n"
-            "| {{Integraality cell|100.0|10|column=P3/Q4/P5|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P131|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P2929/P462|grouping=}}\n"
+            "| {{Integraality cell|100.0|10|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=Lbr|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=Dxy|grouping=}}\n"
             "| {{Integraality cell|100.0|10|column=brwiki|grouping=}}\n"

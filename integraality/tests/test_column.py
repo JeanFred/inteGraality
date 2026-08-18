@@ -25,19 +25,19 @@ class PropertyStatisticsTest(unittest.TestCase):
     def setUp(self):
         columns = [
             PropertyColumn(property="P21"),
-            PropertyColumn(property="P19"),
-            QualifierColumn(property="P1", qualifier="P2"),
-            QualifierColumn(property="P3", value="Q4", qualifier="P5"),
+            PropertyColumn(property="P131"),
+            QualifierColumn(property="P2929", qualifier="P462"),
+            QualifierColumn(property="P1435", value="Q10387575", qualifier="P580"),
             LabelColumn(language="br"),
             DescriptionColumn(language="xy"),
         ]
         self.grouping_configuration = GroupingConfiguration(
-            predicate="wdt:P551", grouping_type=ItemGroupingType()
+            predicate="wdt:P17", grouping_type=ItemGroupingType()
         )
         self.stats = PropertyStatistics(
             columns=columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P10241 wd:Q41960",
+            selector_sparql="wdt:P31 wd:Q39715",
             property_threshold=10,
         )
 
@@ -45,20 +45,20 @@ class PropertyStatisticsTest(unittest.TestCase):
 class TestPropertyColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn("P19")
+        self.column = PropertyColumn("P131")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P19}}\n'
+        expected = '! data-sort-type="number"|{{Property|P131}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P19[]
+    ?entity p:P131[]
   })
 }
 """
@@ -68,10 +68,10 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P19[]
+    ?entity p:P131[]
   })
 }
 """
@@ -81,10 +81,10 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P19[]
+    ?entity p:P131[]
   })
 }
 GROUP BY ?grouping
@@ -98,31 +98,31 @@ LIMIT 1000
 class TestPropertyColumnWithTitle(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = PropertyColumn("P19", title="birth")
+        self.column = PropertyColumn("P131", title="birth")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P19|birth]]\n'
+        expected = '! data-sort-type="number"|[[Property:P131|birth]]\n'
         self.assertEqual(result, expected)
 
 
 class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = QualifierColumn("P669", qualifier="P670")
+        self.column = QualifierColumn("P1030", qualifier="P805")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P670}}\n'
+        expected = '! data-sort-type="number"|{{Property|P805}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+    ?entity p:P1030 [ ps:P1030 [] ; pq:P805 [] ]
   })
 }
 """
@@ -132,10 +132,10 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+    ?entity p:P1030 [ ps:P1030 [] ; pq:P805 [] ]
   })
 }
 """
@@ -145,10 +145,10 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
+    ?entity p:P1030 [ ps:P1030 [] ; pq:P805 [] ]
   })
 }
 GROUP BY ?grouping
@@ -162,44 +162,49 @@ LIMIT 1000
 class TestPropertyColumnWithQualifierAndLabel(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = QualifierColumn("P669", title="street", qualifier="P670")
+        self.column = QualifierColumn("P1030", title="street", qualifier="P805")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P670|street]]\n'
+        expected = '! data-sort-type="number"|[[Property:P805|street]]\n'
         self.assertEqual(result, expected)
 
 
 class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = QualifierColumn(property="P3", value="Q4", qualifier="P5")
+        self.column = QualifierColumn(
+            property="P1435", value="Q10387575", qualifier="P580"
+        )
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P5}}\n'
+        expected = '! data-sort-type="number"|{{Property|P580}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+    ?entity p:P1435 [ ps:P1435 wd:Q10387575 ; pq:P580 [] ]
   })
 }
 """
         self.assertEqual(result, expected)
 
     def test_get_info_no_grouping_query(self):
-        result = self.column.get_info_no_grouping_query(self.stats)
+        # Override column value: Q10387575 (from setUp) has no ungrouped lighthouses,
+        # but Q21013851 does — ensuring the functional test returns count > 0.
+        column = QualifierColumn(property="P1435", value="Q21013851", qualifier="P580")
+        result = column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+    ?entity p:P1435 [ ps:P1435 wd:Q21013851 ; pq:P580 [] ]
   })
 }
 """
@@ -209,10 +214,10 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
+    ?entity p:P1435 [ ps:P1435 wd:Q10387575 ; pq:P580 [] ]
   })
 }
 GROUP BY ?grouping
@@ -227,12 +232,12 @@ class TestPropertyColumnWithQualifierAndValueAndTitle(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = QualifierColumn(
-            property="P3", title="Some property", value="Q4", qualifier="P5"
+            property="P1435", title="Some property", value="Q10387575", qualifier="P580"
         )
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P5|Some property]]\n'
+        expected = '! data-sort-type="number"|[[Property:P580|Some property]]\n'
         self.assertEqual(result, expected)
 
 
@@ -240,17 +245,17 @@ class TestPropertyColumnWithQualifierAndVariableValue(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = QualifierColumn(
-            property="P166", value="?grouping", qualifier="P585"
+            property="P17", value="?grouping", qualifier="P580"
         )
 
     def test_get_info_query(self):
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+    ?entity p:P17 [ ps:P17 ?grouping ; pq:P580 [] ]
   })
 }
 GROUP BY ?grouping
@@ -264,9 +269,9 @@ LIMIT 1000
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+    ?entity p:P17 [ ps:P17 ?grouping ; pq:P580 [] ]
   })
 }
 """
@@ -276,10 +281,10 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
+    ?entity p:P17 [ ps:P17 ?grouping ; pq:P580 [] ]
   })
 }
 """
@@ -289,21 +294,21 @@ SELECT (COUNT(*) AS ?count) WHERE {
 class TestSitelinkColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = SitelinkColumn("brwiki")
+        self.column = SitelinkColumn("frwiki")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Q|Q846871}}\n'
+        expected = '! data-sort-type="number"|{{Q|Q8447}}\n'
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
-      schema:isPartOf <https://br.wikipedia.org/>.
+      schema:isPartOf <https://fr.wikipedia.org/>.
   })
 }
 """
@@ -313,11 +318,11 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
-      schema:isPartOf <https://br.wikipedia.org/>.
+      schema:isPartOf <https://fr.wikipedia.org/>.
   })
 }
 """
@@ -327,11 +332,11 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
-      schema:isPartOf <https://br.wikipedia.org/>.
+      schema:isPartOf <https://fr.wikipedia.org/>.
   })
 }
 GROUP BY ?grouping
@@ -368,42 +373,42 @@ class TestColumnMaker(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier(self):
-        key = "P669/P670"
+        key = "P2929/P462"
         result = ColumnMaker.make(key, None)
-        expected = QualifierColumn(property="P669", qualifier="P670")
+        expected = QualifierColumn(property="P2929", qualifier="P462")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_title(self):
-        key = "P669/P670"
+        key = "P2929/P462"
         result = ColumnMaker.make(key, "street number")
         expected = QualifierColumn(
-            property="P669", qualifier="P670", title="street number"
+            property="P2929", qualifier="P462", title="street number"
         )
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value(self):
-        key = "P553/Q17459/P670"
+        key = "P553/Q17459/P462"
         result = ColumnMaker.make(key, None)
-        expected = QualifierColumn(property="P553", value="Q17459", qualifier="P670")
+        expected = QualifierColumn(property="P553", value="Q17459", qualifier="P462")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_value_and_title(self):
-        key = "P553/Q17459/P670"
+        key = "P553/Q17459/P462"
         result = ColumnMaker.make(key, "street number")
         expected = QualifierColumn(
-            property="P553", value="Q17459", qualifier="P670", title="street number"
+            property="P553", value="Q17459", qualifier="P462", title="street number"
         )
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_variable_value(self):
-        key = "P166/?grouping/P585"
+        key = "P17/?grouping/P580"
         result = ColumnMaker.make(key, None)
-        expected = QualifierColumn(property="P166", value="?grouping", qualifier="P585")
+        expected = QualifierColumn(property="P17", value="?grouping", qualifier="P580")
         self.assertEqual(result, expected)
 
     def test_property_with_qualifier_and_invalid_variable_value(self):
         with self.assertRaises(ColumnSyntaxException):
-            ColumnMaker.make("P166/?foo/P585", None)
+            ColumnMaker.make("P17/?foo/P580", None)
 
     def test_label(self):
         result = ColumnMaker.make("Lxy", None)
@@ -645,15 +650,15 @@ class TestListeriaKey(unittest.TestCase):
 
     def test_property_with_qualifier(self):
         self.assertEqual(
-            QualifierColumn("P669", qualifier="P670").get_listeria_key(), "P669/P670"
+            QualifierColumn("P2929", qualifier="P462").get_listeria_key(), "P2929/P462"
         )
 
     def test_property_with_qualifier_and_value(self):
         self.assertEqual(
             QualifierColumn(
-                "P553", value="Q17459", qualifier="P670"
+                "P553", value="Q17459", qualifier="P462"
             ).get_listeria_key(),
-            "P553/Q17459/P670",
+            "P553/Q17459/P462",
         )
 
     def test_label(self):
@@ -672,11 +677,11 @@ class TestListeriaKey(unittest.TestCase):
 class TestReferenceColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = ReferenceColumn("P19")
+        self.column = ReferenceColumn("P131")
 
     def test_get_key(self):
         result = self.column.get_key()
-        self.assertEqual(result, "P19/S*")
+        self.assertEqual(result, "P131/S*")
 
     def test_get_type_name(self):
         result = self.column.get_type_name()
@@ -684,29 +689,31 @@ class TestReferenceColumn(PropertyStatisticsTest):
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P19}}📚\n'
+        expected = '! data-sort-type="number"|{{Property|P131}}📚\n'
         self.assertEqual(result, expected)
 
     def test_make_column_header_with_title(self):
-        column = ReferenceColumn("P19", title="sourced birth")
+        column = ReferenceColumn("P131", title="sourced birth")
         result = column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P19|sourced birth]]\n'
+        expected = '! data-sort-type="number"|[[Property:P131|sourced birth]]\n'
         self.assertEqual(result, expected)
 
     def test_format_html_snippet(self):
         result = self.column.format_html_snippet()
-        expected = '<a href="https://wikidata.org/wiki/Property:P19">P19</a> referenced'
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P131">P131</a> referenced'
+        )
         self.assertEqual(result, expected)
 
     def test_get_totals_query(self):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960
+  ?entity wdt:P31 wd:Q39715
   FILTER(EXISTS {
-    ?entity p:P19 [] .
+    ?entity p:P131 [] .
     FILTER NOT EXISTS {
-      ?entity p:P19 ?_unreferenced_stmt .
+      ?entity p:P131 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -720,12 +727,12 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  MINUS { ?entity wdt:P551 _:b28. }
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
   FILTER(EXISTS {
-    ?entity p:P19 [] .
+    ?entity p:P131 [] .
     FILTER NOT EXISTS {
-      ?entity p:P19 ?_unreferenced_stmt .
+      ?entity p:P131 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -739,12 +746,12 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P10241 wd:Q41960 .
-  ?entity wdt:P551 ?grouping .
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
   FILTER(EXISTS {
-    ?entity p:P19 [] .
+    ?entity p:P131 [] .
     FILTER NOT EXISTS {
-      ?entity p:P19 ?_unreferenced_stmt .
+      ?entity p:P131 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom []
       }
@@ -761,10 +768,10 @@ LIMIT 1000
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
         expected_fragment = """
-  ?entity p:P19 ?statement .
-  ?statement ps:P19 ?value .
+  ?entity p:P131 ?statement .
+  ?statement ps:P131 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
@@ -786,14 +793,14 @@ LIMIT 1000
         result = self.column.get_filter_for_negative_query()
         expected_fragment = """
   OPTIONAL {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom []
     }
   }
-  OPTIONAL { ?entity p:P19 ?_any_stmt . }
+  OPTIONAL { ?entity p:P131 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
+  OPTIONAL { ?entity p:P131 ?_show_stmt . ?_show_stmt ps:P131 ?value . }
 """
         self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
@@ -801,11 +808,11 @@ LIMIT 1000
 class TestReferenceColumnWithTitle(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = ReferenceColumn("P19", title="sourced birth")
+        self.column = ReferenceColumn("P131", title="sourced birth")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P19|sourced birth]]\n'
+        expected = '! data-sort-type="number"|[[Property:P131|sourced birth]]\n'
         self.assertEqual(result, expected)
 
 
@@ -822,8 +829,8 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         self.assertEqual(AnyReferenceCheck().column_label_suffix(), "📚")
 
     def test_any_reference_check_format_html_label(self):
-        result = AnyReferenceCheck().format_html_label("<a>P19</a>")
-        self.assertEqual(result, "<a>P19</a> referenced")
+        result = AnyReferenceCheck().format_html_label("<a>P131</a>")
+        self.assertEqual(result, "<a>P131</a> referenced")
 
     def test_any_reference_check_equality(self):
         self.assertEqual(AnyReferenceCheck(), AnyReferenceCheck())
@@ -843,9 +850,9 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         )
 
     def test_property_reference_check_format_html_label(self):
-        result = PropertyReferenceCheck("P248").format_html_label("<a>P19</a>")
+        result = PropertyReferenceCheck("P248").format_html_label("<a>P131</a>")
         expected = (
-            "<a>P19</a> referenced with "
+            "<a>P131</a> referenced with "
             '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
         )
         self.assertEqual(result, expected)
@@ -884,9 +891,9 @@ class TestReferenceCheckStrategies(unittest.TestCase):
     def test_any_of_properties_reference_check_format_html_label(self):
         result = AnyOfPropertiesReferenceCheck(
             [("P248", None), ("P854", None)]
-        ).format_html_label("<a>P19</a>")
+        ).format_html_label("<a>P131</a>")
         expected = (
-            "<a>P19</a> referenced with "
+            "<a>P131</a> referenced with "
             '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
             " / "
             '<a href="https://wikidata.org/wiki/Property:P854">P854</a>'
@@ -939,9 +946,9 @@ class TestReferenceCheckStrategies(unittest.TestCase):
     def test_all_properties_reference_check_format_html_label(self):
         result = AllPropertiesReferenceCheck(
             [("P248", None), ("P304", None)]
-        ).format_html_label("<a>P19</a>")
+        ).format_html_label("<a>P131</a>")
         expected = (
-            "<a>P19</a> referenced with "
+            "<a>P131</a> referenced with "
             '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
             " + "
             '<a href="https://wikidata.org/wiki/Property:P304">P304</a>'
@@ -1016,10 +1023,10 @@ class TestReferenceCheckStrategies(unittest.TestCase):
 
     def test_property_value_reference_check_format_html_label(self):
         result = PropertyReferenceCheck("P248", "Q19216625").format_html_label(
-            "<a>P19</a>"
+            "<a>P131</a>"
         )
         expected = (
-            "<a>P19</a> referenced with "
+            "<a>P131</a> referenced with "
             '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
             "="
             '<a href="https://wikidata.org/wiki/Q19216625">Q19216625</a>'
@@ -1079,8 +1086,8 @@ class TestReferenceCheckStrategies(unittest.TestCase):
         self.assertEqual(GoodReferenceCheck().column_label_suffix(), "📚✓")
 
     def test_good_reference_check_format_html_label(self):
-        result = GoodReferenceCheck().format_html_label("<a>P19</a>")
-        self.assertEqual(result, "<a>P19</a> well-referenced")
+        result = GoodReferenceCheck().format_html_label("<a>P131</a>")
+        self.assertEqual(result, "<a>P131</a> well-referenced")
 
     def test_good_reference_check_equality(self):
         self.assertEqual(GoodReferenceCheck(), GoodReferenceCheck())
@@ -1090,16 +1097,16 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
         self.column = ReferenceColumn(
-            "P19", reference_check=PropertyReferenceCheck("P248")
+            "P131", reference_check=PropertyReferenceCheck("P248")
         )
 
     def test_get_key(self):
         result = self.column.get_key()
-        self.assertEqual(result, "P19/S248")
+        self.assertEqual(result, "P131/S248")
 
     def test_get_listeria_key(self):
         result = self.column.get_listeria_key()
-        self.assertEqual(result, "P19")
+        self.assertEqual(result, "P131")
 
     def test_get_type_name(self):
         result = self.column.get_type_name()
@@ -1107,21 +1114,21 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P19}}📚{{Property|P248}}\n'
+        expected = '! data-sort-type="number"|{{Property|P131}}📚{{Property|P248}}\n'
         self.assertEqual(result, expected)
 
     def test_make_column_header_with_title(self):
         column = ReferenceColumn(
-            "P19", title="stated in", reference_check=PropertyReferenceCheck("P248")
+            "P131", title="stated in", reference_check=PropertyReferenceCheck("P248")
         )
         result = column.make_column_header()
-        expected = '! data-sort-type="number"|[[Property:P19|stated in]]\n'
+        expected = '! data-sort-type="number"|[[Property:P131|stated in]]\n'
         self.assertEqual(result, expected)
 
     def test_format_html_snippet(self):
         result = self.column.format_html_snippet()
         expected = (
-            '<a href="https://wikidata.org/wiki/Property:P19">P19</a>'
+            '<a href="https://wikidata.org/wiki/Property:P131">P131</a>'
             " referenced with "
             '<a href="https://wikidata.org/wiki/Property:P248">P248</a>'
         )
@@ -1130,9 +1137,9 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     def test_get_filter_for_info(self):
         result = self.column.get_filter_for_info()
         expected = """
-    ?entity p:P19 [] .
+    ?entity p:P131 [] .
     FILTER NOT EXISTS {
-      ?entity p:P19 ?_unreferenced_stmt .
+      ?entity p:P131 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
       }
@@ -1142,10 +1149,10 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
         expected_fragment = """
-  ?entity p:P19 ?statement .
-  ?statement ps:P19 ?value .
+  ?entity p:P131 ?statement .
+  ?statement ps:P131 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
@@ -1160,22 +1167,22 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
         result = self.column.get_filter_for_negative_query()
         expected_fragment = """
   OPTIONAL {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
     }
   }
-  OPTIONAL { ?entity p:P19 ?_any_stmt . }
+  OPTIONAL { ?entity p:P131 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
+  OPTIONAL { ?entity p:P131 ?_show_stmt . ?_show_stmt ps:P131 ?value . }
 """
         self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
     def test_equality(self):
-        col1 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P248"))
-        col2 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P248"))
-        col3 = ReferenceColumn("P19", reference_check=PropertyReferenceCheck("P854"))
-        col4 = ReferenceColumn("P19")
+        col1 = ReferenceColumn("P131", reference_check=PropertyReferenceCheck("P248"))
+        col2 = ReferenceColumn("P131", reference_check=PropertyReferenceCheck("P248"))
+        col3 = ReferenceColumn("P131", reference_check=PropertyReferenceCheck("P854"))
+        col4 = ReferenceColumn("P131")
         self.assertEqual(col1, col2)
         self.assertNotEqual(col1, col3)
         self.assertNotEqual(col1, col4)
@@ -1278,29 +1285,29 @@ class TestReferenceColumnValueScoped(PropertyStatisticsTest):
 class TestReferenceColumnGood(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
-        self.column = ReferenceColumn("P19", reference_check=GoodReferenceCheck())
+        self.column = ReferenceColumn("P131", reference_check=GoodReferenceCheck())
 
     def test_get_key(self):
-        self.assertEqual(self.column.get_key(), "P19/S!")
+        self.assertEqual(self.column.get_key(), "P131/S!")
 
     def test_make_column_header(self):
         result = self.column.make_column_header()
-        expected = '! data-sort-type="number"|{{Property|P19}}📚✓\n'
+        expected = '! data-sort-type="number"|{{Property|P131}}📚✓\n'
         self.assertEqual(result, expected)
 
     def test_format_html_snippet(self):
         result = self.column.format_html_snippet()
         expected = (
-            '<a href="https://wikidata.org/wiki/Property:P19">P19</a> well-referenced'
+            '<a href="https://wikidata.org/wiki/Property:P131">P131</a> well-referenced'
         )
         self.assertEqual(result, expected)
 
     def test_get_filter_for_info(self):
         result = self.column.get_filter_for_info()
         expected = """
-    ?entity p:P19 [] .
+    ?entity p:P131 [] .
     FILTER NOT EXISTS {
-      ?entity p:P19 ?_unreferenced_stmt .
+      ?entity p:P131 ?_unreferenced_stmt .
       FILTER NOT EXISTS {
         ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
         FILTER NOT EXISTS { ?_ref pr:P143 [] }
@@ -1313,10 +1320,10 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
     def test_get_filter_for_positive_query(self):
         result = self.column.get_filter_for_positive_query()
         expected_fragment = """
-  ?entity p:P19 ?statement .
-  ?statement ps:P19 ?value .
+  ?entity p:P131 ?statement .
+  ?statement ps:P131 ?value .
   FILTER NOT EXISTS {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
@@ -1341,7 +1348,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
         result = self.column.get_filter_for_negative_query()
         expected_fragment = """
   OPTIONAL {
-    ?entity p:P19 ?_unreferenced_stmt .
+    ?entity p:P131 ?_unreferenced_stmt .
     FILTER NOT EXISTS {
       ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
       FILTER NOT EXISTS { ?_ref pr:P143 [] }
@@ -1349,9 +1356,9 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
       FILTER NOT EXISTS { ?_ref pr:P887 [] }
     }
   }
-  OPTIONAL { ?entity p:P19 ?_any_stmt . }
+  OPTIONAL { ?entity p:P131 ?_any_stmt . }
   FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P19 ?_show_stmt . ?_show_stmt ps:P19 ?value . }
+  OPTIONAL { ?entity p:P131 ?_show_stmt . ?_show_stmt ps:P131 ?value . }
 """
         self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
 
@@ -1383,12 +1390,12 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_format_html_snippet_with_value(self):
-        col = ReferenceColumn("P166", value="Q594550", qualifier="P585")
+        col = ReferenceColumn("P17", value="Q594550", qualifier="P580")
         result = col.format_html_snippet()
         expected = (
-            '<a href="https://wikidata.org/wiki/Property:P166">P166</a>'
+            '<a href="https://wikidata.org/wiki/Property:P17">P17</a>'
             " = Q594550"
-            ' qualifier <a href="https://wikidata.org/wiki/Property:P585">P585</a>'
+            ' qualifier <a href="https://wikidata.org/wiki/Property:P580">P580</a>'
             " referenced"
         )
         self.assertEqual(result, expected)

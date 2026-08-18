@@ -1,5 +1,6 @@
 ---
-- hosts: toolforge
+- name: Deploy inteGraality to Toolforge
+  hosts: toolforge
   gather_facts: no
 
   vars:

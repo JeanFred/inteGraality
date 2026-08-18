@@ -1,0 +1,18 @@
+integraality/tests/test_sparql_functional.py
+  h_bc010f8da910ff 1-184
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 656-657,666,668,689,691,707,709,728-729,731,793,798,800,834,839,841
+pyproject.toml
+  h_bc010f8da910ff 28-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "f6715b8a0f74e1be418250df92807237b8d9aacc",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

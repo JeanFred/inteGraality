@@ -1,7 +1,7 @@
 ---
 - name: Deploy inteGraality to Toolforge
   hosts: toolforge
-  gather_facts: no
+  gather_facts: false
 
   vars:
     tool_name: integraality

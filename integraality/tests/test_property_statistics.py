@@ -48,7 +48,7 @@ class PropertyStatisticsTest(unittest.TestCase):
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
@@ -75,7 +75,7 @@ class TestLabelColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -88,7 +88,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
@@ -106,7 +106,7 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity rdfs:label ?lang_label.
@@ -135,7 +135,7 @@ class TestDescriptionColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
     FILTER((LANG(?lang_label)) = 'br').
@@ -148,7 +148,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
@@ -166,7 +166,7 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity schema:description ?lang_label.
@@ -286,7 +286,7 @@ class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
@@ -318,7 +318,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS {
     ?entity wdt:P551 [] .
   }
@@ -351,7 +351,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -381,7 +381,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   FILTER(EXISTS {
@@ -407,7 +407,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   ?entity p:P21 ?statement . OPTIONAL { ?statement ps:P21 ?value }
@@ -439,7 +439,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P577", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -449,7 +449,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P577 ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
@@ -483,7 +483,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?sitelink schema:about ?entity;
@@ -517,7 +517,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P1 ?statement .
@@ -552,7 +552,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P3 ?statement .
@@ -593,7 +593,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P166 ?statement .
@@ -639,7 +639,7 @@ class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
         stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=config,
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
         )
@@ -660,7 +660,7 @@ class TestReferenceColumn(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         query = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P21 [] .
@@ -683,7 +683,7 @@ LIMIT 1000
         result = self.column.get_info_no_grouping_query(self.stats)
         query = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P21 [] .
@@ -702,7 +702,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_totals_query(self.stats)
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P21 [] .
     FILTER NOT EXISTS {
@@ -722,7 +722,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -786,7 +786,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -826,7 +826,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS {
     ?entity wdt:P551 [] .
   }
@@ -876,7 +876,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -925,7 +925,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -975,7 +975,7 @@ class TestReferenceColumnSpecificPropertyValue(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1014,7 +1014,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1066,7 +1066,7 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1119,7 +1119,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1172,7 +1172,7 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1234,7 +1234,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1289,7 +1289,7 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P27 ?statement .
@@ -1365,7 +1365,7 @@ class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1417,7 +1417,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1468,7 +1468,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1535,7 +1535,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1585,7 +1585,7 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   ?entity p:P21 ?statement .
@@ -1651,7 +1651,7 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   OPTIONAL {
@@ -1695,7 +1695,7 @@ class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -1721,7 +1721,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS {
     ?entity wdt:P551 [] .
   }
@@ -1748,7 +1748,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS {
     {?entity a wdno:P21 .} UNION
     {?entity wdt:P21 ?statement .}
@@ -1772,7 +1772,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -1798,7 +1798,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping.
   FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
   MINUS {
@@ -1824,7 +1824,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P577", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -1834,7 +1834,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P577 ?date.
   BIND(YEAR(?date) as ?year).
   FILTER(?year = 2006).
@@ -1862,7 +1862,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -1888,7 +1888,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -1916,7 +1916,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -1950,7 +1950,7 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
         )
         expected = """
 SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 wd:Q3115846 .
   BIND(wd:Q3115846 AS ?grouping) .
   MINUS {
@@ -2045,7 +2045,7 @@ class SparqlCountTest(PropertyStatisticsTest):
         result = self.stats.get_totals_no_grouping()
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   MINUS { ?entity wdt:P551 _:b28. }
 }
 """
@@ -2056,7 +2056,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.stats.get_totals()
         query = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
 }
 """
         self.assert_query_called(query)
@@ -2079,7 +2079,7 @@ class GetGroupingInformationTest(PropertyStatisticsTest):
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2109,7 +2109,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2151,7 +2151,7 @@ LIMIT 1000
 SELECT ?grouping (SAMPLE(?_higher_grouping) as ?higher_grouping) ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2173,7 +2173,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2193,7 +2193,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2213,7 +2213,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2249,7 +2249,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -2269,7 +2269,7 @@ LIMIT 1000
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P577", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -2287,7 +2287,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P577 ?date .
       BIND(YEAR(?date) as ?grouping) .
     }
@@ -2308,7 +2308,7 @@ LIMIT 1000
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P577", grouping_type=YearGroupingType()
             ),
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
             property_threshold=10,
@@ -2328,7 +2328,7 @@ LIMIT 1000
 SELECT ?grouping ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P577 ?date .
       BIND(YEAR(?date) as ?grouping) .
     }
@@ -2370,7 +2370,7 @@ LIMIT 1000
 SELECT ?grouping ?grouping_link_value ?count WHERE {
   {
     SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-      ?entity wdt:P31 wd:Q41960 .
+      ?entity wdt:P10241 wd:Q41960 .
       ?entity wdt:P551 ?grouping .
     }
     GROUP BY ?grouping
@@ -3026,7 +3026,7 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
         self.stats = PropertyStatistics(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )

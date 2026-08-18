@@ -37,7 +37,7 @@ class PropertyStatisticsTest(unittest.TestCase):
         self.stats = PropertyStatistics(
             columns=columns,
             grouping_configuration=self.grouping_configuration,
-            selector_sparql="wdt:P31 wd:Q41960",
+            selector_sparql="wdt:P10241 wd:Q41960",
             property_threshold=10,
         )
 
@@ -56,7 +56,7 @@ class TestPropertyColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P19[]
   })
@@ -68,7 +68,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P19[]
@@ -81,7 +81,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P19[]
@@ -120,7 +120,7 @@ class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
   })
@@ -132,7 +132,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
@@ -145,7 +145,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P669 [ ps:P669 [] ; pq:P670 [] ]
@@ -184,7 +184,7 @@ class TestPropertyColumnWithQualifierAndValue(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
   })
@@ -196,7 +196,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
@@ -209,7 +209,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P3 [ ps:P3 wd:Q4 ; pq:P5 [] ]
@@ -247,7 +247,7 @@ class TestPropertyColumnWithQualifierAndVariableValue(PropertyStatisticsTest):
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
@@ -264,7 +264,7 @@ LIMIT 1000
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
   })
@@ -276,7 +276,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P166 [ ps:P166 ?grouping ; pq:P585 [] ]
@@ -300,7 +300,7 @@ class TestSitelinkColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
       schema:isPartOf <https://br.wikipedia.org/>.
@@ -313,7 +313,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
@@ -327,7 +327,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?sitelink schema:about ?entity;
@@ -702,7 +702,7 @@ class TestReferenceColumn(PropertyStatisticsTest):
         result = self.column.get_totals_query(self.stats)
         expected = """
 SELECT (COUNT(*) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960
+  ?entity wdt:P10241 wd:Q41960
   FILTER(EXISTS {
     ?entity p:P19 [] .
     FILTER NOT EXISTS {
@@ -720,7 +720,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         result = self.column.get_info_no_grouping_query(self.stats)
         expected = """
 SELECT (COUNT(*) AS ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   MINUS { ?entity wdt:P551 _:b28. }
   FILTER(EXISTS {
     ?entity p:P19 [] .
@@ -739,7 +739,7 @@ SELECT (COUNT(*) AS ?count) WHERE {
         result = self.column.get_info_query(self.stats)
         expected = """
 SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
-  ?entity wdt:P31 wd:Q41960 .
+  ?entity wdt:P10241 wd:Q41960 .
   ?entity wdt:P551 ?grouping .
   FILTER(EXISTS {
     ?entity p:P19 [] .

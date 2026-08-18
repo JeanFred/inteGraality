@@ -111,3 +111,6 @@ apicache*
 
 # Ansible files
 *.retry
+
+# Mise
+.mise.local.toml

@@ -35,8 +35,9 @@ A cron job periodically loops through all dashboard pages, runs SPARQL queries (
 ### Running locally
 
 ```sh
-docker compose up -d    # Flask app on localhost:5000, Redis, writes to docker_pages/
-uv run pytest           # Run tests
+mise install   # Install uv, pre-commit (uv manages Python)
+mise run up    # Flask app on localhost:5000, Redis, writes to docker_pages/ (or: `docker compose up -d`)
+mise run test  # Run tests (or: `uv run pytest`)
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md#development-setup) for prerequisites and more options (running without Docker, functional tests, etc.).

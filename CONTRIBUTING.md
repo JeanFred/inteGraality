@@ -14,9 +14,17 @@ For questions or discussion, use [Wikidata_talk:inteGraality](https://www.wikida
 
 ## Development setup
 
+### Prerequisites
+
+You need [uv](https://docs.astral.sh/uv/) and Python 3.11 (uv can install it for you). [pre-commit](https://pre-commit.com/) is used for linting hooks.
+
+If you use [mise](https://mise.jdx.dev/), running `mise install` will set up uv and pre-commit automatically.
+
 ### With Docker (recommended)
 
 ```sh
+mise run up
+# or directly:
 docker compose up -d
 ```
 
@@ -35,6 +43,8 @@ This runs the web app without Redis (the cache will miss and fall back to fetchi
 Unit tests (work offline, as they use fakeredis and mock pywikibot):
 
 ```sh
+mise run test
+# or directly:
 uv run pytest
 ```
 

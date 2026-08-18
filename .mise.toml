@@ -1,0 +1,22 @@
+[tools]
+uv = "latest"
+pre-commit = "latest"
+
+[settings]
+python.uv_venv_auto = "source"
+
+[tasks.test]
+description = "Run tests"
+run = "uv run pytest"
+
+[tasks.lint]
+description = "Run all pre-commit hooks"
+run = "pre-commit run --all-files"
+
+[tasks.up]
+description = "Start Flask app and Redis via Docker Compose"
+run = "docker compose up -d --remove-orphans"
+
+[tasks.down]
+description = "Stop Flask app and Redis via Docker Compose"
+run = "docker compose down"

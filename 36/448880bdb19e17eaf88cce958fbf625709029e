@@ -1,0 +1,14 @@
+integraality/tests/test_column.py
+  h_bc010f8da910ff 112,116,125,138,151,165,169
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "36448880bdb19e17eaf88cce958fbf625709029e",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

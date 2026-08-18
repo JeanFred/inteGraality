@@ -1,0 +1,17 @@
+pyproject.toml
+  h_bc010f8da910ff 28-33
+integraality/tests/test_sparql_functional.py
+  h_bc010f8da910ff 1-118,145,147-178,182-192,196
+  h_bc010f8da910ff 119-144,146,179-181,193-195
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "5b21592bc85a5340344393c2ecc9c2a6d66dd4c1",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

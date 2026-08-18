@@ -1,0 +1,20 @@
+CONTRIBUTING.md
+  h_bc010f8da910ff 17-22,26-27,46-47
+.mise.toml
+  h_bc010f8da910ff 1-18
+README.md
+  h_bc010f8da910ff 38-40
+.gitignore
+  h_bc010f8da910ff 114-116
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "d4fb0acd4564e858b7646787ab4e956e1f130303",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

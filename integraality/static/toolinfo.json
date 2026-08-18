@@ -18,7 +18,7 @@
     "available_ui_languages": ["en"],
     "technology_used": ["Python", "Flask", "SPARQL", "Redis"],
     "license": "MIT",
-    "tool_type": ["bot", "web app"],
+    "tool_type": "web app",
     "bot_username": "InteGraalityBot",
     "user_docs_url": "https://www.wikidata.org/wiki/Wikidata:InteGraality",
     "feedback_url": "https://www.wikidata.org/wiki/Wikidata_talk:InteGraality",

@@ -31,3 +31,13 @@ repos:
     rev: 1.0.0
     hooks:
       - id: mdformat
+
+  - repo: https://github.com/python-jsonschema/check-jsonschema
+    rev: 0.38.0
+    hooks:
+      - id: check-jsonschema
+        name: Validate toolinfo.json
+        files: (^|/)toolinfo\.json$
+        args:
+          - --schemafile
+          - https://raw.githubusercontent.com/wikimedia/wikimedia-toolhub/main/jsonschema/toolinfo/1.2.2.json

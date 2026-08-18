@@ -32,11 +32,11 @@
 
   handlers:
     - name: Restart webservice
-      command: >
+      ansible.builtin.command: >
         webservice restart
 
     - name: Generate deploy messages
-      command: >
+      ansible.builtin.command: >
         {{ checkout_path }}/bin/sal_messages_from_git_log.sh {{ git_result.before }}..{{ git_result.after }}
       args:
         chdir: "{{ checkout_path }}"
@@ -44,7 +44,7 @@
       listen: Log deploy to SAL
 
     - name: Send deploy messages to Server Admin Log
-      command: >
+      ansible.builtin.command: >
         dologmsg "{{ item }}"
       loop: "{{ deploy_messages.stdout_lines }}"
       loop_control:
@@ -52,12 +52,12 @@
       listen: Log deploy to SAL
 
     - name: Load Toolforge jobs from file
-      command: >
+      ansible.builtin.command: >
         toolforge jobs load {{ jobs_file_path }}
 
   tasks:
     - name: Ensure directories exist
-      file:
+      ansible.builtin.file:
         path: "{{ item }}"
         state: directory
       with_items:
@@ -67,7 +67,7 @@
         - paths
 
     - name: Clone Git repository
-      git:
+      ansible.builtin.git:
         repo: 'https://github.com/JeanFred/integraality'
         dest: '{{ checkout_path }}'
       register: git_result
@@ -86,7 +86,7 @@
     #     - requirements
 
     - name: Deploy uwsgi configuration file
-      template:
+      ansible.builtin.template:
         src: 'uwsgi.ini.j2'
         dest: '{{ toolforge_path }}/uwsgi.ini'
       tags:
@@ -96,13 +96,14 @@
       ansible.builtin.copy:
         content: '{{ service_template | to_nice_yaml }}'
         dest: '{{ base_path }}/service.template'
+        mode: "0644"
       tags:
         - config
       notify:
         - Restart webservice
 
     - name: Symlink src directory
-      file:
+      ansible.builtin.file:
         src: '{{ checkout_path }}'
         path: '{{ source_path }}'
         state: link

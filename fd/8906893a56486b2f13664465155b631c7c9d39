@@ -1,0 +1,14 @@
+pyproject.toml
+  h_bc010f8da910ff 5-8,10-13,18-20,25-27
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "fd8906893a56486b2f13664465155b631c7c9d39",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

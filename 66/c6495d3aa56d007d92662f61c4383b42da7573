@@ -1,0 +1,14 @@
+integraality/static/toolinfo.json
+  h_bc010f8da910ff 21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "66c6495d3aa56d007d92662f61c4383b42da7573",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

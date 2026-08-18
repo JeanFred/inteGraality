@@ -25,3 +25,9 @@ package = false
 
 [tool.ruff]
 lint.extend-select = [ "I" ]
+
+[tool.pytest]
+ini_options.addopts = "-m 'not functional'"
+ini_options.markers = [
+  "functional: hits live SPARQL endpoints (WDQS/QLever) — slow, needs network",
+]

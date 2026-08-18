@@ -47,3 +47,12 @@ repos:
     rev: v2.28.0
     hooks:
       - id: pyproject-fmt
+
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v26.8.0
+    hooks:
+      - id: ansible-lint
+        language_version: python3
+        always_run: false
+        pass_filenames: true
+        files: ^deploy/.*\.yml$

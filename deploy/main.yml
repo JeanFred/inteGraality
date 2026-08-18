@@ -34,6 +34,7 @@
     - name: Restart webservice
       ansible.builtin.command: >
         webservice restart
+      changed_when: true
 
     - name: Generate deploy messages
       ansible.builtin.command: >
@@ -41,6 +42,7 @@
       args:
         chdir: "{{ checkout_path }}"
       register: deploy_messages
+      changed_when: true
       listen: Log deploy to SAL
 
     - name: Send deploy messages to Server Admin Log
@@ -49,11 +51,14 @@
       loop: "{{ deploy_messages.stdout_lines }}"
       loop_control:
         pause: 1
+      changed_when: true
       listen: Log deploy to SAL
 
     - name: Load Toolforge jobs from file
       ansible.builtin.command: >
         toolforge jobs load {{ jobs_file_path }}
+      register: jobs_load_result
+      changed_when: "'created' in jobs_load_result.stdout or 'updated' in jobs_load_result.stdout"
 
   tasks:
     - name: Ensure directories exist

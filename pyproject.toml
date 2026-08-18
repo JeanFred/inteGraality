@@ -2,22 +2,26 @@
 name = "integraality"
 version = "0.0.1"
 requires-python = "~=3.11.0"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+]
 dependencies = [
-    "pywikibot",
-    "flask",
-    "redis",
-    "mwparserfromhell",
+  "flask",
+  "mwparserfromhell",
+  "pywikibot",
+  "redis",
 ]
 
 [dependency-groups]
 dev = [
-    "pytest",
-    "pytest-cov",
-    "fakeredis",
+  "fakeredis",
+  "pytest",
+  "pytest-cov",
 ]
-
-[tool.ruff.lint]
-extend-select = ["I"]
 
 [tool.uv]
 package = false
+
+[tool.ruff]
+lint.extend-select = [ "I" ]

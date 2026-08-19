@@ -2,6 +2,10 @@ pyproject.toml
   h_bc010f8da910ff 28-33
 integraality/tests/test_sparql_functional.py
   h_bc010f8da910ff 1-202
+integraality/property_statistics.py
+  h_bc010f8da910ff 127
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 832
 ---
 {
   "schema_version": "authorship/3.0.0",

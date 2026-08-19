@@ -104,28 +104,43 @@ class PropertyStatistics:
         line, grouping = self._make_line_for_grouping(grouping)
 
         column_filter, select_vars = column.get_filter_for_positive_query()
-        select_clause = expand_select_vars(select_vars)
-
-        query = "\n"
-        query += line.postive_query(
-            self.selector_sparql, select_clause, grouping_predicate, grouping
+        return self._build_drilldown_query(
+            line.postive_query,
+            select_vars,
+            column_filter,
+            grouping_predicate,
+            grouping,
+            line,
         )
-        query += line.grouping_bind(grouping)
-        query += column_filter
-        query += get_labels_for_select_vars(select_vars)
-        query += """}
-"""
-        return query
 
     def get_query_for_items_for_property_negative(self, column, grouping):
         grouping_predicate = self.grouping_configuration.get_predicate()
         line, grouping = self._make_line_for_grouping(grouping)
 
         column_filter, select_vars = column.get_filter_for_negative_query()
+        return self._build_drilldown_query(
+            line.negative_query,
+            select_vars,
+            column_filter,
+            grouping_predicate,
+            grouping,
+            line,
+        )
+
+    def _build_drilldown_query(
+        self,
+        query_fn,
+        select_vars,
+        column_filter,
+        grouping_predicate,
+        grouping,
+        line,
+    ):
+        """Build a drilldown query for the given column and grouping."""
         select_clause = expand_select_vars(select_vars)
 
         query = "\n"
-        query += line.negative_query(
+        query += query_fn(
             self.selector_sparql, select_clause, grouping_predicate, grouping
         )
         query += line.grouping_bind(grouping)

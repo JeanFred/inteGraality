@@ -1,0 +1,16 @@
+integraality/tests/test_column.py
+  h_bc010f8da910ff 198-199
+integraality/tests/test_sparql_functional.py
+  h_bc010f8da910ff 15,17,21-25,98-100,102,130-134,136-138,142-146,181,185,201,205
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9058320e62bf1504386ed1b5f23e5fc6e5dff7cd",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

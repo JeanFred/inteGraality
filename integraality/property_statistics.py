@@ -136,18 +136,32 @@ class PropertyStatistics:
         grouping,
         line,
     ):
-        """Build a drilldown query for the given column and grouping."""
-        select_clause = expand_select_vars(select_vars)
+        """Build a drilldown query with labels resolved in an outer query.
 
-        query = "\n"
-        query += query_fn(
-            self.selector_sparql, select_clause, grouping_predicate, grouping
+        Wraps the entity-selection logic in a subquery so that SPARQL
+        optimizers resolve the complex pattern first, then join against
+        the rdfs:label graph on a small result set.
+        """
+        inner_select_clause = " ".join(select_vars)
+        outer_select_clause = expand_select_vars(select_vars)
+
+        # Inner subquery: entity selection without labels
+        inner = query_fn(
+            self.selector_sparql, inner_select_clause, grouping_predicate, grouping
         )
-        query += line.grouping_bind(grouping)
-        query += column_filter
+        inner += line.grouping_bind(grouping)
+        inner += column_filter
+        inner += "}"
+
+        # Outer query: label resolution on the small result set
+        query = "\n"
+        query += f"SELECT {outer_select_clause} WHERE {{\n"
+        query += "  {\n"
+        for inner_line in inner.split("\n"):
+            query += f"  {inner_line}\n"
+        query += "  }\n"
         query += get_labels_for_select_vars(select_vars)
-        query += """}
-"""
+        query += "}\n"
         return query
 
     def _make_line_for_grouping(self, grouping):

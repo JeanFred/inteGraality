@@ -285,11 +285,15 @@ class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
             self.stats.columns.get("P1435"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -317,12 +321,16 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P1435"), NoGroupGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  MINUS {
-    ?entity wdt:P17 [] .
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    MINUS {
+      ?entity wdt:P17 [] .
+    }
+    ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   }
-  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -350,9 +358,13 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P1435"), TotalsGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -380,14 +392,18 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("Lbr"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  FILTER(EXISTS {
-    ?entity rdfs:label ?lang_label.
-    FILTER((LANG(?lang_label)) = "br").
-  })
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    FILTER(EXISTS {
+      ?entity rdfs:label ?lang_label.
+      FILTER((LANG(?lang_label)) = "br").
+    })
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -406,11 +422,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435"), UnknownValueGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 ?grouping.
-  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
-  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 ?grouping.
+    FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
+    ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -448,13 +468,17 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P1435"), 1892
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P571 ?date.
-  BIND(YEAR(?date) as ?year).
-  FILTER(?year = 1892).
-  BIND(1892 AS ?grouping) .
-  ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P571 ?date.
+    BIND(YEAR(?date) as ?year).
+    FILTER(?year = 1892).
+    BIND(1892 AS ?grouping) .
+    ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -482,13 +506,17 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("brwiki"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?sitelink schema:about ?entity;
-    schema:isPartOf <https://br.wikipedia.org/>;
-    schema:name ?value.
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?sitelink schema:about ?entity;
+      schema:isPartOf <https://br.wikipedia.org/>;
+      schema:name ?value.
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -516,14 +544,18 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P2929/P462"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P2929 ?statement .
-  { ?statement pq:P462 ?value . }
-  UNION
-  { ?statement a wdno:P462 . BIND("no value"@en AS ?valueLabel) }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P2929 ?statement .
+    { ?statement pq:P462 ?value . }
+    UNION
+    { ?statement a wdno:P462 . BIND("no value"@en AS ?valueLabel) }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -551,15 +583,19 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P1435/Q10387575/P580"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 wd:Q10387575 .
-  { ?statement pq:P580 ?value . }
-  UNION
-  { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 wd:Q10387575 .
+    { ?statement pq:P580 ?value . }
+    UNION
+    { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -592,15 +628,19 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.stats.columns.get("P17/?grouping/P580"), "Q159"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q159 .
-  BIND(wd:Q159 AS ?grouping) .
-  ?entity p:P17 ?statement .
-  ?statement ps:P17 ?grouping .
-  { ?statement pq:P580 ?value . }
-  UNION
-  { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q159 .
+    BIND(wd:Q159 AS ?grouping) .
+    ?entity p:P17 ?statement .
+    ?statement ps:P17 ?grouping .
+    { ?statement pq:P580 ?value . }
+    UNION
+    { ?statement a wdno:P580 . BIND("no value"@en AS ?valueLabel) }
+  }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -721,25 +761,29 @@ SELECT (COUNT(*) as ?count) WHERE {
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P2923 ?statement .
-  ?statement ps:P2923 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P2923 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P2923 ?statement .
+    ?statement ps:P2923 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom []
+      ?entity p:P2923 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+    OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+    OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+    OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+    BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+    BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
-  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
-  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
-  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
-  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
-  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -785,19 +829,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P2923 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom []
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P2923 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
+    OPTIONAL { ?entity p:P2923 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
   }
-  OPTIONAL { ?entity p:P2923 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -825,20 +873,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, NoGroupGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  MINUS {
-    ?entity wdt:P17 [] .
-  }
-  OPTIONAL {
-    ?entity p:P2923 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom []
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    MINUS {
+      ?entity wdt:P17 [] .
     }
+    OPTIONAL {
+      ?entity p:P2923 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
+    }
+    OPTIONAL { ?entity p:P2923 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
   }
-  OPTIONAL { ?entity p:P2923 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P2923 ?_show_stmt . ?_show_stmt ps:P2923 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -875,19 +927,23 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P1435 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?refValue WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+      }
     }
+    ?statement prov:wasDerivedFrom/pr:P248 ?refValue .
   }
-  ?statement prov:wasDerivedFrom/pr:P248 ?refValue .
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -924,19 +980,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 []
+      }
     }
+    OPTIONAL { ?entity p:P1435 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   }
-  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -974,17 +1034,21 @@ class TestReferenceColumnSpecificPropertyValue(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P1435 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
+      }
     }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1013,19 +1077,23 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom/pr:P248 wd:Q809830
+      }
     }
+    OPTIONAL { ?entity p:P1435 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   }
-  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1065,23 +1133,27 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P1435 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?refValue WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    OPTIONAL { ?_refNode pr:P248 ?_refNode_val_0 . }
+    OPTIONAL { ?_refNode pr:P854 ?_refNode_val_1 . }
+    BIND(COALESCE(?_refNode_val_0, ?_refNode_val_1) AS ?refValue)
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  OPTIONAL { ?_refNode pr:P248 ?_refNode_val_0 . }
-  OPTIONAL { ?_refNode pr:P854 ?_refNode_val_1 . }
-  BIND(COALESCE(?_refNode_val_0, ?_refNode_val_1) AS ?refValue)
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1118,20 +1190,24 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        { ?_ref pr:P248 [] } UNION { ?_ref pr:P854 [] }
+      }
     }
+    OPTIONAL { ?entity p:P1435 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   }
-  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1171,23 +1247,27 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P2929 ?statement .
-  ?statement ps:P2929 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P2929 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?ref_P248 ?ref_P304 WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P2929 ?statement .
+    ?statement ps:P2929 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 [] .
-      ?_ref pr:P304 [] .
+      ?entity p:P2929 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        ?_ref pr:P248 [] .
+        ?_ref pr:P304 [] .
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    ?_refNode pr:P248 ?ref_P248 .
+    ?_refNode pr:P304 ?ref_P304 .
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  ?_refNode pr:P248 ?ref_P248 .
-  ?_refNode pr:P304 ?ref_P304 .
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1233,21 +1313,25 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P2929 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 [] .
-      ?_ref pr:P304 [] .
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P2929 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        ?_ref pr:P248 [] .
+        ?_ref pr:P304 [] .
+      }
     }
+    OPTIONAL { ?entity p:P2929 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
   }
-  OPTIONAL { ?entity p:P2929 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1288,25 +1372,29 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label ?ref_P854 ?ref_P854Label WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P793 ?statement .
-  ?statement ps:P793 ?value .
-  ?statement ps:P793 wd:Q24410992 .
-  FILTER NOT EXISTS {
-    ?entity p:P793 ?_unreferenced_stmt .
-    ?_unreferenced_stmt ps:P793 wd:Q24410992 .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label ?ref_P854 ?ref_P854Label WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?ref_P813 ?ref_P854 WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P793 ?statement .
+    ?statement ps:P793 ?value .
+    ?statement ps:P793 wd:Q24410992 .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P813 [] .
-      ?_ref pr:P854 [] .
+      ?entity p:P793 ?_unreferenced_stmt .
+      ?_unreferenced_stmt ps:P793 wd:Q24410992 .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        ?_ref pr:P813 [] .
+        ?_ref pr:P854 [] .
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    ?_refNode pr:P813 ?ref_P813 .
+    ?_refNode pr:P854 ?ref_P854 .
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  ?_refNode pr:P813 ?ref_P813 .
-  ?_refNode pr:P854 ?ref_P854 .
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1364,22 +1452,26 @@ class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P2929 ?statement .
-  ?statement ps:P2929 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P2929 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?ref_P304 WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P2929 ?statement .
+    ?statement ps:P2929 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 wd:Q25198336 .
-      ?_ref pr:P304 [] .
+      ?entity p:P2929 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        ?_ref pr:P248 wd:Q25198336 .
+        ?_ref pr:P304 [] .
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    ?_refNode pr:P304 ?ref_P304 .
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  ?_refNode pr:P304 ?ref_P304 .
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1416,21 +1508,25 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P2929 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      ?_ref pr:P248 wd:Q25198336 .
-      ?_ref pr:P304 [] .
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P2929 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        ?_ref pr:P248 wd:Q25198336 .
+        ?_ref pr:P304 [] .
+      }
     }
+    OPTIONAL { ?entity p:P2929 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
   }
-  OPTIONAL { ?entity p:P2929 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P2929 ?_show_stmt . ?_show_stmt ps:P2929 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1467,28 +1563,32 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 ?value .
-  FILTER NOT EXISTS {
-    ?entity p:P1435 ?_unreferenced_stmt .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 ?value .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      FILTER NOT EXISTS { ?_ref pr:P143 [] }
-      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        FILTER NOT EXISTS { ?_ref pr:P143 [] }
+        FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+        FILTER NOT EXISTS { ?_ref pr:P887 [] }
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+    OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+    OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+    OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+    BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+    BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
-  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
-  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
-  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
-  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
-  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1534,22 +1634,26 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
-      FILTER NOT EXISTS { ?_ref pr:P143 [] }
-      FILTER NOT EXISTS { ?_ref pr:P3452 [] }
-      FILTER NOT EXISTS { ?_ref pr:P887 [] }
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P1435 ?_unreferenced_stmt .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom ?_ref .
+        FILTER NOT EXISTS { ?_ref pr:P143 [] }
+        FILTER NOT EXISTS { ?_ref pr:P3452 [] }
+        FILTER NOT EXISTS { ?_ref pr:P887 [] }
+      }
     }
+    OPTIONAL { ?entity p:P1435 ?_any_stmt . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   }
-  OPTIONAL { ?entity p:P1435 ?_any_stmt . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1584,27 +1688,31 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  ?entity p:P1435 ?statement .
-  ?statement ps:P1435 ?value .
-  ?statement pq:P580 [] .
-  FILTER NOT EXISTS {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    ?_unreferenced_stmt pq:P580 [] .
+SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    ?entity p:P1435 ?statement .
+    ?statement ps:P1435 ?value .
+    ?statement pq:P580 [] .
     FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom []
+      ?entity p:P1435 ?_unreferenced_stmt .
+      ?_unreferenced_stmt pq:P580 [] .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
+    ?statement prov:wasDerivedFrom ?_refNode .
+    OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
+    OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
+    OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
+    OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
+    BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
+    BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
   }
-  ?statement prov:wasDerivedFrom ?_refNode .
-  OPTIONAL { ?_refNode pr:P248 ?_refNode_P248 . }
-  OPTIONAL { ?_refNode pr:P854 ?_refNode_P854 . }
-  OPTIONAL { ?_refNode ?_refNode_fallback_prop ?_refNode_fallback . FILTER(STRSTARTS(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/P")) FILTER(?_refNode_fallback_prop NOT IN (pr:P248, pr:P854, pr:P813, pr:P4656, pr:P1065)) }
-  OPTIONAL { ?_refNode ?_refNode_depri_prop ?_refNode_deprioritized . FILTER(?_refNode_depri_prop IN (pr:P813, pr:P4656, pr:P1065)) }
-  BIND(COALESCE(?_refNode_P248, ?_refNode_P854, ?_refNode_fallback, ?_refNode_deprioritized) AS ?refValue)
-  BIND(COALESCE(IF(BOUND(?_refNode_P248), wd:P248, 1/0), IF(BOUND(?_refNode_P854), wd:P854, 1/0), IRI(REPLACE(STR(?_refNode_fallback_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/")), IRI(REPLACE(STR(?_refNode_depri_prop), "http://www.wikidata.org/prop/reference/", "http://www.wikidata.org/entity/"))) AS ?refProperty)
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1650,21 +1758,25 @@ SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropert
             self.column, "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel ?value ?valueLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  OPTIONAL {
-    ?entity p:P1435 ?_unreferenced_stmt .
-    ?_unreferenced_stmt pq:P580 [] .
-    FILTER NOT EXISTS {
-      ?_unreferenced_stmt prov:wasDerivedFrom []
+SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
+  {
+  SELECT DISTINCT ?entity ?value WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    OPTIONAL {
+      ?entity p:P1435 ?_unreferenced_stmt .
+      ?_unreferenced_stmt pq:P580 [] .
+      FILTER NOT EXISTS {
+        ?_unreferenced_stmt prov:wasDerivedFrom []
+      }
     }
+    OPTIONAL { ?entity p:P1435 ?_any_stmt .
+      ?_any_stmt pq:P580 [] . }
+    FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
+    OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
   }
-  OPTIONAL { ?entity p:P1435 ?_any_stmt .
-    ?_any_stmt pq:P580 [] . }
-  FILTER(!BOUND(?_any_stmt) || BOUND(?_unreferenced_stmt))
-  OPTIONAL { ?entity p:P1435 ?_show_stmt . ?_show_stmt ps:P1435 ?value . }
+  }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
     FILTER(lang(?entitylabelMUL)='mul')
@@ -1694,13 +1806,17 @@ class GetQueryForItemsForPropertyNegative(PropertyStatisticsTest):
             self.stats.columns.get("P1435"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  MINUS {
-    {?entity a wdno:P1435 .} UNION
-    {?entity wdt:P1435 ?statement .}
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    MINUS {
+      {?entity a wdno:P1435 .} UNION
+      {?entity wdt:P1435 ?statement .}
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1720,14 +1836,18 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435"), NoGroupGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  MINUS {
-    ?entity wdt:P17 [] .
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    MINUS {
+      ?entity wdt:P17 [] .
+    }
+    MINUS {
+      {?entity a wdno:P1435 .} UNION
+      {?entity wdt:P1435 ?statement .}
+    }
   }
-  MINUS {
-    {?entity a wdno:P1435 .} UNION
-    {?entity wdt:P1435 ?statement .}
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1747,11 +1867,15 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435"), TotalsGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  MINUS {
-    {?entity a wdno:P1435 .} UNION
-    {?entity wdt:P1435 ?statement .}
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    MINUS {
+      {?entity a wdno:P1435 .} UNION
+      {?entity wdt:P1435 ?statement .}
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1771,13 +1895,17 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("Lbr"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  MINUS {
-    { ?entity rdfs:label ?lang_label.
-    FILTER((LANG(?lang_label)) = "br") }
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    MINUS {
+      { ?entity rdfs:label ?lang_label.
+      FILTER((LANG(?lang_label)) = "br") }
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1797,13 +1925,17 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435"), UnknownValueGrouping.MARKER
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 ?grouping.
-  FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
-  MINUS {
-    {?entity a wdno:P1435 .} UNION
-    {?entity wdt:P1435 ?statement .}
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 ?grouping.
+    FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
+    MINUS {
+      {?entity a wdno:P1435 .} UNION
+      {?entity wdt:P1435 ?statement .}
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1833,15 +1965,19 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435"), 1892
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P571 ?date.
-  BIND(YEAR(?date) as ?year).
-  FILTER(?year = 1892).
-  BIND(1892 AS ?grouping) .
-  MINUS {
-    {?entity a wdno:P1435 .} UNION
-    {?entity wdt:P1435 ?statement .}
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P571 ?date.
+    BIND(YEAR(?date) as ?year).
+    FILTER(?year = 1892).
+    BIND(1892 AS ?grouping) .
+    MINUS {
+      {?entity a wdno:P1435 .} UNION
+      {?entity wdt:P1435 ?statement .}
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1861,13 +1997,17 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("brwiki"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  MINUS {
-    ?sitelink schema:about ?entity;
-      schema:isPartOf <https://br.wikipedia.org/>.
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    MINUS {
+      ?sitelink schema:about ?entity;
+        schema:isPartOf <https://br.wikipedia.org/>.
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1887,15 +2027,19 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P2929/P462"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  MINUS {
-    ?entity p:P2929 ?statement .
-    { ?statement pq:P462 ?value . }
-    UNION
-    { ?statement a wdno:P462 . }
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    MINUS {
+      ?entity p:P2929 ?statement .
+      { ?statement pq:P462 ?value . }
+      UNION
+      { ?statement a wdno:P462 . }
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1915,16 +2059,20 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P1435/Q10387575/P580"), "Q142"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q142 .
-  BIND(wd:Q142 AS ?grouping) .
-  MINUS {
-    ?entity p:P1435 ?statement .
-    ?statement ps:P1435 wd:Q10387575 .
-    { ?statement pq:P580 ?value . }
-    UNION
-    { ?statement a wdno:P580 . }
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q142 .
+    BIND(wd:Q142 AS ?grouping) .
+    MINUS {
+      ?entity p:P1435 ?statement .
+      ?statement ps:P1435 wd:Q10387575 .
+      { ?statement pq:P580 ?value . }
+      UNION
+      { ?statement a wdno:P580 . }
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.
@@ -1949,16 +2097,20 @@ SELECT DISTINCT ?entity ?entityLabel WHERE {
             self.stats.columns.get("P17/?grouping/P580"), "Q159"
         )
         expected = """
-SELECT DISTINCT ?entity ?entityLabel WHERE {
-  ?entity wdt:P31 wd:Q39715 .
-  ?entity wdt:P17 wd:Q159 .
-  BIND(wd:Q159 AS ?grouping) .
-  MINUS {
-    ?entity p:P17 ?statement .
-    ?statement ps:P17 ?grouping .
-    { ?statement pq:P580 ?value . }
-    UNION
-    { ?statement a wdno:P580 . }
+SELECT ?entity ?entityLabel WHERE {
+  {
+  SELECT DISTINCT ?entity WHERE {
+    ?entity wdt:P31 wd:Q39715 .
+    ?entity wdt:P17 wd:Q159 .
+    BIND(wd:Q159 AS ?grouping) .
+    MINUS {
+      ?entity p:P17 ?statement .
+      ?statement ps:P17 ?grouping .
+      { ?statement pq:P580 ?value . }
+      UNION
+      { ?statement a wdno:P580 . }
+    }
+  }
   }
   OPTIONAL {{
     ?entity rdfs:label ?entitylabelMUL.

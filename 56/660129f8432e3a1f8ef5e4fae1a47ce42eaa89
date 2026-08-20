@@ -1,0 +1,14 @@
+deploy/templates/uwsgi.ini.j2
+  h_bc010f8da910ff 2
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "56660129f8432e3a1f8ef5e4fae1a47ce42eaa89",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

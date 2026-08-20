@@ -1,0 +1,14 @@
+deploy/main.yml
+  h_bc010f8da910ff 32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "881928b4f2ac593d319c6a5231af71856e5909e0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

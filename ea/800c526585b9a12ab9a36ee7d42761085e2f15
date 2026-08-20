@@ -1,0 +1,27 @@
+integraality/tests/test_sparql_functional.py
+  h_bc010f8da910ff 1-147,149-295
+  s_a3be03d3ec2ea7::t_71e810fa1c624d 148
+pyproject.toml
+  h_bc010f8da910ff 28-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "ea800c526585b9a12ab9a36ee7d42761085e2f15",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_a3be03d3ec2ea7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7806bea4-bfa0-45af-acb1-8d977d1f2cad",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

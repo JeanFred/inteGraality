@@ -32,6 +32,20 @@
       mem: 1Gi
 
   handlers:
+    - name: Check if schema changed # noqa: command-instead-of-module
+      ansible.builtin.command: >
+        git -C {{ checkout_path }} diff --name-only {{ git_result.before }}..{{ git_result.after }} -- integraality/schema.sql
+      register: schema_diff
+      changed_when: false
+      listen: Code updated
+
+    - name: Recreate database schema
+      ansible.builtin.command: >
+        toolforge jobs run reset-db-schema --command "{{ checkout_path }}/bin/reset_db.sh" --image {{ runtime_image }} --wait
+      when: schema_diff.stdout | length > 0
+      changed_when: true
+      listen: Code updated
+
     - name: Restart webservice
       ansible.builtin.command: >
         webservice restart
@@ -81,6 +95,7 @@
       notify:
         - Restart webservice
         - Log deploy to SAL
+        - Code updated
       tags:
         - git
         - skip_ansible_lint  # Skip E401, we always want latest version

@@ -1,0 +1,16 @@
+integraality/dashboard_db.py
+  h_bc010f8da910ff 1-53
+integraality/schema.sql
+  h_bc010f8da910ff 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "87d2d30df60f6b954c7d17512bfd36ab9f796055",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -9,8 +9,10 @@ classifiers = [
 dependencies = [
   "flask",
   "mwparserfromhell",
+  "pymysql",
   "pywikibot",
   "redis",
+  "toolforge",
 ]
 
 [dependency-groups]

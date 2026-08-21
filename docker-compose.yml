@@ -10,12 +10,29 @@ services:
       - PYWIKIBOT_NO_USER_CONFIG=1
       - REDIS_HOST=redis
       - LOCAL_WRITE_PATH=docker_pages
+      - DB_HOST=db
+      - DB_USER=integraality
+      - DB_PASSWORD=password
+      - DB_NAME=s54041__integraality
     ports:
      - 5000:5000
     volumes:
      - .:/code
+    depends_on:
+     - redis
+     - db
 
   redis:
     image: redis:3.2.6
     ports:
      - 6379:6379
+
+  db:
+    image: mariadb:10.6
+    environment:
+      MARIADB_ROOT_PASSWORD: root_password
+      MARIADB_DATABASE: s54041__integraality
+      MARIADB_USER: integraality
+      MARIADB_PASSWORD: password
+    ports:
+     - 3306:3306

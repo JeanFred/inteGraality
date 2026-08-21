@@ -43,6 +43,12 @@ repos:
           - --schemafile
           - https://raw.githubusercontent.com/wikimedia/wikimedia-toolhub/main/jsonschema/toolinfo/1.2.2.json
 
+  - repo: https://github.com/sqlfluff/sqlfluff
+    rev: 4.3.0
+    hooks:
+      - id: sqlfluff-lint
+      - id: sqlfluff-fix
+
   - repo: https://github.com/tox-dev/pyproject-fmt
     rev: v2.28.0
     hooks:

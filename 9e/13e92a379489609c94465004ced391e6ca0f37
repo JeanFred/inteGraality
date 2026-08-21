@@ -1,0 +1,23 @@
+.devcontainer/devcontainer-lock.json
+  s_a3be03d3ec2ea7::t_f201ccc168425e 1-14
+.devcontainer/docker-compose.yml
+  s_a3be03d3ec2ea7::t_03507160a4f433 1-16
+.devcontainer/devcontainer.json
+  s_a3be03d3ec2ea7::t_ecfd67f43735b3 1-23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "9e13e92a379489609c94465004ced391e6ca0f37",
+  "prompts": {},
+  "sessions": {
+    "s_a3be03d3ec2ea7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7806bea4-bfa0-45af-acb1-8d977d1f2cad",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

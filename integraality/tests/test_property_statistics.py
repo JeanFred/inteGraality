@@ -6,13 +6,9 @@ from collections import OrderedDict
 from unittest.mock import create_autospec, patch
 
 from ..column import (
-    AllPropertiesReferenceCheck,
-    AnyOfPropertiesReferenceCheck,
     DescriptionColumn,
-    GoodReferenceCheck,
     LabelColumn,
     PropertyColumn,
-    PropertyReferenceCheck,
     QualifierColumn,
     ReferenceColumn,
     SitelinkColumn,
@@ -27,6 +23,12 @@ from ..line import (
     YearGrouping,
 )
 from ..property_statistics import PropertyStatistics
+from ..reference_check import (
+    AllPropertiesReferenceCheck,
+    AnyOfPropertiesReferenceCheck,
+    GoodReferenceCheck,
+    PropertyReferenceCheck,
+)
 from ..sparql_utils import QueryException, WdqsSparqlQueryEngine
 
 

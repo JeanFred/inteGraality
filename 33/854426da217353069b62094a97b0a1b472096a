@@ -1,0 +1,30 @@
+tox.ini
+  h_bc010f8da910ff 2
+pyproject.toml
+  h_bc010f8da910ff 4,7
+.python-version
+  h_bc010f8da910ff 1
+requirements.txt
+  h_bc010f8da910ff 12-15,18-22,25,53-72,79-86
+  h_bc010f8da910ff 16,23,26,73,87
+deploy/main.yml
+  h_bc010f8da910ff 16
+conf/Dockerfile.web
+  h_bc010f8da910ff 1
+uv.lock
+  h_bc010f8da910ff 3,29-41,72-101,213-232,241-248,299
+requirements-dev.txt
+  h_bc010f8da910ff 10-31,34-38
+  h_bc010f8da910ff 8,32,39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.22",
+  "base_commit_sha": "33854426da217353069b62094a97b0a1b472096a",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

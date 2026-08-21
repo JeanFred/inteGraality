@@ -33,3 +33,7 @@ ini_options.addopts = "-m 'not functional'"
 ini_options.markers = [
   "functional: hits live SPARQL endpoints (WDQS/QLever) — slow, needs network",
 ]
+
+[tool.sqlfluff]
+core.dialect = "mariadb"
+core.max_line_length = 120

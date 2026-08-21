@@ -1,0 +1,16 @@
+bin/reset_db.sh
+  h_bc010f8da910ff 1-26
+deploy/main.yml
+  h_bc010f8da910ff 40-46,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "8a87277078d961540280fc960e38f7c010dd68c6",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

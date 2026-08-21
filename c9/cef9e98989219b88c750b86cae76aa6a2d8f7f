@@ -1,0 +1,18 @@
+docker-compose.yml
+  h_bc010f8da910ff 6,13-16,21-23,29-36
+pyproject.toml
+  h_bc010f8da910ff 12,15
+uv.lock
+  h_bc010f8da910ff 104-112,168,171,185,188,280-288,388-401
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "c9cef9e98989219b88c750b86cae76aa6a2d8f7f",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

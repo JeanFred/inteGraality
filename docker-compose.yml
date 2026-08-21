@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: conf/Dockerfile.web
+      network: host
     command: flask run --host=0.0.0.0 --debug
     environment:
       - FLASK_APP=integraality.app

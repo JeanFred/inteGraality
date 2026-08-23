@@ -1,0 +1,22 @@
+docker-compose.yml
+  h_bc010f8da910ff 6,13-16,21-23,29-36
+pyproject.toml
+  h_bc010f8da910ff 12,15
+uv.lock
+  h_bc010f8da910ff 104-112,168,171,185,188,280-288,388-401
+integraality/dashboard_db.py
+  h_bc010f8da910ff 1-53
+integraality/schema.sql
+  h_bc010f8da910ff 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.23",
+  "base_commit_sha": "740c9f707a73f7c035e46c0f9ab4a449ac909604",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

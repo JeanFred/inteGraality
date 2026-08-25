@@ -1,0 +1,22 @@
+.env
+  h_bc010f8da910ff 1
+.mise.toml
+  h_bc010f8da910ff 8-10,26-28
+dev.env
+  h_bc010f8da910ff 1-15
+docker-compose.yml
+  h_bc010f8da910ff 8-9,32-34
+integraality/schema.sql
+  h_bc010f8da910ff 2,4-5
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "61feeefedd5d4e728261051224f7f05fdd49db06",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

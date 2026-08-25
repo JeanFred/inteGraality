@@ -218,6 +218,34 @@ class PagesProcessor:
             except Exception as e:
                 logger.warning("Error caching %s: %s", page.title(), e)
 
+    def populate_registry(self):
+        """Record all dashboard pages in the registry without running queries."""
+        logger.info("Populating registry for pages on site %s", self.site.sitename)
+        count = 0
+        skipped = 0
+        with DashboardRegistry() as registry:
+            for page in self.get_all_pages():
+                try:
+                    try:
+                        self.make_stats_object_arguments_for_page(page)
+                    except NoStartTemplateException:
+                        logger.info("Skipping non-dashboard page %s", page.title())
+                        skipped += 1
+                        continue
+                    except Exception as e:
+                        logger.info(
+                            "Recording misconfigured dashboard %s: %s",
+                            page.title(),
+                            e,
+                        )
+                    registry.record(**self._dashboard_metadata(page))
+                    count += 1
+                except Exception as e:
+                    logger.warning("Failed to record dashboard %s: %s", page.title(), e)
+        logger.info(
+            "Registered %d dashboards (skipped %d non-dashboards)", count, skipped
+        )
+
     def process_all(self):
         self.summary = "Weekly update of property usage stats"
         logger.info("Processing pages on site %s", self.site.sitename)
@@ -300,6 +328,11 @@ def args_parser():
         action="store_true",
         help="only populate the cache, don't run queries or update pages",
     )
+    parser.add_argument(
+        "--populate-registry",
+        action="store_true",
+        help="record all dashboard pages in the registry (no SPARQL queries)",
+    )
     return parser.parse_args()
 
 
@@ -312,6 +345,8 @@ def main():
     processor = PagesProcessor(url=args.url)
     if args.warm_cache_only:
         processor.warm_cache()
+    elif args.populate_registry:
+        processor.populate_registry()
     elif args.page:
         processor.process_one_page(args.page)
     else:

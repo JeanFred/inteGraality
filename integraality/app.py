@@ -6,6 +6,7 @@ import traceback
 
 from flask import Flask, Response, jsonify, render_template, request
 
+from .dashboard_registry import DashboardRegistry
 from .pages_processor import (
     PagesProcessor,
     ProcessingException,
@@ -44,6 +45,17 @@ def healthcheck():
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+@app.route("/browse")
+def browse():
+    site_hostname = request.args.get("wiki")
+    with DashboardRegistry() as registry:
+        dashboards = registry.list_dashboards(site_hostname=site_hostname)
+        wikis = registry.list_wikis()
+    return render_template(
+        "browse.html", dashboards=dashboards, wikis=wikis, selected_wiki=site_hostname
+    )
 
 
 @app.route("/update")

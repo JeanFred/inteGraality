@@ -32,6 +32,53 @@ class BasicTests(AppTests):
         self.assertIn("This page does not exist.", response.get_data(as_text=True))
 
 
+class BrowseTests(AppTests):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+
+    def test_browse_with_dashboards(self):
+        self.mock_registry.list_dashboards.return_value = [
+            {
+                "page_url": "https://www.wikidata.org/wiki/My_Dashboard",
+                "page_title": "My Dashboard",
+                "site_hostname": "www.wikidata.org",
+                "site_name": "Wikidata",
+            },
+            {
+                "page_url": "https://www.wikidata.org/wiki/Other",
+                "page_title": "Other",
+                "site_hostname": "www.wikidata.org",
+                "site_name": "Wikidata",
+            },
+        ]
+        self.mock_registry.list_wikis.return_value = []
+        response = self.app.get("/browse")
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+        self.assertIn("My Dashboard", contents)
+        self.assertIn("Other", contents)
+        self.assertIn("2</strong> dashboards registered.", contents)
+
+    def test_browse_filtered_by_wiki(self):
+        self.mock_registry.list_dashboards.return_value = []
+        self.mock_registry.list_wikis.return_value = []
+        self.app.get("/browse?wiki=meta.wikimedia.org")
+        self.mock_registry.list_dashboards.assert_called_once_with(
+            site_hostname="meta.wikimedia.org"
+        )
+
+    def test_browse_empty(self):
+        self.mock_registry.list_dashboards.return_value = []
+        self.mock_registry.list_wikis.return_value = []
+        response = self.app.get("/browse")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("No dashboards registered yet.", response.get_data(as_text=True))
+
+
 class PagesProcessorTests(AppTests):
     def setUp(self):
         super().setUp()

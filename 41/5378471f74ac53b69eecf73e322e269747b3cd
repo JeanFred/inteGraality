@@ -1,0 +1,20 @@
+.mise.toml
+  h_bc010f8da910ff 8-10
+.env
+  h_bc010f8da910ff 1
+dev.env
+  h_bc010f8da910ff 1-15
+docker-compose.yml
+  h_bc010f8da910ff 8-9,32-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "415378471f74ac53b69eecf73e322e269747b3cd",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

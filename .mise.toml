@@ -5,6 +5,9 @@ pre-commit = "latest"
 [settings]
 python.uv_venv_auto = "source"
 
+[env]
+_.file = ".env"
+
 [tasks.test]
 description = "Run tests"
 run = "uv run pytest"

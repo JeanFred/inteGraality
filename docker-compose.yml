@@ -5,15 +5,13 @@ services:
       dockerfile: conf/Dockerfile.web
       network: host
     command: flask run --host=0.0.0.0 --debug
+    env_file:
+      - dev.env
     environment:
       - FLASK_APP=integraality.app
       - PYWIKIBOT_NO_USER_CONFIG=1
       - REDIS_HOST=redis
       - LOCAL_WRITE_PATH=docker_pages
-      - DB_HOST=db
-      - DB_USER=integraality
-      - DB_PASSWORD=password
-      - DB_NAME=s54041__integraality
     ports:
      - 5000:5000
     volumes:
@@ -31,8 +29,8 @@ services:
     image: mariadb:10.6
     environment:
       MARIADB_ROOT_PASSWORD: root_password
-      MARIADB_DATABASE: s54041__integraality
-      MARIADB_USER: integraality
-      MARIADB_PASSWORD: password
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USER}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
     ports:
      - 3306:3306

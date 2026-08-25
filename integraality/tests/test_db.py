@@ -4,6 +4,8 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
+from pymysql.cursors import DictCursor
+
 from ..db import _read_schema, ensure_schema, get_connection
 
 
@@ -66,7 +68,9 @@ class TestGetConnection(unittest.TestCase):
 
         with patch.dict("sys.modules", {"toolforge": mock_toolforge}):
             conn = get_connection()
-            mock_toolforge.toolsdb.assert_called_once_with("s54041__integraality")
+            mock_toolforge.toolsdb.assert_called_once_with(
+                "s54041__integraality", cursorclass=DictCursor
+            )
             self.assertEqual(conn, mock_conn)
 
     @patch("integraality.db.Path.home")
@@ -90,7 +94,10 @@ class TestGetConnection(unittest.TestCase):
         mock_conn = MagicMock()
         mock_pymysql.connect.return_value = mock_conn
 
-        with patch.dict("sys.modules", {"pymysql": mock_pymysql}):
+        with patch.dict(
+            "sys.modules",
+            {"pymysql": mock_pymysql, "pymysql.cursors": mock_pymysql.cursors},
+        ):
             conn = get_connection()
             mock_pymysql.connect.assert_called_once_with(
                 host="myhost",
@@ -99,6 +106,7 @@ class TestGetConnection(unittest.TestCase):
                 password="mypass",
                 database="mydb",
                 charset="utf8mb4",
+                cursorclass=DictCursor,
             )
             self.assertEqual(conn, mock_conn)
 
@@ -120,7 +128,10 @@ class TestGetConnection(unittest.TestCase):
             for key in list(os.environ):
                 if key.startswith("DB_"):
                     os.environ.pop(key, None)
-            with patch.dict("sys.modules", {"pymysql": mock_pymysql}):
+            with patch.dict(
+                "sys.modules",
+                {"pymysql": mock_pymysql, "pymysql.cursors": mock_pymysql.cursors},
+            ):
                 get_connection()
                 call_kwargs = mock_pymysql.connect.call_args[1]
                 self.assertEqual(call_kwargs["host"], "localhost")

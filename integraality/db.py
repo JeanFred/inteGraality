@@ -4,6 +4,8 @@ import logging
 import os
 from pathlib import Path
 
+from pymysql.cursors import DictCursor
+
 logger = logging.getLogger(__name__)
 
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
@@ -26,13 +28,15 @@ def get_connection():
 
     Locally, connects to a MariaDB instance configured via environment
     variables (typically from docker-compose).
+
+    Returns a connection with DictCursor so queries return dicts.
     """
     replica_cnf = Path.home() / "replica.my.cnf"
     if replica_cnf.exists():
         import toolforge
 
         db_name = os.environ.get("TOOLSDB_NAME", "s54041__integraality")
-        return toolforge.toolsdb(db_name)
+        return toolforge.toolsdb(db_name, cursorclass=DictCursor)
 
     import pymysql
 
@@ -43,6 +47,7 @@ def get_connection():
         password=os.environ.get("DB_PASSWORD", ""),
         database=os.environ.get("DB_NAME", "integraality"),
         charset="utf8mb4",
+        cursorclass=DictCursor,
     )
 
 

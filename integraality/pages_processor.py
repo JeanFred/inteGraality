@@ -13,6 +13,7 @@ from redis import StrictRedis
 
 from .cache import RedisCache
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
+from .dashboard_registry import DashboardRegistry
 from .error_category import ErrorCategory
 from .grouping import UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
@@ -152,6 +153,8 @@ class PagesProcessor:
         logger.info("Saving to wiki...")
         save_to_wiki_or_local(page, summary, new_text)
 
+        self._record_dashboard(page)
+
         if grouping_link_mode == "create":
             creator = GroupingPageCreator(
                 site=self.site,
@@ -179,6 +182,29 @@ class PagesProcessor:
                     if template.has(old):
                         template.get(old).name = new
         return str(code)
+
+    @staticmethod
+    def _dashboard_metadata(page):
+        """Derive the registry fields from a live pywikibot page."""
+        namespace = page.namespace()
+        return {
+            "site_hostname": page.site.hostname(),
+            "page_id": page.pageid,
+            "page_url": page.full_url(),
+            "page_title": page.title(),
+            "site_name": page.site.siteinfo["sitename"],
+            "namespace_canonical": namespace.canonical_name,
+            "namespace_localized": namespace.custom_name,
+            "root_page": page.title(with_ns=False).split("/", 1)[0],
+        }
+
+    def _record_dashboard(self, page):
+        """Record a dashboard in the registry, keyed on its stable page_id."""
+        try:
+            with DashboardRegistry() as registry:
+                registry.record(**self._dashboard_metadata(page))
+        except Exception as e:
+            logger.warning("Failed to record dashboard %s: %s", page.title(), e)
 
     def warm_cache(self):
         """Populate the Redis cache for all dashboard pages without running queries."""

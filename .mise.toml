@@ -23,3 +23,7 @@ run = "docker compose up -d --remove-orphans"
 [tasks.down]
 description = "Stop Flask app and Redis via Docker Compose"
 run = "docker compose down"
+
+[tasks.reset-db]
+description = "Drop and recreate the local database so the schema is reapplied on next request"
+run = "docker compose exec -T db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" -e \"DROP DATABASE IF EXISTS \\`$DB_NAME\\`; CREATE DATABASE \\`$DB_NAME\\`;\""

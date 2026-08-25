@@ -37,3 +37,5 @@ ini_options.markers = [
 [tool.sqlfluff]
 core.dialect = "mariadb"
 core.max_line_length = 120
+# RF04 (Keywords should not be used as identifiers) flags common valid names
+core.exclude_rules = "RF04"

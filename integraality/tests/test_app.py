@@ -39,23 +39,28 @@ class BrowseTests(AppTests):
         self.mock_registry_cls = patcher.start()
         self.addCleanup(patcher.stop)
         self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+        # Sensible defaults; individual tests override list_dashboards.
+        self.mock_registry.list_dashboards.return_value = []
+        self.mock_registry.list_wikis.return_value = []
+        self.mock_registry.list_namespaces.return_value = []
+        self.mock_registry.list_roots.return_value = []
+
+    def _dashboard(self, title, root):
+        return {
+            "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
+            "page_title": title,
+            "site_hostname": "www.wikidata.org",
+            "site_name": "Wikidata",
+            "namespace_canonical": "Project",
+            "namespace_localized": "Wikidata",
+            "root_page": root,
+        }
 
     def test_browse_with_dashboards(self):
         self.mock_registry.list_dashboards.return_value = [
-            {
-                "page_url": "https://www.wikidata.org/wiki/My_Dashboard",
-                "page_title": "My Dashboard",
-                "site_hostname": "www.wikidata.org",
-                "site_name": "Wikidata",
-            },
-            {
-                "page_url": "https://www.wikidata.org/wiki/Other",
-                "page_title": "Other",
-                "site_hostname": "www.wikidata.org",
-                "site_name": "Wikidata",
-            },
+            self._dashboard("My Dashboard", "My Dashboard"),
+            self._dashboard("Other", "Other"),
         ]
-        self.mock_registry.list_wikis.return_value = []
         response = self.app.get("/browse")
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
@@ -63,20 +68,72 @@ class BrowseTests(AppTests):
         self.assertIn("Other", contents)
         self.assertIn("2</strong> dashboards registered.", contents)
 
+    def test_browse_root_autocomplete_datalist(self):
+        self.mock_registry.list_roots.return_value = ["WikiProject Books", "Jean-Fred"]
+        contents = self.app.get("/browse").get_data(as_text=True)
+        self.assertIn('<datalist id="root-options">', contents)
+        self.assertIn('value="WikiProject Books"', contents)
+        self.assertIn('value="Jean-Fred"', contents)
+
     def test_browse_filtered_by_wiki(self):
-        self.mock_registry.list_dashboards.return_value = []
-        self.mock_registry.list_wikis.return_value = []
         self.app.get("/browse?wiki=meta.wikimedia.org")
         self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname="meta.wikimedia.org"
+            site_hostname="meta.wikimedia.org",
+            namespace_canonical=None,
+            root_page=None,
+            search=None,
         )
 
+    def test_browse_filtered_by_namespace(self):
+        self.app.get("/browse?namespace=User")
+        self.mock_registry.list_dashboards.assert_called_once_with(
+            site_hostname=None,
+            namespace_canonical="User",
+            root_page=None,
+            search=None,
+        )
+
+    def test_browse_filtered_by_root(self):
+        self.app.get("/browse?root=WikiProject+Music")
+        self.mock_registry.list_dashboards.assert_called_once_with(
+            site_hostname=None,
+            namespace_canonical=None,
+            root_page="WikiProject Music",
+            search=None,
+        )
+
+    def test_browse_filtered_by_search(self):
+        self.app.get("/browse?search=coverage")
+        self.mock_registry.list_dashboards.assert_called_once_with(
+            site_hostname=None,
+            namespace_canonical=None,
+            root_page=None,
+            search="coverage",
+        )
+
+    def test_browse_htmx_request_returns_full_page_with_browse_content(self):
+        """htmx uses hx-select to extract #browse-content client-side."""
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard("My Dashboard", "My Dashboard"),
+        ]
+        response = self.app.get("/browse", headers={"HX-Request": "true"})
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+        # Full page returned (htmx extracts #browse-content via hx-select).
+        self.assertIn("My Dashboard", contents)
+        self.assertIn('id="browse-content"', contents)
+
     def test_browse_empty(self):
-        self.mock_registry.list_dashboards.return_value = []
-        self.mock_registry.list_wikis.return_value = []
         response = self.app.get("/browse")
         self.assertEqual(response.status_code, 200)
         self.assertIn("No dashboards registered yet.", response.get_data(as_text=True))
+
+    def test_browse_filtered_empty_message(self):
+        response = self.app.get("/browse?search=nomatch")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn(
+            "No dashboards match these filters.", response.get_data(as_text=True)
+        )
 
 
 class PagesProcessorTests(AppTests):

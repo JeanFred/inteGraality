@@ -133,54 +133,128 @@ class DashboardRegistry:
             )
         self.conn.commit()
 
-    def list_dashboards(self, site_hostname=None):
-        """Return all registered dashboards, optionally filtered by wiki.
+    def list_dashboards(
+        self,
+        site_hostname=None,
+        namespace_canonical=None,
+        root_page=None,
+        search=None,
+    ):
+        """Return all registered dashboards, optionally filtered.
+
+        Filters (all optional, combined with AND):
+          - site_hostname: exact wiki hostname
+          - namespace_canonical: exact canonical namespace (pass "" to match the
+            Main namespace; pass None to not filter on namespace)
+          - root_page: exact root page (first title segment)
+          - search: case-insensitive substring match on the page title
 
         Joins wikis and aliases hostname/name back to site_hostname/site_name
         so callers and templates keep a stable shape.
         """
-        base = """\
+        sql = """\
             SELECT
                 d.page_url AS page_url,
                 d.page_title AS page_title,
+                d.namespace_canonical AS namespace_canonical,
+                d.namespace_localized AS namespace_localized,
+                d.root_page AS root_page,
                 w.hostname AS site_hostname,
                 w.name AS site_name
             FROM dashboards AS d
             JOIN wikis AS w ON w.id = d.wiki_id
         """
+        conditions = []
+        params = []
         if site_hostname:
-            sql = (
-                base
-                + """\
-                WHERE w.hostname = %s
-                ORDER BY d.page_title
-            """
-            )
-            with self.conn.cursor() as cur:
-                cur.execute(sql, (site_hostname,))
-                return cur.fetchall()
-        else:
-            sql = base + "ORDER BY d.page_title\n"
-            with self.conn.cursor() as cur:
-                cur.execute(sql)
-                return cur.fetchall()
+            conditions.append("w.hostname = %s")
+            params.append(site_hostname)
+        if namespace_canonical is not None:
+            conditions.append("d.namespace_canonical = %s")
+            params.append(namespace_canonical)
+        if root_page:
+            conditions.append("d.root_page = %s")
+            params.append(root_page)
+        if search:
+            # Escape SQL LIKE wildcards in user input so literal % and _ are
+            # matched as-is rather than treated as pattern characters.
+            escaped = search.replace("%", r"\%").replace("_", r"\_")
+            conditions.append(r"d.page_title LIKE %s ESCAPE '\'")
+            params.append(f"%{escaped}%")
+        if conditions:
+            sql += "WHERE " + " AND ".join(conditions) + "\n"
+        sql += "ORDER BY d.page_title\n"
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return cur.fetchall()
 
-    def list_wikis(self):
-        """Return known wikis with their dashboard counts.
-
-        LEFT JOIN so a wiki with zero dashboards can still appear. Returns the
-        stable site_hostname/site_name/count keys.
-        """
+    def list_wikis(self, namespace_canonical=None):
+        """Return known wikis with their dashboard counts, optionally scoped
+        to a namespace."""
         sql = """\
             SELECT
                 w.hostname AS site_hostname,
                 w.name AS site_name,
                 COUNT(d.id) AS count
             FROM wikis AS w
-            LEFT JOIN dashboards AS d ON d.wiki_id = w.id
+            JOIN dashboards AS d ON d.wiki_id = w.id
+        """
+        params = []
+        if namespace_canonical is not None:
+            sql += "WHERE d.namespace_canonical = %s\n"
+            params.append(namespace_canonical)
+        sql += """\
             GROUP BY w.id, w.hostname, w.name
             ORDER BY count DESC
         """
         with self.conn.cursor() as cur:
-            cur.execute(sql)
+            cur.execute(sql, tuple(params))
             return cur.fetchall()
+
+    def list_namespaces(self, site_hostname=None):
+        """Return distinct canonical namespaces with their dashboard counts,
+        optionally scoped to a wiki."""
+        sql = """\
+            SELECT
+                d.namespace_canonical,
+                COUNT(*) AS count
+            FROM dashboards AS d
+            JOIN wikis AS w ON w.id = d.wiki_id
+        """
+        params = []
+        if site_hostname:
+            sql += "WHERE w.hostname = %s\n"
+            params.append(site_hostname)
+        sql += """\
+            GROUP BY d.namespace_canonical
+            ORDER BY count DESC
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return cur.fetchall()
+
+    def list_roots(self, site_hostname=None, namespace_canonical=None):
+        """Return distinct root pages, optionally scoped by active filters.
+
+        When wiki or namespace filters are active, only suggests roots that
+        exist within that filtered set — so the autocomplete stays relevant.
+        """
+        sql = """\
+            SELECT DISTINCT d.root_page
+            FROM dashboards AS d
+            JOIN wikis AS w ON w.id = d.wiki_id
+        """
+        conditions = []
+        params = []
+        if site_hostname:
+            conditions.append("w.hostname = %s")
+            params.append(site_hostname)
+        if namespace_canonical is not None:
+            conditions.append("d.namespace_canonical = %s")
+            params.append(namespace_canonical)
+        if conditions:
+            sql += "WHERE " + " AND ".join(conditions) + "\n"
+        sql += "ORDER BY d.root_page\n"
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return [row["root_page"] for row in cur.fetchall()]

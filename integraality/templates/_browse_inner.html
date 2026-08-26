@@ -1,0 +1,68 @@
+{#
+  Progressive enhancement: this is a plain GET form that works without
+  JavaScript (submitting reloads /browse with query params). htmx enhances it
+  so changes swap the entire #browse-content div (form + results) live —
+  keeping filter counts, datalist, and results all in sync.
+#}
+<form method="get"
+      action="{{ url_for('browse') }}"
+      hx-get="{{ url_for('browse') }}"
+      hx-target="#browse-content"
+      hx-trigger="change from:select, change from:input[name=root], keyup delay:250ms from:input[name=search], submit"
+      hx-push-url="true"
+      hx-select="#browse-content"
+      class="form-inline"
+      style="margin-bottom: 1em;">
+
+    <div class="form-group">
+        <label for="search" class="sr-only">Search dashboards</label>
+        <input type="search" class="form-control input-sm browse-filter" id="search" name="search"
+               placeholder="Search title…" value="{{ search or '' }}"
+               aria-label="Search dashboards by title"
+               hx-preserve="true">
+    </div>
+
+    {% if wikis %}
+    <div class="form-group">
+        <label for="wiki">Wiki</label>
+        <select class="form-control input-sm browse-filter" id="wiki" name="wiki"
+                aria-label="Filter by wiki">
+            <option value="">All</option>
+            {% for w in wikis %}
+            <option value="{{ w.site_hostname }}"
+                    {{ 'selected' if selected_wiki == w.site_hostname }}>{{ w.site_name }} ({{ w.count }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    {% if namespaces %}
+    <div class="form-group">
+        <label for="namespace">Namespace</label>
+        <select class="form-control input-sm browse-filter-ns" id="namespace" name="namespace"
+                aria-label="Filter by namespace">
+            <option value="">All</option>
+            {% for ns in namespaces %}
+            {% set ns_value = ns.namespace_canonical if ns.namespace_canonical else main_namespace_token %}
+            {% set ns_label = ns.namespace_canonical if ns.namespace_canonical else 'Main' %}
+            <option value="{{ ns_value }}"
+                    {{ 'selected' if selected_namespace == ns_value }}>{{ ns_label }} ({{ ns.count }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
+    <div class="form-group">
+        <label for="root">Root</label>
+        <input type="text" class="form-control input-sm browse-filter" id="root" name="root"
+               list="root-options" placeholder="Any" value="{{ selected_root or '' }}"
+               aria-label="Filter by root page">
+    </div>
+
+    <button type="submit" class="btn btn-default btn-sm">Filter</button>
+    {% if is_filtered %}
+    <a href="{{ url_for('browse') }}" class="btn btn-default btn-sm">Clear</a>
+    {% endif %}
+</form>
+
+{% include "_browse_results.html" %}

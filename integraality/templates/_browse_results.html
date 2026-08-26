@@ -1,0 +1,31 @@
+<datalist id="root-options">
+    {% for r in roots %}
+    <option value="{{ r }}"></option>
+    {% endfor %}
+</datalist>
+{% if dashboards %}
+<p><strong>{{ dashboards | length }}</strong> dashboards registered.</p>
+<table class="table table-striped table-condensed" id="dashboard-table">
+    <thead>
+        <tr>
+            <th>Dashboard</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for d in dashboards %}
+        <tr>
+            <td>
+                <a href="{{ d.page_url }}">{{ d.page_title }}</a>
+                {% if d.site_hostname != 'www.wikidata.org' %}
+                    <small class="text-muted">({{ d.site_name }})</small>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% elif is_filtered %}
+<p class="text-muted">No dashboards match these filters.</p>
+{% else %}
+<p class="text-muted">No dashboards registered yet.</p>
+{% endif %}

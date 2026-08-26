@@ -249,6 +249,151 @@ class TestDashboardRegistry(unittest.TestCase):
         # No namespace filter passed → no WHERE clause.
         self.assertNotIn("WHERE", sql)
 
+    def test_list_namespaces(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_namespaces()
+
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertIn("COUNT(*)", sql)
+        self.assertIn("GROUP BY d.namespace_canonical", sql)
+        self.assertIn("ORDER BY count DESC", sql)
+        # No wiki filter passed → no WHERE clause.
+        self.assertNotIn("WHERE", sql)
+
+    def test_list_dashboards_filtered_by_namespace(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(namespace_canonical="User")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertEqual(params, ("User",))
+
+    def test_list_dashboards_filtered_by_main_namespace(self):
+        """Passing "" filters to the Main namespace (empty canonical name).
+
+        This pins the `is not None` contract: a regression to a truthiness
+        check (`if namespace_canonical:`) would silently drop this filter.
+        """
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(namespace_canonical="")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertEqual(params, ("",))
+
+    def test_list_dashboards_no_namespace_filter_when_none(self):
+        """namespace_canonical=None applies no namespace filter."""
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(namespace_canonical=None)
+
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertNotIn("d.namespace_canonical = %s", sql)
+
+    def test_list_wikis_filtered_by_namespace(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_wikis(namespace_canonical="User")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertEqual(params, ("User",))
+
+    def test_list_wikis_filtered_by_main_namespace(self):
+        """list_wikis also honours "" as the Main namespace (is not None)."""
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_wikis(namespace_canonical="")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertEqual(params, ("",))
+
+    def test_list_namespaces_filtered_by_wiki(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_namespaces(site_hostname="meta.wikimedia.org")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("w.hostname = %s", sql)
+        self.assertEqual(params, ("meta.wikimedia.org",))
+
+    def test_list_roots_filtered(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_roots(
+            site_hostname="www.wikidata.org", namespace_canonical="Project"
+        )
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("w.hostname = %s", sql)
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertEqual(params, ("www.wikidata.org", "Project"))
+
+    def test_list_dashboards_filtered_by_root(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(root_page="WikiProject Music")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.root_page = %s", sql)
+        self.assertEqual(params, ("WikiProject Music",))
+
+    def test_list_dashboards_search_uses_like(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(search="coverage")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn(r"d.page_title LIKE %s ESCAPE '\'", sql)
+        self.assertEqual(params, ("%coverage%",))
+
+    def test_list_dashboards_search_escapes_wildcards(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(search="100%_done")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn(r"ESCAPE '\'", sql)
+        self.assertEqual(params, (r"%100\%\_done%",))
+
+    def test_list_dashboards_combined_filters(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(
+            site_hostname="www.wikidata.org",
+            namespace_canonical="Project",
+            root_page="WikiProject Music",
+            search="album",
+        )
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        # Assert each condition is present and the params are exact — durable
+        # checks, unlike counting " AND " occurrences.
+        self.assertIn("w.hostname = %s", sql)
+        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("d.root_page = %s", sql)
+        self.assertIn("d.page_title LIKE %s", sql)
+        self.assertEqual(
+            params,
+            ("www.wikidata.org", "Project", "WikiProject Music", "%album%"),
+        )
+
+    def test_list_roots(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"root_page": "Jean-Fred"},
+            {"root_page": "WikiProject Music"},
+        ]
+
+        results = self.registry.list_roots()
+
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertIn("SELECT DISTINCT d.root_page", sql)
+        self.assertEqual(results, ["Jean-Fred", "WikiProject Music"])
+
     def test_close(self):
         self.registry.close()
         self.mock_conn.close.assert_called_once()

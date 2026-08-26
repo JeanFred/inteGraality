@@ -22,6 +22,10 @@ from .sse import run_with_sse
 
 app = Flask(__name__)
 
+# Form token for the Main namespace, whose canonical name is the empty string
+# which would otherwise collide with the "All / no filter" empty value.
+MAIN_NAMESPACE_TOKEN = "(Main)"
+
 
 def get_qlever_ui_url(page_url):
     """Return the QLever UI URL for the given wiki page URL."""
@@ -50,11 +54,48 @@ def index():
 @app.route("/browse")
 def browse():
     site_hostname = request.args.get("wiki")
+    namespace = request.args.get("namespace")
+    root_page = request.args.get("root")
+    search = request.args.get("search")
+    # The Main namespace has an empty canonical name, which collides with the
+    # "no filter" sentinel. The form uses the token "(Main)" for it; translate
+    # it back to the real empty-string canonical for the query.
+    namespace_filter = namespace
+    if namespace == MAIN_NAMESPACE_TOKEN:
+        namespace_filter = ""
+    # A namespace filter is active when the param is present (even if it
+    # resolves to the empty-string Main namespace); "All" omits the param.
+    namespace_active = namespace_filter is not None and (
+        namespace_filter != "" or namespace == MAIN_NAMESPACE_TOKEN
+    )
+    is_filtered = any([site_hostname, namespace_active, root_page, search])
     with DashboardRegistry() as registry:
-        dashboards = registry.list_dashboards(site_hostname=site_hostname)
-        wikis = registry.list_wikis()
+        dashboards = registry.list_dashboards(
+            site_hostname=site_hostname,
+            namespace_canonical=namespace_filter if namespace_active else None,
+            root_page=root_page,
+            search=search,
+        )
+        wikis = registry.list_wikis(
+            namespace_canonical=namespace_filter if namespace_active else None,
+        )
+        namespaces = registry.list_namespaces(site_hostname=site_hostname)
+        roots = registry.list_roots(
+            site_hostname=site_hostname,
+            namespace_canonical=namespace_filter if namespace_active else None,
+        )
     return render_template(
-        "browse.html", dashboards=dashboards, wikis=wikis, selected_wiki=site_hostname
+        "browse.html",
+        dashboards=dashboards,
+        is_filtered=is_filtered,
+        wikis=wikis,
+        namespaces=namespaces,
+        roots=roots,
+        selected_wiki=site_hostname,
+        selected_namespace=namespace,
+        selected_root=root_page,
+        search=search,
+        main_namespace_token=MAIN_NAMESPACE_TOKEN,
     )
 
 

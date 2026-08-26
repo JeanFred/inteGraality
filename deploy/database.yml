@@ -1,0 +1,28 @@
+# Create the tool's ToolsDB (MariaDB) database.
+
+- name: Alias database cnf file as local facts file
+  ansible.builtin.file:
+    src: "{{ database_config_file }}"
+    path: "{{ base_path }}/database.fact"
+    state: link
+  tags:
+    - database
+
+- name: Collect database info from the local facts file
+  ansible.builtin.setup:
+    fact_path: "{{ base_path }}"
+    gather_subset: "!all"
+  tags:
+    - database
+
+- name: Create ToolsDB database # noqa: command-instead-of-module
+  ansible.builtin.command: >
+    mariadb
+     --defaults-file={{ database_config_file }}
+     -h {{ toolsdb_host }}
+     -e "CREATE DATABASE IF NOT EXISTS
+     `{{ ansible_local['database']['client']['user'] }}__{{ tool_name }}_p`
+     CHARACTER SET {{ db_charset }} COLLATE {{ db_collation }};"
+  changed_when: false
+  tags:
+    - database

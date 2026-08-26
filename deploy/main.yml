@@ -13,6 +13,12 @@
     source_path: "{{ toolforge_path }}/src"
     jobs_file_path: "{{ base_path }}/jobs.yml"
 
+    # ToolsDB connection details.
+    database_config_file: "{{ base_path }}/replica.my.cnf"
+    toolsdb_host: tools.db.svc.wikimedia.cloud
+    db_charset: utf8mb4
+    db_collation: utf8mb4_unicode_ci
+
     runtime_image: python3.11
 
     jobs:
@@ -62,6 +68,11 @@
       changed_when: "'created' in jobs_load_result.stdout or 'updated' in jobs_load_result.stdout"
 
   tasks:
+
+    - name: Create ToolsDB database
+      ansible.builtin.import_tasks: database.yml
+      tags: database
+
     - name: Ensure directories exist
       ansible.builtin.file:
         path: "{{ item }}"

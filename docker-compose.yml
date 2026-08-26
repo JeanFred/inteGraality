@@ -27,6 +27,9 @@ services:
 
   db:
     image: mariadb:10.6
+    command:
+      - --character-set-server=${DB_CHARSET}
+      - --collation-server=${DB_COLLATION}
     environment:
       MARIADB_ROOT_PASSWORD: root_password
       MARIADB_DATABASE: ${DB_NAME}

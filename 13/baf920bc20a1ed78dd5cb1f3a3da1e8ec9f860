@@ -1,0 +1,20 @@
+deploy/main.yml
+  h_bc010f8da910ff 16-25,89-104,105,106-114
+deploy/requirements.yml
+  h_bc010f8da910ff 1-4,5-7
+dev.env
+  h_bc010f8da910ff 16-25
+docker-compose.yml
+  h_bc010f8da910ff 30-37
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "13baf920bc20a1ed78dd5cb1f3a3da1e8ec9f860",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

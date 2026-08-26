@@ -1,0 +1,16 @@
+integraality/pages_processor.py
+  h_bc010f8da910ff 189,197-199,223,230-232
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 6,152-191
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.24",
+  "base_commit_sha": "2a0b0f98069bef7c30b4f181a9cc6463d4e8f752",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

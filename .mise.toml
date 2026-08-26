@@ -27,3 +27,7 @@ run = "docker compose down"
 [tasks.reset-db]
 description = "Drop and recreate the local database so the schema is reapplied on next request"
 run = "docker compose exec -T db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" -e \"DROP DATABASE IF EXISTS \\`$DB_NAME\\`; CREATE DATABASE \\`$DB_NAME\\`;\""
+
+[tasks.connect-db]
+description = "Open an interactive MariaDB shell on the local database"
+run = "docker compose exec -it db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" \"${DB_NAME}\""

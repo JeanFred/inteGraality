@@ -80,9 +80,9 @@ class PagesProcessor:
             " ", "_"
         )
 
-    def get_all_pages(self):
+    def get_all_pages(self, limit=None):
         template = pywikibot.Page(self.site, self.template_name, ns=10)
-        return template.getReferences(only_template_inclusion=True)
+        return template.getReferences(only_template_inclusion=True, total=limit)
 
     def make_stats_object_arguments_for_page(self, page):
         all_templates_with_params = page.templatesWithParams()
@@ -206,10 +206,10 @@ class PagesProcessor:
         except Exception as e:
             logger.warning("Failed to record dashboard %s: %s", page.title(), e)
 
-    def warm_cache(self):
+    def warm_cache(self, limit=None):
         """Populate the Redis cache for all dashboard pages without running queries."""
         logger.info("Warming cache for pages on site %s", self.site.sitename)
-        for page in self.get_all_pages():
+        for page in self.get_all_pages(limit=limit):
             try:
                 self.make_stats_object_arguments_for_page(page)
                 logger.info("Cached config for %s", page.title())
@@ -218,13 +218,13 @@ class PagesProcessor:
             except Exception as e:
                 logger.warning("Error caching %s: %s", page.title(), e)
 
-    def populate_registry(self):
+    def populate_registry(self, limit=None):
         """Record all dashboard pages in the registry without running queries."""
         logger.info("Populating registry for pages on site %s", self.site.sitename)
         count = 0
         skipped = 0
         with DashboardRegistry() as registry:
-            for page in self.get_all_pages():
+            for page in self.get_all_pages(limit=limit):
                 try:
                     try:
                         self.make_stats_object_arguments_for_page(page)
@@ -246,10 +246,10 @@ class PagesProcessor:
             "Registered %d dashboards (skipped %d non-dashboards)", count, skipped
         )
 
-    def process_all(self):
+    def process_all(self, limit=None):
         self.summary = "Weekly update of property usage stats"
         logger.info("Processing pages on site %s", self.site.sitename)
-        for page in self.get_all_pages():
+        for page in self.get_all_pages(limit=limit):
             logger.info("Processing page %s", page.title())
             try:
                 self.process_page(page)
@@ -333,6 +333,12 @@ def args_parser():
         action="store_true",
         help="record all dashboard pages in the registry (no SPARQL queries)",
     )
+    parser.add_argument(
+        "--limit",
+        type=int,
+        default=None,
+        help="process at most N dashboards (applies to all batch modes)",
+    )
     return parser.parse_args()
 
 
@@ -344,13 +350,13 @@ def main():
     args = args_parser()
     processor = PagesProcessor(url=args.url)
     if args.warm_cache_only:
-        processor.warm_cache()
+        processor.warm_cache(limit=args.limit)
     elif args.populate_registry:
-        processor.populate_registry()
+        processor.populate_registry(limit=args.limit)
     elif args.page:
         processor.process_one_page(args.page)
     else:
-        processor.process_all()
+        processor.process_all(limit=args.limit)
 
 
 if __name__ == "__main__":

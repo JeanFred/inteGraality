@@ -127,11 +127,17 @@ class TestMain(unittest.TestCase):
     def test_main_url_argument(self):
         url = "Foo"
         self.mock_args.return_value = argparse.Namespace(
-            url=url, warm_cache_only=False, populate_registry=False, page=None
+            url=url,
+            warm_cache_only=False,
+            populate_registry=False,
+            page=None,
+            limit=None,
         )
         main()
         self.mock_pages_processor.assert_called_once_with(url)
-        self.mock_pages_processor.return_value.process_all.assert_called_once_with()
+        self.mock_pages_processor.return_value.process_all.assert_called_once_with(
+            limit=None
+        )
 
     def test_main_page_argument(self):
         url = "Foo"
@@ -140,6 +146,7 @@ class TestMain(unittest.TestCase):
             warm_cache_only=False,
             populate_registry=False,
             page="Bar/Dashboard",
+            limit=None,
         )
         main()
         self.mock_pages_processor.assert_called_once_with(url)
@@ -150,11 +157,45 @@ class TestMain(unittest.TestCase):
     def test_main_populate_registry_argument(self):
         url = "Foo"
         self.mock_args.return_value = argparse.Namespace(
-            url=url, warm_cache_only=False, populate_registry=True, page=None
+            url=url,
+            warm_cache_only=False,
+            populate_registry=True,
+            page=None,
+            limit=None,
         )
         main()
         self.mock_pages_processor.assert_called_once_with(url)
-        self.mock_pages_processor.return_value.populate_registry.assert_called_once_with()
+        self.mock_pages_processor.return_value.populate_registry.assert_called_once_with(
+            limit=None
+        )
+
+    def test_main_limit_argument(self):
+        url = "Foo"
+        self.mock_args.return_value = argparse.Namespace(
+            url=url,
+            warm_cache_only=False,
+            populate_registry=False,
+            page=None,
+            limit=5,
+        )
+        main()
+        self.mock_pages_processor.return_value.process_all.assert_called_once_with(
+            limit=5
+        )
+
+    def test_main_limit_argument_with_populate_registry(self):
+        url = "Foo"
+        self.mock_args.return_value = argparse.Namespace(
+            url=url,
+            warm_cache_only=False,
+            populate_registry=True,
+            page=None,
+            limit=5,
+        )
+        main()
+        self.mock_pages_processor.return_value.populate_registry.assert_called_once_with(
+            limit=5
+        )
 
 
 class TestPopulateRegistryDerivesBrowseDimensions(ProcessortTest):

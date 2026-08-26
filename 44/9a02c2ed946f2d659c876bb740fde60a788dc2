@@ -7,7 +7,7 @@ integraality/tests/test_property_statistics.py
 pyproject.toml
   h_bc010f8da910ff 28-33
 integraality/tests/test_sparql_functional.py
-  h_bc010f8da910ff 1-52,54-125,126,127,129,130,131,132-188
+  h_bc010f8da910ff 1-52,53,54-125,126,127,128,129,130,131,132-188
   h_bc010f8da910ff 53,128
 ---
 {

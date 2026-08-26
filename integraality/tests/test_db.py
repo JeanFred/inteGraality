@@ -69,7 +69,7 @@ class TestGetConnection(unittest.TestCase):
         with patch.dict("sys.modules", {"toolforge": mock_toolforge}):
             conn = get_connection()
             mock_toolforge.toolsdb.assert_called_once_with(
-                "s54041__integraality", cursorclass=DictCursor
+                "s54041__integraality_p", cursorclass=DictCursor
             )
             self.assertEqual(conn, mock_conn)
 

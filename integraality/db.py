@@ -35,7 +35,7 @@ def get_connection():
     if replica_cnf.exists():
         import toolforge
 
-        db_name = os.environ.get("TOOLSDB_NAME", "s54041__integraality")
+        db_name = os.environ.get("DB_NAME", "s54041__integraality_p")
         return toolforge.toolsdb(db_name, cursorclass=DictCursor)
 
     import pymysql

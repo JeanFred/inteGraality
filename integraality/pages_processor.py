@@ -199,12 +199,17 @@ class PagesProcessor:
         }
 
     def _record_dashboard(self, page):
-        """Record a dashboard in the registry, keyed on its stable page_id."""
+        """Record a dashboard in the registry, keyed on its stable page_id.
+
+        Returns True if recorded, False if the write failed.
+        """
         try:
             with DashboardRegistry() as registry:
                 registry.record(**self._dashboard_metadata(page))
+            return True
         except Exception as e:
             logger.warning("Failed to record dashboard %s: %s", page.title(), e)
+            return False
 
     def warm_cache(self, limit=None):
         """Populate the Redis cache for all dashboard pages without running queries."""
@@ -223,25 +228,17 @@ class PagesProcessor:
         logger.info("Populating registry for pages on site %s", self.site.sitename)
         count = 0
         skipped = 0
-        with DashboardRegistry() as registry:
-            for page in self.get_all_pages(limit=limit):
-                try:
-                    try:
-                        self.make_stats_object_arguments_for_page(page)
-                    except NoStartTemplateException:
-                        logger.info("Skipping non-dashboard page %s", page.title())
-                        skipped += 1
-                        continue
-                    except Exception as e:
-                        logger.info(
-                            "Recording misconfigured dashboard %s: %s",
-                            page.title(),
-                            e,
-                        )
-                    registry.record(**self._dashboard_metadata(page))
-                    count += 1
-                except Exception as e:
-                    logger.warning("Failed to record dashboard %s: %s", page.title(), e)
+        for page in self.get_all_pages(limit=limit):
+            try:
+                self.make_stats_object_arguments_for_page(page)
+            except NoStartTemplateException:
+                logger.info("Skipping non-dashboard page %s", page.title())
+                skipped += 1
+                continue
+            except Exception as e:
+                logger.info("Recording misconfigured dashboard %s: %s", page.title(), e)
+            if self._record_dashboard(page):
+                count += 1
         logger.info(
             "Registered %d dashboards (skipped %d non-dashboards)", count, skipped
         )

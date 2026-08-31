@@ -296,3 +296,47 @@ class TestPopulateRegistryDerivesBrowseDimensions(ProcessortTest):
             self.processor.populate_registry()
 
         registry.record.assert_called_once()
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_uses_short_lived_connection_per_dashboard(self, mock_registry_cls):
+        """Each recorded dashboard gets its own registry (connection), so a
+        long crawl never outlives ToolsDB's idle timeout."""
+        page_a = self._dashboard_page()
+        page_b = self._dashboard_page()
+
+        with (
+            patch.object(
+                self.processor, "get_all_pages", return_value=[page_a, page_b]
+            ),
+            patch.object(self.processor, "make_stats_object_arguments_for_page"),
+        ):
+            self.processor.populate_registry()
+
+        # One registry instantiation (= one connection) per recorded page.
+        self.assertEqual(mock_registry_cls.call_count, 2)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_dashboard_returns_true_on_success(self, mock_registry_cls):
+        self.assertTrue(self.processor._record_dashboard(self._dashboard_page()))
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_dashboard_returns_false_on_failure(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        registry.record.side_effect = Exception("db gone")
+        self.assertFalse(self.processor._record_dashboard(self._dashboard_page()))
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_populate_registry_survives_a_failed_record(self, mock_registry_cls):
+        """A failed record is swallowed; the crawl continues over all pages."""
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        # First page records fine, second fails.
+        registry.record.side_effect = [None, Exception("db gone")]
+        pages = [self._dashboard_page(), self._dashboard_page()]
+
+        with (
+            patch.object(self.processor, "get_all_pages", return_value=pages),
+            patch.object(self.processor, "make_stats_object_arguments_for_page"),
+        ):
+            self.processor.populate_registry()  # must not raise
+
+        self.assertEqual(registry.record.call_count, 2)

@@ -133,6 +133,40 @@ class DashboardRegistry:
             )
         self.conn.commit()
 
+    def list_dashboards_missing_page_metadata(self, site_hostname):
+        """Return dashboards still missing page-creation metadata.
+
+        Rows are "missing" when ``page_created_at IS NULL``.
+
+        Returns (id, page_title, site_hostname) rows.
+        """
+        sql = """\
+            SELECT
+                d.id AS id,
+                d.page_title AS page_title,
+                w.hostname AS site_hostname
+            FROM dashboards AS d
+            JOIN wikis AS w ON w.id = d.wiki_id
+        """
+        conditions = ["d.page_created_at IS NULL", "w.hostname = %s"]
+        params = [site_hostname]
+        sql += "WHERE " + " AND ".join(conditions) + "\n"
+        sql += "ORDER BY d.id\n"
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return cur.fetchall()
+
+    def update_page_metadata(self, dashboard_id, page_creator, page_created_at):
+        """Fill in the immutable page-creation columns for one dashboard."""
+        sql = """\
+            UPDATE dashboards
+            SET page_creator = %s, page_created_at = %s
+            WHERE id = %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (page_creator, page_created_at, dashboard_id))
+        self.conn.commit()
+
     def list_dashboards(
         self,
         site_hostname=None,

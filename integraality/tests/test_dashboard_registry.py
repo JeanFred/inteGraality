@@ -394,6 +394,52 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("SELECT DISTINCT d.root_page", sql)
         self.assertEqual(results, ["Jean-Fred", "WikiProject Music"])
 
+    def test_list_dashboards_missing_page_metadata(self):
+        """Filters on page_created_at IS NULL (the reliably-present field),
+        not page_creator (which can be suppressed), and always scopes to the
+        given wiki."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 1, "page_title": "Foo", "site_hostname": "www.wikidata.org"},
+        ]
+
+        results = self.registry.list_dashboards_missing_page_metadata(
+            site_hostname="www.wikidata.org"
+        )
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.page_created_at IS NULL", sql)
+        self.assertNotIn("page_creator IS NULL", sql)
+        self.assertIn("w.hostname = %s", sql)
+        self.assertEqual(params, ("www.wikidata.org",))
+        self.assertEqual(len(results), 1)
+
+    def test_list_dashboards_missing_page_metadata_filtered_by_wiki(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards_missing_page_metadata(
+            site_hostname="meta.wikimedia.org"
+        )
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("d.page_created_at IS NULL", sql)
+        self.assertIn("w.hostname = %s", sql)
+        self.assertEqual(params, ("meta.wikimedia.org",))
+
+    def test_update_page_metadata(self):
+        self.registry.update_page_metadata(
+            dashboard_id=42,
+            page_creator="Alice",
+            page_created_at="2020-01-02T03:04:05Z",
+        )
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("UPDATE dashboards", sql)
+        self.assertIn("page_creator = %s", sql)
+        self.assertIn("page_created_at = %s", sql)
+        self.assertIn("WHERE id = %s", sql)
+        self.assertEqual(params, ("Alice", "2020-01-02T03:04:05Z", 42))
+        self.mock_conn.commit.assert_called_once()
+
     def test_close(self):
         self.registry.close()
         self.mock_conn.close.assert_called_once()

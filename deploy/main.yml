@@ -30,6 +30,14 @@
         mem: 1G
         filelog-stdout: logs/weekly-update-wikidata-out.log
         filelog-stderr: logs/weekly-update-wikidata-err.log
+      - name: monthly-backfill-page-metadata-wikidata
+        command: "sh -c 'cd {{ source_path }} && {{ virtualenv_path }}/bin/python -m integraality.page_metadata_backfiller'"
+        image: "{{ runtime_image }}"
+        schedule: "@monthly"
+        emails: all
+        mem: 1G
+        filelog-stdout: logs/monthly-backfill-page-metadata-wikidata-out.log
+        filelog-stderr: logs/monthly-backfill-page-metadata-wikidata-err.log
 
     service_template:
       backend: kubernetes

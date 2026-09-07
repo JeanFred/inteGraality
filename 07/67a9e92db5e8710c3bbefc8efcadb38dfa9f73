@@ -1,0 +1,23 @@
+integraality/tests/test_page_metadata_backfiller.py
+  h_bc010f8da910ff 1-172
+deploy/main.yml
+  h_bc010f8da910ff 33-40
+integraality/page_metadata_backfiller.py
+  h_bc010f8da910ff 1-47,49-109
+  h_bc010f8da910ff 48
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 397-442
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 136-176
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "0767a9e92db5e8710c3bbefc8efcadb38dfa9f73",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -14,10 +14,20 @@ SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 def _read_schema():
     """Read the SQL schema file and split into individual statements.
 
-    Splits naively on semicolons. Safe for DDL-only schema files (CREATE TABLE,
-    CREATE INDEX) but would break on statements containing literal semicolons.
+    Splits naively on semicolons (safe for this DDL-only file — no statement
+    contains a literal semicolon). Full-line ``--`` comments are stripped so
+    each statement starts with its DDL keyword; inline trailing comments on a
+    column line are harmless and kept.
     """
-    return [stmt.strip() for stmt in SCHEMA_PATH.read_text().split(";") if stmt.strip()]
+    statements = []
+    for raw in SCHEMA_PATH.read_text().split(";"):
+        lines = [
+            line for line in raw.splitlines() if not line.lstrip().startswith("--")
+        ]
+        stmt = "\n".join(lines).strip()
+        if stmt:
+            statements.append(stmt)
+    return statements
 
 
 def get_connection():

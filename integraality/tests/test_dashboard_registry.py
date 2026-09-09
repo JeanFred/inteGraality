@@ -18,8 +18,10 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry = DashboardRegistry(conn=self.mock_conn)
 
     def test_record(self):
-        # Empty wikis table preload → the wiki is a genuine miss → INSERT.
+        # Empty wikis preload → wiki miss → INSERT (id 7). Page miss (fetchone
+        # None) → page INSERT (id 20). Dashboard miss (fetchone None) → INSERT.
         self.mock_cursor.fetchall.return_value = []
+        self.mock_cursor.fetchone.return_value = None
         self.mock_cursor.lastrowid = 7
 
         self.registry.record(
@@ -33,21 +35,23 @@ class TestDashboardRegistry(unittest.TestCase):
             root_page="Test",
         )
 
-        # Three statements: wiki preload SELECT, wiki INSERT, dashboard upsert.
-        self.assertEqual(self.mock_cursor.execute.call_count, 3)
-        wiki_preload = self.mock_cursor.execute.call_args_list[0][0]
-        wiki_insert = self.mock_cursor.execute.call_args_list[1][0]
-        dash_upsert = self.mock_cursor.execute.call_args_list[2][0]
-
-        self.assertIn("SELECT id, hostname, name FROM wikis", wiki_preload[0])
-
-        self.assertIn("INSERT INTO wikis", wiki_insert[0])
-        self.assertEqual(wiki_insert[1], ("www.wikidata.org", "Wikidata"))
-
-        self.assertIn("INSERT INTO dashboards", dash_upsert[0])
-        self.assertIn("ON DUPLICATE KEY UPDATE", dash_upsert[0])
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        # wiki preload, wiki INSERT, page SELECT, page INSERT, dashboard SELECT,
+        # dashboard INSERT.
+        self.assertIn("SELECT id, hostname, name FROM wikis", executed[0])
+        self.assertTrue(any("INSERT INTO wikis" in s for s in executed))
+        self.assertTrue(any("SELECT id FROM pages" in s for s in executed))
+        self.assertTrue(any("INSERT INTO pages" in s for s in executed))
+        self.assertTrue(any("SELECT id FROM dashboards" in s for s in executed))
+        self.assertTrue(any("INSERT INTO dashboards (page_pk)" in s for s in executed))
+        # The page INSERT carries the wiki id and all page metadata.
+        page_insert = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "INSERT INTO pages" in c[0][0]
+        )
         self.assertEqual(
-            dash_upsert[1],
+            page_insert[1],
             (
                 7,
                 12345,
@@ -60,10 +64,14 @@ class TestDashboardRegistry(unittest.TestCase):
         )
         self.mock_conn.commit.assert_called_once()
 
-    def test_record_upserts_display_columns(self):
-        """The dashboard upsert refreshes mutable display columns, not the key."""
-        self.mock_cursor.fetchall.return_value = []
-        self.mock_cursor.lastrowid = 7
+    def test_record_existing_page_updates_not_inserts(self):
+        """An existing page is UPDATEd in place (no id burn), and an existing
+        dashboard is not re-inserted."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        # page SELECT finds id 20; dashboards SELECT finds an existing row.
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
 
         self.registry.record(
             site_hostname="www.wikidata.org",
@@ -75,21 +83,19 @@ class TestDashboardRegistry(unittest.TestCase):
             namespace_localized="Wikidata",
             root_page="New Title",
         )
-        dash_upsert_sql = self.mock_cursor.execute.call_args_list[-1][0][0]
-        update_clause = dash_upsert_sql.split("ON DUPLICATE KEY UPDATE", 1)[1]
-        self.assertIn("page_url = VALUES(page_url)", update_clause)
-        self.assertIn("page_title = VALUES(page_title)", update_clause)
-        # Derived browse dimensions are refreshed too (mutable on rename/move).
-        self.assertIn(
-            "namespace_canonical = VALUES(namespace_canonical)", update_clause
+
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        # Existing page → UPDATE, no page INSERT. Existing dashboard → no INSERT.
+        self.assertTrue(any("UPDATE pages" in s for s in executed))
+        self.assertEqual(sum("INSERT INTO pages" in s for s in executed), 0)
+        self.assertEqual(sum("INSERT INTO dashboards" in s for s in executed), 0)
+        # The UPDATE refreshes mutable display columns for the found page id.
+        page_update = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "UPDATE pages" in c[0][0]
         )
-        self.assertIn(
-            "namespace_localized = VALUES(namespace_localized)", update_clause
-        )
-        self.assertIn("root_page = VALUES(root_page)", update_clause)
-        # Key columns are not refreshed.
-        self.assertNotIn("wiki_id =", update_clause)
-        self.assertNotIn("page_id =", update_clause)
+        self.assertEqual(page_update[1][-1], 20)  # WHERE id = 20
 
     def _record(self, hostname, page_id, site_name):
         self.registry.record(
@@ -105,31 +111,27 @@ class TestDashboardRegistry(unittest.TestCase):
 
     def test_wiki_preloaded_once_then_cached(self):
         """The wikis table is preloaded once; later records touch no wiki SQL."""
-        # Preload finds the wiki already present → resolves from memory, no write.
         self.mock_cursor.fetchall.return_value = [
             {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
         ]
+        # Every page/dashboard existence check misses → INSERT paths.
+        self.mock_cursor.fetchone.return_value = None
 
         self._record("www.wikidata.org", 1, "Wikidata")
         self._record("www.wikidata.org", 2, "Wikidata")
         self._record("www.wikidata.org", 3, "Wikidata")
 
         executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
-        # Exactly one preload SELECT, and no wiki writes at all (existing wiki).
         self.assertEqual(
             sum("SELECT id, hostname, name FROM wikis" in sql for sql in executed), 1
         )
         self.assertEqual(sum("INSERT INTO wikis" in sql for sql in executed), 0)
         self.assertEqual(sum("UPDATE wikis" in sql for sql in executed), 0)
-        # Each record still does its own dashboards upsert, using the cached id.
-        dash_calls = [
-            c[0]
-            for c in self.mock_cursor.execute.call_args_list
-            if "INSERT INTO dashboards" in c[0][0]
-        ]
-        self.assertEqual(len(dash_calls), 3)
-        self.assertTrue(all(call[1][0] == 7 for call in dash_calls))
-        # Each record() commits its own transaction.
+        # Each record inserts a page and a dashboard row.
+        self.assertEqual(sum("INSERT INTO pages" in sql for sql in executed), 3)
+        self.assertEqual(
+            sum("INSERT INTO dashboards (page_pk)" in sql for sql in executed), 3
+        )
         self.assertEqual(self.mock_conn.commit.call_count, 3)
 
     def test_new_wiki_inserted_once_on_miss(self):
@@ -256,7 +258,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql = self.mock_cursor.execute.call_args[0][0]
         self.assertIn("COUNT(*)", sql)
-        self.assertIn("GROUP BY d.namespace_canonical", sql)
+        self.assertIn("GROUP BY p.namespace_canonical", sql)
         self.assertIn("ORDER BY count DESC", sql)
         # No wiki filter passed → no WHERE clause.
         self.assertNotIn("WHERE", sql)
@@ -267,7 +269,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(namespace_canonical="User")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
         self.assertEqual(params, ("User",))
 
     def test_list_dashboards_filtered_by_main_namespace(self):
@@ -281,7 +283,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(namespace_canonical="")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
         self.assertEqual(params, ("",))
 
     def test_list_dashboards_no_namespace_filter_when_none(self):
@@ -291,7 +293,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(namespace_canonical=None)
 
         sql = self.mock_cursor.execute.call_args[0][0]
-        self.assertNotIn("d.namespace_canonical = %s", sql)
+        self.assertNotIn("p.namespace_canonical = %s", sql)
 
     def test_list_wikis_filtered_by_namespace(self):
         self.mock_cursor.fetchall.return_value = []
@@ -299,7 +301,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_wikis(namespace_canonical="User")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
         self.assertEqual(params, ("User",))
 
     def test_list_wikis_filtered_by_main_namespace(self):
@@ -309,7 +311,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_wikis(namespace_canonical="")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
         self.assertEqual(params, ("",))
 
     def test_list_namespaces_filtered_by_wiki(self):
@@ -330,7 +332,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("w.hostname = %s", sql)
-        self.assertIn("d.namespace_canonical = %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
         self.assertEqual(params, ("www.wikidata.org", "Project"))
 
     def test_list_dashboards_filtered_by_root(self):
@@ -339,7 +341,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(root_page="WikiProject Music")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.root_page = %s", sql)
+        self.assertIn("p.root_page = %s", sql)
         self.assertEqual(params, ("WikiProject Music",))
 
     def test_list_dashboards_search_uses_like(self):
@@ -348,7 +350,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(search="coverage")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn(r"d.page_title LIKE %s ESCAPE '\'", sql)
+        self.assertIn(r"p.page_title LIKE %s ESCAPE '\'", sql)
         self.assertEqual(params, ("%coverage%",))
 
     def test_list_dashboards_search_escapes_wildcards(self):
@@ -371,12 +373,10 @@ class TestDashboardRegistry(unittest.TestCase):
         )
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        # Assert each condition is present and the params are exact — durable
-        # checks, unlike counting " AND " occurrences.
         self.assertIn("w.hostname = %s", sql)
-        self.assertIn("d.namespace_canonical = %s", sql)
-        self.assertIn("d.root_page = %s", sql)
-        self.assertIn("d.page_title LIKE %s", sql)
+        self.assertIn("p.namespace_canonical = %s", sql)
+        self.assertIn("p.root_page = %s", sql)
+        self.assertIn("p.page_title LIKE %s", sql)
         self.assertEqual(
             params,
             ("www.wikidata.org", "Project", "WikiProject Music", "%album%"),
@@ -391,13 +391,13 @@ class TestDashboardRegistry(unittest.TestCase):
         results = self.registry.list_roots()
 
         sql = self.mock_cursor.execute.call_args[0][0]
-        self.assertIn("SELECT DISTINCT d.root_page", sql)
+        self.assertIn("SELECT DISTINCT p.root_page", sql)
         self.assertEqual(results, ["Jean-Fred", "WikiProject Music"])
 
     def test_list_dashboards_missing_page_metadata(self):
         """Filters on page_created_at IS NULL (the reliably-present field),
         not page_creator (which can be suppressed), and always scopes to the
-        given wiki."""
+        given wiki. Returns pages.id as id."""
         self.mock_cursor.fetchall.return_value = [
             {"id": 1, "page_title": "Foo", "site_hostname": "www.wikidata.org"},
         ]
@@ -407,7 +407,7 @@ class TestDashboardRegistry(unittest.TestCase):
         )
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.page_created_at IS NULL", sql)
+        self.assertIn("p.page_created_at IS NULL", sql)
         self.assertNotIn("page_creator IS NULL", sql)
         self.assertIn("w.hostname = %s", sql)
         self.assertEqual(params, ("www.wikidata.org",))
@@ -421,19 +421,19 @@ class TestDashboardRegistry(unittest.TestCase):
         )
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("d.page_created_at IS NULL", sql)
+        self.assertIn("p.page_created_at IS NULL", sql)
         self.assertIn("w.hostname = %s", sql)
         self.assertEqual(params, ("meta.wikimedia.org",))
 
     def test_update_page_metadata(self):
         self.registry.update_page_metadata(
-            dashboard_id=42,
+            page_pk=42,
             page_creator="Alice",
             page_created_at="2020-01-02T03:04:05Z",
         )
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn("UPDATE dashboards", sql)
+        self.assertIn("UPDATE pages", sql)
         self.assertIn("page_creator = %s", sql)
         self.assertIn("page_created_at = %s", sql)
         self.assertIn("WHERE id = %s", sql)

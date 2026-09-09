@@ -36,6 +36,44 @@ class TestReadSchema(unittest.TestCase):
             )
 
 
+class TestPagesTable(unittest.TestCase):
+    """pages: the shared wiki-page dimension."""
+
+    def _stmt(self):
+        stmts = [s for s in _read_schema() if "EXISTS pages (" in s]
+        self.assertEqual(len(stmts), 1)
+        return stmts[0]
+
+    def test_is_a_single_create_table(self):
+        stmt = self._stmt()
+        self.assertTrue(stmt.upper().startswith("CREATE TABLE"))
+
+    def test_identity_is_wiki_scoped_page(self):
+        stmt = self._stmt()
+        self.assertIn("uq_wiki_page", stmt)
+        self.assertIn("REFERENCES wikis (id)", stmt)
+
+    def test_owns_page_metadata(self):
+        stmt = self._stmt()
+        for col in ("page_url", "page_title", "namespace_canonical", "root_page"):
+            self.assertIn(col, stmt)
+
+
+class TestDashboardsTable(unittest.TestCase):
+    """dashboards: thin specialization of pages."""
+
+    def _stmt(self):
+        stmts = [s for s in _read_schema() if "EXISTS dashboards (" in s]
+        self.assertEqual(len(stmts), 1)
+        return stmts[0]
+
+    def test_is_thin_page_specialization(self):
+        stmt = self._stmt()
+        self.assertIn("page_pk", stmt)
+        self.assertIn("REFERENCES pages (id)", stmt)
+        self.assertIn("uq_page", stmt)
+
+
 class TestEnsureSchema(unittest.TestCase):
     def test_executes_all_statements(self):
         mock_conn = MagicMock()

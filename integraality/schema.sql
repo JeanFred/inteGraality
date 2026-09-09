@@ -6,10 +6,11 @@ CREATE TABLE IF NOT EXISTS wikis (
     UNIQUE KEY uq_hostname (hostname)
 );
 
-CREATE TABLE IF NOT EXISTS dashboards (
+-- One row per wiki page (shared dimension for dashboards etc.).
+CREATE TABLE IF NOT EXISTS pages (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
     wiki_id INT UNSIGNED NOT NULL,
-    page_id INT UNSIGNED NOT NULL,
+    page_id INT UNSIGNED NOT NULL,          -- MediaWiki page_id, stable across moves
     page_url VARCHAR(512) NOT NULL,
     page_title VARCHAR(255) NOT NULL,
     namespace_canonical VARCHAR(64) NOT NULL,
@@ -17,9 +18,14 @@ CREATE TABLE IF NOT EXISTS dashboards (
     root_page VARCHAR(255) NOT NULL,
     page_creator VARCHAR(255) DEFAULT NULL,
     page_created_at DATETIME DEFAULT NULL,
-    -- uq_wiki_page leads with wiki_id, so it also serves as the index the
-    -- FK requires and as the index for wiki_id lookups/filters. Keep wiki_id
-    -- first, else reordering would force a separate index on wiki_id for the FK.
     UNIQUE KEY uq_wiki_page (wiki_id, page_id),
     FOREIGN KEY (wiki_id) REFERENCES wikis (id)
+);
+
+-- A page that is a dashboard (thin specialization of pages).
+CREATE TABLE IF NOT EXISTS dashboards (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    page_pk INT UNSIGNED NOT NULL,
+    UNIQUE KEY uq_page (page_pk),
+    FOREIGN KEY (page_pk) REFERENCES pages (id)
 );

@@ -36,6 +36,41 @@ class TestReadSchema(unittest.TestCase):
             )
 
 
+class TestDashboardRunsTable(unittest.TestCase):
+    """The dashboard_runs table must parse cleanly under the naive splitter.
+
+    _read_schema splits on ';', so the DDL must contain no inline semicolons
+    and must round-trip as exactly one CREATE statement. These assertions guard
+    that the table is present and well-formed without pinning every column
+    (mirroring the generic, structural style of the other schema tests).
+    """
+
+    def _dashboard_runs_stmt(self):
+        stmts = [s for s in _read_schema() if "EXISTS dashboard_runs (" in s]
+        self.assertEqual(
+            len(stmts), 1, "dashboard_runs should be exactly one statement"
+        )
+        return stmts[0]
+
+    def test_is_a_single_create_table(self):
+        stmt = self._dashboard_runs_stmt()
+        self.assertTrue(stmt.upper().startswith("CREATE TABLE"))
+        self.assertIn("IF NOT EXISTS", stmt.upper())
+
+    def test_foreign_keys_into_spine(self):
+        stmt = self._dashboard_runs_stmt()
+        self.assertIn("REFERENCES dashboards (id)", stmt)
+        self.assertIn("REFERENCES wikis (id)", stmt)
+
+    def test_revision_id_is_unique_for_backfill_idempotency(self):
+        stmt = self._dashboard_runs_stmt()
+        self.assertIn("uq_revision", stmt)
+
+    def test_status_is_a_closed_enum(self):
+        stmt = self._dashboard_runs_stmt()
+        self.assertIn("ENUM('OK', 'FAIL')", stmt)
+
+
 class TestPagesTable(unittest.TestCase):
     """pages: the shared wiki-page dimension."""
 

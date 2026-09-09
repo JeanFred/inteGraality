@@ -29,3 +29,29 @@ CREATE TABLE IF NOT EXISTS dashboards (
     UNIQUE KEY uq_page (page_pk),
     FOREIGN KEY (page_pk) REFERENCES pages (id)
 );
+
+CREATE TABLE IF NOT EXISTS dashboard_runs (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    dashboard_id INT UNSIGNED NOT NULL,
+    wiki_id INT UNSIGNED NOT NULL,          -- denormalized for by-wiki queries
+    finished_at DATETIME NOT NULL,
+    duration_ms INT UNSIGNED DEFAULT NULL,
+    status ENUM('OK', 'FAIL') NOT NULL,
+    trigger_source ENUM('CRON', 'WEB') DEFAULT NULL,
+    sparql_engine VARCHAR(32) DEFAULT NULL,
+    error_category VARCHAR(32) DEFAULT NULL,
+    error_detail TEXT DEFAULT NULL,
+    -- Oldid the run produced (NULL if none), also the backfill idempotency key.
+    revision_id INT UNSIGNED DEFAULT NULL,
+    -- Output shape (not contents): population x rows x columns.
+    entity_total INT UNSIGNED DEFAULT NULL,
+    grouping_count INT UNSIGNED DEFAULT NULL,
+    column_count INT UNSIGNED DEFAULT NULL,
+    UNIQUE KEY uq_revision (revision_id),
+    KEY idx_dashboard_finished (dashboard_id, finished_at),
+    KEY idx_wiki_finished (wiki_id, finished_at),
+    -- A failure must carry a category (an OK run may lack a revision_id).
+    CONSTRAINT chk_fail_has_category CHECK (status <> 'FAIL' OR error_category IS NOT NULL),
+    FOREIGN KEY (dashboard_id) REFERENCES dashboards (id),
+    FOREIGN KEY (wiki_id) REFERENCES wikis (id)
+);

@@ -52,7 +52,7 @@ class RunWithSSETest(unittest.TestCase):
         ]
         error = [e for e in parsed if e["status"] == "error"][0]
         self.assertEqual(error["error_type"], "RuntimeError")
-        self.assertEqual(error["error_category"], "bug")
+        self.assertEqual(error["error_category"], "error")
         self.assertIn("traceback", error)
 
     def test_error_query_exception(self):

@@ -384,6 +384,15 @@ SELECT (COUNT(*) as ?count) WHERE {{
             property_threshold=self.property_threshold,
         )
 
+    @staticmethod
+    def get_entity_total(report_groupings):
+        """Return the totals-row count (the denominator population) from the
+        report groupings, or None when the dashboard has no totals row."""
+        return next(
+            (g.count for g in report_groupings if isinstance(g, TotalsGrouping)),
+            None,
+        )
+
 
 def main(*args):
     """

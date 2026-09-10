@@ -13,7 +13,7 @@ from redis import StrictRedis
 
 from .cache import RedisCache
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
-from .dashboard_registry import DashboardRegistry
+from .dashboard_registry import DashboardRegistry, RunResult
 from .error_category import ErrorCategory
 from .grouping import UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
@@ -135,39 +135,104 @@ class PagesProcessor:
             raise ConfigException(e) from e
         return stats, grouping_link_mode
 
-    def process_page(self, page):
+    def process_page(self, page, trigger_source="CRON"):
         start_time = perf_counter()
-        logger.debug("Invalidating cache key for %s", page.title())
-        self.cache.invalidate(self.make_cache_key(page.title()))
-        logger.info("Parsing page configuration...")
-        stats, grouping_link_mode = self.make_stats_object_for_page(page)
-        groupings = stats.retrieve_data()
-        report_groupings = stats.prepare_report_groupings(groupings)
-        formatter = stats.build_formatter()
-        output = formatter.format_report(report_groupings)
-        elapsed_time = perf_counter() - start_time
-        new_text = self.replace_in_page(output, page.get())
-        new_text = self.migrate_template_params(new_text)
-        summary = (
-            self.summary
-            + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
-        )
-        logger.info("Saving to wiki...")
-        save_to_wiki_or_local(page, summary, new_text)
-
-        self._record_dashboard(page)
-
-        if grouping_link_mode == "create":
-            creator = GroupingPageCreator(
-                site=self.site,
-                selector_sparql=stats.selector_sparql,
-                grouping_predicate=stats.grouping_configuration.get_predicate(),
-                columns=stats.columns,
-                page_title=page.title(),
+        try:
+            logger.debug("Invalidating cache key for %s", page.title())
+            self.cache.invalidate(self.make_cache_key(page.title()))
+            logger.info("Parsing page configuration...")
+            stats, grouping_link_mode = self.make_stats_object_for_page(page)
+            groupings = stats.retrieve_data()
+            report_groupings = stats.prepare_report_groupings(groupings)
+            formatter = stats.build_formatter()
+            output = formatter.format_report(report_groupings)
+            elapsed_time = perf_counter() - start_time
+            new_text = self.replace_in_page(output, page.get())
+            new_text = self.migrate_template_params(new_text)
+            summary = (
+                self.summary
+                + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
             )
-            creator.create_pages(groupings.values())
+            logger.info("Saving to wiki...")
+            revision_id = save_to_wiki_or_local(page, summary, new_text)
 
-        return elapsed_time
+            self._record_run_ok(
+                page,
+                trigger_source=trigger_source,
+                elapsed_time=elapsed_time,
+                stats=stats,
+                groupings=groupings,
+                report_groupings=report_groupings,
+                revision_id=revision_id,
+            )
+
+            if grouping_link_mode == "create":
+                creator = GroupingPageCreator(
+                    site=self.site,
+                    selector_sparql=stats.selector_sparql,
+                    grouping_predicate=stats.grouping_configuration.get_predicate(),
+                    columns=stats.columns,
+                    page_title=page.title(),
+                )
+                creator.create_pages(groupings.values())
+
+            return elapsed_time
+        except (NoStartTemplateException, NoEndTemplateException):
+            # The page is not a dashboard (no template). Do not record a run or
+            # touch the registry -- otherwise any URL passed to /update would
+            # create dashboard/registry rows for an arbitrary page.
+            raise
+        except Exception as e:
+            # A real dashboard failed (query/config/etc.): record the FAIL run,
+            # then re-raise so the outer per-page handler still logs and skips.
+            self._record_run_fail(
+                page,
+                trigger_source=trigger_source,
+                elapsed_time=perf_counter() - start_time,
+                exc=e,
+            )
+            raise
+
+    def _record_run_ok(
+        self,
+        page,
+        trigger_source,
+        elapsed_time,
+        stats,
+        groupings,
+        report_groupings,
+        revision_id,
+    ):
+        """Record a successful run. Best-effort: never break the crawl."""
+        run = RunResult.ok(
+            revision_id=revision_id,
+            trigger_source=trigger_source,
+            duration_ms=int(elapsed_time * 1000),
+            sparql_engine=stats.get_sparql_engine_name(),
+            entity_total=stats.get_entity_total(report_groupings),
+            grouping_count=len(groupings),
+            column_count=len(stats.columns),
+        )
+        try:
+            with DashboardRegistry() as registry:
+                registry.record_run(self._dashboard_metadata(page), run)
+        except Exception as e:
+            logger.warning("Failed to record run for %s: %s", page.title(), e)
+
+    def _record_run_fail(self, page, trigger_source, elapsed_time, exc):
+        """Record a failed run. Best-effort: never mask the original error."""
+        category = getattr(exc, "error_category", None)
+        run = RunResult.fail(
+            error_category=category.value if category else ErrorCategory.ERROR.value,
+            trigger_source=trigger_source,
+            duration_ms=int(elapsed_time * 1000),
+            error_detail=str(exc)[:2000],
+        )
+        try:
+            with DashboardRegistry() as registry:
+                registry.record_run(self._dashboard_metadata(page), run)
+        except Exception as e:
+            logger.warning("Failed to record failed run for %s: %s", page.title(), e)
 
     def replace_in_page(self, output, page_text):
         regex_text = f"({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})"
@@ -283,7 +348,7 @@ class PagesProcessor:
         page = pywikibot.Page(self.site, page_title)
         logger.info("Processing page %s", page.title())
         try:
-            return self.process_page(page)
+            return self.process_page(page, trigger_source="WEB")
         except (
             pywikibot.exceptions.TimeoutError,
             pywikibot.exceptions.ServerError,

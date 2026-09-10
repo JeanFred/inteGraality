@@ -340,3 +340,159 @@ class TestPopulateRegistryDerivesBrowseDimensions(ProcessortTest):
             self.processor.populate_registry()  # must not raise
 
         self.assertEqual(registry.record.call_count, 2)
+
+
+class TestRunRecording(ProcessortTest):
+    """process_page's run-recording helpers (dashboard_runs)."""
+
+    def _dashboard_page(self):
+        namespace = MagicMock()
+        namespace.canonical_name = "Project"
+        namespace.custom_name = "Wikidata"
+        page = MagicMock()
+        page.site.hostname.return_value = "www.wikidata.org"
+        page.pageid = 42
+        page.full_url.return_value = "https://www.wikidata.org/wiki/Wikidata:Stats"
+        page.title.side_effect = lambda with_ns=True: (
+            "Wikidata:Stats" if with_ns else "Stats"
+        )
+        page.site.siteinfo = {"sitename": "Wikidata"}
+        page.namespace.return_value = namespace
+        return page
+
+    def _stats(self):
+        stats = MagicMock()
+        stats.get_sparql_engine_name.return_value = "Wikidata Query Service"
+        stats.columns = {"P1": object(), "P2": object()}
+        stats.get_entity_total.return_value = 39163
+        return stats
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_ok_sends_expected_fields(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+
+        self.processor._record_run_ok(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=1.5,
+            stats=self._stats(),
+            groupings={"Q1": object(), "Q2": object(), "Q3": object()},
+            report_groupings=[],
+            revision_id=555,
+        )
+
+        registry.record_run.assert_called_once()
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.status, "OK")
+        # Derived/computed fields (the wiring's actual logic):
+        self.assertEqual(run.duration_ms, 1500)  # 1.5s -> ms
+        self.assertEqual(run.grouping_count, 3)  # len(groupings)
+        self.assertEqual(run.column_count, 2)  # len(stats.columns)
+        self.assertEqual(run.entity_total, 39163)  # via stats.get_entity_total
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_fail_derives_category(self, mock_registry_cls):
+        from ..sparql_utils import QueryException
+
+        registry = mock_registry_cls.return_value.__enter__.return_value
+
+        self.processor._record_run_fail(
+            self._dashboard_page(),
+            trigger_source="WEB",
+            elapsed_time=0.2,
+            exc=QueryException("timeout", query="SELECT ?x"),
+        )
+
+        registry.record_run.assert_called_once()
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.status, "FAIL")
+        self.assertEqual(run.error_category, "query")
+        self.assertIn("timeout", run.error_detail)
+        self.assertIsNone(run.revision_id)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_fail_unknown_exception_is_bug(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+
+        self.processor._record_run_fail(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=0.1,
+            exc=ValueError("boom"),
+        )
+
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.error_category, "error")
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_ok_is_best_effort(self, mock_registry_cls):
+        """A recording failure must not propagate (never break the crawl)."""
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        registry.record_run.side_effect = Exception("db gone")
+
+        # Should not raise.
+        self.processor._record_run_ok(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=1.0,
+            stats=self._stats(),
+            groupings={},
+            report_groupings=[],
+            revision_id=1,
+        )
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_ok_records_with_null_revision(self, mock_registry_cls):
+        """A local write (LOCAL_WRITE_PATH) or null edit produces no oldid. The
+        run still records, with revision_id=None -- OK runs are not required to
+        carry a revision."""
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        self.processor._record_run_ok(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=1.0,
+            stats=self._stats(),
+            groupings={},
+            report_groupings=[],
+            revision_id=None,
+        )
+        registry.record_run.assert_called_once()
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.status, "OK")
+        self.assertIsNone(run.revision_id)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_process_page_records_fail_and_reraises(self, mock_registry_cls):
+        """A real dashboard failure inside process_page is recorded as a FAIL
+        run and re-raised (guards the try/except wiring, not just the helper)."""
+        from ..sparql_utils import QueryException
+
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        exc = QueryException("boom", query="SELECT ?x")
+        with patch.object(
+            self.processor, "make_stats_object_for_page", side_effect=exc
+        ):
+            with self.assertRaises(QueryException):
+                self.processor.process_page(page, trigger_source="WEB")
+
+        registry.record_run.assert_called_once()
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.status, "FAIL")
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_process_page_does_not_record_non_dashboard(self, mock_registry_cls):
+        """A page that is not a dashboard (no start template) must not record a
+        run or touch the registry -- otherwise arbitrary /update URLs would
+        create registry rows for any page."""
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        with patch.object(
+            self.processor,
+            "make_stats_object_for_page",
+            side_effect=NoStartTemplateException(),
+        ):
+            with self.assertRaises(NoStartTemplateException):
+                self.processor.process_page(page, trigger_source="WEB")
+
+        registry.record_run.assert_not_called()

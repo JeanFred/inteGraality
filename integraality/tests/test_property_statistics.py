@@ -2924,6 +2924,19 @@ class BuildFormatterTest(PropertyStatisticsTest):
         self.assertEqual(formatter.property_threshold, self.stats.property_threshold)
 
 
+class GetEntityTotalTest(PropertyStatisticsTest):
+    def test_reads_totals_grouping_count(self):
+        report = [
+            ItemGrouping(title="Q1", count=5),
+            TotalsGrouping(count=39163),
+        ]
+        self.assertEqual(self.stats.get_entity_total(report), 39163)
+
+    def test_none_without_totals_row(self):
+        report = [ItemGrouping(title="Q1", count=5)]
+        self.assertIsNone(self.stats.get_entity_total(report))
+
+
 class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
     def test_retrieve_prepare_and_format(self):
         self.mock_sparql_query.select.return_value = [

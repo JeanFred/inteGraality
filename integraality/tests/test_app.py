@@ -258,7 +258,7 @@ class UpdateTests(PagesProcessorTests):
         error_event = events[-1]
         self.assertEqual(error_event["status"], "error")
         self.assertEqual(error_event["error_type"], "RuntimeError")
-        self.assertEqual(error_event["error_category"], "bug")
+        self.assertEqual(error_event["error_category"], "error")
         self.assertIn("unexpected", error_event["message"])
         self.assertIn("traceback", error_event)
 

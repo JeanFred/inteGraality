@@ -1,10 +1,67 @@
 """Registry for dashboard metadata — write during bot runs, read for /browse."""
 
+import datetime
 import logging
+from dataclasses import dataclass
 
 from .db import ensure_schema, get_connection
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class RunResult:
+    """One completed run, as recorded in dashboard_runs.
+
+    Write-once value holder; build via ``RunResult.ok(...)`` / ``.fail(...)``,
+    whose required args enforce the schema invariants at the call site.
+    """
+
+    status: str | None = None
+    trigger_source: str | None = None
+    duration_ms: int | None = None
+    sparql_engine: str | None = None
+    error_category: str | None = None
+    error_detail: str | None = None
+    revision_id: int | None = None
+    entity_total: int | None = None
+    grouping_count: int | None = None
+    column_count: int | None = None
+
+    @classmethod
+    def ok(
+        cls,
+        *,
+        revision_id,
+        trigger_source,
+        duration_ms,
+        sparql_engine,
+        entity_total,
+        grouping_count,
+        column_count,
+    ):
+        """A successful run (``revision_id`` may be None: no oldid produced)."""
+        return cls(
+            status="OK",
+            revision_id=revision_id,
+            trigger_source=trigger_source,
+            duration_ms=duration_ms,
+            sparql_engine=sparql_engine,
+            entity_total=entity_total,
+            grouping_count=grouping_count,
+            column_count=column_count,
+        )
+
+    @classmethod
+    def fail(cls, *, error_category, trigger_source, duration_ms, error_detail=None):
+        """A failed run. ``error_category`` is required (FAIL => category)."""
+        return cls(
+            status="FAIL",
+            error_category=error_category,
+            trigger_source=trigger_source,
+            duration_ms=duration_ms,
+            error_detail=error_detail,
+        )
 
 
 class DashboardRegistry:
@@ -177,6 +234,59 @@ class DashboardRegistry:
                 return row["id"]
             cur.execute("INSERT INTO dashboards (page_pk) VALUES (%s)", (page_pk,))
             return cur.lastrowid
+
+    @staticmethod
+    def _utc_now_str():
+        """Naive-UTC DATETIME string, matching the schema's DATETIME columns."""
+        return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
+
+    def record_run(self, page_metadata, run: "RunResult"):
+        """Append one completed run for a dashboard.
+
+        Resolves wiki/page/dashboard from ``page_metadata`` (get-or-create, so
+        an unregistered page still records), then INSERTs the ``run``.
+        finished_at is stamped here in naive UTC. Append-only.
+        """
+        wiki_id = self._get_or_create_wiki(
+            page_metadata["site_hostname"], page_metadata["site_name"]
+        )
+        page_pk = self._get_or_create_page(
+            wiki_id,
+            page_metadata["page_id"],
+            page_metadata["page_url"],
+            page_metadata["page_title"],
+            page_metadata["namespace_canonical"],
+            page_metadata["namespace_localized"],
+            page_metadata["root_page"],
+        )
+        dashboard_id = self._get_or_create_dashboard(page_pk)
+        sql = """\
+            INSERT INTO dashboard_runs
+                (dashboard_id, wiki_id, finished_at, duration_ms, status,
+                 trigger_source, sparql_engine, error_category, error_detail,
+                 revision_id, entity_total, grouping_count, column_count)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                sql,
+                (
+                    dashboard_id,
+                    wiki_id,
+                    self._utc_now_str(),
+                    run.duration_ms,
+                    run.status,
+                    run.trigger_source,
+                    run.sparql_engine,
+                    run.error_category,
+                    run.error_detail,
+                    run.revision_id,
+                    run.entity_total,
+                    run.grouping_count,
+                    run.column_count,
+                ),
+            )
+        self.conn.commit()
 
     def list_dashboards_missing_page_metadata(self, site_hostname):
         """Return dashboard pages missing page_created_at (id = pages.id)."""

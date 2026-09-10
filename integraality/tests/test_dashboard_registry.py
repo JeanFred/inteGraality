@@ -4,7 +4,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from ..dashboard_registry import DashboardRegistry
+from ..dashboard_registry import DashboardRegistry, RunResult
 
 
 class TestDashboardRegistry(unittest.TestCase):
@@ -440,6 +440,81 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(params, ("Alice", "2020-01-02T03:04:05Z", 42))
         self.mock_conn.commit.assert_called_once()
 
+    def _page_metadata(self):
+        return {
+            "site_hostname": "www.wikidata.org",
+            "site_name": "Wikidata",
+            "page_id": 12345,
+            "page_url": "https://www.wikidata.org/wiki/Wikidata:Test",
+            "page_title": "Wikidata:Test",
+            "namespace_canonical": "Project",
+            "namespace_localized": "Wikidata",
+            "root_page": "Test",
+        }
+
+    def _run_insert_by_column(self):
+        """Map the dashboard_runs INSERT's columns to their bound values, so
+        assertions read by name and survive column reordering."""
+        sql, params = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "INSERT INTO dashboard_runs" in c[0][0]
+        )
+        cols = sql.split("(", 1)[1].split(")", 1)[0]
+        names = [c.strip() for c in cols.replace("\n", " ").split(",")]
+        return dict(zip(names, params))
+
+    def test_record_run_inserts_a_run_row(self):
+        """record_run resolves wiki/page/dashboard then appends one run row."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        # page SELECT -> id 20, dashboard SELECT -> id 3.
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
+
+        self.registry.record_run(
+            self._page_metadata(),
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=72000,
+                sparql_engine="Wikidata Query Service",
+                revision_id=555,
+                entity_total=39163,
+                grouping_count=40,
+                column_count=7,
+            ),
+        )
+
+        row = self._run_insert_by_column()
+        # Resolved ids, plus the OK-specific fields.
+        self.assertEqual(row["dashboard_id"], 3)
+        self.assertEqual(row["wiki_id"], 7)
+        self.assertEqual(row["status"], "OK")
+        self.assertEqual(row["revision_id"], 555)
+        self.assertEqual(row["entity_total"], 39163)
+        self.mock_conn.commit.assert_called_once()
+
+    def test_record_run_fail_carries_category_not_revision(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
+
+        self.registry.record_run(
+            self._page_metadata(),
+            RunResult.fail(
+                trigger_source="WEB",
+                duration_ms=200,
+                error_category="query",
+                error_detail="SPARQL timeout",
+            ),
+        )
+
+        row = self._run_insert_by_column()
+        self.assertEqual(row["status"], "FAIL")
+        self.assertEqual(row["error_category"], "query")
+        self.assertIsNone(row["revision_id"])  # NULL on failure
+
     def test_close(self):
         self.registry.close()
         self.mock_conn.close.assert_called_once()
@@ -474,3 +549,37 @@ class TestDashboardRegistryLazyConnection(unittest.TestCase):
         _ = registry.conn
         mock_get_conn.assert_called_once()
         mock_ensure.assert_called_once_with(mock_conn)
+
+
+class RunResultTest(unittest.TestCase):
+    """fail() requires an error_category, as an executable contract for the one
+    DB invariant (chk_fail_has_category) — omitting it is a TypeError where you
+    write it, not a DB CHECK IntegrityError at INSERT time. (ok() has no such
+    requirement: an OK run may have a NULL revision_id.)"""
+
+    def test_failed_run_must_carry_an_error_category(self):
+        # FAIL => error_category: the factory makes it a required argument.
+        with self.assertRaises(TypeError):
+            RunResult.fail(trigger_source="WEB", duration_ms=1)
+
+    def test_ok_sets_status_and_fields(self):
+        run = RunResult.ok(
+            revision_id=555,
+            trigger_source="CRON",
+            duration_ms=1500,
+            sparql_engine="WDQS",
+            entity_total=39163,
+            grouping_count=40,
+            column_count=7,
+        )
+        self.assertEqual(run.status, "OK")
+        self.assertEqual(run.revision_id, 555)
+        self.assertIsNone(run.error_category)
+
+    def test_fail_sets_status_and_leaves_revision_none(self):
+        run = RunResult.fail(
+            error_category="query", trigger_source="WEB", duration_ms=1
+        )
+        self.assertEqual(run.status, "FAIL")
+        self.assertEqual(run.error_category, "query")
+        self.assertIsNone(run.revision_id)

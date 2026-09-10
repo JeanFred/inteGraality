@@ -161,13 +161,22 @@ class DashboardRegistry:
             namespace_localized,
             root_page,
         )
-        with self.conn.cursor() as cur:
-            # Read-then-write on the unique page_pk: an existing dashboard burns
-            # no AUTO_INCREMENT id on re-record.
-            cur.execute("SELECT id FROM dashboards WHERE page_pk = %s", (page_pk,))
-            if cur.fetchone() is None:
-                cur.execute("INSERT INTO dashboards (page_pk) VALUES (%s)", (page_pk,))
+        self._get_or_create_dashboard(page_pk)
         self.conn.commit()
+
+    def _get_or_create_dashboard(self, page_pk):
+        """Return the dashboards.id for a page, creating the row if new.
+
+        Read-then-write on the unique page_pk, so an existing dashboard burns no
+        AUTO_INCREMENT id on re-record.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute("SELECT id FROM dashboards WHERE page_pk = %s", (page_pk,))
+            row = cur.fetchone()
+            if row is not None:
+                return row["id"]
+            cur.execute("INSERT INTO dashboards (page_pk) VALUES (%s)", (page_pk,))
+            return cur.lastrowid
 
     def list_dashboards_missing_page_metadata(self, site_hostname):
         """Return dashboard pages missing page_created_at (id = pages.id)."""

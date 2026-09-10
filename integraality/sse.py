@@ -7,13 +7,15 @@ import threading
 import traceback
 from logging.handlers import QueueHandler
 
+from .error_category import ErrorCategory
+
 
 def _classify_error(e):
     """Build a structured error event dict from an exception."""
     event = {
         "status": "error",
         "error_type": type(e).__name__,
-        "error_category": getattr(e, "error_category", "bug"),
+        "error_category": getattr(e, "error_category", ErrorCategory.ERROR),
         "message": str(e),
         "traceback": traceback.format_exception(type(e), e, e.__traceback__),
     }

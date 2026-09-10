@@ -9,3 +9,6 @@ class ErrorCategory(str, enum.Enum):
     QUERY = "query"
     TRANSIENT = "transient"
     CONFIG = "config"
+    # Neutral fallback for a failure whose cause we haven't classified. Not a
+    # claim that inteGraality is at fault -- just "an error, cause unknown".
+    ERROR = "error"

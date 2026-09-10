@@ -9,6 +9,7 @@ from ..column import (
     LabelColumn,
     PropertyColumn,
     QualifierColumn,
+    ReferenceColumn,
     SitelinkColumn,
 )
 from ..grouping import GroupingConfiguration, ItemGroupingType
@@ -537,6 +538,46 @@ class TestFormatReport(ResultsFormatterTest):
             "| {{Integraality cell|80.0|12|column=P2929/P462|grouping=}}\n"
             "| {{Integraality cell|73.33|11|column=P1435/Q10387575/P580|grouping=}}\n"
             "| {{Integraality cell|60.0|9|column=Dxy|grouping=}}\n"
+            "|}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_report_with_reference_column(self):
+        columns = {
+            "P21": PropertyColumn(property="P21"),
+            "P2923/S*": ReferenceColumn(property="P2923"),
+        }
+        formatter = ResultsFormatter(
+            columns=columns,
+            grouping_configuration=self.grouping_configuration,
+            property_threshold=10,
+        )
+
+        grouping = ItemGrouping(title="Q142", count=10)
+        grouping.cells = OrderedDict([("P21", 8), ("P2923/S*", 3)])
+        totals = TotalsGrouping(count=15, title="")
+        totals.cells = OrderedDict([("P21", 12), ("P2923/S*", 5)])
+
+        result = formatter.format_report([grouping, totals])
+        expected = (
+            '{| class="wikitable sortable"\n'
+            '! colspan="2" |Top groupings (Minimum 20 items)\n'
+            '! colspan="2"|Top Properties (used at least 10 times per grouping)\n'
+            "|-\n"
+            "! Name\n"
+            "! Count\n"
+            '! data-sort-type="number"|{{Property|P21}}\n'
+            '! data-sort-type="number"|{{Property|P2923}}📚\n'
+            "|-\n"
+            "| {{Q|Q142}}\n"
+            "| 10 \n"
+            "| {{Integraality cell|80.0|8|column=P21|grouping=Q142}}\n"
+            "| {{Integraality cell|30.0|3|column=P2923/S*|grouping=Q142}}\n"
+            '|- class="sortbottom"\n'
+            "| '''Totals''' <small>(all items)</small>\n"
+            "| 15 \n"
+            "| {{Integraality cell|80.0|12|column=P21|grouping=}}\n"
+            "| {{Integraality cell|33.33|5|column=P2923/S*|grouping=}}\n"
             "|}\n"
         )
         self.assertEqual(result, expected)

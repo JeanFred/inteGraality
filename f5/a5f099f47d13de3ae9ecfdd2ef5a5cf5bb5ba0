@@ -1,0 +1,16 @@
+integraality/schema.sql
+  h_bc010f8da910ff 64-87
+integraality/tests/test_db.py
+  h_bc010f8da910ff 74-118
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f5a5f099f47d13de3ae9ecfdd2ef5a5cf5bb5ba0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

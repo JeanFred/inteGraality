@@ -16,6 +16,8 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     @param content: the content to store
     @param summary: the edit summary to save the content with
     @param minor: if the edit should be marked as minor (defaults to True)
+    @return: the new revision id on a successful wiki save, or None (local
+        write or a swallowed save failure).
     """
     if not isinstance(page, pywikibot.Page):
         pywikibot.warning(
@@ -27,11 +29,15 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     if not local_path:
         try:
             page.put(newtext=content, summary=summary, minor=minor)
+            # put() -> editpage sets latest_revision_id from the edit response,
+            # so this reads the new oldid without an extra API call.
+            return page.latest_revision_id
         except (
             pywikibot.exceptions.OtherPageSaveError,
             pywikibot.exceptions.PageSaveRelatedError,
         ):
             pywikibot.warning("Could not save page {0} ({1})".format(page, summary))
+            return None
     else:
         filename = os.path.join(
             bytes(local_path, encoding="utf-8"), page_to_filename(page)
@@ -39,6 +45,7 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
         with open(filename, "w", encoding="utf-8") as f:
             f.write("#summary: {0}\n---------------\n".format(summary))
             f.write(content)
+        return None
 
 
 def page_to_filename(page):

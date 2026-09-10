@@ -390,6 +390,13 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return sorted_groupings
 
+    def build_formatter(self, formatter_class=ResultsFormatter):
+        return formatter_class(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+            property_threshold=self.property_threshold,
+        )
+
     def process_data(self, groupings):
         return self.formatter.format_report(self.prepare_report_groupings(groupings))
 

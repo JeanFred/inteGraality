@@ -29,6 +29,7 @@ from ..reference_check import (
     GoodReferenceCheck,
     PropertyReferenceCheck,
 )
+from ..results_formatter import ResultsFormatter
 from ..sparql_utils import QueryException, WdqsSparqlQueryEngine
 
 
@@ -3105,6 +3106,20 @@ class ProcessDataTest(PropertyStatisticsTest):
             any(isinstance(g, TotalsGrouping) for g in result),
             "TotalsGrouping should be present when row_totals=True",
         )
+
+
+class BuildFormatterTest(PropertyStatisticsTest):
+    def test_build_formatter_defaults_to_results_formatter(self):
+        formatter = self.stats.build_formatter()
+        self.assertIsInstance(formatter, ResultsFormatter)
+
+    def test_build_formatter_wires_config(self):
+        formatter = self.stats.build_formatter()
+        self.assertEqual(formatter.columns, self.stats.columns)
+        self.assertEqual(
+            formatter.grouping_configuration, self.stats.grouping_configuration
+        )
+        self.assertEqual(formatter.property_threshold, self.stats.property_threshold)
 
 
 class RetrieveAndProcessDataTest(PropertyStatisticsTest):

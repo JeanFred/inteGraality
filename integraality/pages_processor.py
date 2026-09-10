@@ -142,7 +142,9 @@ class PagesProcessor:
         logger.info("Parsing page configuration...")
         stats, grouping_link_mode = self.make_stats_object_for_page(page)
         groupings = stats.retrieve_data()
-        output = stats.process_data(groupings)
+        report_groupings = stats.prepare_report_groupings(groupings)
+        formatter = stats.build_formatter()
+        output = formatter.format_report(report_groupings)
         elapsed_time = perf_counter() - start_time
         new_text = self.replace_in_page(output, page.get())
         new_text = self.migrate_template_params(new_text)

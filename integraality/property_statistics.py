@@ -67,11 +67,6 @@ class PropertyStatistics:
         self.sparql_query_engine = sparql_query_engine
 
         self.grouping_configuration._resolve_type(selector_sparql, sparql_query_engine)
-        self.formatter = ResultsFormatter(
-            columns=self.columns,
-            grouping_configuration=grouping_configuration,
-            property_threshold=property_threshold,
-        )
 
     def get_sparql_engine_name(self):
         return self.sparql_query_engine.name
@@ -301,14 +296,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return grouping_object
 
-    def retrieve_and_process_data(self):
-        """
-        Query the data, output wikitext
-        """
-        groupings = self.retrieve_data()
-        text = self.process_data(groupings)
-        return text
-
     def populate_groupings(self, groupings):
         column_keys = list(self.columns.keys())
         logger.info(
@@ -397,9 +384,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
             property_threshold=self.property_threshold,
         )
 
-    def process_data(self, groupings):
-        return self.formatter.format_report(self.prepare_report_groupings(groupings))
-
 
 def main(*args):
     """
@@ -421,7 +405,10 @@ def main(*args):
         row_no_group=True,
         property_threshold=1,
     )
-    print(stats.retrieve_and_process_data())
+    groupings = stats.retrieve_data()
+    report_groupings = stats.prepare_report_groupings(groupings)
+    formatter = stats.build_formatter()
+    print(formatter.format_report(report_groupings))
 
 
 if __name__ == "__main__":

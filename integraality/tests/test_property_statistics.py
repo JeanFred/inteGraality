@@ -2892,205 +2892,7 @@ class RetrieveDataTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
 
-class ProcessDataTest(PropertyStatisticsTest):
-    def test_process_data_empty(self):
-        result = self.stats.process_data({})
-        expected = (
-            '{| class="wikitable sortable"\n'
-            '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="7"|Top Properties (used at least 10 times per grouping)\n'
-            "|-\n"
-            "! Name\n"
-            "! Count\n"
-            '! data-sort-type="number"|{{Property|P1435}}\n'
-            '! data-sort-type="number"|{{Property|P131}}\n'
-            '! data-sort-type="number"|{{Property|P462}}\n'
-            '! data-sort-type="number"|{{Property|P580}}\n'
-            '! data-sort-type="number"|{{#language:br}}\n'
-            '! data-sort-type="number"|{{#language:xy}}\n'
-            '! data-sort-type="number"|{{Q|Q846871}}\n'
-            '|- class="sortbottom"\n'
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
-            "|}\n"
-        )
-        self.assertEqual(result, expected)
-
-    def test_process_data(self):
-        grouping_data = {
-            "Q142": ItemGrouping(
-                title="Q142",
-                count=10,
-                cells=OrderedDict(
-                    [
-                        ("P1435", 10),
-                        ("P131", 8),
-                        ("P2929/P462", 2),
-                        ("P1435/Q10387575/P580", 7),
-                        ("Lbr", 1),
-                        ("Dxy", 2),
-                        ("brwiki", 1),
-                    ]
-                ),
-            ),
-            "Q5087901": ItemGrouping(
-                title="Q5087901",
-                count=6,
-                cells=OrderedDict(
-                    [
-                        ("P1435", 6),
-                        ("P131", 0),
-                        ("P2929/P462", 0),
-                        ("P1435/Q10387575/P580", 0),
-                        ("Lbr", 0),
-                        ("Dxy", 0),
-                        ("brwiki", 0),
-                    ]
-                ),
-            ),
-        }
-
-        result = self.stats.process_data(grouping_data)
-        expected = (
-            '{| class="wikitable sortable"\n'
-            '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="7"|Top Properties (used at least 10 times per grouping)\n'
-            "|-\n"
-            "! Name\n"
-            "! Count\n"
-            '! data-sort-type="number"|{{Property|P1435}}\n'
-            '! data-sort-type="number"|{{Property|P131}}\n'
-            '! data-sort-type="number"|{{Property|P462}}\n'
-            '! data-sort-type="number"|{{Property|P580}}\n'
-            '! data-sort-type="number"|{{#language:br}}\n'
-            '! data-sort-type="number"|{{#language:xy}}\n'
-            '! data-sort-type="number"|{{Q|Q846871}}\n'
-            "|-\n"
-            "| {{Q|Q142}}\n"
-            "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P1435|grouping=Q142}}\n"
-            "| {{Integraality cell|80.0|8|column=P131|grouping=Q142}}\n"
-            "| {{Integraality cell|20.0|2|column=P2929/P462|grouping=Q142}}\n"
-            "| {{Integraality cell|70.0|7|column=P1435/Q10387575/P580|grouping=Q142}}\n"
-            "| {{Integraality cell|10.0|1|column=Lbr|grouping=Q142}}\n"
-            "| {{Integraality cell|20.0|2|column=Dxy|grouping=Q142}}\n"
-            "| {{Integraality cell|10.0|1|column=brwiki|grouping=Q142}}\n"
-            "|-\n"
-            "| {{Q|Q5087901}}\n"
-            "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P1435|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P131|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P2929/P462|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=P1435/Q10387575/P580|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=Lbr|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=Dxy|grouping=Q5087901}}\n"
-            "| {{Integraality cell|0|0|column=brwiki|grouping=Q5087901}}\n"
-            '|- class="sortbottom"\n'
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
-            "|}\n"
-        )
-
-        self.assertEqual(result, expected)
-
-    def test_process_data_year_grouping(self):
-        grouping_data = {
-            "2001": YearGrouping(
-                title="2001",
-                count=10,
-                cells=OrderedDict(
-                    [
-                        ("P1435", 10),
-                        ("P131", 8),
-                        ("P2929/P462", 2),
-                        ("P1435/Q10387575/P580", 7),
-                        ("Lbr", 1),
-                        ("Dxy", 2),
-                        ("brwiki", 1),
-                    ]
-                ),
-            ),
-            "2018": YearGrouping(
-                title="2018",
-                count=6,
-                cells=OrderedDict(
-                    [
-                        ("P1435", 6),
-                        ("P131", 0),
-                        ("P2929/P462", 0),
-                        ("P1435/Q10387575/P580", 0),
-                        ("Lbr", 0),
-                        ("Dxy", 0),
-                        ("brwiki", 0),
-                    ]
-                ),
-            ),
-        }
-
-        result = self.stats.process_data(grouping_data)
-        expected = (
-            '{| class="wikitable sortable"\n'
-            '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="7"|Top Properties (used at least 10 times per grouping)\n'
-            "|-\n"
-            "! Name\n"
-            "! Count\n"
-            '! data-sort-type="number"|{{Property|P1435}}\n'
-            '! data-sort-type="number"|{{Property|P131}}\n'
-            '! data-sort-type="number"|{{Property|P462}}\n'
-            '! data-sort-type="number"|{{Property|P580}}\n'
-            '! data-sort-type="number"|{{#language:br}}\n'
-            '! data-sort-type="number"|{{#language:xy}}\n'
-            '! data-sort-type="number"|{{Q|Q846871}}\n'
-            "|-\n"
-            "| 2001\n"
-            "| 10 \n"
-            "| {{Integraality cell|100.0|10|column=P1435|grouping=2001}}\n"
-            "| {{Integraality cell|80.0|8|column=P131|grouping=2001}}\n"
-            "| {{Integraality cell|20.0|2|column=P2929/P462|grouping=2001}}\n"
-            "| {{Integraality cell|70.0|7|column=P1435/Q10387575/P580|grouping=2001}}\n"
-            "| {{Integraality cell|10.0|1|column=Lbr|grouping=2001}}\n"
-            "| {{Integraality cell|20.0|2|column=Dxy|grouping=2001}}\n"
-            "| {{Integraality cell|10.0|1|column=brwiki|grouping=2001}}\n"
-            "|-\n"
-            "| 2018\n"
-            "| 6 \n"
-            "| {{Integraality cell|100.0|6|column=P1435|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P131|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P2929/P462|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=P1435/Q10387575/P580|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=Lbr|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=Dxy|grouping=2018}}\n"
-            "| {{Integraality cell|0|0|column=brwiki|grouping=2018}}\n"
-            '|- class="sortbottom"\n'
-            "| '''Totals''' <small>(all items)</small>\n"
-            "| 1 \n"
-            "| {{Integraality cell|100.0|1|column=P1435|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P131|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P2929/P462|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=P1435/Q10387575/P580|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Lbr|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=Dxy|grouping=}}\n"
-            "| {{Integraality cell|100.0|1|column=brwiki|grouping=}}\n"
-            "|}\n"
-        )
-
-        self.assertEqual(result, expected)
-
+class PrepareReportGroupingsTest(PropertyStatisticsTest):
     def test_prepare_report_groupings_no_totals(self):
         self.stats.row_totals = False
         result = self.stats.prepare_report_groupings({})
@@ -3122,14 +2924,16 @@ class BuildFormatterTest(PropertyStatisticsTest):
         self.assertEqual(formatter.property_threshold, self.stats.property_threshold)
 
 
-class RetrieveAndProcessDataTest(PropertyStatisticsTest):
-    def test_retrieve_and_process_data(self):
+class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
+    def test_retrieve_prepare_and_format(self):
         self.mock_sparql_query.select.return_value = [
             {"grouping": "http://www.wikidata.org/entity/Q142", "count": "10"},
             {"grouping": "http://www.wikidata.org/entity/Q5087901", "count": "6"},
             {"grouping": "http://www.wikidata.org/entity/Q623333", "count": "6"},
         ]
-        result = self.stats.retrieve_and_process_data()
+        groupings = self.stats.retrieve_data()
+        report_groupings = self.stats.prepare_report_groupings(groupings)
+        result = self.stats.build_formatter().format_report(report_groupings)
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
@@ -3188,7 +2992,7 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
-    def test_retrieve_and_process_data_year_grouping(self):
+    def test_retrieve_prepare_and_format_year_grouping(self):
         self.grouping_configuration = GroupingConfiguration(
             predicate="wdt:P17", grouping_type=YearGroupingType()
         )
@@ -3205,7 +3009,9 @@ class RetrieveAndProcessDataTest(PropertyStatisticsTest):
             {"grouping": "2012", "count": "6"},
             {"grouping": "2023", "count": "6"},
         ]
-        result = self.stats.retrieve_and_process_data()
+        groupings = self.stats.retrieve_data()
+        report_groupings = self.stats.prepare_report_groupings(groupings)
+        result = self.stats.build_formatter().format_report(report_groupings)
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'

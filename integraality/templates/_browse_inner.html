@@ -5,8 +5,8 @@
   keeping filter counts, datalist, and results all in sync.
 #}
 <form method="get"
-      action="{{ url_for('browse') }}"
-      hx-get="{{ url_for('browse') }}"
+      action="{{ url_for('dashboards') }}"
+      hx-get="{{ url_for('dashboards') }}"
       hx-target="#browse-content"
       hx-trigger="change from:select, change from:input[name=root], keyup delay:250ms from:input[name=search], submit"
       hx-push-url="true"
@@ -61,7 +61,7 @@
 
     <button type="submit" class="btn btn-default btn-sm">Filter</button>
     {% if is_filtered %}
-    <a href="{{ url_for('browse') }}" class="btn btn-default btn-sm">Clear</a>
+    <a href="{{ url_for('dashboards') }}" class="btn btn-default btn-sm">Clear</a>
     {% endif %}
 </form>
 

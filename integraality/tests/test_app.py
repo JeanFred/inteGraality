@@ -32,7 +32,7 @@ class BasicTests(AppTests):
         self.assertIn("This page does not exist.", response.get_data(as_text=True))
 
 
-class BrowseTests(AppTests):
+class DashboardsTests(AppTests):
     def setUp(self):
         super().setUp()
         patcher = patch("integraality.app.DashboardRegistry", autospec=True)
@@ -64,7 +64,7 @@ class BrowseTests(AppTests):
             self._dashboard("My Dashboard", "My Dashboard"),
             self._dashboard("Other", "Other"),
         ]
-        response = self.app.get("/browse")
+        response = self.app.get("/dashboards")
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
         self.assertIn("My Dashboard", contents)
@@ -77,20 +77,20 @@ class BrowseTests(AppTests):
             self._dashboard("Broken", "Broken", latest_status="FAIL"),
             self._dashboard("Fresh", "Fresh"),  # never run
         ]
-        contents = self.app.get("/browse").get_data(as_text=True)
+        contents = self.app.get("/dashboards").get_data(as_text=True)
         self.assertIn("label-success", contents)
         self.assertIn("label-danger", contents)
         self.assertIn("never run", contents)
 
     def test_browse_root_autocomplete_datalist(self):
         self.mock_registry.list_roots.return_value = ["WikiProject Books", "Jean-Fred"]
-        contents = self.app.get("/browse").get_data(as_text=True)
+        contents = self.app.get("/dashboards").get_data(as_text=True)
         self.assertIn('<datalist id="root-options">', contents)
         self.assertIn('value="WikiProject Books"', contents)
         self.assertIn('value="Jean-Fred"', contents)
 
     def test_browse_filtered_by_wiki(self):
-        self.app.get("/browse?wiki=meta.wikimedia.org")
+        self.app.get("/dashboards?wiki=meta.wikimedia.org")
         self.mock_registry.list_dashboards.assert_called_once_with(
             site_hostname="meta.wikimedia.org",
             namespace_canonical=None,
@@ -99,7 +99,7 @@ class BrowseTests(AppTests):
         )
 
     def test_browse_filtered_by_namespace(self):
-        self.app.get("/browse?namespace=User")
+        self.app.get("/dashboards?namespace=User")
         self.mock_registry.list_dashboards.assert_called_once_with(
             site_hostname=None,
             namespace_canonical="User",
@@ -108,7 +108,7 @@ class BrowseTests(AppTests):
         )
 
     def test_browse_filtered_by_root(self):
-        self.app.get("/browse?root=WikiProject+Music")
+        self.app.get("/dashboards?root=WikiProject+Music")
         self.mock_registry.list_dashboards.assert_called_once_with(
             site_hostname=None,
             namespace_canonical=None,
@@ -117,7 +117,7 @@ class BrowseTests(AppTests):
         )
 
     def test_browse_filtered_by_search(self):
-        self.app.get("/browse?search=coverage")
+        self.app.get("/dashboards?search=coverage")
         self.mock_registry.list_dashboards.assert_called_once_with(
             site_hostname=None,
             namespace_canonical=None,
@@ -130,7 +130,7 @@ class BrowseTests(AppTests):
         self.mock_registry.list_dashboards.return_value = [
             self._dashboard("My Dashboard", "My Dashboard"),
         ]
-        response = self.app.get("/browse", headers={"HX-Request": "true"})
+        response = self.app.get("/dashboards", headers={"HX-Request": "true"})
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
         # Full page returned (htmx extracts #browse-content via hx-select).
@@ -138,16 +138,23 @@ class BrowseTests(AppTests):
         self.assertIn('id="browse-content"', contents)
 
     def test_browse_empty(self):
-        response = self.app.get("/browse")
+        response = self.app.get("/dashboards")
         self.assertEqual(response.status_code, 200)
         self.assertIn("No dashboards registered yet.", response.get_data(as_text=True))
 
     def test_browse_filtered_empty_message(self):
-        response = self.app.get("/browse?search=nomatch")
+        response = self.app.get("/dashboards?search=nomatch")
         self.assertEqual(response.status_code, 200)
         self.assertIn(
             "No dashboards match these filters.", response.get_data(as_text=True)
         )
+
+    def test_browse_redirects_to_dashboards(self):
+        """The legacy /browse URL 301-redirects to /dashboards, keeping filters."""
+        response = self.app.get("/browse?wiki=meta.wikimedia.org")
+        self.assertEqual(response.status_code, 301)
+        self.assertIn("/dashboards", response.headers["Location"])
+        self.assertIn("wiki=meta.wikimedia.org", response.headers["Location"])
 
 
 class PagesProcessorTests(AppTests):

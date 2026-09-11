@@ -4,7 +4,15 @@
 
 import traceback
 
-from flask import Flask, Response, jsonify, render_template, request
+from flask import (
+    Flask,
+    Response,
+    jsonify,
+    redirect,
+    render_template,
+    request,
+    url_for,
+)
 
 from .dashboard_registry import DashboardRegistry
 from .pages_processor import (
@@ -53,6 +61,13 @@ def index():
 
 @app.route("/browse")
 def browse():
+    # /browse was the original (published) name; /dashboards is now canonical.
+    # Redirect so existing links/bookmarks keep working, carrying any filters.
+    return redirect(url_for("dashboards", **request.args), code=301)
+
+
+@app.route("/dashboards")
+def dashboards():
     site_hostname = request.args.get("wiki")
     namespace = request.args.get("namespace")
     root_page = request.args.get("root")
@@ -85,7 +100,7 @@ def browse():
             namespace_canonical=namespace_filter if namespace_active else None,
         )
     return render_template(
-        "browse.html",
+        "dashboards.html",
         dashboards=dashboards,
         is_filtered=is_filtered,
         wikis=wikis,

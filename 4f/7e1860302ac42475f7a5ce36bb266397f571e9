@@ -1,0 +1,20 @@
+integraality/app.py
+  h_bc010f8da910ff 7-15,77-83,116
+integraality/templates/_browse_inner.html
+  h_bc010f8da910ff 8-9,64
+integraality/templates/index.html
+  h_bc010f8da910ff 22
+integraality/tests/test_app.py
+  h_bc010f8da910ff 51,83,96,103,109,118,127,136,149,157,162,168-174
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4f7e1860302ac42475f7a5ce36bb266397f571e9",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

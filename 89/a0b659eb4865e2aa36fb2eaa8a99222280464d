@@ -1,0 +1,30 @@
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 538-559,597-600
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 16-22,48-49,278-280,325-362
+integraality/app.py
+  h_bc010f8da910ff 102-113,104-107,109-113
+integraality/templates/runs.html
+  h_bc010f8da910ff 1-6,8-35
+integraality/tests/test_app.py
+  h_bc010f8da910ff 153-192,154-172,174-176,178-181,184-185,188-192
+integraality/grouping.py
+  h_bc010f8da910ff 364,371-372
+integraality/sparql_utils.py
+  h_bc010f8da910ff 69,124
+integraality/schema.sql
+  h_bc010f8da910ff 50-53,63-64
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 443-462
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "89a0b659eb4865e2aa36fb2eaa8a99222280464d",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

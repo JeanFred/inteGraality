@@ -66,7 +66,7 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
             return self.sq.select(query)
         except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
             raise QueryException(
-                "The Wikidata Query Service timed out when running a SPARQL query."
+                "The Wikidata Query Service timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",
                 query=query,
             )
@@ -121,7 +121,7 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
 
         except (requests.exceptions.Timeout, requests.exceptions.RequestException):
             raise QueryException(
-                "QLever timed out when running a SPARQL query."
+                "QLever timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",
                 query=query,
             )

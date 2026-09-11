@@ -361,15 +361,15 @@ class GroupingConfiguration:
 
             if not queryresult:
                 raise QueryException(
-                    "No result when querying groupings."
+                    "No result when querying groupings. "
                     "Please investigate the 'all groupings' debug query in the dashboard header.",
                     query=query,
                 )
 
         except QueryException as e:
             raise QueryException(
-                "The Wikidata Query Service timed out when fetching groupings."
-                "You might be trying to do something too expensive."
+                "The Wikidata Query Service timed out when fetching groupings. "
+                "You might be trying to do something too expensive. "
                 "Please investigate the 'all groupings' debug query in the dashboard header.",
                 query=query,
             ) from e

@@ -1,0 +1,17 @@
+{#
+  Relative-time enhancement, included only by pages that render
+  <time data-relative> (dashboards, runs). Loads timeago.js from the cdnjs
+  mirror and renders a relative label ("2 hours ago", refreshed live), keeping
+  the exact UTC timestamp in each element's title/text so no-JS degrades to it.
+  Re-runs after htmx swaps so the browse filter keeps working.
+#}
+<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/timeago.js/4.0.2/timeago.min.js" type="text/javascript"></script>
+<script>
+(function () {
+    function enhance(root) {
+        timeago.render((root || document).querySelectorAll("time[data-relative]"));
+    }
+    document.addEventListener("DOMContentLoaded", function () { enhance(); });
+    document.body.addEventListener("htmx:afterSwap", function (e) { enhance(e.target); });
+})();
+</script>

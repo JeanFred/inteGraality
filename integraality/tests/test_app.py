@@ -1,6 +1,7 @@
 # -*- coding: utf-8  -*-
 import json
 import unittest
+from datetime import datetime
 from unittest.mock import patch
 
 from .. import column
@@ -13,6 +14,21 @@ class AppTests(unittest.TestCase):
     def setUp(self):
         app.config["TESTING"] = True
         self.app = app.test_client()
+
+
+class IsoUtcFilterTest(unittest.TestCase):
+    def test_formats_naive_datetime_with_z(self):
+        from ..app import iso_utc_filter
+
+        self.assertEqual(
+            iso_utc_filter(datetime(2026, 9, 11, 18, 54, 17)),
+            "2026-09-11T18:54:17Z",
+        )
+
+    def test_none_is_empty_string(self):
+        from ..app import iso_utc_filter
+
+        self.assertEqual(iso_utc_filter(None), "")
 
 
 class BasicTests(AppTests):

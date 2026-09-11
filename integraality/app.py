@@ -49,6 +49,19 @@ def add_prefixes_filter(query):
     return add_prefixes_to_query(query)
 
 
+@app.template_filter("iso_utc")
+def iso_utc_filter(value):
+    """Render a naive-UTC datetime as ISO-8601 with a Z suffix.
+
+    DATETIME columns come back as naive datetimes (stored as UTC). The Z makes
+    the value unambiguously UTC so the browser parses it correctly rather than
+    as local time. Returns "" for None (never-run dashboards).
+    """
+    if value is None:
+        return ""
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
 @app.route("/healthz")
 def healthcheck():
     return jsonify(status="healthy")

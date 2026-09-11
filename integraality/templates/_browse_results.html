@@ -30,7 +30,11 @@
                     <span class="text-muted">never run</span>
                 {% endif %}
                 {% if d.latest_finished_at %}
-                    <small class="text-muted">{{ d.latest_finished_at }}</small>
+                    <small class="text-muted">
+                        <time data-relative
+                              datetime="{{ d.latest_finished_at | iso_utc }}"
+                              title="{{ d.latest_finished_at }} UTC">{{ d.latest_finished_at }}</time>
+                    </small>
                 {% endif %}
             </td>
         </tr>

@@ -9,6 +9,7 @@
     <thead>
         <tr>
             <th>Dashboard</th>
+            <th>Last run</th>
         </tr>
     </thead>
     <tbody>
@@ -18,6 +19,18 @@
                 <a href="{{ d.page_url }}">{{ d.page_title }}</a>
                 {% if d.site_hostname != 'www.wikidata.org' %}
                     <small class="text-muted">({{ d.site_name }})</small>
+                {% endif %}
+            </td>
+            <td>
+                {% if d.latest_status == 'OK' %}
+                    <span class="label label-success">OK</span>
+                {% elif d.latest_status == 'FAIL' %}
+                    <span class="label label-danger">Failed</span>
+                {% else %}
+                    <span class="text-muted">never run</span>
+                {% endif %}
+                {% if d.latest_finished_at %}
+                    <small class="text-muted">{{ d.latest_finished_at }}</small>
                 {% endif %}
             </td>
         </tr>

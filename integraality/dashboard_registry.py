@@ -337,6 +337,10 @@ class DashboardRegistry:
         Joins pages and wikis and aliases the columns back to the historical
         shape (page_url/page_title/namespace_*/root_page/site_hostname/
         site_name) so callers and templates keep a stable shape.
+
+        Each row also carries its latest run (latest_status/latest_finished_at/
+        latest_duration_ms), LEFT-joined (NULL when never run), picked by
+        ROW_NUMBER() over (finished_at DESC, id DESC).
         """
         sql = """\
             SELECT
@@ -346,10 +350,22 @@ class DashboardRegistry:
                 p.namespace_localized AS namespace_localized,
                 p.root_page AS root_page,
                 w.hostname AS site_hostname,
-                w.name AS site_name
+                w.name AS site_name,
+                r.status AS latest_status,
+                r.finished_at AS latest_finished_at,
+                r.duration_ms AS latest_duration_ms
             FROM dashboards AS d
             JOIN pages AS p ON p.id = d.page_pk
             JOIN wikis AS w ON w.id = p.wiki_id
+            LEFT JOIN (
+                SELECT
+                    dashboard_id, status, finished_at, duration_ms,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY dashboard_id
+                        ORDER BY finished_at DESC, id DESC
+                    ) AS rn
+                FROM dashboard_runs
+            ) AS r ON r.dashboard_id = d.id AND r.rn = 1
         """
         conditions = []
         params = []

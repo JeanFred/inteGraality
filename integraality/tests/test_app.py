@@ -45,7 +45,7 @@ class BrowseTests(AppTests):
         self.mock_registry.list_namespaces.return_value = []
         self.mock_registry.list_roots.return_value = []
 
-    def _dashboard(self, title, root):
+    def _dashboard(self, title, root, latest_status=None, latest_finished_at=None):
         return {
             "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
             "page_title": title,
@@ -54,6 +54,9 @@ class BrowseTests(AppTests):
             "namespace_canonical": "Project",
             "namespace_localized": "Wikidata",
             "root_page": root,
+            "latest_status": latest_status,
+            "latest_finished_at": latest_finished_at,
+            "latest_duration_ms": None,
         }
 
     def test_browse_with_dashboards(self):
@@ -67,6 +70,17 @@ class BrowseTests(AppTests):
         self.assertIn("My Dashboard", contents)
         self.assertIn("Other", contents)
         self.assertIn("2</strong> dashboards registered.", contents)
+
+    def test_browse_renders_last_run_status(self):
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard("Healthy", "Healthy", latest_status="OK"),
+            self._dashboard("Broken", "Broken", latest_status="FAIL"),
+            self._dashboard("Fresh", "Fresh"),  # never run
+        ]
+        contents = self.app.get("/browse").get_data(as_text=True)
+        self.assertIn("label-success", contents)
+        self.assertIn("label-danger", contents)
+        self.assertIn("never run", contents)
 
     def test_browse_root_autocomplete_datalist(self):
         self.mock_registry.list_roots.return_value = ["WikiProject Books", "Jean-Fred"]

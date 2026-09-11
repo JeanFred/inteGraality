@@ -209,6 +209,27 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertNotIn("WHERE", executed_sql)
         self.assertEqual(len(results), 2)
 
+    def test_list_dashboards_carries_latest_run(self):
+        """Each row LEFT-joins its latest run (MAX(finished_at) per dashboard),
+        so /browse can badge status without an N+1 per-dashboard read."""
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "page_title": "Page1",
+                "latest_status": "OK",
+                "latest_finished_at": "2026-09-11 10:00:00",
+                "latest_duration_ms": 72000,
+            },
+        ]
+
+        results = self.registry.list_dashboards()
+
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertIn("r.status AS latest_status", sql)
+        self.assertIn("ROW_NUMBER() OVER", sql)
+        self.assertIn("ORDER BY finished_at DESC, id DESC", sql)
+        self.assertIn("r.rn = 1", sql)
+        self.assertEqual(results[0]["latest_status"], "OK")
+
     def test_list_dashboards_does_not_preload_wiki_cache(self):
         """Read-only use must not trigger the wiki preload SELECT."""
         self.mock_cursor.fetchall.return_value = []

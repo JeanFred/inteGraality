@@ -59,6 +59,16 @@
                aria-label="Filter by root page">
     </div>
 
+    <div class="form-group">
+        <label for="status">Status</label>
+        <select class="form-control input-sm browse-filter" id="status" name="status"
+                aria-label="Filter by last-run status">
+            <option value="">All</option>
+            <option value="OK" {{ 'selected' if selected_status == 'OK' }}>OK</option>
+            <option value="FAIL" {{ 'selected' if selected_status == 'FAIL' }}>Failing</option>
+        </select>
+    </div>
+
     <button type="submit" class="btn btn-default btn-sm">Filter</button>
     {% if is_filtered %}
     <a href="{{ url_for('dashboards') }}" class="btn btn-default btn-sm">Clear</a>

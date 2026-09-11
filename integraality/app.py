@@ -14,7 +14,7 @@ from flask import (
     url_for,
 )
 
-from .dashboard_registry import DashboardRegistry
+from .dashboard_registry import CHRONIC_FAILURE_THRESHOLD, DashboardRegistry
 from .pages_processor import (
     PagesProcessor,
     ProcessingException,
@@ -85,6 +85,7 @@ def dashboards():
     namespace = request.args.get("namespace")
     root_page = request.args.get("root")
     search = request.args.get("search")
+    status = request.args.get("status")
     # The Main namespace has an empty canonical name, which collides with the
     # "no filter" sentinel. The form uses the token "(Main)" for it; translate
     # it back to the real empty-string canonical for the query.
@@ -96,13 +97,14 @@ def dashboards():
     namespace_active = namespace_filter is not None and (
         namespace_filter != "" or namespace == MAIN_NAMESPACE_TOKEN
     )
-    is_filtered = any([site_hostname, namespace_active, root_page, search])
+    is_filtered = any([site_hostname, namespace_active, root_page, search, status])
     with DashboardRegistry() as registry:
         dashboards = registry.list_dashboards(
             site_hostname=site_hostname,
             namespace_canonical=namespace_filter if namespace_active else None,
             root_page=root_page,
             search=search,
+            status=status,
         )
         wikis = registry.list_wikis(
             namespace_canonical=namespace_filter if namespace_active else None,
@@ -123,7 +125,21 @@ def dashboards():
         selected_namespace=namespace,
         selected_root=root_page,
         search=search,
+        selected_status=status,
+        chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
         main_namespace_token=MAIN_NAMESPACE_TOKEN,
+    )
+
+
+@app.route("/runs")
+def runs():
+    site_hostname = request.args.get("wiki")
+    with DashboardRegistry() as registry:
+        run_list = registry.list_runs(site_hostname=site_hostname)
+    return render_template(
+        "runs.html",
+        runs=run_list,
+        selected_wiki=site_hostname,
     )
 
 

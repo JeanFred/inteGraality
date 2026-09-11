@@ -8,6 +8,12 @@ from .db import ensure_schema, get_connection
 
 logger = logging.getLogger(__name__)
 
+# How many recent runs the /dashboards health strip shows per dashboard.
+RECENT_RUNS_STRIP_SIZE = 12
+# Consecutive failures at/above which a dashboard is "chronically" broken
+# (strong tint) rather than a possibly-transient blip (light tint).
+CHRONIC_FAILURE_THRESHOLD = 3
+
 
 @dataclass(frozen=True)
 class RunResult:
@@ -288,6 +294,42 @@ class DashboardRegistry:
             )
         self.conn.commit()
 
+    def list_runs(self, site_hostname=None, limit=100):
+        """Return recent runs across all dashboards, newest first (bounded by
+        ``limit``). Joins page identity; carries status + run fields.
+        """
+        sql = """\
+            SELECT
+                p.page_url AS page_url,
+                p.page_title AS page_title,
+                w.hostname AS site_hostname,
+                w.name AS site_name,
+                r.finished_at AS finished_at,
+                r.status AS status,
+                r.trigger_source AS trigger_source,
+                r.duration_ms AS duration_ms,
+                r.sparql_engine AS sparql_engine,
+                r.error_category AS error_category,
+                r.error_detail AS error_detail,
+                r.entity_total AS entity_total,
+                r.grouping_count AS grouping_count,
+                r.column_count AS column_count
+            FROM dashboard_runs AS r
+            JOIN dashboards AS d ON d.id = r.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = r.wiki_id
+        """
+        params = []
+        if site_hostname:
+            sql += "WHERE w.hostname = %s\n"
+            params.append(site_hostname)
+        sql += "ORDER BY r.finished_at DESC\n"
+        sql += "LIMIT %s\n"
+        params.append(limit)
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return cur.fetchall()
+
     def list_dashboards_missing_page_metadata(self, site_hostname):
         """Return dashboard pages missing page_created_at (id = pages.id)."""
         sql = """\
@@ -324,6 +366,7 @@ class DashboardRegistry:
         namespace_canonical=None,
         root_page=None,
         search=None,
+        status=None,
     ):
         """Return all registered dashboards, optionally filtered.
 
@@ -333,6 +376,8 @@ class DashboardRegistry:
             Main namespace; pass None to not filter on namespace)
           - root_page: exact root page (first title segment)
           - search: case-insensitive substring match on the page title
+          - status: latest-run status ('OK'|'FAIL'); filters to dashboards whose
+            most recent run has that status (never-run dashboards are excluded)
 
         Joins pages and wikis and aliases the columns back to the historical
         shape (page_url/page_title/namespace_*/root_page/site_hostname/
@@ -340,7 +385,11 @@ class DashboardRegistry:
 
         Each row also carries its latest run (latest_status/latest_finished_at/
         latest_duration_ms), LEFT-joined (NULL when never run), picked by
-        ROW_NUMBER() over (finished_at DESC, id DESC).
+        ROW_NUMBER() over (finished_at DESC, id DESC). It also carries, for the
+        health strip: last_success_at (newest OK run), recent_statuses (last
+        RECENT_RUNS_STRIP_SIZE statuses, oldest->newest) and
+        failures_since_success (runs after the last OK by (finished_at, id), so
+        a same-second FAIL still counts; drives the severity tint).
         """
         sql = """\
             SELECT
@@ -353,7 +402,20 @@ class DashboardRegistry:
                 w.name AS site_name,
                 r.status AS latest_status,
                 r.finished_at AS latest_finished_at,
-                r.duration_ms AS latest_duration_ms
+                r.duration_ms AS latest_duration_ms,
+                ok.finished_at AS last_success_at,
+                strip.statuses AS recent_statuses,
+                CASE
+                    WHEN ok.finished_at IS NULL THEN (
+                        SELECT COUNT(*) FROM dashboard_runs f
+                        WHERE f.dashboard_id = d.id
+                    )
+                    ELSE (
+                        SELECT COUNT(*) FROM dashboard_runs f
+                        WHERE f.dashboard_id = d.id
+                          AND (f.finished_at, f.id) > (ok.finished_at, ok.id)
+                    )
+                END AS failures_since_success
             FROM dashboards AS d
             JOIN pages AS p ON p.id = d.page_pk
             JOIN wikis AS w ON w.id = p.wiki_id
@@ -366,9 +428,37 @@ class DashboardRegistry:
                     ) AS rn
                 FROM dashboard_runs
             ) AS r ON r.dashboard_id = d.id AND r.rn = 1
+            LEFT JOIN (
+                SELECT
+                    dashboard_id, id, finished_at,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY dashboard_id
+                        ORDER BY finished_at DESC, id DESC
+                    ) AS rn
+                FROM dashboard_runs
+                WHERE status = 'OK'
+            ) AS ok ON ok.dashboard_id = d.id AND ok.rn = 1
+            LEFT JOIN (
+                -- The last N runs per dashboard, concatenated oldest->newest
+                -- into "OK,FAIL,OK,..." for the template to render as ticks.
+                SELECT dashboard_id,
+                       GROUP_CONCAT(status ORDER BY finished_at ASC, id ASC) AS statuses
+                FROM (
+                    SELECT dashboard_id, status, finished_at, id,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY dashboard_id
+                               ORDER BY finished_at DESC, id DESC
+                           ) AS rn
+                    FROM dashboard_runs
+                ) ranked
+                WHERE rn <= %s
+                GROUP BY dashboard_id
+            ) AS strip ON strip.dashboard_id = d.id
         """
         conditions = []
-        params = []
+        # The strip subquery's LIMIT placeholder comes first in SQL order, so
+        # it must be the first bound param, ahead of any filter conditions.
+        params = [RECENT_RUNS_STRIP_SIZE]
         if site_hostname:
             conditions.append("w.hostname = %s")
             params.append(site_hostname)
@@ -384,6 +474,11 @@ class DashboardRegistry:
             escaped = search.replace("%", r"\%").replace("_", r"\_")
             conditions.append(r"p.page_title LIKE %s ESCAPE '\'")
             params.append(f"%{escaped}%")
+        if status:
+            # r.status is the latest run's status (LEFT JOIN); a never-run
+            # dashboard has NULL here and is correctly excluded by equality.
+            conditions.append("r.status = %s")
+            params.append(status)
         if conditions:
             sql += "WHERE " + " AND ".join(conditions) + "\n"
         sql += "ORDER BY p.page_title\n"

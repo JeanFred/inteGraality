@@ -61,7 +61,16 @@ class DashboardsTests(AppTests):
         self.mock_registry.list_namespaces.return_value = []
         self.mock_registry.list_roots.return_value = []
 
-    def _dashboard(self, title, root, latest_status=None, latest_finished_at=None):
+    def _dashboard(
+        self,
+        title,
+        root,
+        latest_status=None,
+        latest_finished_at=None,
+        last_success_at=None,
+        recent_statuses=None,
+        failures_since_success=0,
+    ):
         return {
             "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
             "page_title": title,
@@ -73,6 +82,9 @@ class DashboardsTests(AppTests):
             "latest_status": latest_status,
             "latest_finished_at": latest_finished_at,
             "latest_duration_ms": None,
+            "last_success_at": last_success_at,
+            "recent_statuses": recent_statuses,
+            "failures_since_success": failures_since_success,
         }
 
     def test_browse_with_dashboards(self):
@@ -87,16 +99,63 @@ class DashboardsTests(AppTests):
         self.assertIn("Other", contents)
         self.assertIn("2</strong> dashboards registered.", contents)
 
-    def test_browse_renders_last_run_status(self):
+    def test_browse_renders_run_history_strip(self):
         self.mock_registry.list_dashboards.return_value = [
-            self._dashboard("Healthy", "Healthy", latest_status="OK"),
-            self._dashboard("Broken", "Broken", latest_status="FAIL"),
-            self._dashboard("Fresh", "Fresh"),  # never run
+            self._dashboard(
+                "Flaky", "Flaky", latest_status="OK", recent_statuses="OK,FAIL,OK"
+            ),
+            self._dashboard("Fresh", "Fresh"),  # never run, no strip
         ]
         contents = self.app.get("/dashboards").get_data(as_text=True)
-        self.assertIn("label-success", contents)
-        self.assertIn("label-danger", contents)
-        self.assertIn("never run", contents)
+        self.assertIn("run-tick-ok", contents)
+        self.assertIn("run-tick-fail", contents)
+        self.assertIn("never run", contents)  # the strip-less dashboard
+
+    def test_browse_tints_transient_vs_chronic_failures(self):
+        self.mock_registry.list_dashboards.return_value = [
+            # 1 failure since last success -> transient -> amber (warning).
+            self._dashboard(
+                "JustBroke",
+                "JustBroke",
+                latest_status="FAIL",
+                failures_since_success=1,
+                recent_statuses="OK,FAIL",
+            ),
+            # >= threshold consecutive failures -> chronic -> red (danger).
+            self._dashboard(
+                "LongBroken",
+                "LongBroken",
+                latest_status="FAIL",
+                failures_since_success=9,
+                recent_statuses="FAIL,FAIL,FAIL",
+            ),
+        ]
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn('class="warning"', contents)  # transient
+        self.assertIn('class="danger"', contents)  # chronic
+        self.assertIn("failing for 9 runs", contents)
+        self.assertIn("failing for 1 run", contents)  # singular
+
+    def test_browse_shows_last_success(self):
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard(
+                "Broken",
+                "Broken",
+                latest_status="FAIL",
+                latest_finished_at=datetime(2026, 9, 13, 10, 0, 0),
+                last_success_at=datetime(2026, 8, 20, 9, 0, 0),
+                failures_since_success=2,
+            ),
+            self._dashboard(
+                "NeverOK", "NeverOK", latest_status="FAIL", failures_since_success=5
+            ),
+        ]
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn("<th>Last success</th>", contents)
+        # A dashboard that has succeeded before shows the success timestamp;
+        self.assertIn("2026-08-20 09:00:00", contents)
+        # one that never has shows "never".
+        self.assertIn("never", contents)
 
     def test_browse_root_autocomplete_datalist(self):
         self.mock_registry.list_roots.return_value = ["WikiProject Books", "Jean-Fred"]
@@ -112,6 +171,7 @@ class DashboardsTests(AppTests):
             namespace_canonical=None,
             root_page=None,
             search=None,
+            status=None,
         )
 
     def test_browse_filtered_by_namespace(self):
@@ -121,6 +181,7 @@ class DashboardsTests(AppTests):
             namespace_canonical="User",
             root_page=None,
             search=None,
+            status=None,
         )
 
     def test_browse_filtered_by_root(self):
@@ -130,6 +191,7 @@ class DashboardsTests(AppTests):
             namespace_canonical=None,
             root_page="WikiProject Music",
             search=None,
+            status=None,
         )
 
     def test_browse_filtered_by_search(self):
@@ -139,6 +201,7 @@ class DashboardsTests(AppTests):
             namespace_canonical=None,
             root_page=None,
             search="coverage",
+            status=None,
         )
 
     def test_browse_htmx_request_returns_full_page_with_browse_content(self):
@@ -165,12 +228,87 @@ class DashboardsTests(AppTests):
             "No dashboards match these filters.", response.get_data(as_text=True)
         )
 
+    def test_dashboards_filtered_by_status(self):
+        self.app.get("/dashboards?status=FAIL")
+        self.mock_registry.list_dashboards.assert_called_once_with(
+            site_hostname=None,
+            namespace_canonical=None,
+            root_page=None,
+            search=None,
+            status="FAIL",
+        )
+
+    def test_dashboards_status_control_reflects_selection(self):
+        contents = self.app.get("/dashboards?status=FAIL").get_data(as_text=True)
+        # The Status select renders and marks the chosen option selected.
+        self.assertIn('name="status"', contents)
+        self.assertIn('value="FAIL" selected', contents)
+
     def test_browse_redirects_to_dashboards(self):
         """The legacy /browse URL 301-redirects to /dashboards, keeping filters."""
         response = self.app.get("/browse?wiki=meta.wikimedia.org")
         self.assertEqual(response.status_code, 301)
         self.assertIn("/dashboards", response.headers["Location"])
         self.assertIn("wiki=meta.wikimedia.org", response.headers["Location"])
+
+
+class RunsTests(AppTests):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+        self.mock_registry.list_runs.return_value = []
+
+    def _run(self, title, status="OK", **fields):
+        row = {
+            "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
+            "page_title": title,
+            "site_hostname": "www.wikidata.org",
+            "site_name": "Wikidata",
+            "finished_at": datetime(2026, 9, 11, 10, 0, 0),
+            "status": status,
+            "trigger_source": "CRON",
+            "duration_ms": 72000,
+            "sparql_engine": "Wikidata Query Service",
+            "error_category": None,
+            "error_detail": None,
+            "entity_total": 39163,
+            "grouping_count": 40,
+            "column_count": 7,
+        }
+        row.update(fields)
+        return row
+
+    def test_runs_lists_recent_runs_ok_and_fail(self):
+        self.mock_registry.list_runs.return_value = [
+            self._run(
+                "Broken",
+                status="FAIL",
+                error_category="query",
+                error_detail="SPARQL timeout",
+            ),
+            self._run("Healthy", status="OK"),
+        ]
+        contents = self.app.get("/runs").get_data(as_text=True)
+        self.assertIn("Broken", contents)
+        self.assertIn("Healthy", contents)
+        self.assertIn("label-danger", contents)  # FAIL badge
+        self.assertIn("label-success", contents)  # OK badge
+        self.assertIn("SPARQL timeout", contents)
+        self.assertIn("CRON", contents)  # trigger column
+        self.assertIn("72.0s", contents)  # duration column (72000ms -> 72.0s)
+
+    def test_runs_empty(self):
+        contents = self.app.get("/runs").get_data(as_text=True)
+        self.assertIn("No runs recorded yet.", contents)
+
+    def test_runs_scoped_to_wiki(self):
+        self.app.get("/runs?wiki=commons.wikimedia.org")
+        self.mock_registry.list_runs.assert_called_once_with(
+            site_hostname="commons.wikimedia.org",
+        )
 
 
 class PagesProcessorTests(AppTests):

@@ -8,6 +8,17 @@
         opacity: 0.5;
         transition: opacity 200ms ease-in;
     }
+    .run-strip { white-space: nowrap; line-height: 1; }
+    .run-tick {
+        display: inline-block;
+        width: 11px;
+        height: 15px;
+        margin-right: 2px;
+        border-radius: 2px;
+        vertical-align: middle;
+    }
+    .run-tick-ok { background-color: #3c763d; }    /* Bootstrap success green */
+    .run-tick-fail { background-color: #a94442; }  /* Bootstrap danger red */
     </style>
 {% endblock %}
 {% block body_scripts %}{% include "_timeago.html" %}{% endblock %}

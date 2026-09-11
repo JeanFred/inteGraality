@@ -4,7 +4,11 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from ..dashboard_registry import DashboardRegistry, RunResult
+from ..dashboard_registry import (
+    RECENT_RUNS_STRIP_SIZE,
+    DashboardRegistry,
+    RunResult,
+)
 
 
 class TestDashboardRegistry(unittest.TestCase):
@@ -205,8 +209,12 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("JOIN wikis", executed_sql)
         self.assertIn("w.hostname AS site_hostname", executed_sql)
         self.assertIn("w.name AS site_name", executed_sql)
-        # No filters passed → no WHERE clause.
-        self.assertNotIn("WHERE", executed_sql)
+        # No filters passed → no filter conditions on the outer query. (The
+        # last_success_at subquery has its own WHERE status = 'OK', so assert
+        # the absence of a filter predicate rather than the WHERE keyword.)
+        self.assertNotIn("w.hostname = %s", executed_sql)
+        self.assertNotIn("p.namespace_canonical = %s", executed_sql)
+        self.assertNotIn("r.status = %s", executed_sql)
         self.assertEqual(len(results), 2)
 
     def test_list_dashboards_carries_latest_run(self):
@@ -218,17 +226,45 @@ class TestDashboardRegistry(unittest.TestCase):
                 "latest_status": "OK",
                 "latest_finished_at": "2026-09-11 10:00:00",
                 "latest_duration_ms": 72000,
+                "last_success_at": "2026-09-11 10:00:00",
+                "recent_statuses": "OK,FAIL",
+                "failures_since_success": 1,
             },
         ]
 
         results = self.registry.list_dashboards()
 
+        # The health fields are surfaced on the row (behavior, not SQL text).
+        row = results[0]
+        for field in (
+            "latest_status",
+            "last_success_at",
+            "recent_statuses",
+            "failures_since_success",
+        ):
+            self.assertIn(field, row)
+
         sql = self.mock_cursor.execute.call_args[0][0]
-        self.assertIn("r.status AS latest_status", sql)
-        self.assertIn("ROW_NUMBER() OVER", sql)
-        self.assertIn("ORDER BY finished_at DESC, id DESC", sql)
-        self.assertIn("r.rn = 1", sql)
-        self.assertEqual(results[0]["latest_status"], "OK")
+        # Semantic properties (not cosmetic formatting):
+        # - the latest/last-OK picks are backfill-safe: ordered by finished_at
+        #   with an id tiebreak, so out-of-id-order history still ranks right.
+        self.assertIn("finished_at DESC, id DESC", sql)
+        # - failures_since_success compares the (finished_at, id) tuple, so a
+        #   FAIL sharing the last-OK's whole second is still counted; a bare
+        #   finished_at > would drop it (the reviewer's tie bug).
+        self.assertIn("(f.finished_at, f.id) > (ok.finished_at, ok.id)", sql)
+        # - the strip's LIMIT binds first (FROM-clause), ahead of any filter.
+        params = self.mock_cursor.execute.call_args[0][1]
+        self.assertEqual(params[0], RECENT_RUNS_STRIP_SIZE)
+        self.assertEqual(row["latest_status"], "OK")
+
+    def test_list_dashboards_filtered_by_status(self):
+        """status filters on the latest run's status (r.status)."""
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(status="FAIL")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("r.status = %s", sql)
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "FAIL"))
 
     def test_list_dashboards_does_not_preload_wiki_cache(self):
         """Read-only use must not trigger the wiki preload SELECT."""
@@ -255,7 +291,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("WHERE w.hostname = %s", sql)
-        self.assertEqual(params, ("meta.wikimedia.org",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "meta.wikimedia.org"))
         self.assertEqual(len(results), 1)
 
     def test_list_wikis(self):
@@ -291,7 +327,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("p.namespace_canonical = %s", sql)
-        self.assertEqual(params, ("User",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "User"))
 
     def test_list_dashboards_filtered_by_main_namespace(self):
         """Passing "" filters to the Main namespace (empty canonical name).
@@ -305,7 +341,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("p.namespace_canonical = %s", sql)
-        self.assertEqual(params, ("",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, ""))
 
     def test_list_dashboards_no_namespace_filter_when_none(self):
         """namespace_canonical=None applies no namespace filter."""
@@ -363,7 +399,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("p.root_page = %s", sql)
-        self.assertEqual(params, ("WikiProject Music",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "WikiProject Music"))
 
     def test_list_dashboards_search_uses_like(self):
         self.mock_cursor.fetchall.return_value = []
@@ -372,7 +408,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn(r"p.page_title LIKE %s ESCAPE '\'", sql)
-        self.assertEqual(params, ("%coverage%",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "%coverage%"))
 
     def test_list_dashboards_search_escapes_wildcards(self):
         self.mock_cursor.fetchall.return_value = []
@@ -381,7 +417,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn(r"ESCAPE '\'", sql)
-        self.assertEqual(params, (r"%100\%\_done%",))
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, r"%100\%\_done%"))
 
     def test_list_dashboards_combined_filters(self):
         self.mock_cursor.fetchall.return_value = []
@@ -400,7 +436,13 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("p.page_title LIKE %s", sql)
         self.assertEqual(
             params,
-            ("www.wikidata.org", "Project", "WikiProject Music", "%album%"),
+            (
+                RECENT_RUNS_STRIP_SIZE,
+                "www.wikidata.org",
+                "Project",
+                "WikiProject Music",
+                "%album%",
+            ),
         )
 
     def test_list_roots(self):
@@ -535,6 +577,28 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["status"], "FAIL")
         self.assertEqual(row["error_category"], "query")
         self.assertIsNone(row["revision_id"])  # NULL on failure
+
+    def test_list_runs_orders_newest_first_and_limits(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"page_title": "A", "status": "OK"},
+            {"page_title": "B", "status": "FAIL"},
+        ]
+
+        result = self.registry.list_runs()
+
+        self.assertEqual(len(result), 2)
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("FROM dashboard_runs", sql)
+        self.assertIn("ORDER BY r.finished_at DESC", sql)
+        self.assertIn("LIMIT %s", sql)
+        self.assertEqual(params, (100,))  # default limit
+
+    def test_list_runs_scoped_to_wiki(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_runs(site_hostname="commons.wikimedia.org")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("w.hostname = %s", sql)
+        self.assertEqual(params, ("commons.wikimedia.org", 100))
 
     def test_close(self):
         self.registry.close()

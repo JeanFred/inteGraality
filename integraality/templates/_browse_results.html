@@ -9,32 +9,48 @@
     <thead>
         <tr>
             <th>Dashboard</th>
-            <th>Last run</th>
+            <th>Recent runs</th>
+            <th>Last success</th>
         </tr>
     </thead>
     <tbody>
         {% for d in dashboards %}
-        <tr>
+        {#
+          Row tint by failure severity: a currently-failing dashboard is
+          "warning" (amber, possibly transient) until it has failed
+          chronic_failure_threshold times in a row, then "danger" (red).
+          Healthy rows are untinted.
+        #}
+        {% set failing = d.latest_status == 'FAIL' %}
+        {% set chronic = failing and d.failures_since_success >= chronic_failure_threshold %}
+        <tr class="{{ 'danger' if chronic else 'warning' if failing else '' }}">
             <td>
                 <a href="{{ d.page_url }}">{{ d.page_title }}</a>
                 {% if d.site_hostname != 'www.wikidata.org' %}
                     <small class="text-muted">({{ d.site_name }})</small>
                 {% endif %}
+                {% if failing %}
+                    <small class="text-muted">&mdash; failing for {{ d.failures_since_success }} run{{ 's' if d.failures_since_success != 1 }}</small>
+                {% endif %}
             </td>
-            <td>
-                {% if d.latest_status == 'OK' %}
-                    <span class="label label-success">OK</span>
-                {% elif d.latest_status == 'FAIL' %}
-                    <span class="label label-danger">Failed</span>
+            <td class="run-strip" aria-label="recent run outcomes, oldest to newest">
+                {% if d.recent_statuses %}
+                    {% for s in d.recent_statuses.split(',') %}<span
+                        class="run-tick run-tick-{{ 'ok' if s == 'OK' else 'fail' }}"
+                        title="{{ s }}"></span>{% endfor %}
                 {% else %}
                     <span class="text-muted">never run</span>
                 {% endif %}
-                {% if d.latest_finished_at %}
+            </td>
+            <td>
+                {% if d.last_success_at %}
                     <small class="text-muted">
                         <time data-relative
-                              datetime="{{ d.latest_finished_at | iso_utc }}"
-                              title="{{ d.latest_finished_at }} UTC">{{ d.latest_finished_at }}</time>
+                              datetime="{{ d.last_success_at | iso_utc }}"
+                              title="{{ d.last_success_at }} UTC">{{ d.last_success_at }}</time>
                     </small>
+                {% else %}
+                    <span class="text-muted">never</span>
                 {% endif %}
             </td>
         </tr>

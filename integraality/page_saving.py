@@ -16,8 +16,9 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     @param content: the content to store
     @param summary: the edit summary to save the content with
     @param minor: if the edit should be marked as minor (defaults to True)
-    @return: the new revision id on a successful wiki save, or None (local
-        write or a swallowed save failure).
+    @return: the new revision id on a successful wiki save that produced a
+        revision, or None (local write, a swallowed save failure, or a null
+        edit that produced no new revision).
     """
     if not isinstance(page, pywikibot.Page):
         pywikibot.warning(
@@ -28,9 +29,16 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
 
     if not local_path:
         try:
+            revision_before = page.latest_revision_id
             page.put(newtext=content, summary=summary, minor=minor)
-            # put() -> editpage sets latest_revision_id from the edit response,
-            # so this reads the new oldid without an extra API call.
+            # On a null edit MediaWiki produces no revision; pywikibot's editpage
+            # takes the 'nochange' branch and leaves latest_revision_id untouched,
+            # whereas a real edit advances it to the new oldid. An unchanged id
+            # therefore means "no revision produced" -> return None (so the run is
+            # recorded with a NULL revision_id, exempt from uq_revision, instead of
+            # colliding on the previous run's oldid).
+            if page.latest_revision_id == revision_before:
+                return None
             return page.latest_revision_id
         except (
             pywikibot.exceptions.OtherPageSaveError,

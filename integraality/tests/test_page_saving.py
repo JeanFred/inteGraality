@@ -37,11 +37,27 @@ class PageSavingTest(unittest.TestCase):
         page_saving.save_to_wiki_or_local(self.mock_page, "Update page", "Lorem ipsum")
 
     def test_to_wiki_returns_new_revision_id(self):
-        self.mock_page.latest_revision_id = 987654
+        # A real edit advances latest_revision_id from its pre-save value; put()
+        # simulates editpage setting the new oldid from the API response.
+        self.mock_page.latest_revision_id = 111
+        self.mock_page.put.side_effect = lambda **kwargs: setattr(
+            self.mock_page, "latest_revision_id", 987654
+        )
         result = page_saving.save_to_wiki_or_local(
             self.mock_page, "Update page", "Lorem ipsum"
         )
         self.assertEqual(result, 987654)
+
+    def test_to_wiki_null_edit_returns_none(self):
+        # A null edit produces no revision: pywikibot leaves latest_revision_id
+        # untouched, so the unchanged id must map to None (not the stale oldid,
+        # which would collide on uq_revision when recorded).
+        self.mock_page.latest_revision_id = 987654
+        self.mock_page.put.side_effect = lambda **kwargs: None  # no advance
+        result = page_saving.save_to_wiki_or_local(
+            self.mock_page, "Update page", "Lorem ipsum"
+        )
+        self.assertIsNone(result)
 
     @patch("pywikibot.warning")
     def test_to_wiki_error(self, mock_warning):

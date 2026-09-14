@@ -1,0 +1,26 @@
+uv.lock
+  h_bc010f8da910ff 170,188,292-299,344-353
+  h_bc010f8da910ff 291,354-355
+integraality/sparql_utils.py
+  h_bc010f8da910ff 8,21-24,64,108-112,116-131
+  h_bc010f8da910ff 132-133
+integraality/tests/test_sparql_utils.py
+  h_bc010f8da910ff 13,21,57-66,114-117,119-120,199-238
+  h_bc010f8da910ff 67,118,239-240
+requirements.txt
+  h_bc010f8da910ff 99-102,107-109
+  h_bc010f8da910ff 110
+pyproject.toml
+  h_bc010f8da910ff 14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c934eeddbf45ed7c8ec1f1650b92625b9c7dc311",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

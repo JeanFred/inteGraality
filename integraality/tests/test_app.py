@@ -111,6 +111,18 @@ class DashboardsTests(AppTests):
         self.assertIn("run-tick-fail", contents)
         self.assertIn("never run", contents)  # the strip-less dashboard
 
+    def test_browse_renders_null_edit_tick(self):
+        """A NULL token (OK run, no revision) renders the hollow-green tick
+        with a 'no change' tooltip, distinct from a plain OK tick."""
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard(
+                "Stable", "Stable", latest_status="OK", recent_statuses="OK,NULL,NULL"
+            ),
+        ]
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn("run-tick-null", contents)
+        self.assertIn("OK — no change (null edit)", contents)
+
     def test_browse_tints_transient_vs_chronic_failures(self):
         self.mock_registry.list_dashboards.return_value = [
             # 1 failure since last success -> transient -> amber (warning).

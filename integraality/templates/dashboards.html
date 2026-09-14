@@ -16,9 +16,16 @@
         margin-right: 2px;
         border-radius: 2px;
         vertical-align: middle;
+        box-sizing: border-box;
     }
     .run-tick-ok { background-color: #3c763d; }    /* Bootstrap success green */
     .run-tick-fail { background-color: #a94442; }  /* Bootstrap danger red */
+    /* Null edit: succeeded but produced no revision. Hollow green = "OK but
+       empty" — same health hue as OK, visibly unfilled to flag no change. */
+    .run-tick-null {
+        background-color: transparent;
+        border: 1.5px solid #3c763d;
+    }
     </style>
 {% endblock %}
 {% block body_scripts %}{% include "_timeago.html" %}{% endblock %}

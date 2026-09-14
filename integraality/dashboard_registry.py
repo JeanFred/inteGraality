@@ -387,7 +387,8 @@ class DashboardRegistry:
         latest_duration_ms), LEFT-joined (NULL when never run), picked by
         ROW_NUMBER() over (finished_at DESC, id DESC). It also carries, for the
         health strip: last_success_at (newest OK run), recent_statuses (last
-        RECENT_RUNS_STRIP_SIZE statuses, oldest->newest) and
+        RECENT_RUNS_STRIP_SIZE run tokens, oldest->newest: FAIL, NULL for an OK
+        run that produced no revision (null edit), else OK) and
         failures_since_success (runs after the last OK by (finished_at, id), so
         a same-second FAIL still counts; drives the severity tint).
         """
@@ -440,11 +441,21 @@ class DashboardRegistry:
             ) AS ok ON ok.dashboard_id = d.id AND ok.rn = 1
             LEFT JOIN (
                 -- The last N runs per dashboard, concatenated oldest->newest
-                -- into "OK,FAIL,OK,..." for the template to render as ticks.
+                -- into "OK,NULL,FAIL,..." for the template to render as ticks.
+                -- A null edit is an OK run that produced no revision
+                -- (revision_id IS NULL); it stays a success for health, but is
+                -- tokenised as NULL so the strip can render it distinctly.
                 SELECT dashboard_id,
-                       GROUP_CONCAT(status ORDER BY finished_at ASC, id ASC) AS statuses
+                       GROUP_CONCAT(
+                           CASE
+                               WHEN status = 'FAIL' THEN 'FAIL'
+                               WHEN revision_id IS NULL THEN 'NULL'
+                               ELSE 'OK'
+                           END
+                           ORDER BY finished_at ASC, id ASC
+                       ) AS statuses
                 FROM (
-                    SELECT dashboard_id, status, finished_at, id,
+                    SELECT dashboard_id, status, revision_id, finished_at, id,
                            ROW_NUMBER() OVER (
                                PARTITION BY dashboard_id
                                ORDER BY finished_at DESC, id DESC

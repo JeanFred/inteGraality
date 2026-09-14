@@ -36,8 +36,8 @@
             <td class="run-strip" aria-label="recent run outcomes, oldest to newest">
                 {% if d.recent_statuses %}
                     {% for s in d.recent_statuses.split(',') %}<span
-                        class="run-tick run-tick-{{ 'ok' if s == 'OK' else 'fail' }}"
-                        title="{{ s }}"></span>{% endfor %}
+                        class="run-tick run-tick-{{ 'fail' if s == 'FAIL' else 'null' if s == 'NULL' else 'ok' }}"
+                        title="{{ 'FAIL' if s == 'FAIL' else 'OK — no change (null edit)' if s == 'NULL' else 'OK' }}"></span>{% endfor %}
                 {% else %}
                     <span class="text-muted">never run</span>
                 {% endif %}

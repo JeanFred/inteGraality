@@ -5,6 +5,7 @@
 import pywikibot
 import pywikibot.data.sparql
 import requests
+from rdflib.plugins.sparql.processor import prepareQuery
 
 from .error_category import ErrorCategory
 
@@ -15,6 +16,10 @@ class QueryException(Exception):
     def __init__(self, message, query):
         super().__init__(message)
         self.query = query
+
+
+class QuerySyntaxException(QueryException):
+    """A SPARQL query failed local syntax validation before being sent."""
 
 
 UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
@@ -56,6 +61,7 @@ class SparqlQueryEngine:
         single entry point so cross-cutting concerns (e.g. validation)
         live in one place rather than in every engine.
         """
+        validate_query_syntax(query)
         return self._do_select(query)
 
     def _do_select(self, query):
@@ -99,8 +105,33 @@ STANDARD_PREFIXES = [
 
 
 def add_prefixes_to_query(query):
-    """Add standard Wikidata prefixes to a SPARQL query for QLever."""
+    """Prepend standard Wikidata prefixes so QLever can resolve them.
+
+    Also reused by validate_query_syntax so the local parser resolves
+    the same prefixes WDQS provides implicitly.
+    """
     return "\n".join(STANDARD_PREFIXES) + "\n" + query
+
+
+def validate_query_syntax(query):
+    """Check SPARQL syntax locally before sending to an endpoint.
+
+    Prepends the standard prefixes so queries relying on them (as WDQS
+    does implicitly) don't fail on undefined prefixes. Raises
+    QuerySyntaxException on a parse error. Note: rdflib parses standard
+    SPARQL 1.1, so Blazegraph-specific extensions (e.g. hint:) are
+    rejected — acceptable as WDQS moves off Blazegraph.
+    """
+    try:
+        prepareQuery(add_prefixes_to_query(query))
+    except Exception as e:
+        raise QuerySyntaxException(
+            "The SPARQL query could not be parsed. It may contain a syntax "
+            "error, or use Blazegraph-specific extensions (such as hint:) "
+            "that WDQS is phasing out and are no longer supported. "
+            f"Parser error: {e}",
+            query=query,
+        ) from e
 
 
 class QLeverSparqlQueryEngine(SparqlQueryEngine):

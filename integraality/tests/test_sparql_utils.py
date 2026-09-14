@@ -10,6 +10,7 @@ import requests
 from ..sparql_utils import (
     QLeverSparqlQueryEngine,
     QueryException,
+    QuerySyntaxException,
     SparqlEngineBuilder,
     UnsupportedSparqlEngineException,
     WdqsSparqlQueryEngine,
@@ -17,6 +18,7 @@ from ..sparql_utils import (
     expand_select_vars,
     get_label_for_variable,
     get_labels_for_select_vars,
+    validate_query_syntax,
 )
 
 
@@ -51,6 +53,17 @@ class WdqsSparqlQueryEngineTest(unittest.TestCase):
             str(cm.exception),
         )
         self.assertEqual(cm.exception.query, "SELECT * WHERE { ?s ?p ?o }")
+
+    @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
+    def test_select_invalid_syntax_not_sent(self, mock_sparql_query_class):
+        mock_sq = Mock()
+        mock_sparql_query_class.return_value = mock_sq
+
+        engine = WdqsSparqlQueryEngine()
+        with self.assertRaises(QuerySyntaxException):
+            engine.select("SELECT X")
+
+        mock_sq.select.assert_not_called()
 
 
 class QLeverSparqlQueryEngineTest(unittest.TestCase):
@@ -97,6 +110,13 @@ class QLeverSparqlQueryEngineTest(unittest.TestCase):
 
         self.assertIn("QLever is not available", str(cm.exception))
         self.assertIsNotNone(cm.exception.query)
+
+    @patch("requests.get")
+    def test_select_invalid_syntax_not_sent(self, mock_get):
+        with self.assertRaises(QuerySyntaxException):
+            self.engine.select("SELECT X")
+
+        mock_get.assert_not_called()
 
     def test_transform_response_valid(self):
         data = {
@@ -174,6 +194,48 @@ class AddPrefixesToQueryTest(unittest.TestCase):
         self.assertIn("PREFIX wdt: <http://www.wikidata.org/prop/direct/>", result)
         self.assertIn(query, result)
         self.assertTrue(result.endswith(query))
+
+
+class ValidateQuerySyntaxTest(unittest.TestCase):
+    def test_valid_simple_query(self):
+        validate_query_syntax("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+    def test_valid_aggregate_query(self):
+        validate_query_syntax(
+            "SELECT ?g (COUNT(DISTINCT ?e) as ?count) WHERE { ?e wdt:P1 ?g } "
+            "GROUP BY ?g HAVING (?count >= 20)"
+        )
+
+    def test_valid_query_with_minus(self):
+        validate_query_syntax(
+            "SELECT (COUNT(*) as ?count) WHERE { "
+            "?entity wdt:P31 wd:Q5 . MINUS { ?entity wdt:P1 _:b28. } }"
+        )
+
+    def test_generated_label_fragment_is_parseable(self):
+        # Feed the actual generator output through the validator so this
+        # breaks if get_label_for_variable produces invalid SPARQL.
+        lines = get_label_for_variable("?entity", "?entityLabel")
+        fragment = "\n".join(
+            line.replace("{{", "{").replace("}}", "}") for line in lines
+        )
+        query = f"SELECT ?entity ?entityLabel WHERE {{ ?entity wdt:P31 wd:Q5 .\n{fragment}\n}}"
+        validate_query_syntax(query)
+
+    def test_invalid_query_raises(self):
+        with self.assertRaises(QuerySyntaxException) as cm:
+            validate_query_syntax("SELECT X")
+        self.assertIn("syntax error", str(cm.exception))
+        self.assertEqual(cm.exception.query, "SELECT X")
+
+    def test_blazegraph_extension_rejected(self):
+        # rdflib parses standard SPARQL 1.1; Blazegraph hint: is rejected.
+        # This is intended (fail-closed) as WDQS moves off Blazegraph.
+        with self.assertRaises(QuerySyntaxException):
+            validate_query_syntax(
+                "SELECT ?e WHERE { ?e wdt:P31 wd:Q5 . "
+                'hint:Query hint:optimizer "None". }'
+            )
 
 
 class SparqlEngineBuilderTest(unittest.TestCase):

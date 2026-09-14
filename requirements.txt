@@ -96,9 +96,17 @@ pymysql==1.2.0 \
     # via
     #   integraality
     #   toolforge
+pyparsing==3.3.2 \
+    --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
+    --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
+    # via rdflib
 pywikibot==11.2.0 \
     --hash=sha256:464e13034499b719ebc7fd5c19baea667e34092565d601812171d51652550b0a \
     --hash=sha256:68296eb7273dad44ad42e09b56c7538a0728057a8fc444e1b41cb4dabd800f46
+    # via integraality
+rdflib==7.6.0 \
+    --hash=sha256:30c0a3ebf4c0e09215f066be7246794b6492e054e782d7ac2a34c9f70a15e0dd \
+    --hash=sha256:6c831288d5e4a5a7ece85d0ccde9877d512a3d0f02d7c06455d00d6d0ea379df
     # via integraality
 redis==7.2.1 \
     --hash=sha256:49e231fbc8df2001436ae5252b3f0f3dc930430239bfeb6da4c7ee92b16e5d33 \

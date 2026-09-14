@@ -167,6 +167,7 @@ dependencies = [
     { name = "mwparserfromhell" },
     { name = "pymysql" },
     { name = "pywikibot" },
+    { name = "rdflib" },
     { name = "redis" },
     { name = "toolforge" },
 ]
@@ -184,6 +185,7 @@ requires-dist = [
     { name = "mwparserfromhell" },
     { name = "pymysql" },
     { name = "pywikibot" },
+    { name = "rdflib", specifier = ">=7,<8" },
     { name = "redis" },
     { name = "toolforge" },
 ]
@@ -287,6 +289,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyparsing"
+version = "3.3.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f3/91/9c6ee907786a473bf81c5f53cf703ba0957b23ab84c264080fb5a450416f/pyparsing-3.3.2.tar.gz", hash = "sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc", size = 6851574, upload-time = "2026-01-21T03:57:59.36Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/bd/c038d7cc38edc1aa5bf91ab8068b63d4308c66c4c8bb3cbba7dfbc049f9c/pyparsing-3.3.2-py3-none-any.whl", hash = "sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d", size = 122781, upload-time = "2026-01-21T03:57:55.912Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "9.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -328,6 +339,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/91/37/179de0d8c32f780e88fbd01fdcf27a1a379ac64459cedb6a490534f2fa88/pywikibot-11.2.0.tar.gz", hash = "sha256:464e13034499b719ebc7fd5c19baea667e34092565d601812171d51652550b0a", size = 636478, upload-time = "2026-04-18T15:14:30.81Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/58/40/5bfca5147571db90695dc4a173c3714344d53a4827f73cb8e3b8c3312154/pywikibot-11.2.0-py3-none-any.whl", hash = "sha256:68296eb7273dad44ad42e09b56c7538a0728057a8fc444e1b41cb4dabd800f46", size = 740709, upload-time = "2026-04-18T15:14:28.454Z" },
+]
+
+[[package]]
+name = "rdflib"
+version = "7.6.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyparsing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/98/f5/18bb77b7af9526add0c727a3b2048959847dc5fb030913e2918bf384fec3/rdflib-7.6.0.tar.gz", hash = "sha256:6c831288d5e4a5a7ece85d0ccde9877d512a3d0f02d7c06455d00d6d0ea379df", size = 4943826, upload-time = "2026-02-13T07:15:55.938Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/10/c2/6604a71269e0c1bd75656d5a001432d16f2cc5b8c057140ec797155c295e/rdflib-7.6.0-py3-none-any.whl", hash = "sha256:30c0a3ebf4c0e09215f066be7246794b6492e054e782d7ac2a34c9f70a15e0dd", size = 615416, upload-time = "2026-02-13T07:15:46.487Z" },
 ]
 
 [[package]]

@@ -1,0 +1,16 @@
+integraality/error_category.py
+  h_bc010f8da910ff 12-14
+integraality/sse.py
+  h_bc010f8da910ff 10-11,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "81b7737dd5acfcbd66fef500db62c3211f2061d7",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

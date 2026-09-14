@@ -7,10 +7,13 @@ from unittest.mock import Mock, patch
 import pywikibot
 import requests
 
+from ..error_category import ErrorCategory
 from ..sparql_utils import (
+    BackendUnavailableException,
     QLeverSparqlQueryEngine,
     QueryException,
     QuerySyntaxException,
+    QueryTimeoutException,
     SparqlEngineBuilder,
     UnsupportedSparqlEngineException,
     WdqsSparqlQueryEngine,
@@ -20,6 +23,24 @@ from ..sparql_utils import (
     get_labels_for_select_vars,
     validate_query_syntax,
 )
+
+
+class QueryExceptionCategoryTest(unittest.TestCase):
+    """Each QueryException subtype carries its honest cause category."""
+
+    def test_base_is_neutral_error(self):
+        self.assertEqual(QueryException.error_category, ErrorCategory.ERROR)
+
+    def test_syntax_is_query(self):
+        self.assertEqual(QuerySyntaxException.error_category, ErrorCategory.QUERY)
+
+    def test_timeout_is_timeout(self):
+        self.assertEqual(QueryTimeoutException.error_category, ErrorCategory.TIMEOUT)
+
+    def test_backend_unavailable_is_transient(self):
+        self.assertEqual(
+            BackendUnavailableException.error_category, ErrorCategory.TRANSIENT
+        )
 
 
 class WdqsSparqlQueryEngineTest(unittest.TestCase):
@@ -45,9 +66,10 @@ class WdqsSparqlQueryEngineTest(unittest.TestCase):
         mock_sparql_query_class.return_value = mock_sq
 
         engine = WdqsSparqlQueryEngine()
-        with self.assertRaises(QueryException) as cm:
+        with self.assertRaises(QueryTimeoutException) as cm:
             engine.select("SELECT * WHERE { ?s ?p ?o }")
 
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TIMEOUT)
         self.assertIn(
             "The Wikidata Query Service timed out when running a SPARQL query",
             str(cm.exception),
@@ -95,9 +117,10 @@ class QLeverSparqlQueryEngineTest(unittest.TestCase):
     def test_select_timeout_error(self, mock_get):
         mock_get.side_effect = requests.exceptions.Timeout("Request timed out")
 
-        with self.assertRaises(QueryException) as cm:
+        with self.assertRaises(QueryTimeoutException) as cm:
             self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
 
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TIMEOUT)
         self.assertIn("QLever timed out", str(cm.exception))
         self.assertIsNotNone(cm.exception.query)
 
@@ -105,11 +128,22 @@ class QLeverSparqlQueryEngineTest(unittest.TestCase):
     def test_select_503(self, mock_get):
         mock_get.side_effect = requests.exceptions.HTTPError()
 
-        with self.assertRaises(QueryException) as cm:
+        with self.assertRaises(BackendUnavailableException) as cm:
             self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
 
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TRANSIENT)
         self.assertIn("QLever is not available", str(cm.exception))
         self.assertIsNotNone(cm.exception.query)
+
+    @patch("requests.get")
+    def test_select_connection_error_is_transient(self, mock_get):
+        mock_get.side_effect = requests.exceptions.ConnectionError("unreachable")
+
+        with self.assertRaises(BackendUnavailableException) as cm:
+            self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TRANSIENT)
+        self.assertIn("QLever is not available", str(cm.exception))
 
     @patch("requests.get")
     def test_select_invalid_syntax_not_sent(self, mock_get):

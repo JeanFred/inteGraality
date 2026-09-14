@@ -6,7 +6,11 @@ import collections
 import logging
 
 from .column import ColumnMaker
-from .grouping import GroupingConfiguration, ItemGroupingType
+from .grouping import (
+    EmptyGroupingException,
+    GroupingConfiguration,
+    ItemGroupingType,
+)
 from .line import (
     NoGroupGrouping,
     TotalsGrouping,
@@ -206,15 +210,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return result
 
     def _get_count_from_sparql(self, query):
-        try:
-            queryresult = self.sparql_query_engine.select(query)
-            if not queryresult:
-                raise QueryException(
-                    "No result when running a SPARQL query.", query=query
-                )
-
-        except QueryException:
-            raise
+        queryresult = self.sparql_query_engine.select(query)
+        if not queryresult:
+            # A well-formed COUNT returns a row with 0; no row at all is
+            # unexpected, so the neutral ERROR category (base QueryException).
+            raise QueryException("No result when running a SPARQL query.", query=query)
 
         return int(queryresult[0].get("count"))
 
@@ -340,8 +340,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         try:
             groupings = self.get_grouping_information()
-        except QueryException as e:
+        except EmptyGroupingException as e:
             logger.error("No groupings found.")
+            raise e
+        except QueryException as e:
+            logger.error("Could not retrieve groupings: %s", e)
             raise e
 
         logger.info(

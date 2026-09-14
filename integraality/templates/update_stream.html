@@ -149,18 +149,29 @@
 
     function showError(data) {
         result.style.display = "block";
-        var category = data.error_category || "bug";
+        var category = data.error_category || "error";
 
         if (category === "query") {
             result.className = "alert alert-danger";
             var query = data.query || "";
             result.innerHTML =
-                "<p>The following SPARQL query timed out or returned no result:</p>" +
+                "<p>The following SPARQL query could not be run (it may contain a syntax error):</p>" +
                 "<pre><code>" + escapeHtml(query) + "</code></pre>" +
                 "<p>" +
                 "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +
                 "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">Try it in QLever</a>" +
                 "</p>";
+        } else if (category === "timeout") {
+            result.className = "alert alert-warning";
+            var tquery = data.query || "";
+            result.innerHTML =
+                "<p>The query timed out. This can be a temporary slow moment, a query that is too expensive, or a subtle mistake making it churn (e.g. a mistyped variable). Try it directly to investigate:</p>" +
+                "<pre><code>" + escapeHtml(tquery) + "</code></pre>" +
+                "<p>" +
+                "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(tquery) + "\">Try it in Wikidata Query Service</a> " +
+                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(tquery)) + "\">Try it in QLever</a>" +
+                "</p>" +
+                retryButton();
         } else if (category === "transient") {
             result.className = "alert alert-warning";
             result.innerHTML =

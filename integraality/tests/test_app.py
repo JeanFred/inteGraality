@@ -7,7 +7,7 @@ from unittest.mock import patch
 from .. import column
 from ..app import app
 from ..pages_processor import ProcessingException, TransientServerException
-from ..sparql_utils import QueryException
+from ..sparql_utils import QueryException, QueryTimeoutException
 
 
 class AppTests(unittest.TestCase):
@@ -393,7 +393,7 @@ class UpdateTests(PagesProcessorTests):
 
     def test_update_stream_error_query_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = (
-            QueryException("Timeout", "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
+            QueryTimeoutException("Timeout", "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
         )
         response = self.app.get(
             "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
@@ -401,8 +401,8 @@ class UpdateTests(PagesProcessorTests):
         events = self._parse_sse_events(response)
         error_event = events[-1]
         self.assertEqual(error_event["status"], "error")
-        self.assertEqual(error_event["error_type"], "QueryException")
-        self.assertEqual(error_event["error_category"], "query")
+        self.assertEqual(error_event["error_type"], "QueryTimeoutException")
+        self.assertEqual(error_event["error_category"], "timeout")
         self.assertEqual(error_event["query"], "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
         self.assertIn("Timeout", error_event["message"])
 

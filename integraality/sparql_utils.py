@@ -11,7 +11,9 @@ from .error_category import ErrorCategory
 
 
 class QueryException(Exception):
-    error_category = ErrorCategory.QUERY
+    # Neutral default: a query failed for a reason we haven't classified.
+    # Subclasses below assert a specific, honest cause.
+    error_category = ErrorCategory.ERROR
 
     def __init__(self, message, query):
         super().__init__(message)
@@ -19,7 +21,27 @@ class QueryException(Exception):
 
 
 class QuerySyntaxException(QueryException):
-    """A SPARQL query failed local syntax validation before being sent."""
+    """A SPARQL query failed local syntax validation before being sent.
+
+    The user's query is malformed -- they must fix it."""
+
+    error_category = ErrorCategory.QUERY
+
+
+class QueryTimeoutException(QueryException):
+    """An endpoint took too long. Could be a transient slow moment, a
+    genuinely too-expensive query, or a subtly broken one (e.g. an accidental
+    cartesian product) -- indistinguishable from the timeout alone, so its own
+    category rather than forced into query/transient."""
+
+    error_category = ErrorCategory.TIMEOUT
+
+
+class BackendUnavailableException(QueryException):
+    """The SPARQL endpoint was unreachable/erroring (not the user's query).
+    Retry later."""
+
+    error_category = ErrorCategory.TRANSIENT
 
 
 UNKNOWN_VALUE_PREFIX = "http://www.wikidata.org/.well-known/genid/"
@@ -81,7 +103,7 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
         try:
             return self.sq.select(query)
         except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
-            raise QueryException(
+            raise QueryTimeoutException(
                 "The Wikidata Query Service timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",
                 query=query,
@@ -157,17 +179,25 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
             return self._transform_response(data)
 
         except requests.exceptions.HTTPError as e:
-            raise QueryException(
+            raise BackendUnavailableException(
                 "QLever is not available, please try again later.",
                 query=query,
             ) from e
 
-        except (requests.exceptions.Timeout, requests.exceptions.RequestException):
-            raise QueryException(
+        except requests.exceptions.Timeout:
+            raise QueryTimeoutException(
                 "QLever timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",
                 query=query,
             )
+
+        except requests.exceptions.RequestException as e:
+            # Connection errors, DNS failures, etc. -- the backend is
+            # unreachable, not the user's query.
+            raise BackendUnavailableException(
+                "QLever is not available, please try again later.",
+                query=query,
+            ) from e
 
     def _transform_response(self, data):
         """Transform QLever response to expected format."""

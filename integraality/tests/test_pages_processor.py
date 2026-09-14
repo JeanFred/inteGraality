@@ -392,7 +392,7 @@ class TestRunRecording(ProcessortTest):
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_derives_category(self, mock_registry_cls):
-        from ..sparql_utils import QueryException
+        from ..sparql_utils import QueryTimeoutException
 
         registry = mock_registry_cls.return_value.__enter__.return_value
 
@@ -400,13 +400,13 @@ class TestRunRecording(ProcessortTest):
             self._dashboard_page(),
             trigger_source="WEB",
             elapsed_time=0.2,
-            exc=QueryException("timeout", query="SELECT ?x"),
+            exc=QueryTimeoutException("timeout", query="SELECT ?x"),
         )
 
         registry.record_run.assert_called_once()
         _page_meta, run = registry.record_run.call_args[0]
         self.assertEqual(run.status, "FAIL")
-        self.assertEqual(run.error_category, "query")
+        self.assertEqual(run.error_category, "timeout")
         self.assertIn("timeout", run.error_detail)
         self.assertIsNone(run.revision_id)
 

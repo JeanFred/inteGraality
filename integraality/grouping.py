@@ -5,13 +5,36 @@
 import collections
 import re
 
+from .error_category import ErrorCategory
 from .grouping_link import GroupingLinkMaker
 from .line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
-from .sparql_utils import UNKNOWN_VALUE_PREFIX, QueryException
+from .sparql_utils import UNKNOWN_VALUE_PREFIX
 
 
 class UnsupportedGroupingConfigurationException(Exception):
     pass
+
+
+class EmptyGroupingException(Exception):
+    """The grouping/predicate query ran fine but returned nothing.
+
+    In inteGraality a dashboard exists to group along a dimension, so no
+    groupings (or no values for the predicate) means the selector or grouping
+    predicate is misconfigured -- a config problem the user must fix, not a
+    query failure or a transient hiccup.
+
+    Deliberately standalone, not a ConfigException subclass: ConfigException is
+    a *static* fault (the config text itself is malformed, detectable without
+    querying), whereas this is *dynamic* -- the config parsed and the query ran,
+    but the live data came back empty. Same remedy (fix the selector/predicate),
+    hence the same CONFIG category, but a different nature, so a different
+    type."""
+
+    error_category = ErrorCategory.CONFIG
+
+    def __init__(self, message, query):
+        super().__init__(message)
+        self.query = query
 
 
 class AbstractGroupingType:
@@ -322,7 +345,7 @@ class GroupingConfiguration:
         )
         result = sparql_query_engine.select(query)
         if not result:
-            raise QueryException(
+            raise EmptyGroupingException(
                 f"No values found for predicate {self.predicate}, cannot detect grouping type.",
                 query=query,
             )
@@ -356,23 +379,19 @@ class GroupingConfiguration:
         query = self.get_grouping_information_query(selector_sparql)
         groupings = collections.OrderedDict()
 
-        try:
-            queryresult = sparql_query_engine.select(query)
+        # select() raises cause-specific exceptions (QueryTimeoutException,
+        # BackendUnavailableException, QuerySyntaxException) -- let them
+        # propagate with their true category rather than re-wrapping every
+        # failure as a WDQS timeout (which also mislabelled QLever errors).
+        queryresult = sparql_query_engine.select(query)
 
-            if not queryresult:
-                raise QueryException(
-                    "No result when querying groupings. "
-                    "Please investigate the 'all groupings' debug query in the dashboard header.",
-                    query=query,
-                )
-
-        except QueryException as e:
-            raise QueryException(
-                "The Wikidata Query Service timed out when fetching groupings. "
-                "You might be trying to do something too expensive. "
-                "Please investigate the 'all groupings' debug query in the dashboard header.",
+        if not queryresult:
+            raise EmptyGroupingException(
+                "No groupings found. This usually means the selector or "
+                "grouping predicate matches nothing -- please investigate the "
+                "'all groupings' debug query in the dashboard header.",
                 query=query,
-            ) from e
+            )
 
         unknown_value_count = 0
 

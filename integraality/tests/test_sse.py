@@ -56,10 +56,10 @@ class RunWithSSETest(unittest.TestCase):
         self.assertIn("traceback", error)
 
     def test_error_query_exception(self):
-        from ..sparql_utils import QueryException
+        from ..sparql_utils import QueryTimeoutException
 
         def func():
-            raise QueryException("Timeout", "SELECT ?x WHERE {}")
+            raise QueryTimeoutException("Timeout", "SELECT ?x WHERE {}")
 
         events = list(run_with_sse(func))
         parsed = [
@@ -68,8 +68,8 @@ class RunWithSSETest(unittest.TestCase):
             if e.startswith("data:")
         ]
         error = [e for e in parsed if e["status"] == "error"][0]
-        self.assertEqual(error["error_type"], "QueryException")
-        self.assertEqual(error["error_category"], "query")
+        self.assertEqual(error["error_type"], "QueryTimeoutException")
+        self.assertEqual(error["error_category"], "timeout")
         self.assertEqual(error["query"], "SELECT ?x WHERE {}")
         self.assertIn("Timeout", error["message"])
 

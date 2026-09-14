@@ -15,7 +15,7 @@ from .cache import RedisCache
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
 from .dashboard_registry import DashboardRegistry, RunResult
 from .error_category import ErrorCategory
-from .grouping import UnsupportedGroupingConfigurationException
+from .grouping import EmptyGroupingException, UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
@@ -323,6 +323,12 @@ class PagesProcessor:
                 logger.warning("No end template on page %s, skipping", page.title())
             except ConfigException:
                 logger.warning("Bad configuration on page %s, skipping", page.title())
+            except EmptyGroupingException:
+                logger.warning(
+                    "No groupings on page %s (selector/predicate matches nothing), "
+                    "skipping",
+                    page.title(),
+                )
             except QueryException:
                 logger.warning(
                     "A SPARQL query went wrong on page %s, skipping", page.title()

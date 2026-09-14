@@ -313,12 +313,14 @@ class TestDetectGroupingType(unittest.TestCase):
         self.assertIsInstance(result, grouping.ItemGroupingType)
 
     def test_empty_result_raises(self):
-        from ..sparql_utils import QueryException
+        from ..error_category import ErrorCategory
+        from ..grouping import EmptyGroupingException
 
         mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
         mock_engine.select.return_value = []
-        with self.assertRaises(QueryException):
+        with self.assertRaises(EmptyGroupingException) as cm:
             self._detect("wdt:P17", "wdt:P31 wd:Q5", mock_engine)
+        self.assertEqual(cm.exception.error_category, ErrorCategory.CONFIG)
 
     def test_query_failure_propagates(self):
         from ..sparql_utils import QueryException

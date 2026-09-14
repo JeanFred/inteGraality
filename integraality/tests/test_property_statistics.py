@@ -13,7 +13,12 @@ from ..column import (
     ReferenceColumn,
     SitelinkColumn,
 )
-from ..grouping import GroupingConfiguration, ItemGroupingType, YearGroupingType
+from ..grouping import (
+    EmptyGroupingException,
+    GroupingConfiguration,
+    ItemGroupingType,
+    YearGroupingType,
+)
 from ..grouping_link import LabelGroupingLink
 from ..line import (
     ItemGrouping,
@@ -2338,7 +2343,7 @@ SELECT ?grouping ?count WHERE {
 ORDER BY DESC(?count)
 LIMIT 1000
 """
-        with self.assertRaises(QueryException):
+        with self.assertRaises(EmptyGroupingException):
             self.stats.get_grouping_information()
         self.assert_query_called(query)
 

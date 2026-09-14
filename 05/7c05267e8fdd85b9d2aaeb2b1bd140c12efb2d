@@ -1,0 +1,18 @@
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 159
+integraality/tests/test_sparql_utils.py
+  h_bc010f8da910ff 263-265
+integraality/tests/test_sse.py
+  h_bc010f8da910ff 76-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "057c05267e8fdd85b9d2aaeb2b1bd140c12efb2d",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

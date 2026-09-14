@@ -82,23 +82,25 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
             )
 
 
+STANDARD_PREFIXES = [
+    "PREFIX wd: <http://www.wikidata.org/entity/>",
+    "PREFIX wdt: <http://www.wikidata.org/prop/direct/>",
+    "PREFIX p: <http://www.wikidata.org/prop/>",
+    "PREFIX ps: <http://www.wikidata.org/prop/statement/>",
+    "PREFIX pq: <http://www.wikidata.org/prop/qualifier/>",
+    "PREFIX pr: <http://www.wikidata.org/prop/reference/>",
+    "PREFIX prov: <http://www.w3.org/ns/prov#>",
+    "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
+    "PREFIX schema: <http://schema.org/>",
+    "PREFIX bd: <http://www.bigdata.com/rdf#>",
+    "PREFIX wikibase: <http://wikiba.se/ontology#>",
+    "PREFIX wdno: <http://www.wikidata.org/prop/novalue/>",
+]
+
+
 def add_prefixes_to_query(query):
     """Add standard Wikidata prefixes to a SPARQL query for QLever."""
-    prefixes = [
-        "PREFIX wd: <http://www.wikidata.org/entity/>",
-        "PREFIX wdt: <http://www.wikidata.org/prop/direct/>",
-        "PREFIX p: <http://www.wikidata.org/prop/>",
-        "PREFIX ps: <http://www.wikidata.org/prop/statement/>",
-        "PREFIX pq: <http://www.wikidata.org/prop/qualifier/>",
-        "PREFIX pr: <http://www.wikidata.org/prop/reference/>",
-        "PREFIX prov: <http://www.w3.org/ns/prov#>",
-        "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>",
-        "PREFIX schema: <http://schema.org/>",
-        "PREFIX bd: <http://www.bigdata.com/rdf#>",
-        "PREFIX wikibase: <http://wikiba.se/ontology#>",
-        "PREFIX wdno: <http://www.wikidata.org/prop/novalue/>",
-    ]
-    return "\n".join(prefixes) + "\n" + query
+    return "\n".join(STANDARD_PREFIXES) + "\n" + query
 
 
 class QLeverSparqlQueryEngine(SparqlQueryEngine):

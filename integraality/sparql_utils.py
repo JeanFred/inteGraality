@@ -49,7 +49,17 @@ class SparqlEngineBuilder:
 
 
 class SparqlQueryEngine:
-    pass
+    def select(self, query):
+        """Run a SPARQL SELECT query.
+
+        Template method: subclasses implement _do_select. Kept as a
+        single entry point so cross-cutting concerns (e.g. validation)
+        live in one place rather than in every engine.
+        """
+        return self._do_select(query)
+
+    def _do_select(self, query):
+        raise NotImplementedError
 
 
 class WdqsSparqlQueryEngine(SparqlQueryEngine):
@@ -61,7 +71,7 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
             entity_url="http://www.wikidata.org/entity/",
         )
 
-    def select(self, query):
+    def _do_select(self, query):
         try:
             return self.sq.select(query)
         except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
@@ -101,7 +111,7 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
     def ui_url(self):
         return self.endpoint.replace("/api/", "/") + "/"
 
-    def select(self, query):
+    def _do_select(self, query):
         try:
             query = add_prefixes_to_query(query)
 

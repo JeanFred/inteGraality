@@ -73,6 +73,26 @@ class RunWithSSETest(unittest.TestCase):
         self.assertEqual(error["query"], "SELECT ?x WHERE {}")
         self.assertIn("Timeout", error["message"])
 
+    def test_error_query_syntax_surfaces_parser_verdict(self):
+        """A syntax error is category 'query' and its message carries the
+        rdflib parser verdict, so the UI can show what is wrong."""
+        from ..sparql_utils import validate_query_syntax
+
+        def func():
+            validate_query_syntax("SELECT X")
+
+        events = list(run_with_sse(func))
+        parsed = [
+            json.loads(e.removeprefix("data: "))
+            for e in events
+            if e.startswith("data:")
+        ]
+        error = [e for e in parsed if e["status"] == "error"][0]
+        self.assertEqual(error["error_type"], "QuerySyntaxException")
+        self.assertEqual(error["error_category"], "query")
+        self.assertIn("Parser error:", error["message"])
+        self.assertEqual(error["query"], "SELECT X")
+
     def test_error_processing_exception(self):
         from ..pages_processor import ProcessingException
 

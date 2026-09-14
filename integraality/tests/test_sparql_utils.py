@@ -260,6 +260,9 @@ class ValidateQuerySyntaxTest(unittest.TestCase):
         with self.assertRaises(QuerySyntaxException) as cm:
             validate_query_syntax("SELECT X")
         self.assertIn("syntax error", str(cm.exception))
+        # The rdflib parser verdict is included so the UI can surface what is
+        # wrong, not just that something is.
+        self.assertIn("Parser error:", str(cm.exception))
         self.assertEqual(cm.exception.query, "SELECT X")
 
     def test_blazegraph_extension_rejected(self):

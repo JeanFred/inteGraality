@@ -156,6 +156,7 @@
             var query = data.query || "";
             result.innerHTML =
                 "<p>The following SPARQL query could not be run (it may contain a syntax error):</p>" +
+                "<p>" + escapeHtml(data.message) + "</p>" +
                 "<pre><code>" + escapeHtml(query) + "</code></pre>" +
                 "<p>" +
                 "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +

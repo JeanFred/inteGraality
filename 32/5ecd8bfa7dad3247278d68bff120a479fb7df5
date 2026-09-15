@@ -10,6 +10,8 @@ integraality/tests/test_property_statistics.py
   h_bc010f8da910ff 2927-2939
 integraality/tests/test_sse.py
   h_bc010f8da910ff 55
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 365
 ---
 {
   "schema_version": "authorship/3.0.0",

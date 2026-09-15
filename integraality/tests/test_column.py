@@ -42,6 +42,32 @@ class PropertyStatisticsTest(unittest.TestCase):
             property_threshold=10,
         )
 
+    def test_complete_queries_are_valid_sparql_11(self):
+        """Every complete query a column generates must be valid SPARQL 1.1.
+
+        Inherited by each column subclass (via self.column), so all column
+        types are covered without repetition. rdflib parses standard SPARQL
+        1.1, so a Blazegraph-ism or QLever-incompatible construct fails here --
+        guarding the dual-engine compatibility the codebase targets. Runs only
+        where a subclass defines self.column (the base sets only self.stats).
+        """
+        column = getattr(self, "column", None)
+        if column is None:
+            self.skipTest("base class defines no column")
+        from rdflib.plugins.sparql.processor import prepareQuery
+
+        from ..sparql_utils import STANDARD_PREFIXES
+
+        prefix = "\n".join(STANDARD_PREFIXES) + "\n"
+        for name in (
+            "get_totals_query",
+            "get_info_no_grouping_query",
+            "get_info_query",
+        ):
+            query = getattr(column, name)(self.stats)
+            with self.subTest(query=name):
+                prepareQuery(prefix + query)
+
 
 class TestPropertyColumn(PropertyStatisticsTest):
     def setUp(self):

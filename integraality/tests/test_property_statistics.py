@@ -60,6 +60,44 @@ class PropertyStatisticsTest(unittest.TestCase):
             property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
+        self._wrap_query_builders_with_sparql_11_check()
+
+    def _wrap_query_builders_with_sparql_11_check(self):
+        """Parse-check every positive/negative display query these tests build.
+
+        The 🔍 positive/negative queries are display-only (never executed by
+        the tool, so unlike the count queries they get no runtime
+        validate_query_syntax). Wrapping the builders here means every existing
+        and future variant asserted in these classes is also checked to be
+        valid SPARQL 1.1 -- guarding WDQS/QLever compatibility -- without
+        editing each test. rdflib parses standard 1.1; a Blazegraph-ism or
+        malformed output would fail to parse.
+        """
+        from rdflib.plugins.sparql.processor import prepareQuery
+
+        from ..sparql_utils import STANDARD_PREFIXES
+
+        prefix = "\n".join(STANDARD_PREFIXES) + "\n"
+
+        def wrap(method):
+            def wrapped(*args, **kwargs):
+                query = method(*args, **kwargs)
+                try:
+                    prepareQuery(prefix + query)
+                except Exception as e:
+                    raise AssertionError(
+                        f"Generated query is not valid SPARQL 1.1: {e}\n\n{query}"
+                    ) from e
+                return query
+
+            return wrapped
+
+        self.stats.get_query_for_items_for_property_positive = wrap(
+            self.stats.get_query_for_items_for_property_positive
+        )
+        self.stats.get_query_for_items_for_property_negative = wrap(
+            self.stats.get_query_for_items_for_property_negative
+        )
 
     def assert_query_called(self, query):
         self.mock_sparql_query.select.assert_called_once_with(query)

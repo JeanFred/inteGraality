@@ -266,8 +266,18 @@ class DashboardRegistry:
             page_metadata["root_page"],
         )
         dashboard_id = self._get_or_create_dashboard(page_pk)
-        sql = """\
-            INSERT INTO dashboard_runs
+        self._insert_run(dashboard_id, wiki_id, self._utc_now_str(), run)
+        self.conn.commit()
+
+    def _insert_run(self, dashboard_id, wiki_id, finished_at, run, ignore=False):
+        """Append one dashboard_runs row; return whether a row was inserted.
+
+        With ``ignore``, uses INSERT IGNORE so a duplicate ``revision_id`` is
+        skipped (rowcount 0) instead of raising.
+        """
+        verb = "INSERT IGNORE" if ignore else "INSERT"
+        sql = f"""\
+            {verb} INTO dashboard_runs
                 (dashboard_id, wiki_id, finished_at, duration_ms, status,
                  trigger_source, sparql_engine, error_category, error_detail,
                  revision_id, entity_total, grouping_count, column_count)
@@ -279,7 +289,7 @@ class DashboardRegistry:
                 (
                     dashboard_id,
                     wiki_id,
-                    self._utc_now_str(),
+                    finished_at,
                     run.duration_ms,
                     run.status,
                     run.trigger_source,
@@ -292,7 +302,43 @@ class DashboardRegistry:
                     run.column_count,
                 ),
             )
-        self.conn.commit()
+            return cur.rowcount > 0
+
+    def list_dashboards_for_backfill(self, site_hostname):
+        """Return this wiki's dashboards as (page_title, dashboard_id, wiki_id).
+
+        The runs backfiller's join set: page_title to query the action API, and
+        the resolved ids so it records via record_resolved_backfilled_run
+        without re-resolving per revision.
+        """
+        sql = """\
+            SELECT p.page_title AS page_title, d.id AS dashboard_id,
+                   w.id AS wiki_id
+            FROM dashboards AS d
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            WHERE w.hostname = %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (site_hostname,))
+            return [
+                (row["page_title"], row["dashboard_id"], row["wiki_id"])
+                for row in cur.fetchall()
+            ]
+
+    def record_resolved_backfilled_run(
+        self, dashboard_id, wiki_id, run: "RunResult", finished_at
+    ):
+        """Insert one historical run against already-resolved ids.
+
+        For the runs backfiller (ids come from list_dashboards_for_backfill, so
+        no get-or-create). Idempotent (INSERT IGNORE on uq_revision), requires
+        ``run.revision_id``, and does NOT commit — the backfiller commits per
+        dashboard. Returns whether a row was inserted.
+        """
+        if run.revision_id is None:
+            raise ValueError("record_resolved_backfilled_run requires run.revision_id")
+        return self._insert_run(dashboard_id, wiki_id, finished_at, run, ignore=True)
 
     def list_runs(self, site_hostname=None, limit=100):
         """Return recent runs across all dashboards, newest first (bounded by

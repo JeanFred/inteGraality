@@ -19,6 +19,9 @@ class TestDashboardRegistry(unittest.TestCase):
             return_value=self.mock_cursor
         )
         self.mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        # A real cursor always exposes an int rowcount; default it so INSERT
+        # helpers that read it (_insert_run) don't see a bare MagicMock.
+        self.mock_cursor.rowcount = 1
         self.registry = DashboardRegistry(conn=self.mock_conn)
 
     def test_record(self):
@@ -521,7 +524,7 @@ class TestDashboardRegistry(unittest.TestCase):
         sql, params = next(
             c[0]
             for c in self.mock_cursor.execute.call_args_list
-            if "INSERT INTO dashboard_runs" in c[0][0]
+            if "INTO dashboard_runs" in c[0][0]
         )
         cols = sql.split("(", 1)[1].split(")", 1)[0]
         names = [c.strip() for c in cols.replace("\n", " ").split(",")]
@@ -577,6 +580,91 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["status"], "FAIL")
         self.assertEqual(row["error_category"], "query")
         self.assertIsNone(row["revision_id"])  # NULL on failure
+
+    def test_list_dashboards_for_backfill_returns_title_and_ids(self):
+        """Returns (page_title, dashboard_id, wiki_id) rows for the API
+        backfiller: title to query the API, ids for the resolved insert."""
+        self.mock_cursor.fetchall.return_value = [
+            {"page_title": "Wikidata:A", "dashboard_id": 3, "wiki_id": 7},
+            {"page_title": "Wikidata:B", "dashboard_id": 4, "wiki_id": 7},
+        ]
+
+        result = self.registry.list_dashboards_for_backfill("www.wikidata.org")
+
+        self.assertEqual(result, [("Wikidata:A", 3, 7), ("Wikidata:B", 4, 7)])
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("p.page_title", sql)
+        self.assertIn("w.hostname = %s", sql)
+        self.assertEqual(params, ("www.wikidata.org",))
+
+    def test_record_resolved_backfilled_run_inserts_ignore_no_commit(self):
+        """Inserts against resolved ids via INSERT IGNORE; does NOT commit
+        (the backfiller commits per dashboard)."""
+        self.mock_cursor.rowcount = 1
+
+        inserted = self.registry.record_resolved_backfilled_run(
+            3,
+            7,
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=102000,
+                sparql_engine="QLever",
+                revision_id=999,
+                entity_total=None,
+                grouping_count=None,
+                column_count=None,
+            ),
+            "2021-03-04 05:06:07",
+        )
+
+        self.assertTrue(inserted)
+        sql, _ = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "INTO dashboard_runs" in c[0][0]
+        )
+        self.assertIn("INSERT IGNORE INTO dashboard_runs", sql)
+        row = self._run_insert_by_column()
+        self.assertEqual(row["dashboard_id"], 3)
+        self.assertEqual(row["wiki_id"], 7)
+        self.assertEqual(row["finished_at"], "2021-03-04 05:06:07")
+        self.assertEqual(row["revision_id"], 999)
+        self.mock_conn.commit.assert_not_called()
+
+    def test_record_resolved_backfilled_run_returns_false_on_duplicate(self):
+        self.mock_cursor.rowcount = 0  # INSERT IGNORE skipped the duplicate
+        inserted = self.registry.record_resolved_backfilled_run(
+            3,
+            7,
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=None,
+                sparql_engine="QLever",
+                revision_id=999,
+                entity_total=None,
+                grouping_count=None,
+                column_count=None,
+            ),
+            "2021-03-04 05:06:07",
+        )
+        self.assertFalse(inserted)
+
+    def test_record_resolved_backfilled_run_requires_revision_id(self):
+        with self.assertRaises(ValueError):
+            self.registry.record_resolved_backfilled_run(
+                3,
+                7,
+                RunResult.ok(
+                    trigger_source="CRON",
+                    duration_ms=None,
+                    sparql_engine="QLever",
+                    revision_id=None,
+                    entity_total=None,
+                    grouping_count=None,
+                    column_count=None,
+                ),
+                "2021-03-04 05:06:07",
+            )
 
     def test_list_runs_orders_newest_first_and_limits(self):
         self.mock_cursor.fetchall.return_value = [

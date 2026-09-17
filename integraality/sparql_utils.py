@@ -101,13 +101,23 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
 
     def _do_select(self, query):
         try:
-            return self.sq.select(query)
+            result = self.sq.select(query)
         except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
             raise QueryTimeoutException(
                 "The Wikidata Query Service timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",
                 query=query,
             )
+
+        if result is None:
+            # None (not []) means a malformed/error body from WDQS; treat as transient.
+            raise BackendUnavailableException(
+                "The Wikidata Query Service returned no result "
+                "(it may be overloaded or timing out); please try again later.",
+                query=query,
+            )
+
+        return result
 
 
 STANDARD_PREFIXES = [

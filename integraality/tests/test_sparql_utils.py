@@ -77,6 +77,38 @@ class WdqsSparqlQueryEngineTest(unittest.TestCase):
         self.assertEqual(cm.exception.query, "SELECT * WHERE { ?s ?p ?o }")
 
     @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
+    def test_select_none_result_is_transient(self, mock_sparql_query_class):
+        # None (not []) means a malformed/error body -> transient failure.
+        mock_sq = Mock()
+        mock_sq.select.return_value = None
+        mock_sparql_query_class.return_value = mock_sq
+
+        engine = WdqsSparqlQueryEngine()
+        with self.assertRaises(BackendUnavailableException) as cm:
+            engine.select("SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o }")
+
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TRANSIENT)
+        self.assertIn(
+            "The Wikidata Query Service returned no result",
+            str(cm.exception),
+        )
+        self.assertEqual(
+            cm.exception.query, "SELECT (COUNT(*) as ?count) WHERE { ?s ?p ?o }"
+        )
+
+    @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
+    def test_select_empty_list_passes_through(self, mock_sparql_query_class):
+        # A successful empty query returns [] (not None) and must pass through.
+        mock_sq = Mock()
+        mock_sq.select.return_value = []
+        mock_sparql_query_class.return_value = mock_sq
+
+        engine = WdqsSparqlQueryEngine()
+        result = engine.select("SELECT ?grouping WHERE { ?s ?p ?o } GROUP BY ?grouping")
+
+        self.assertEqual(result, [])
+
+    @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
     def test_select_invalid_syntax_not_sent(self, mock_sparql_query_class):
         mock_sq = Mock()
         mock_sparql_query_class.return_value = mock_sq

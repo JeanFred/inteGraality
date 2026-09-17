@@ -1,0 +1,14 @@
+integraality/sparql_utils.py
+  h_bc010f8da910ff 85-100,103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0e0b54042f5c860597646b34204a7c37c4a8e0d7",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

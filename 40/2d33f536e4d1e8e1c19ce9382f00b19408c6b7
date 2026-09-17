@@ -1,0 +1,59 @@
+integraality/page_saving.py
+  h_bc010f8da910ff 19-21,32,34-41
+integraality/tests/test_page_saving.py
+  h_bc010f8da910ff 40-45,51-61
+integraality/error_category.py
+  h_bc010f8da910ff 10,13-15
+integraality/sse.py
+  h_bc010f8da910ff 10-11,18
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 16-21,63-100,2384,2970-2982,2981-2982
+  h_bc010f8da910ff 2970-2980
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 343-394,395,396-402,403,404-408,409,410-462
+  h_bc010f8da910ff 463-498
+integraality/pages_processor.py
+  h_bc010f8da910ff 16,18,138,140-153,140-154,155-166,156-158,159-177,169-176,178-229,179,185,188-235,326-331,357
+  h_bc010f8da910ff 138,154,177,230-235,357
+integraality/tests/test_sse.py
+  h_bc010f8da910ff 55,59,62,71-72,76-95
+integraality/property_statistics.py
+  h_bc010f8da910ff 9-13,213-217,343,346-348,390-398
+integraality/tests/test_app.py
+  h_bc010f8da910ff 10,114-125,396,404-405,448
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 390-391,428,444-447,449-456,458
+integraality/templates/_browse_results.html
+  h_bc010f8da910ff 39-40
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 19,23-28
+integraality/sparql_utils.py
+  h_bc010f8da910ff 8,14-16,23,24-44,45-46,79-85,86,87-90,102,106,113-128,130-134,135,138-150,151-153,154-158,169,182,187-188,194-201
+requirements.txt
+  h_bc010f8da910ff 99-102,107-110
+integraality/tests/test_sparql_utils.py
+  h_bc010f8da910ff 10,12,15,16,24,28-45,69,72,79-89,120,123,131,134,138-147,148-154,233-262,263-265,266-277
+pyproject.toml
+  h_bc010f8da910ff 14
+uv.lock
+  h_bc010f8da910ff 170,188,291-299,344-355
+integraality/grouping.py
+  h_bc010f8da910ff 8,11,18-39,348,382-392,394
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 152,158,159,165-175
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 316-317,321,323
+integraality/tests/test_column.py
+  h_bc010f8da910ff 45-70
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "402d33f536e4d1e8e1c19ce9382f00b19408c6b7",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

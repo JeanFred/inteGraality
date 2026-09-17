@@ -222,6 +222,14 @@ class PagesProcessor:
     def _record_run_fail(self, page, trigger_source, elapsed_time, exc):
         """Record a failed run. Best-effort: never mask the original error."""
         category = getattr(exc, "error_category", None)
+        # Full traceback here (both WEB and CRON reach this) -- the DB only keeps
+        # a truncated one-liner.
+        logger.exception(
+            "Run failed for %s [%s]: %s",
+            page.title(),
+            category.value if category else ErrorCategory.ERROR.value,
+            exc,
+        )
         run = RunResult.fail(
             error_category=category.value if category else ErrorCategory.ERROR.value,
             trigger_source=trigger_source,

@@ -411,6 +411,25 @@ class TestRunRecording(ProcessortTest):
         self.assertIsNone(run.revision_id)
 
     @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_fail_logs_traceback(self, mock_registry_cls):
+        # Failures must leave a stack trace in the log, not just the DB one-liner.
+        with self.assertLogs("integraality.update", level="ERROR") as cm:
+            try:
+                raise ValueError("boom")
+            except ValueError as exc:
+                self.processor._record_run_fail(
+                    self._dashboard_page(),
+                    trigger_source="WEB",
+                    elapsed_time=0.0,
+                    exc=exc,
+                )
+
+        joined = "\n".join(cm.output)
+        self.assertIn("Run failed for Wikidata:Stats", joined)
+        self.assertIn("Traceback (most recent call last)", joined)
+        self.assertIn("ValueError: boom", joined)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_unknown_exception_is_bug(self, mock_registry_cls):
         registry = mock_registry_cls.return_value.__enter__.return_value
 

@@ -12,6 +12,11 @@ _.file = ".env"
 description = "Run tests"
 run = "uv run pytest"
 
+[tasks.test-functional-sparql]
+description = "Run functional SPARQL tests against live endpoints, e.g. mise run test-functional-sparql qlever (default: both)"
+usage = 'arg "[engine]" help="Endpoint filter passed to pytest -k" default="qlever or wdqs"'
+run = 'uv run pytest integraality/tests/test_sparql_functional.py -m functional -k "${usage_engine}" -s -q --tb=line'
+
 [tasks.lint]
 description = "Run all pre-commit hooks"
 run = "pre-commit run --all-files"

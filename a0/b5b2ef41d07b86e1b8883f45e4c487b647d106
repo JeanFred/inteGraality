@@ -1,0 +1,14 @@
+.mise.toml
+  h_bc010f8da910ff 34-38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a0b5b2ef41d07b86e1b8883f45e4c487b647d106",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

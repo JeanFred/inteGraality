@@ -1,0 +1,16 @@
+.mise.toml
+  h_bc010f8da910ff 15-19
+integraality/runs_backfiller.py
+  h_bc010f8da910ff 77-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "870c834f5c38cc332338ea1ffd3049fbd0045447",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

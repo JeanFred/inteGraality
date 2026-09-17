@@ -1,0 +1,36 @@
+integraality/error_category.py
+  h_bc010f8da910ff 10
+integraality/grouping.py
+  h_bc010f8da910ff 8,11,18-39,348,382-392,394
+integraality/pages_processor.py
+  h_bc010f8da910ff 18,326-331
+integraality/property_statistics.py
+  h_bc010f8da910ff 9-13,213-217,343,346-348
+integraality/sparql_utils.py
+  h_bc010f8da910ff 14-16,24-44,106,182,187-188,194-201
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 152,158,164-174
+integraality/tests/test_app.py
+  h_bc010f8da910ff 10,396,404-405
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 316-317,321,323
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 395,403,409
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 16-21,2346
+integraality/tests/test_sparql_utils.py
+  h_bc010f8da910ff 10,12,16,28-45,69,72,120,123,131,134,138-147
+integraality/tests/test_sse.py
+  h_bc010f8da910ff 59,62,71-72
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "831d09fba6d2d8741595ae0314d77fbaac0bdd9b",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

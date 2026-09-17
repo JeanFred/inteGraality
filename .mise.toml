@@ -31,3 +31,8 @@ run = "docker compose exec -T db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" -e \"
 [tasks.connect-db]
 description = "Open an interactive MariaDB shell on the local database"
 run = "docker compose exec -it db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" \"${DB_NAME}\""
+
+[tasks.query-db]
+description = "Run a SQL query against the local database, e.g. mise run query-db 'SELECT * FROM pages'"
+usage = 'arg "<query>" help="SQL query to run"'
+run = 'docker compose exec -T db mariadb -u"$DB_USER" -p"$DB_PASSWORD" "${DB_NAME}" -e "${usage_query?}"'

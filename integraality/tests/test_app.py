@@ -472,7 +472,7 @@ class UpdateTests(PagesProcessorTests):
         )
         message = "<p>Something went wrong when updating page {page}. Please check your configuration.</p>".format(
             page=self.linked_page
-        )  # noqa
+        )
         self.assertErrorPage(response, message, expected_status=422)
 
     def test_update_error_unknown_exception(self):
@@ -571,7 +571,7 @@ class QueriesTests(PagesProcessorTests):
         }
 
     def test_queries_success(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_P1)
         )
@@ -582,7 +582,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "P1", "Q2"
         )
@@ -605,7 +605,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(expected_qlever, content)
 
     def test_queries_success_no_grouping(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_P1)
         )
@@ -616,7 +616,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "P1", "None"
         )
@@ -639,7 +639,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(expected_qlever, content)
 
     def test_queries_success_labels(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_Lbr)
         )
@@ -650,7 +650,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "Lbr", "Q2"
         )
@@ -673,7 +673,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(expected_qlever, content)
 
     def test_queries_success_descriptions(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_Dbr)
         )
@@ -684,7 +684,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "Dbr", "Q2"
         )
@@ -707,7 +707,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(expected_qlever, content)
 
     def test_queries_success_totals(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_P1)
         )
@@ -718,7 +718,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "P1", ""
         )
@@ -749,7 +749,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         message = "<p>Something went wrong when generating queries from page {page}.</p>".format(
             page=self.linked_page
         )
@@ -764,10 +764,10 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         message = "<p>Something catastrophic happened when generating queries from page {page}.</p>".format(
             page=self.linked_page
-        )  # noqa
+        )
         self.assertErrorPage(response, message, expected_status=500)
 
     def test_queries_error_transient_exception(self):
@@ -787,7 +787,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(message, contents)
 
     def test_queries_success_unknown_value_grouping(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(self.column_P1)
         )
@@ -798,7 +798,7 @@ class QueriesTests(PagesProcessorTests):
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
-        )  # noqa
+        )
         self.mock_property_statistics.get_queries_for_column.assert_called_once_with(
             "P1", "UNKNOWN_VALUE"
         )
@@ -821,7 +821,7 @@ class QueriesTests(PagesProcessorTests):
         self.assertPresent(expected_qlever, content)
 
     def test_queries_json_format(self):
-        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
         self.mock_property_statistics.get_queries_for_column.return_value = (
             self._make_query_data(
                 self.column_P1, positive="SELECT ?x", negative="SELECT ?y"

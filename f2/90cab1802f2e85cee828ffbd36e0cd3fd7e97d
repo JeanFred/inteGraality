@@ -1,0 +1,28 @@
+integraality/cache.py
+  h_bc010f8da910ff 16
+integraality/column.py
+  h_bc010f8da910ff 599,613
+integraality/config_assembler.py
+  h_bc010f8da910ff 55
+integraality/line.py
+  h_bc010f8da910ff 44,167
+integraality/page_saving.py
+  h_bc010f8da910ff 25,47,54,70
+integraality/pages_processor.py
+  h_bc010f8da910ff 128,138,281
+integraality/tests/test_app.py
+  h_bc010f8da910ff 74-76,279-281,336-337,362,371,387,400,415,429,443,455,461,469,475,481,487,495,514,516,522,577,610,643,676,709,739,745,751,757,765,770,779,814,837,848,859
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 110-111,115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f290cab1802f2e85cee828ffbd36e0cd3fd7e97d",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

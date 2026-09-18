@@ -8,6 +8,8 @@ import pywikibot
 
 from .page_saving import save_to_wiki_or_local
 
+logger = logging.getLogger("integraality.update")
+
 
 class _NonLocalPageError(Exception):
     pass
@@ -30,7 +32,7 @@ class GroupingPageCreator:
             try:
                 self._create_page_if_missing(grouping)
             except (pywikibot.exceptions.SiteDefinitionError, _NonLocalPageError):
-                logging.warning(
+                logger.warning(
                     f"Cannot resolve {grouping.grouping_link} as a local page, "
                     "stopping page creation"
                 )
@@ -39,13 +41,13 @@ class GroupingPageCreator:
     def _create_page_if_missing(self, grouping):
         page = pywikibot.Page(self.site, grouping.grouping_link)
         if page.site != self.site:
-            logging.warning(
+            logger.warning(
                 f"Page {grouping.grouping_link} is on a different site, "
                 "stopping page creation"
             )
             raise _NonLocalPageError()
         if page.exists():
-            logging.debug(f"Page {grouping.grouping_link} already exists, skipping")
+            logger.debug(f"Page {grouping.grouping_link} already exists, skipping")
             return
         content = grouping.format_listeria_wikitext(
             self.selector_sparql, self.grouping_predicate, self.columns

@@ -318,7 +318,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
                 if grouping:
                     grouping.cells[column_entry_key] = value
                 else:
-                    logging.debug(
+                    logger.debug(
                         f"Discarding data on {grouping_item}, not in the groupings"
                     )
         logger.info(
@@ -405,7 +405,7 @@ def main(*args):
         ColumnMaker.make("Lde", None),
         ColumnMaker.make("Dde", None),
     ]
-    logging.info("Main function...")
+    logger.info("Main function...")
     stats = PropertyStatistics(
         columns=columns,
         selector_sparql="wdt:P10241 wd:Q41960",

@@ -169,34 +169,46 @@ def _update_sync(page_url, page_title):
             elapsed_time=elapsed_time,
         )
     except QueryException as e:
-        return render_template(
-            "update_query_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=e,
-            query=e.query,
-            qlever_ui_url=get_qlever_ui_url(page_url),
+        return (
+            render_template(
+                "update_query_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=e,
+                query=e.query,
+                qlever_ui_url=get_qlever_ui_url(page_url),
+            ),
+            422,
         )
     except TransientServerException as e:
-        return render_template(
-            "update_transient_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=e,
+        return (
+            render_template(
+                "update_transient_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=e,
+            ),
+            503,
         )
     except ProcessingException as e:
-        return render_template(
-            "update_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=e,
+        return (
+            render_template(
+                "update_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=e,
+            ),
+            422,
         )
     except Exception as e:
-        return render_template(
-            "update_unknown_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=traceback.format_exception(type(e), e, e.__traceback__),
+        return (
+            render_template(
+                "update_unknown_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=traceback.format_exception(type(e), e, e.__traceback__),
+            ),
+            500,
         )
 
 
@@ -261,20 +273,26 @@ def queries():
     except ProcessingException as e:
         if output_format == "json":
             return jsonify(error=str(e)), 422
-        return render_template(
-            "queries_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=e,
+        return (
+            render_template(
+                "queries_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=e,
+            ),
+            422,
         )
     except Exception as e:
         if output_format == "json":
             return jsonify(error=str(e)), 500
-        return render_template(
-            "queries_unknown_error.html",
-            page_title=page_title,
-            page_url=page_url,
-            error_message=traceback.format_exception(type(e), e, e.__traceback__),
+        return (
+            render_template(
+                "queries_unknown_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=traceback.format_exception(type(e), e, e.__traceback__),
+            ),
+            500,
         )
 
 

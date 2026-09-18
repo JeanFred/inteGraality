@@ -340,9 +340,9 @@ class PagesProcessorTests(AppTests):
         self.assertIn("alert-success", contents)
         self.assertPresent(message, contents)
 
-    def assertErrorPage(self, response, message):
+    def assertErrorPage(self, response, message, expected_status=200):
         """A custom assertion for an error page."""
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, expected_status)
         contents = response.get_data(as_text=True)
         self.assertIn("alert-danger", contents)
         self.assertPresent(message, contents)
@@ -474,7 +474,7 @@ class UpdateTests(PagesProcessorTests):
         message = "<p>Something went wrong when updating page {page}. Please check your configuration.</p>".format(
             page=self.linked_page
         )  # noqa
-        self.assertErrorPage(response, message)
+        self.assertErrorPage(response, message, expected_status=422)
 
     def test_update_error_unknown_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = ValueError
@@ -488,7 +488,7 @@ class UpdateTests(PagesProcessorTests):
         message = "<p>Something catastrophic happened when processing page {page}.</p>".format(
             page=self.linked_page
         )
-        self.assertErrorPage(response, message)
+        self.assertErrorPage(response, message, expected_status=500)
 
     def test_update_error_query_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = (
@@ -506,12 +506,12 @@ class UpdateTests(PagesProcessorTests):
             "<p>The following SPARQL query timed out or returned no result:</p>\n"
             "<pre><code>SELECT X</code></pre>\n"
         )
-        self.assertErrorPage(response, expected)
+        self.assertErrorPage(response, expected, expected_status=422)
         buttons = (
             '<a class="btn btn-primary" href="https://query.wikidata.org/#SELECT X">Try it in Wikidata Query Service</a>'
             '<a class="btn btn-info" href="https://qlever.dev/wikidata/?query='
         )
-        self.assertErrorPage(response, buttons)
+        self.assertErrorPage(response, buttons, expected_status=422)
 
     def test_update_success_meta(self):
         page_url = "https://meta.wikimedia.org/wiki/%s" % self.page_title
@@ -754,7 +754,7 @@ class QueriesTests(PagesProcessorTests):
         message = "<p>Something went wrong when generating queries from page {page}.</p>".format(
             page=self.linked_page
         )
-        self.assertErrorPage(response, message)
+        self.assertErrorPage(response, message, expected_status=422)
 
     def test_queries_error_unknown_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ValueError
@@ -769,7 +769,7 @@ class QueriesTests(PagesProcessorTests):
         message = "<p>Something catastrophic happened when generating queries from page {page}.</p>".format(
             page=self.linked_page
         )  # noqa
-        self.assertErrorPage(response, message)
+        self.assertErrorPage(response, message, expected_status=500)
 
     def test_queries_success_unknown_value_grouping(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa

@@ -146,7 +146,7 @@ class PagesProcessor:
         if len(start_templates_with_params) > 1:
             logger.warning("More than one template on the page %s", page.title())
 
-        (template, params) = start_templates_with_params[0]
+        (_template, params) = start_templates_with_params[0]
         parsed_config = self.config_assembler.parse_config_from_params(params)
         try:
             config = self.config_assembler.parse_config(parsed_config)

@@ -230,7 +230,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
                 UNKNOWN_VALUE_PREFIX
             ):
-                if UnknownValueGrouping.MARKER not in result.keys():
+                if UnknownValueGrouping.MARKER not in result:
                     result[UnknownValueGrouping.MARKER] = 0
                 result[UnknownValueGrouping.MARKER] += int(resultitem.get("count"))
             else:

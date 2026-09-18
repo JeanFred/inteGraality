@@ -92,7 +92,7 @@ class YearGroupingType(AbstractGroupingType):
 
     def _rebin_if_needed(self, groupings):
         """Rebin year groupings to a coarser resolution if there are too many."""
-        keys = [key for key in groupings.keys() if key != UnknownValueGrouping.MARKER]
+        keys = [key for key in groupings if key != UnknownValueGrouping.MARKER]
 
         time_span = 1
         while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:

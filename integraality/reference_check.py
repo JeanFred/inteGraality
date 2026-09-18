@@ -1,6 +1,7 @@
 """Reference check strategies for ReferenceColumn."""
 
 from abc import ABC, abstractmethod
+from typing import ClassVar
 
 
 class ReferenceCheck(ABC):
@@ -8,10 +9,10 @@ class ReferenceCheck(ABC):
 
     # Properties to prioritize when showing reference values in drill-down.
     # Checked in order via COALESCE.
-    HIGH_PRIORITY_REF_PROPERTIES = ["P248", "P854"]
+    HIGH_PRIORITY_REF_PROPERTIES: ClassVar[list[str]] = ["P248", "P854"]
 
     # Properties shown only as last resort (e.g. dates, import metadata).
-    LOW_PRIORITY_REF_PROPERTIES = ["P813", "P4656", "P1065"]
+    LOW_PRIORITY_REF_PROPERTIES: ClassVar[list[str]] = ["P813", "P4656", "P1065"]
 
     @abstractmethod
     def sparql_pattern(self):
@@ -283,7 +284,7 @@ class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
 class GoodReferenceCheck(ReferenceCheck):
     """S! − statement has a reference that is not from a known-subpar source."""
 
-    BAD_PROPERTIES = ["P143", "P3452", "P887"]
+    BAD_PROPERTIES: ClassVar[list[str]] = ["P143", "P3452", "P887"]
 
     def __eq__(self, other):
         return isinstance(other, GoodReferenceCheck)

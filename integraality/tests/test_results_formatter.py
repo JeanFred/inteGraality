@@ -1,4 +1,3 @@
-# -*- coding: utf-8  -*-
 """Unit tests for results_formatter.py."""
 
 import unittest

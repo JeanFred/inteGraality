@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """Orchestration — reads wiki pages, triggers updates."""
 
 import logging

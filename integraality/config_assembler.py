@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """
 Assemble Property dashboard configuration from template parameters.
 """

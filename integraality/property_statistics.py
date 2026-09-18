@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """Core logic — builds SPARQL queries, processes results."""
 
 import collections

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Parse an inteGraality report (the rendered wikitext table) back to objects.
 
 The inverse of ResultsFormatter: given a dashboard revision's wikitext, recover

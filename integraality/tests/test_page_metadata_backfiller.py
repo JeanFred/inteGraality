@@ -1,4 +1,3 @@
-# -*- coding: utf-8  -*-
 """Unit tests for page_metadata_backfiller.py."""
 
 import argparse

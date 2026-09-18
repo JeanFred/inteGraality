@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """SPARQL engine abstraction (WDQS and QLever)."""
 
 import pywikibot

@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """Row types (item grouping, year grouping, totals, etc.)."""
 
 import collections

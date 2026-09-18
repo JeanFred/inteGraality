@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Backfill dashboard_runs from InteGraalityBot's edit history via the API.
 
 One paginated prop=revisions query per dashboard

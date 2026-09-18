@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """Reference check strategies for ReferenceColumn."""
 
 from abc import ABC, abstractmethod

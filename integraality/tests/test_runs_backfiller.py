@@ -1,4 +1,3 @@
-# -*- coding: utf-8  -*-
 """Unit tests for the runs backfiller.
 
 Fully testable with pywikibot's api.PropertyGenerator mocked — no replica, no

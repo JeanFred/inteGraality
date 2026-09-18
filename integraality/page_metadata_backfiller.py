@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Out-of-band backfill of dashboard page-creation metadata.
 
 It reads dashboard titles the registry reports as missing ``page_created_at``

@@ -1,4 +1,3 @@
-# -*- coding: utf-8  -*-
 """Tests for dashboard_registry module."""
 
 import unittest

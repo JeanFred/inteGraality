@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """
 Create pages linked from grouping rows, seeded with Listeria lists.
 """

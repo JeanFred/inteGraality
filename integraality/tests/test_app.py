@@ -771,6 +771,22 @@ class QueriesTests(PagesProcessorTests):
         )  # noqa
         self.assertErrorPage(response, message, expected_status=500)
 
+    def test_queries_error_transient_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = TransientServerException(
+            "maxlag"
+        )
+        response = self.app.get(
+            "/queries?page=%s&url=%s&property=P1&grouping=Q2"
+            % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 503)
+        contents = response.get_data(as_text=True)
+        self.assertIn("alert-warning", contents)
+        message = "A temporary server issue occurred when generating queries from page {page}.".format(
+            page=self.linked_page
+        )
+        self.assertPresent(message, contents)
+
     def test_queries_success_unknown_value_grouping(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics  # noqa
         self.mock_property_statistics.get_queries_for_column.return_value = (
@@ -855,3 +871,15 @@ class QueriesTests(PagesProcessorTests):
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.content_type, "application/json")
         self.assertEqual(response.get_json(), {"error": "boom"})
+
+    def test_queries_json_format_transient_exception(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = TransientServerException(
+            "maxlag"
+        )
+        response = self.app.get(
+            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
+            % (self.page_title, self.page_url)
+        )
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response.content_type, "application/json")
+        self.assertEqual(response.get_json(), {"error": "maxlag"})

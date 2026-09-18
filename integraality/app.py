@@ -270,6 +270,18 @@ def queries():
             negative_query=negative_query,
             qlever_ui_url=qlever_ui_url,
         )
+    except TransientServerException as e:
+        if output_format == "json":
+            return jsonify(error=str(e)), 503
+        return (
+            render_template(
+                "queries_transient_error.html",
+                page_title=page_title,
+                page_url=page_url,
+                error_message=e,
+            ),
+            503,
+        )
     except ProcessingException as e:
         if output_format == "json":
             return jsonify(error=str(e)), 422

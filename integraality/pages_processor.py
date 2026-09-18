@@ -411,7 +411,15 @@ class PagesProcessor:
         result = self.cache.get_cache_value(key)
         if not result:
             logger.info("No result in cache for %s, computing...", key)
-            page = pywikibot.Page(self.site, page_title)
+            try:
+                page = pywikibot.Page(self.site, page_title)
+            except (
+                pywikibot.exceptions.ApiTimeoutError,
+                pywikibot.exceptions.ServerError,
+            ) as e:
+                raise TransientServerException(
+                    f"Temporary server issue: {e}. Please try again later."
+                ) from e
             result = self.make_stats_object_arguments_for_page(page)
         result.pop("grouping_link_mode", None)
         try:

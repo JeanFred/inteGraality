@@ -597,3 +597,13 @@ class TestProcessOnePage(ProcessortTest):
         ):
             with self.assertRaises(TransientServerException):
                 self.processor.process_one_page("Some/Dashboard")
+
+    def test_maxlag_in_make_stats_object_for_page_title_is_transient(self):
+        import pywikibot
+
+        with patch(
+            "integraality.pages_processor.pywikibot.Page",
+            side_effect=pywikibot.exceptions.MaxlagTimeoutError("maxlag"),
+        ):
+            with self.assertRaises(TransientServerException):
+                self.processor.make_stats_object_for_page_title("Some/Dashboard")

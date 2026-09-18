@@ -95,7 +95,7 @@ class YearGroupingType(AbstractGroupingType):
         keys = [key for key in groupings if key != UnknownValueGrouping.MARKER]
 
         time_span = 1
-        while len(set(int(key) // time_span for key in keys)) > self.MAX_GROUPINGS:
+        while len({int(key) // time_span for key in keys}) > self.MAX_GROUPINGS:
             time_span *= 10
 
         if time_span == 1:

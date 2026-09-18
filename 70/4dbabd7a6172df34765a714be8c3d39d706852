@@ -1,0 +1,22 @@
+integraality/pages_processor.py
+  h_bc010f8da910ff 385,402
+integraality/sparql_utils.py
+  h_bc010f8da910ff 105
+integraality/tests/test_sparql_utils.py
+  h_bc010f8da910ff 65
+requirements.txt
+  h_bc010f8da910ff 103-105
+uv.lock
+  h_bc010f8da910ff 332,339,341
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "704dbabd7a6172df34765a714be8c3d39d706852",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

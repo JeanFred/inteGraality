@@ -114,10 +114,15 @@ class TestApiBackfill(unittest.TestCase):
         ), factory
 
     def _run(self, registry, pages_by_call, limit=None):
+        """Run backfill_runs with DashboardRegistry patched so every
+        ``with DashboardRegistry()`` (the listing + each dashboard) yields the
+        given shared mock registry — so a single mock observes all writes."""
         patcher, factory = self._patch_generator(pages_by_call)
-        with patcher:
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
             inserted = ApiRunsBackfiller(
-                MagicMock(hostname=lambda: "www.wikidata.org"), registry=registry
+                MagicMock(hostname=lambda: "www.wikidata.org")
             ).backfill_runs(limit=limit)
         return inserted, factory
 
@@ -224,6 +229,62 @@ class TestApiBackfill(unittest.TestCase):
         # Only two dashboards should be queried under limit=2.
         inserted, _ = self._run(registry, [[self._page([])], [self._page([])]], limit=2)
         self.assertEqual(inserted, 0)  # empty pages, but no crash on the 3rd
+
+    @patch("integraality.runs_backfiller.DashboardRegistry")
+    def test_opens_short_lived_connection_per_dashboard(self, mock_registry_cls):
+        """With no injected registry, each dashboard is recorded through its own
+        DashboardRegistry (connection), so a maxlag-stalled crawl never outlives
+        ToolsDB's idle timeout (T435900)."""
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        registry.list_dashboards_for_backfill.return_value = [
+            ("A", 1, 7),
+            ("B", 2, 7),
+        ]
+        registry.record_resolved_backfilled_run.return_value = True
+
+        patcher, _ = self._patch_generator(
+            [
+                [self._page([(1, "2026-02-13T01:18:34Z", "Weekly update", "")])],
+                [self._page([(2, "2026-02-13T01:18:34Z", "Weekly update", "")])],
+            ]
+        )
+        with patcher:
+            ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs()
+
+        # One registry (connection) for the listing + one per dashboard = 3.
+        self.assertEqual(mock_registry_cls.call_count, 3)
+
+    @patch("integraality.runs_backfiller.DashboardRegistry")
+    def test_one_dead_connection_does_not_poison_the_batch(self, mock_registry_cls):
+        """A dashboard whose write fails (e.g. a dropped connection) is isolated;
+        the next dashboard opens a fresh registry and still records."""
+        listing = MagicMock()
+        listing.list_dashboards_for_backfill.return_value = [
+            ("Bad", 1, 7),
+            ("Good", 2, 7),
+        ]
+        bad = MagicMock()
+        bad.record_resolved_backfilled_run.side_effect = Exception("server gone away")
+        good = MagicMock()
+        good.record_resolved_backfilled_run.return_value = True
+        # __enter__ returns, in order: listing, bad, good.
+        mock_registry_cls.return_value.__enter__.side_effect = [listing, bad, good]
+
+        patcher, _ = self._patch_generator(
+            [
+                [self._page([(1, "2026-02-13T01:18:34Z", "Weekly update", "")])],
+                [self._page([(2, "2026-02-13T01:18:34Z", "Weekly update", "")])],
+            ]
+        )
+        with patcher:
+            inserted = ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs()
+
+        self.assertEqual(inserted, 1)  # the good dashboard still recorded
+        good.record_resolved_backfilled_run.assert_called_once()
 
 
 class TestTimestampConversion(unittest.TestCase):

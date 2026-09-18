@@ -112,9 +112,8 @@ class ApiRunsBackfiller:
     the User-Agent per Wikimedia policy.
     """
 
-    def __init__(self, site, registry=None):
+    def __init__(self, site):
         self.site = site
-        self._registry = registry
 
     @property
     def site_hostname(self):
@@ -232,55 +231,52 @@ class ApiRunsBackfiller:
         """Backfill runs for this wiki's registered dashboards via the API.
 
         One paginated rvuser+content query per dashboard fills metadata +
-        counts. A failing dashboard is logged and skipped so one bad page never
-        kills the batch. ``limit`` caps the number of dashboards processed.
-        Returns the total runs inserted.
+        counts. Each dashboard is recorded through its own short-lived
+        DashboardRegistry (connection), so a long crawl stalled by maxlag never
+        outlives ToolsDB's idle timeout and one dropped connection can't poison
+        the rest of the batch. A failing dashboard is logged and skipped so one
+        bad page never kills the batch. ``limit`` caps the number of dashboards
+        processed. Returns the total runs inserted.
         """
-        registry = self._registry or DashboardRegistry()
-        owns_registry = self._registry is None
-        try:
+        with DashboardRegistry() as registry:
             dashboards = registry.list_dashboards_for_backfill(self.site_hostname)
-            if not dashboards:
-                logger.info(
-                    "No dashboards on %s; nothing to backfill", self.site_hostname
-                )
-                return 0
-            if limit is not None:
-                dashboards = dashboards[:limit]
+        if not dashboards:
+            logger.info("No dashboards on %s; nothing to backfill", self.site_hostname)
+            return 0
+        if limit is not None:
+            dashboards = dashboards[:limit]
 
-            logger.info(
-                "Backfilling runs for %d dashboards on %s",
-                len(dashboards),
-                self.site_hostname,
-            )
-            inserted = 0
-            failed = 0
-            for i, (title, dashboard_id, wiki_id) in enumerate(dashboards, start=1):
-                logger.info("[%d/%d] Backfilling %s...", i, len(dashboards), title)
-                try:
+        logger.info(
+            "Backfilling runs for %d dashboards on %s",
+            len(dashboards),
+            self.site_hostname,
+        )
+        inserted = 0
+        failed = 0
+        for i, (title, dashboard_id, wiki_id) in enumerate(dashboards, start=1):
+            logger.info("[%d/%d] Backfilling %s...", i, len(dashboards), title)
+            try:
+                with DashboardRegistry() as registry:
                     n = self.backfill_dashboard(registry, title, dashboard_id, wiki_id)
-                    inserted += n
-                    logger.info(
-                        "[%d/%d] %s: +%d runs (%d total)",
-                        i,
-                        len(dashboards),
-                        title,
-                        n,
-                        inserted,
-                    )
-                except Exception as e:
-                    failed += 1
-                    logger.warning("Failed to backfill %s: %s", title, e)
-            logger.info(
-                "Done on %s: inserted %d runs, %d dashboards failed",
-                self.site_hostname,
-                inserted,
-                failed,
-            )
-            return inserted
-        finally:
-            if owns_registry:
-                registry.close()
+                inserted += n
+                logger.info(
+                    "[%d/%d] %s: +%d runs (%d total)",
+                    i,
+                    len(dashboards),
+                    title,
+                    n,
+                    inserted,
+                )
+            except Exception as e:
+                failed += 1
+                logger.warning("Failed to backfill %s: %s", title, e)
+        logger.info(
+            "Done on %s: inserted %d runs, %d dashboards failed",
+            self.site_hostname,
+            inserted,
+            failed,
+        )
+        return inserted
 
 
 def main():

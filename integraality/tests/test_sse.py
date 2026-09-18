@@ -1,8 +1,36 @@
 import json
 import logging
 import unittest
+from unittest.mock import patch
 
 from ..sse import run_with_sse
+
+
+class RunWithSSEHandlerCleanupTest(unittest.TestCase):
+    """The per-request QueueHandler must never accumulate on the shared logger."""
+
+    def setUp(self):
+        self.logger = logging.getLogger("integraality.update")
+        self.baseline = len(self.logger.handlers)
+
+    def test_handler_removed_on_client_disconnect(self):
+        gen = run_with_sse(lambda: "ok")
+        next(gen)  # start streaming -> handler attached
+        self.assertEqual(len(self.logger.handlers), self.baseline + 1)
+        gen.close()  # simulate the WSGI server closing the generator
+        self.assertEqual(len(self.logger.handlers), self.baseline)
+
+    def test_handler_removed_on_full_consume(self):
+        list(run_with_sse(lambda: "ok"))
+        self.assertEqual(len(self.logger.handlers), self.baseline)
+
+    def test_handler_removed_when_worker_fails_to_start(self):
+        # Handler is attached before the worker starts -> finally must detach it.
+        with patch("integraality.sse.threading.Thread") as mock_thread:
+            mock_thread.return_value.start.side_effect = RuntimeError("no threads")
+            with self.assertRaises(RuntimeError):
+                list(run_with_sse(lambda: "ok"))
+        self.assertEqual(len(self.logger.handlers), self.baseline)
 
 
 class RunWithSSETest(unittest.TestCase):

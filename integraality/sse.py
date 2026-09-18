@@ -32,8 +32,6 @@ def run_with_sse(func, logger_name="integraality.update"):
     logger = logging.getLogger(logger_name)
     handler = QueueHandler(q)
     handler.setLevel(logging.INFO)
-    logger.addHandler(handler)
-    logger.setLevel(logging.DEBUG)
 
     worker_thread = None
 
@@ -41,8 +39,7 @@ def run_with_sse(func, logger_name="integraality.update"):
         def filter(self, record):
             return record.thread == worker_thread.ident
 
-    thread_filter = ThreadFilter()
-    handler.addFilter(thread_filter)
+    handler.addFilter(ThreadFilter())
 
     def target():
         try:
@@ -51,10 +48,13 @@ def run_with_sse(func, logger_name="integraality.update"):
         except Exception as e:
             q.put(_classify_error(e))
 
-    worker_thread = threading.Thread(target=target)
-    worker_thread.start()
-
+    # Inside the try so the finally always detaches the handler.
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG)
     try:
+        worker_thread = threading.Thread(target=target)
+        worker_thread.start()
+
         while True:
             event = q.get()
 
@@ -74,4 +74,5 @@ def run_with_sse(func, logger_name="integraality.update"):
                 break
     finally:
         logger.removeHandler(handler)
-        worker_thread.join(timeout=1)
+        if worker_thread is not None:
+            worker_thread.join(timeout=1)

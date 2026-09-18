@@ -1,3 +1,10 @@
 [uwsgi]
 workers = 10
 lazy-apps = true
+; Legitimate updates stream for minutes over SSE, so harakiri only exists to
+; reap a request that is genuinely stuck (e.g. an endless pywikibot retry
+; loop), not slow-but-progressing ones. Set well above normal update time.
+harakiri = 300
+harakiri-verbose = true
+; Recycle workers periodically as a backstop against slow leaks.
+max-worker-lifetime = 3600

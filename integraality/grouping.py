@@ -163,7 +163,8 @@ class SitelinkGroupingType(AbstractGroupingType):
 
         current_dir = os.path.dirname(__file__)
         wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
-        wikiprojects = json.load(open(wikiprojects_path, "r"))
+        with open(wikiprojects_path) as f:
+            wikiprojects = json.load(f)
         codes = [g.strip() for g in groupings_string.split(",")]
         return [wikiprojects[code]["url"] for code in codes if code in wikiprojects]
 

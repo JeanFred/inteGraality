@@ -640,7 +640,8 @@ class SitelinkColumn(AbstractColumn):
         current_dir = os.path.dirname(__file__)
         if not project_data:
             wikiprojects_path = os.path.join(current_dir, "wikiprojects.json")
-            wikiprojects = json.load(open(wikiprojects_path, "r"))
+            with open(wikiprojects_path) as f:
+                wikiprojects = json.load(f)
             project_data = wikiprojects[project]
         self.project = project
         self.url = project_data["url"]

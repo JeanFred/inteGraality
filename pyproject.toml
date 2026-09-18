@@ -28,6 +28,9 @@ package = false
 
 [tool.ruff]
 lint.extend-select = [ "I" ]
+lint.ignore = [
+  "FLY002", # join-to-f-string hurts readability of multi-line SPARQL test fixtures
+]
 
 [tool.pytest]
 ini_options.addopts = "-m 'not functional'"

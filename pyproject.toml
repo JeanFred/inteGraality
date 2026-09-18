@@ -30,6 +30,8 @@ package = false
 lint.extend-select = [ "I" ]
 lint.ignore = [
   "BLE001", # broad `except Exception` is intentional at error boundaries
+  "DTZ001", # datetimes are deliberately naive-UTC to match MariaDB DATETIME columns
+  "DTZ007",
   "FLY002", # join-to-f-string hurts readability of multi-line SPARQL test fixtures
 ]
 

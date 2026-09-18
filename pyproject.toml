@@ -29,6 +29,7 @@ package = false
 [tool.ruff]
 lint.extend-select = [ "I" ]
 lint.ignore = [
+  "BLE001", # broad `except Exception` is intentional at error boundaries
   "FLY002", # join-to-f-string hurts readability of multi-line SPARQL test fixtures
 ]
 

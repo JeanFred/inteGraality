@@ -541,11 +541,11 @@ class TestRunRecording(ProcessortTest):
         registry = mock_registry_cls.return_value.__enter__.return_value
         page = self._dashboard_page()
         exc = QueryException("boom", query="SELECT ?x")
-        with patch.object(
-            self.processor, "make_stats_object_for_page", side_effect=exc
+        with (
+            patch.object(self.processor, "make_stats_object_for_page", side_effect=exc),
+            self.assertRaises(QueryException),
         ):
-            with self.assertRaises(QueryException):
-                self.processor.process_page(page, trigger_source="WEB")
+            self.processor.process_page(page, trigger_source="WEB")
 
         registry.record_run.assert_called_once()
         _page_meta, run = registry.record_run.call_args[0]
@@ -558,13 +558,15 @@ class TestRunRecording(ProcessortTest):
         create registry rows for any page."""
         registry = mock_registry_cls.return_value.__enter__.return_value
         page = self._dashboard_page()
-        with patch.object(
-            self.processor,
-            "make_stats_object_for_page",
-            side_effect=NoStartTemplateException(),
+        with (
+            patch.object(
+                self.processor,
+                "make_stats_object_for_page",
+                side_effect=NoStartTemplateException(),
+            ),
+            self.assertRaises(NoStartTemplateException),
         ):
-            with self.assertRaises(NoStartTemplateException):
-                self.processor.process_page(page, trigger_source="WEB")
+            self.processor.process_page(page, trigger_source="WEB")
 
         registry.record_run.assert_not_called()
 
@@ -576,12 +578,14 @@ class TestProcessOnePage(ProcessortTest):
     def test_maxlag_during_site_construction_is_transient(self):
         import pywikibot
 
-        with patch(
-            "integraality.pages_processor.pywikibot.Page",
-            side_effect=pywikibot.exceptions.MaxlagTimeoutError("maxlag"),
+        with (
+            patch(
+                "integraality.pages_processor.pywikibot.Page",
+                side_effect=pywikibot.exceptions.MaxlagTimeoutError("maxlag"),
+            ),
+            self.assertRaises(TransientServerException),
         ):
-            with self.assertRaises(TransientServerException):
-                self.processor.process_one_page("Some/Dashboard")
+            self.processor.process_one_page("Some/Dashboard")
 
     def test_server_error_during_processing_is_transient(self):
         import pywikibot
@@ -593,16 +597,18 @@ class TestProcessOnePage(ProcessortTest):
                 "process_page",
                 side_effect=pywikibot.exceptions.ServerError("boom"),
             ),
+            self.assertRaises(TransientServerException),
         ):
-            with self.assertRaises(TransientServerException):
-                self.processor.process_one_page("Some/Dashboard")
+            self.processor.process_one_page("Some/Dashboard")
 
     def test_maxlag_in_make_stats_object_for_page_title_is_transient(self):
         import pywikibot
 
-        with patch(
-            "integraality.pages_processor.pywikibot.Page",
-            side_effect=pywikibot.exceptions.MaxlagTimeoutError("maxlag"),
+        with (
+            patch(
+                "integraality.pages_processor.pywikibot.Page",
+                side_effect=pywikibot.exceptions.MaxlagTimeoutError("maxlag"),
+            ),
+            self.assertRaises(TransientServerException),
         ):
-            with self.assertRaises(TransientServerException):
-                self.processor.make_stats_object_for_page_title("Some/Dashboard")
+            self.processor.make_stats_object_for_page_title("Some/Dashboard")

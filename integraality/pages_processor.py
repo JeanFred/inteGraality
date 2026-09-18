@@ -394,9 +394,9 @@ class PagesProcessor:
                 logger.error("Unknown error with page %s: %s", page.title(), e)
 
     def process_one_page(self, page_title):
-        page = pywikibot.Page(self.site, page_title)
-        logger.info("Processing page %s", page.title())
+        logger.info("Processing page %s", page_title)
         try:
+            page = pywikibot.Page(self.site, page_title)
             return self.process_page(page, trigger_source="WEB")
         except (
             pywikibot.exceptions.TimeoutError,

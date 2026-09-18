@@ -218,13 +218,9 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def _get_grouping_counts_from_sparql(self, query):
         result = collections.OrderedDict()
-        try:
-            queryresult = self.sparql_query_engine.select(query)
-            if not queryresult:
-                return None
-
-        except QueryException:
-            raise
+        queryresult = self.sparql_query_engine.select(query)
+        if not queryresult:
+            return None
 
         for resultitem in queryresult:
             if not resultitem.get("grouping") or resultitem.get("grouping").startswith(
@@ -338,12 +334,12 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         try:
             groupings = self.get_grouping_information()
-        except EmptyGroupingException as e:
+        except EmptyGroupingException:
             logger.error("No groupings found.")
-            raise e
+            raise
         except QueryException as e:
             logger.error("Could not retrieve groupings: %s", e)
-            raise e
+            raise
 
         logger.info(
             f"Retrieved {len(groupings)} groupings",

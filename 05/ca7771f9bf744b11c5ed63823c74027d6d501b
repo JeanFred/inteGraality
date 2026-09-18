@@ -1,0 +1,18 @@
+uv.lock
+  h_bc010f8da910ff 358,363,365
+requirements-dev.txt
+  h_bc010f8da910ff 58-60
+requirements.txt
+  h_bc010f8da910ff 111-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "05ca7771f9bf744b11c5ed63823c74027d6d501b",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

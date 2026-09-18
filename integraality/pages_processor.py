@@ -382,7 +382,7 @@ class PagesProcessor:
                     page.title(),
                 )
             except (
-                pywikibot.exceptions.TimeoutError,
+                pywikibot.exceptions.ApiTimeoutError,
                 pywikibot.exceptions.ServerError,
             ) as e:
                 logger.warning(
@@ -399,7 +399,7 @@ class PagesProcessor:
             page = pywikibot.Page(self.site, page_title)
             return self.process_page(page, trigger_source="WEB")
         except (
-            pywikibot.exceptions.TimeoutError,
+            pywikibot.exceptions.ApiTimeoutError,
             pywikibot.exceptions.ServerError,
         ) as e:
             raise TransientServerException(

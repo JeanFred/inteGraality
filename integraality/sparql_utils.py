@@ -102,7 +102,7 @@ class WdqsSparqlQueryEngine(SparqlQueryEngine):
     def _do_select(self, query):
         try:
             result = self.sq.select(query)
-        except (pywikibot.exceptions.TimeoutError, pywikibot.exceptions.ServerError):
+        except (pywikibot.exceptions.ApiTimeoutError, pywikibot.exceptions.ServerError):
             raise QueryTimeoutException(
                 "The Wikidata Query Service timed out when running a SPARQL query. "
                 "You might be trying to do something too expensive.",

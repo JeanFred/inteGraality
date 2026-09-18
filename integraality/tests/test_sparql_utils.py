@@ -62,7 +62,7 @@ class WdqsSparqlQueryEngineTest(unittest.TestCase):
     @patch("integraality.sparql_utils.pywikibot.data.sparql.SparqlQuery")
     def test_select_timeout_error(self, mock_sparql_query_class):
         mock_sq = Mock()
-        mock_sq.select.side_effect = pywikibot.exceptions.TimeoutError("Timeout")
+        mock_sq.select.side_effect = pywikibot.exceptions.ApiTimeoutError("Timeout")
         mock_sparql_query_class.return_value = mock_sq
 
         engine = WdqsSparqlQueryEngine()

@@ -78,7 +78,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "RuntimeError")
         self.assertEqual(error["error_category"], "error")
         self.assertIn("traceback", error)
@@ -95,7 +95,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "QueryTimeoutException")
         self.assertEqual(error["error_category"], "timeout")
         self.assertEqual(error["query"], "SELECT ?x WHERE {}")
@@ -115,7 +115,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "QuerySyntaxException")
         self.assertEqual(error["error_category"], "query")
         self.assertIn("Parser error:", error["message"])
@@ -133,7 +133,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "ProcessingException")
         self.assertEqual(error["error_category"], "config")
         self.assertIn("Bad config", error["message"])
@@ -150,7 +150,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "TransientServerException")
         self.assertEqual(error["error_category"], "transient")
         self.assertIn("503", error["message"])
@@ -167,7 +167,7 @@ class RunWithSSETest(unittest.TestCase):
             for e in events
             if e.startswith("data:")
         ]
-        error = [e for e in parsed if e["status"] == "error"][0]
+        error = next(e for e in parsed if e["status"] == "error")
         self.assertEqual(error["error_type"], "ConfigException")
         self.assertEqual(error["error_category"], "config")
 

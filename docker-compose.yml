@@ -21,7 +21,7 @@ services:
      - db
 
   redis:
-    image: redis:3.2.6
+    image: redis:8.0
     ports:
      - 6379:6379
 

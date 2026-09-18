@@ -159,8 +159,8 @@ def update():
 
 
 def _update_sync(page_url, page_title):
-    processor = PagesProcessor(page_url)
     try:
+        processor = PagesProcessor(page_url)
         elapsed_time = processor.process_one_page(page_title)
         return render_template(
             "update.html",
@@ -222,8 +222,9 @@ def queries():
     page_title = request.args.get("page")
     column_key = request.args.get("column") or request.args.get("property")
     output_format = request.args.get("format")
-    processor = PagesProcessor(page_url)
+    processor = None
     try:
+        processor = PagesProcessor(page_url)
         stats = processor.make_stats_object_for_page_title(page_title)
         grouping = request.args.get("grouping")
         query_data = stats.get_queries_for_column(column_key, grouping)

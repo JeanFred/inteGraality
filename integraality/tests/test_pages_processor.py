@@ -12,8 +12,60 @@ from ..pages_processor import (
     NoEndTemplateException,
     NoStartTemplateException,
     PagesProcessor,
+    UnsupportedWikiException,
     main,
+    validate_wiki_url,
 )
+
+
+class ValidateWikiUrlTest(unittest.TestCase):
+    def test_accepts_supported_wikis(self):
+        for url, host in [
+            ("https://www.wikidata.org/wiki/", "www.wikidata.org"),
+            ("https://commons.wikimedia.org/wiki/", "commons.wikimedia.org"),
+            ("https://meta.wikimedia.org/wiki/", "meta.wikimedia.org"),
+        ]:
+            self.assertEqual(validate_wiki_url(url), host)
+
+    def test_rejects_unsupported_wiki_family(self):
+        # Not supported yet -- widen ALLOWED_WIKI_DOMAINS when adding support.
+        for url in [
+            "https://he.wikipedia.org/wiki/",
+            "https://fr.wiktionary.org/wiki/",
+        ]:
+            with self.assertRaises(UnsupportedWikiException):
+                validate_wiki_url(url)
+
+    def test_rejects_non_wikimedia_host(self):
+        with self.assertRaises(UnsupportedWikiException):
+            validate_wiki_url("https://proxy.example/https/www.wikidata.org/wiki/")
+
+    def test_rejects_lookalike_suffix(self):
+        # A host that merely contains a Wikimedia domain but isn't a subdomain.
+        with self.assertRaises(UnsupportedWikiException):
+            validate_wiki_url("https://wikidata.org.evil.example/wiki/")
+
+    def test_rejects_proxy_encoding_wiki_in_subdomain(self):
+        # Open proxies encode the real target into their own host, e.g.
+        # www.wikidata.org.<proxy> or dash-style www-wikidata-org.<proxy>.
+        for url in [
+            "https://www.wikidata.org.proxy.example/wiki/Foo",
+            "https://www-wikidata-org.proxy.example/wiki/Foo",
+        ]:
+            with self.assertRaises(UnsupportedWikiException):
+                validate_wiki_url(url)
+
+    def test_rejects_non_http_scheme(self):
+        with self.assertRaises(UnsupportedWikiException):
+            validate_wiki_url("file:///etc/passwd")
+
+    def test_rejects_bytes_url_without_crashing(self):
+        with self.assertRaises(UnsupportedWikiException):
+            validate_wiki_url(b"https://proxy.example/")
+
+    def test_constructor_rejects_bad_url(self):
+        with self.assertRaises(UnsupportedWikiException):
+            PagesProcessor(url="https://proxy.example/https/www.wikidata.org/wiki/")
 
 
 class ProcessortTest(unittest.TestCase):

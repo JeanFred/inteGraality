@@ -46,8 +46,41 @@ class TransientServerException(Exception):
     error_category = ErrorCategory.TRANSIENT
 
 
+class UnsupportedWikiException(ConfigException):
+    """The target URL is not a Wikimedia wiki (mistake or SSRF/proxy abuse)."""
+
+
+# Wikis supported today: Wikidata plus Commons/Meta (*.wikimedia.org). Static
+# allowlist -- a security boundary that must run at request entry with no I/O.
+ALLOWED_WIKI_DOMAINS = frozenset(
+    {
+        "wikidata.org",
+        "wikimedia.org",
+    }
+)
+
+
+def validate_wiki_url(url):
+    """Return the wiki host, or raise UnsupportedWikiException for a bad URL."""
+    from urllib.parse import urlparse
+
+    if isinstance(url, bytes):
+        url = url.decode("utf-8", "replace")
+    parsed = urlparse(url or "")
+    if parsed.scheme not in ("http", "https"):
+        raise UnsupportedWikiException(f"Unsupported URL scheme: {url!r}")
+    host = (parsed.hostname or "").lower()
+    allowed = any(
+        host == domain or host.endswith("." + domain) for domain in ALLOWED_WIKI_DOMAINS
+    )
+    if not allowed:
+        raise UnsupportedWikiException(f"Not a Wikimedia wiki URL: {url!r}")
+    return host
+
+
 class PagesProcessor:
     def __init__(self, url="https://www.wikidata.org/wiki/", cache_client=None):
+        validate_wiki_url(url)
         self.url = url
         self._site = None
         self.template_name = "Property dashboard"
@@ -73,6 +106,8 @@ class PagesProcessor:
         """Derive a stable site identifier from a wiki URL."""
         from urllib.parse import urlparse
 
+        if isinstance(url, bytes):
+            url = url.decode("utf-8", "replace")
         return urlparse(url).netloc
 
     def make_cache_key(self, page_title):

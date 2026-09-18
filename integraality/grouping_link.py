@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """
 Grouping link strategy classes.
 """

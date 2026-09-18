@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Row types (item grouping, year grouping, totals, etc.)."""
 
 import collections

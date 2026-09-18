@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Orchestration — reads wiki pages, triggers updates."""
 
 import logging

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """
 Create pages linked from grouping rows, seeded with Listeria lists.
 """

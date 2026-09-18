@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Core logic — builds SPARQL queries, processes results."""
 
 import collections

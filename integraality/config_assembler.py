@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """
 Assemble Property dashboard configuration from template parameters.
 """

@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Grouping configuration and types."""
 
 import collections

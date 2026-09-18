@@ -1,4 +1,3 @@
-#!/usr/bin/python
 """Reference check strategies for ReferenceColumn."""
 
 from abc import ABC, abstractmethod

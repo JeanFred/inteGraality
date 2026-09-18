@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 """Results formatting as wikitext table."""
 
 

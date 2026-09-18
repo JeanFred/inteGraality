@@ -48,9 +48,7 @@ class Grouping(AbstractLine):
 
     def format_header_cell(self, grouping_configuration, grouping_type):
         text = ""
-        if self.higher_grouping is None:
-            pass
-        elif not grouping_configuration.higher_grouping:
+        if self.higher_grouping is None or not grouping_configuration.higher_grouping:
             pass
         else:
             text += self.format_higher_grouping_text(grouping_type)

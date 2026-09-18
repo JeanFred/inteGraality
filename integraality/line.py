@@ -41,7 +41,7 @@ class Grouping(AbstractLine):
         )
 
     def __repr__(self):
-        cell = ",".join(["%s:%s" % (key, value) for (key, value) in self.cells.items()])
+        cell = ",".join([f"{key}:{value}" for (key, value) in self.cells.items()])
         return f"{self.title}:{self.count} - {cell}"
 
     def get_key(self):
@@ -164,7 +164,7 @@ class ItemGrouping(Grouping):
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping
         type_mapping = {
-            "country": "{{Flag|%s}}" % higher_grouping_value,
+            "country": f"{{{{Flag|{higher_grouping_value}}}}}",
         }
         if re.match(r"Q\d+", higher_grouping_value):
             higher_grouping_text = f"{{{{Q|{higher_grouping_value}}}}}"

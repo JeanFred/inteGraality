@@ -52,7 +52,7 @@ class ConfigAssembler:
                 config.setdefault(new, config.pop(old))
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
-                raise ConfigAssemblyException("A required field is missing: %s" % field)
+                raise ConfigAssemblyException(f"A required field is missing: {field}")
         config["columns"] = self.parse_config_properties(config["properties"])
         del config["properties"]
         try:

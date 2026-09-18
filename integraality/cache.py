@@ -13,7 +13,7 @@ class RedisCache:
         self.client = cache_client
 
     def make_key(self, key):
-        return "{0}:{1}".format(self.prefix, key)
+        return f"{self.prefix}:{key}"
 
     def get_cache_value(self, key):
         ns_key = self.make_key(key)

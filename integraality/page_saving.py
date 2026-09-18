@@ -22,7 +22,7 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     """
     if not isinstance(page, pywikibot.Page):
         pywikibot.warning(
-            "Could not save page {0} because it is not a Page instance.".format(page)
+            f"Could not save page {page} because it is not a Page instance."
         )
 
     local_path = os.environ.get("LOCAL_WRITE_PATH")
@@ -44,14 +44,14 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
             pywikibot.exceptions.OtherPageSaveError,
             pywikibot.exceptions.PageSaveRelatedError,
         ):
-            pywikibot.warning("Could not save page {0} ({1})".format(page, summary))
+            pywikibot.warning(f"Could not save page {page} ({summary})")
             return None
     else:
         filename = os.path.join(
             bytes(local_path, encoding="utf-8"), page_to_filename(page)
         )
         with open(filename, "w", encoding="utf-8") as f:
-            f.write("#summary: {0}\n---------------\n".format(summary))
+            f.write(f"#summary: {summary}\n---------------\n")
             f.write(content)
         return None
 
@@ -67,7 +67,5 @@ def page_to_filename(page):
     """
     namespace_str = page.namespace().custom_prefix().rstrip(":") or "_"
     pagename_str = page.title(as_filename=True, with_ns=False)
-    filename = "[{site}][{ns}]{page}.wiki".format(
-        site=page.site, ns=namespace_str, page=pagename_str
-    )
+    filename = f"[{page.site}][{namespace_str}]{pagename_str}.wiki"
     return filename.replace(" ", "_").replace(":", "_").encode("utf-8")

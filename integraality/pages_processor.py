@@ -125,10 +125,9 @@ class PagesProcessor:
             template.title(with_ns=False) for (template, _) in all_templates_with_params
         ]:
             msg = (
-                "No start template '%s' found."
+                f"No start template '{self.template_name}' found."
                 "The likely explanation is that inteGraality was invoked from a page that transcludes the page with the template. "
                 "Please invoke inteGraality directly from the page with the template."
-                % self.template_name
             )
             raise NoStartTemplateException(msg)
 
@@ -136,7 +135,7 @@ class PagesProcessor:
             template.title(with_ns=False) for (template, _) in all_templates_with_params
         ]:
             raise NoEndTemplateException(
-                "No end template '%s' provided" % self.end_template_name
+                f"No end template '{self.end_template_name}' provided"
             )
 
         start_templates_with_params = [
@@ -279,7 +278,7 @@ class PagesProcessor:
     def replace_in_page(self, output, page_text):
         regex_text = f"({{{{{self.template_name}.*?(?<!{{{{!)}}}}).*?({{{{{self.end_template_name}}}}})"
         regex = re.compile(regex_text, re.MULTILINE | re.DOTALL)
-        new_text = re.sub(regex, r"\1\n%s\n\2" % output, page_text, count=1)
+        new_text = re.sub(regex, rf"\1\n{output}\n\2", page_text, count=1)
         return new_text
 
     def migrate_template_params(self, page_text):

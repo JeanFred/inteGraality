@@ -601,7 +601,7 @@ class TextColumn(AbstractColumn):
 
 class LabelColumn(TextColumn):
     def get_key(self):
-        return "L%s" % self.language
+        return f"L{self.language}"
 
     def get_listeria_key(self):
         return f"label/{self.language}"
@@ -615,7 +615,7 @@ class LabelColumn(TextColumn):
 
 class DescriptionColumn(TextColumn):
     def get_key(self):
-        return "D%s" % self.language
+        return f"D{self.language}"
 
     def get_listeria_key(self):
         return f"description/{self.language}"

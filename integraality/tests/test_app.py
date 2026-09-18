@@ -71,7 +71,9 @@ class DashboardsTests(AppTests):
         failures_since_success=0,
     ):
         return {
-            "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
+            "page_url": "https://www.wikidata.org/wiki/{}".format(
+                title.replace(" ", "_")
+            ),
             "page_title": title,
             "site_hostname": "www.wikidata.org",
             "site_name": "Wikidata",
@@ -274,7 +276,9 @@ class RunsTests(AppTests):
 
     def _run(self, title, status="OK", **fields):
         row = {
-            "page_url": "https://www.wikidata.org/wiki/%s" % title.replace(" ", "_"),
+            "page_url": "https://www.wikidata.org/wiki/{}".format(
+                title.replace(" ", "_")
+            ),
             "page_title": title,
             "site_hostname": "www.wikidata.org",
             "site_name": "Wikidata",
@@ -329,8 +333,8 @@ class PagesProcessorTests(AppTests):
         self.mock_pages_processor = patcher.start()
         self.addCleanup(patcher.stop)
         self.page_title = "Foo"
-        self.page_url = "https://wikidata.org/wiki/%s" % self.page_title
-        self.linked_page = '<a href="%s">%s</a>' % (self.page_url, self.page_title)
+        self.page_url = f"https://wikidata.org/wiki/{self.page_title}"
+        self.linked_page = f'<a href="{self.page_url}">{self.page_title}</a>'
 
     def assertSuccessPage(self, response, message):
         """A custom assertion for a success page."""
@@ -355,9 +359,7 @@ class PagesProcessorTests(AppTests):
 
 class UpdateTests(PagesProcessorTests):
     def test_update_stream_page(self):
-        response = self.app.get(
-            "/update?page=%s&url=%s" % (self.page_title, self.page_url)
-        )
+        response = self.app.get(f"/update?page={self.page_title}&url={self.page_url}")
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
         self.assertIn("EventSource", contents)
@@ -366,7 +368,7 @@ class UpdateTests(PagesProcessorTests):
     def test_update_stream_endpoint(self):
         self.mock_pages_processor.return_value.process_one_page.return_value = 1.23
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         self.assertIn("text/event-stream", response.content_type)
 
@@ -382,7 +384,7 @@ class UpdateTests(PagesProcessorTests):
     def test_update_stream_success_end_to_end(self):
         self.mock_pages_processor.return_value.process_one_page.return_value = 4.56
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         events = self._parse_sse_events(response)
         self.assertTrue(len(events) >= 1)
@@ -395,7 +397,7 @@ class UpdateTests(PagesProcessorTests):
             QueryTimeoutException("Timeout", "SELECT ?x WHERE { ?x wdt:P31 wd:Q5 }")
         )
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         events = self._parse_sse_events(response)
         error_event = events[-1]
@@ -410,7 +412,7 @@ class UpdateTests(PagesProcessorTests):
             TransientServerException("503 Service Unavailable")
         )
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         events = self._parse_sse_events(response)
         error_event = events[-1]
@@ -424,7 +426,7 @@ class UpdateTests(PagesProcessorTests):
             ProcessingException("Bad config")
         )
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         events = self._parse_sse_events(response)
         error_event = events[-1]
@@ -438,7 +440,7 @@ class UpdateTests(PagesProcessorTests):
             RuntimeError("unexpected")
         )
         response = self.app.get(
-            "/update/stream?page=%s&url=%s" % (self.page_title, self.page_url)
+            f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         events = self._parse_sse_events(response)
         error_event = events[-1]
@@ -450,13 +452,13 @@ class UpdateTests(PagesProcessorTests):
 
     def test_update_success(self):
         response = self.app.get(
-            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
+            f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
-        message = "Updated page {page}".format(page=self.linked_page)
+        message = f"Updated page {self.linked_page}"
         self.assertSuccessPage(response, message)
 
     def test_update_error_processing_exception(self):
@@ -464,29 +466,25 @@ class UpdateTests(PagesProcessorTests):
             ProcessingException
         )
         response = self.app.get(
-            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
+            f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
-        message = "<p>Something went wrong when updating page {page}. Please check your configuration.</p>".format(
-            page=self.linked_page
-        )
+        message = f"<p>Something went wrong when updating page {self.linked_page}. Please check your configuration.</p>"
         self.assertErrorPage(response, message, expected_status=422)
 
     def test_update_error_unknown_exception(self):
         self.mock_pages_processor.return_value.process_one_page.side_effect = ValueError
         response = self.app.get(
-            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
+            f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
-        message = "<p>Something catastrophic happened when processing page {page}.</p>".format(
-            page=self.linked_page
-        )
+        message = f"<p>Something catastrophic happened when processing page {self.linked_page}.</p>"
         self.assertErrorPage(response, message, expected_status=500)
 
     def test_update_error_query_exception(self):
@@ -494,7 +492,7 @@ class UpdateTests(PagesProcessorTests):
             QueryException("Error", "SELECT X")
         )
         response = self.app.get(
-            "/update?page=%s&url=%s&nostream" % (self.page_title, self.page_url)
+            f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
@@ -513,15 +511,15 @@ class UpdateTests(PagesProcessorTests):
         self.assertErrorPage(response, buttons, expected_status=422)
 
     def test_update_success_meta(self):
-        page_url = "https://meta.wikimedia.org/wiki/%s" % self.page_title
+        page_url = f"https://meta.wikimedia.org/wiki/{self.page_title}"
         response = self.app.get(
-            "/update?page=%s&url=%s&nostream" % (self.page_title, page_url)
+            f"/update?page={self.page_title}&url={page_url}&nostream"
         )
         self.mock_pages_processor.assert_called_once_with(page_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
-        message = 'Updated page <a href="%s">%s</a>' % (page_url, self.page_title)
+        message = f'Updated page <a href="{page_url}">{self.page_title}</a>'
         self.assertSuccessPage(response, message)
 
 
@@ -576,8 +574,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_P1)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -610,8 +607,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_P1)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=None"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=None"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -644,8 +640,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_Lbr)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=Lbr&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=Lbr&grouping=Q2"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -678,8 +673,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_Dbr)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=Dbr&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=Dbr&grouping=Q2"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -712,8 +706,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_P1)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&property=P1&grouping="
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping="
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -743,31 +736,25 @@ class QueriesTests(PagesProcessorTests):
     def test_queries_error_processing_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ProcessingException
         response = self.app.get(
-            "/queries?page=%s&url=%s&property=P1&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping=Q2"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
-        message = "<p>Something went wrong when generating queries from page {page}.</p>".format(
-            page=self.linked_page
-        )
+        message = f"<p>Something went wrong when generating queries from page {self.linked_page}.</p>"
         self.assertErrorPage(response, message, expected_status=422)
 
     def test_queries_error_unknown_exception(self):
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.side_effect = ValueError
         response = self.app.get(
-            "/queries?page=%s&url=%s&property=P1&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping=Q2"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
-        message = "<p>Something catastrophic happened when generating queries from page {page}.</p>".format(
-            page=self.linked_page
-        )
+        message = f"<p>Something catastrophic happened when generating queries from page {self.linked_page}.</p>"
         self.assertErrorPage(response, message, expected_status=500)
 
     def test_queries_error_transient_exception(self):
@@ -775,15 +762,12 @@ class QueriesTests(PagesProcessorTests):
             "maxlag"
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&property=P1&grouping=Q2"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping=Q2"
         )
         self.assertEqual(response.status_code, 503)
         contents = response.get_data(as_text=True)
         self.assertIn("alert-warning", contents)
-        message = "A temporary server issue occurred when generating queries from page {page}.".format(
-            page=self.linked_page
-        )
+        message = f"A temporary server issue occurred when generating queries from page {self.linked_page}."
         self.assertPresent(message, contents)
 
     def test_queries_success_unknown_value_grouping(self):
@@ -792,8 +776,7 @@ class QueriesTests(PagesProcessorTests):
             self._make_query_data(self.column_P1)
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=UNKNOWN_VALUE"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=UNKNOWN_VALUE"
         )
         self.mock_pages_processor.assert_called_once_with(self.page_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
@@ -828,8 +811,7 @@ class QueriesTests(PagesProcessorTests):
             )
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2&format=json"
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.content_type, "application/json")
@@ -852,8 +834,7 @@ class QueriesTests(PagesProcessorTests):
             "bad config"
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2&format=json"
         )
         self.assertEqual(response.status_code, 422)
         self.assertEqual(response.content_type, "application/json")
@@ -864,8 +845,7 @@ class QueriesTests(PagesProcessorTests):
             "boom"
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2&format=json"
         )
         self.assertEqual(response.status_code, 500)
         self.assertEqual(response.content_type, "application/json")
@@ -876,8 +856,7 @@ class QueriesTests(PagesProcessorTests):
             "maxlag"
         )
         response = self.app.get(
-            "/queries?page=%s&url=%s&column=P1&grouping=Q2&format=json"
-            % (self.page_title, self.page_url)
+            f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2&format=json"
         )
         self.assertEqual(response.status_code, 503)
         self.assertEqual(response.content_type, "application/json")

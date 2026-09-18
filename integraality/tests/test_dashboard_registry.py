@@ -107,12 +107,12 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.record(
             site_hostname=hostname,
             page_id=page_id,
-            page_url="https://%s/wiki/P%d" % (hostname, page_id),
-            page_title="P%d" % page_id,
+            page_url=f"https://{hostname}/wiki/P{page_id}",
+            page_title=f"P{page_id}",
             site_name=site_name,
             namespace_canonical="Project",
             namespace_localized=site_name,
-            root_page="P%d" % page_id,
+            root_page=f"P{page_id}",
         )
 
     def test_wiki_preloaded_once_then_cached(self):

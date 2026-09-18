@@ -27,7 +27,7 @@ class ReferenceCheck(ABC):
 
         Returns None if no meaningful value can be shown.
         """
-        return None
+        return
 
     def _priority_ref_value_binding(self, stmt_var):
         """Shared implementation: bind ?refValue using priority list + fallback.

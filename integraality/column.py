@@ -421,7 +421,12 @@ class ReferenceColumn(PropertyColumn):
         )
         parts = [prop_link]
         if self.value:
-            value_ref = self.value if self.value.startswith("?") else self.value
+            if self.value.startswith("?"):
+                value_ref = self.value
+            else:
+                value_ref = (
+                    f'<a href="https://wikidata.org/wiki/{self.value}">{self.value}</a>'
+                )
             parts.append(f"= {value_ref}")
         if self.qualifier:
             qualifier_link = (

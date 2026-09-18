@@ -1144,7 +1144,18 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
         result = col.format_html_snippet()
         expected = (
             '<a href="https://wikidata.org/wiki/Property:P17">P17</a>'
-            " = Q594550"
+            ' = <a href="https://wikidata.org/wiki/Q594550">Q594550</a>'
+            ' qualifier <a href="https://wikidata.org/wiki/Property:P580">P580</a>'
+            " referenced"
+        )
+        self.assertEqual(result, expected)
+
+    def test_format_html_snippet_with_variable_value(self):
+        col = ReferenceColumn("P17", value="?country", qualifier="P580")
+        result = col.format_html_snippet()
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P17">P17</a>'
+            " = ?country"
             ' qualifier <a href="https://wikidata.org/wiki/Property:P580">P580</a>'
             " referenced"
         )

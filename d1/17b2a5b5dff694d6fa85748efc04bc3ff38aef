@@ -1,0 +1,14 @@
+docker-compose.yml
+  h_bc010f8da910ff 24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "d117b2a5b5dff694d6fa85748efc04bc3ff38aef",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

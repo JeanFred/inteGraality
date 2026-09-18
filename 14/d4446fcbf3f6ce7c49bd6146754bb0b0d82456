@@ -1,0 +1,16 @@
+integraality/tests/test_sse.py
+  h_bc010f8da910ff 4,9-35
+integraality/sse.py
+  h_bc010f8da910ff 42,51-53,55-57,77-78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "14d4446fcbf3f6ce7c49bd6146754bb0b0d82456",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

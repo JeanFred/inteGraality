@@ -1,0 +1,22 @@
+integraality/templates/queries_transient_error.html
+  h_bc010f8da910ff 1-8
+integraality/tests/test_app.py
+  h_bc010f8da910ff 774-789,874-885
+integraality/pages_processor.py
+  h_bc010f8da910ff 414-422
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 600-609
+integraality/app.py
+  h_bc010f8da910ff 273-284
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fa67c15fc12299851e50104f73a7f0e03681ccaf",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

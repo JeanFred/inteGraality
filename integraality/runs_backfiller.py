@@ -147,22 +147,25 @@ class ApiRunsBackfiller:
                 )
 
     def _fetch_revision_content(self, revid):
-        """Re-fetch a single revision's content by revid (rvlimit=1).
+        """Re-fetch a single revision's content by revid.
 
         Used to recover a revision whose content was truncated in a batched
-        response (the 12 MB cap): one revision alone fits comfortably. Returns
-        the wikitext, or "" if the revision is gone.
+        response (the 12 MB cap): one revision alone fits comfortably. Uses a
+        plain api.Request rather than PropertyGenerator, because the generator
+        auto-injects rvlimit for the revisions module and the API rejects
+        revids mixed with rvlimit (invalidparammix). Returns the wikitext, or
+        "" if the revision is gone.
         """
-        generator = api.PropertyGenerator(
-            "revisions",
-            site=self.site,
-            parameters={
-                "revids": revid,
-                "rvprop": "content",
-                "rvslots": "main",
-            },
+        request = self.site.simple_request(
+            action="query",
+            prop="revisions",
+            revids=revid,
+            rvprop="content",
+            rvslots="main",
         )
-        for page in generator:
+        data = request.submit()
+        pages = data.get("query", {}).get("pages", {})
+        for page in pages.values():
             for rev in page.get("revisions", []):
                 return _slot_content(rev)
         return ""

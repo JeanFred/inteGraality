@@ -113,18 +113,34 @@ class TestApiBackfill(unittest.TestCase):
             "pywikibot.data.api.PropertyGenerator", side_effect=factory
         ), factory
 
-    def _run(self, registry, pages_by_call, limit=None):
+    def _query_response(self, content):
+        """An action=query prop=revisions response (formatversion 1: content
+        under slot '*') carrying one revision, as _fetch_revision_content reads
+        it via site.simple_request(...).submit()."""
+        return {
+            "query": {
+                "pages": {"1": {"revisions": [{"slots": {"main": {"*": content}}}]}}
+            }
+        }
+
+    def _run(self, registry, pages_by_call, limit=None, refetch_content=None):
         """Run backfill_runs with DashboardRegistry patched so every
         ``with DashboardRegistry()`` (the listing + each dashboard) yields the
-        given shared mock registry — so a single mock observes all writes."""
+        given shared mock registry — so a single mock observes all writes.
+
+        ``refetch_content`` sets what site.simple_request(...).submit() returns
+        for the single-revision truncation re-fetch (as raw wikitext)."""
         patcher, factory = self._patch_generator(pages_by_call)
         registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        if refetch_content is not None:
+            site.simple_request.return_value.submit.return_value = self._query_response(
+                refetch_content
+            )
         with patcher, registry_patch as mock_registry_cls:
             mock_registry_cls.return_value.__enter__.return_value = registry
-            inserted = ApiRunsBackfiller(
-                MagicMock(hostname=lambda: "www.wikidata.org")
-            ).backfill_runs(limit=limit)
-        return inserted, factory
+            inserted = ApiRunsBackfiller(site).backfill_runs(limit=limit)
+        return inserted, factory, site
 
     def test_fills_metadata_and_counts_in_one_pass(self):
         registry = self._registry([("Wikidata:X", 3, 7)])
@@ -140,7 +156,7 @@ class TestApiBackfill(unittest.TestCase):
                 ]
             )
         ]
-        inserted, _ = self._run(registry, [pages])
+        inserted, _, _ = self._run(registry, [pages])
 
         self.assertEqual(inserted, 1)
         dashboard_id, wiki_id, run, finished_at = (
@@ -157,23 +173,28 @@ class TestApiBackfill(unittest.TestCase):
 
     def test_refetches_truncated_revision_content(self):
         """A revision whose batched content is truncated (non-empty but no
-        totals row → all-None shape) is re-fetched alone by revid, and the full
-        content then yields real counts."""
+        totals row → all-None shape) is re-fetched alone by revid via
+        simple_request, and the full content then yields real counts."""
         registry = self._registry([("Wikidata:X", 3, 7)])
         truncated = '{| class="wikitable sortable"\n| some cut-off content\n'
         first_pass = [
             self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", truncated)])
         ]
-        # The re-fetch (revids=999) returns the complete table.
-        refetch = [self._page([(999, "2026-02-13T01:18:34Z", "", _CURRENT_TABLE)])]
-        inserted, factory = self._run(registry, [first_pass, refetch])
+        # The re-fetch returns the complete table via site.simple_request.
+        inserted, _, site = self._run(
+            registry, [first_pass], refetch_content=_CURRENT_TABLE
+        )
 
         self.assertEqual(inserted, 1)
         run = registry.record_resolved_backfilled_run.call_args[0][2]
         self.assertEqual(run.entity_total, 39163)  # recovered from re-fetch
         self.assertEqual(run.column_count, 2)
-        # The re-fetch call was by revids for the single revision.
-        self.assertEqual(factory.last_parameters["revids"], 999)
+        # The re-fetch was a plain query by revids (no rvlimit → no
+        # invalidparammix), for the single revision.
+        params = site.simple_request.call_args.kwargs
+        self.assertEqual(params["revids"], 999)
+        self.assertNotIn("rvlimit", params)
+        self.assertNotIn("rvuser", params)
 
     def test_unrecoverable_revision_records_null_counts(self):
         """If even the re-fetch won't parse, the run is still recorded with NULL
@@ -183,8 +204,7 @@ class TestApiBackfill(unittest.TestCase):
         first_pass = [
             self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", garbage)])
         ]
-        refetch = [self._page([(999, "2026-02-13T01:18:34Z", "", garbage)])]
-        inserted, _ = self._run(registry, [first_pass, refetch])
+        inserted, _, _ = self._run(registry, [first_pass], refetch_content=garbage)
 
         self.assertEqual(inserted, 1)
         run = registry.record_resolved_backfilled_run.call_args[0][2]
@@ -195,7 +215,7 @@ class TestApiBackfill(unittest.TestCase):
     def test_query_filters_to_bot_with_content(self):
         """The generator is parameterised with the bot filter and content pull."""
         registry = self._registry([("Wikidata:X", 3, 7)])
-        _, factory = self._run(registry, [[self._page([])]])
+        _, factory, _ = self._run(registry, [[self._page([])]])
 
         params = factory.last_parameters
         self.assertEqual(params["rvuser"], "InteGraalityBot")
@@ -215,19 +235,21 @@ class TestApiBackfill(unittest.TestCase):
                 )
             ],
         ]
-        inserted, _ = self._run(registry, pages_by_call)
+        inserted, _, _ = self._run(registry, pages_by_call)
         self.assertEqual(inserted, 1)
 
     def test_no_dashboards_is_a_noop(self):
         registry = self._registry([])
-        inserted, factory = self._run(registry, [])
+        inserted, factory, _ = self._run(registry, [])
         self.assertEqual(inserted, 0)
         self.assertIsNone(factory.last_parameters)  # generator never built
 
     def test_limit_caps_dashboards(self):
         registry = self._registry([("A", 1, 7), ("B", 2, 7), ("C", 3, 7)])
         # Only two dashboards should be queried under limit=2.
-        inserted, _ = self._run(registry, [[self._page([])], [self._page([])]], limit=2)
+        inserted, _, _ = self._run(
+            registry, [[self._page([])], [self._page([])]], limit=2
+        )
         self.assertEqual(inserted, 0)  # empty pages, but no crash on the 3rd
 
     @patch("integraality.runs_backfiller.DashboardRegistry")

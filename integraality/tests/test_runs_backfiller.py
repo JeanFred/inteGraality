@@ -308,6 +308,26 @@ class TestApiBackfill(unittest.TestCase):
         self.assertEqual(inserted, 1)  # the good dashboard still recorded
         good.record_resolved_backfilled_run.assert_called_once()
 
+    def test_only_missing_forwarded_to_listing(self):
+        """backfill_runs(only_missing=True) restricts the listing query."""
+        registry = self._registry([])
+        self._run(registry, [], limit=None)
+        registry.list_dashboards_for_backfill.assert_called_with(
+            "www.wikidata.org", only_missing=False
+        )
+
+        registry = self._registry([])
+        patcher, _ = self._patch_generator([])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs(only_missing=True)
+        registry.list_dashboards_for_backfill.assert_called_with(
+            "www.wikidata.org", only_missing=True
+        )
+
 
 class TestTimestampConversion(unittest.TestCase):
     def test_iso_z_to_naive_datetime(self):
@@ -331,7 +351,9 @@ class TestMain(unittest.TestCase):
         main()
         mock_site.assert_called_once_with(url="https://commons.wikimedia.org/wiki/")
         mock_cls.assert_called_once_with(mock_site.return_value)
-        mock_cls.return_value.backfill_runs.assert_called_once_with(limit=5)
+        mock_cls.return_value.backfill_runs.assert_called_once_with(
+            limit=5, only_missing=False
+        )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
     @patch("integraality.runs_backfiller.ApiRunsBackfiller")
@@ -341,7 +363,20 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_site.assert_called_once_with(url="https://www.wikidata.org/wiki/")
-        mock_cls.return_value.backfill_runs.assert_called_once_with(limit=None)
+        mock_cls.return_value.backfill_runs.assert_called_once_with(
+            limit=None, only_missing=False
+        )
+
+    @patch("integraality.runs_backfiller.pywikibot.Site")
+    @patch("integraality.runs_backfiller.ApiRunsBackfiller")
+    @patch("sys.argv", ["prog", "--only-missing"])
+    def test_main_only_missing_flag(self, mock_cls, mock_site):
+        from integraality.runs_backfiller import main
+
+        main()
+        mock_cls.return_value.backfill_runs.assert_called_once_with(
+            limit=None, only_missing=True
+        )
 
 
 if __name__ == "__main__":

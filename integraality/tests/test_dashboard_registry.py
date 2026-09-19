@@ -596,6 +596,23 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("w.hostname = %s", sql)
         self.assertEqual(params, ("www.wikidata.org",))
 
+    def test_list_dashboards_for_backfill_only_missing_excludes_recorded(self):
+        """only_missing adds a NOT EXISTS on dashboard_runs so already-recorded
+        dashboards are skipped; params are unchanged."""
+        self.mock_cursor.fetchall.return_value = [
+            {"page_title": "Wikidata:A", "dashboard_id": 3, "wiki_id": 7},
+        ]
+
+        result = self.registry.list_dashboards_for_backfill(
+            "www.wikidata.org", only_missing=True
+        )
+
+        self.assertEqual(result, [("Wikidata:A", 3, 7)])
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("NOT EXISTS", sql)
+        self.assertIn("dashboard_runs", sql)
+        self.assertEqual(params, ("www.wikidata.org",))
+
     def test_record_resolved_backfilled_run_inserts_ignore_no_commit(self):
         """Inserts against resolved ids via INSERT IGNORE; does NOT commit
         (the backfiller commits per dashboard)."""

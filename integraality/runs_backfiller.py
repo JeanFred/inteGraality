@@ -230,7 +230,7 @@ class ApiRunsBackfiller:
         registry.conn.commit()
         return inserted
 
-    def backfill_runs(self, limit=None):
+    def backfill_runs(self, limit=None, only_missing=False):
         """Backfill runs for this wiki's registered dashboards via the API.
 
         One paginated rvuser+content query per dashboard fills metadata +
@@ -239,10 +239,14 @@ class ApiRunsBackfiller:
         outlives ToolsDB's idle timeout and one dropped connection can't poison
         the rest of the batch. A failing dashboard is logged and skipped so one
         bad page never kills the batch. ``limit`` caps the number of dashboards
-        processed. Returns the total runs inserted.
+        processed; ``only_missing`` restricts to dashboards with no runs yet (to
+        retry the ones an earlier pass skipped without re-crawling the rest).
+        Returns the total runs inserted.
         """
         with DashboardRegistry() as registry:
-            dashboards = registry.list_dashboards_for_backfill(self.site_hostname)
+            dashboards = registry.list_dashboards_for_backfill(
+                self.site_hostname, only_missing=only_missing
+            )
         if not dashboards:
             logger.info("No dashboards on %s; nothing to backfill", self.site_hostname)
             return 0
@@ -300,9 +304,17 @@ def main():
         default=None,
         help="process at most N dashboards",
     )
+    parser.add_argument(
+        "--only-missing",
+        action="store_true",
+        help="only backfill dashboards that have no runs recorded yet "
+        "(retry a previous pass's skips without re-crawling the rest)",
+    )
     args = parser.parse_args()
     site = pywikibot.Site(url=args.url)
-    ApiRunsBackfiller(site).backfill_runs(limit=args.limit)
+    ApiRunsBackfiller(site).backfill_runs(
+        limit=args.limit, only_missing=args.only_missing
+    )
 
 
 if __name__ == "__main__":

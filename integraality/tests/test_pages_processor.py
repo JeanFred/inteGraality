@@ -11,11 +11,13 @@ from ..pages_processor import (
     NoEndTemplateException,
     NoStartTemplateException,
     PagesProcessor,
+    RunContext,
     TransientServerException,
     UnsupportedWikiException,
     main,
     validate_wiki_url,
 )
+from ..sparql_utils import QueryException, QueryTimeoutException
 
 
 class ValidateWikiUrlTest(unittest.TestCase):
@@ -444,8 +446,6 @@ class TestRunRecording(ProcessortTest):
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_derives_category(self, mock_registry_cls):
-        from ..sparql_utils import QueryTimeoutException
-
         registry = mock_registry_cls.return_value.__enter__.return_value
 
         self.processor._record_run_fail(
@@ -461,6 +461,70 @@ class TestRunRecording(ProcessortTest):
         self.assertEqual(run.error_category, "timeout")
         self.assertIn("timeout", run.error_detail)
         self.assertIsNone(run.revision_id)
+        # No stats reached the failure site -> engine unknown.
+        self.assertIsNone(run.sparql_engine)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_fail_records_engine_when_known(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+
+        self.processor._record_run_fail(
+            self._dashboard_page(),
+            trigger_source="WEB",
+            elapsed_time=0.2,
+            exc=QueryTimeoutException("timeout", query="SELECT ?x"),
+            sparql_engine="Wikidata Query Service",
+        )
+
+        registry.record_run.assert_called_once()
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.status, "FAIL")
+        self.assertEqual(run.sparql_engine, "Wikidata Query Service")
+
+    def test_make_stats_object_fills_run_context_engine(self):
+        engine = MagicMock()
+        engine.name = "QLever"
+        config = {"sparql_query_engine": engine, "grouping_link_mode": "link"}
+        run_context = RunContext()
+
+        with (
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                return_value=config,
+            ),
+            patch("integraality.pages_processor.PropertyStatistics"),
+        ):
+            self.processor.make_stats_object_for_page(
+                self._dashboard_page(), run_context=run_context
+            )
+
+        self.assertEqual(run_context.sparql_engine, "QLever")
+
+    def test_make_stats_object_fills_run_context_before_build_failure(self):
+        # Engine is captured even when PropertyStatistics(**config) later fails.
+        engine = MagicMock()
+        engine.name = "QLever"
+        config = {"sparql_query_engine": engine, "grouping_link_mode": "link"}
+        run_context = RunContext()
+
+        with (
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                return_value=config,
+            ),
+            patch(
+                "integraality.pages_processor.PropertyStatistics",
+                side_effect=TypeError("bad params"),
+            ),
+            self.assertRaises(ConfigException),
+        ):
+            self.processor.make_stats_object_for_page(
+                self._dashboard_page(), run_context=run_context
+            )
+
+        self.assertEqual(run_context.sparql_engine, "QLever")
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_logs_traceback(self, mock_registry_cls):
@@ -536,8 +600,6 @@ class TestRunRecording(ProcessortTest):
     def test_process_page_records_fail_and_reraises(self, mock_registry_cls):
         """A real dashboard failure inside process_page is recorded as a FAIL
         run and re-raised (guards the try/except wiring, not just the helper)."""
-        from ..sparql_utils import QueryException
-
         registry = mock_registry_cls.return_value.__enter__.return_value
         page = self._dashboard_page()
         exc = QueryException("boom", query="SELECT ?x")

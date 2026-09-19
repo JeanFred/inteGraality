@@ -59,7 +59,15 @@ class RunResult:
         )
 
     @classmethod
-    def fail(cls, *, error_category, trigger_source, duration_ms, error_detail=None):
+    def fail(
+        cls,
+        *,
+        error_category,
+        trigger_source,
+        duration_ms,
+        error_detail=None,
+        sparql_engine=None,
+    ):
         """A failed run. ``error_category`` is required (FAIL => category)."""
         return cls(
             status="FAIL",
@@ -67,6 +75,7 @@ class RunResult:
             trigger_source=trigger_source,
             duration_ms=duration_ms,
             error_detail=error_detail,
+            sparql_engine=sparql_engine,
         )
 
 

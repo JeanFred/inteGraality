@@ -3,6 +3,7 @@
 import logging
 import os
 import re
+from dataclasses import dataclass
 from time import perf_counter
 
 import mwparserfromhell
@@ -20,6 +21,13 @@ from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException
 
 logger = logging.getLogger("integraality.update")
+
+
+@dataclass
+class RunContext:
+    """Values learned while processing a page, needed if it later fails."""
+
+    sparql_engine: str | None = None
 
 
 class ProcessingException(Exception):
@@ -156,8 +164,13 @@ class PagesProcessor:
         self.cache.set_cache_value(key, config)
         return config
 
-    def make_stats_object_for_page(self, page):
+    def make_stats_object_for_page(self, page, run_context):
         config = self.make_stats_object_arguments_for_page(page)
+        # Record the engine as soon as config resolves it, so a failure in
+        # PropertyStatistics(**config) still carries the engine.
+        engine = config.get("sparql_query_engine")
+        if engine is not None:
+            run_context.sparql_engine = engine.name
         grouping_link_mode = config.pop("grouping_link_mode", "link")
         try:
             stats = PropertyStatistics(**config)
@@ -169,11 +182,14 @@ class PagesProcessor:
 
     def process_page(self, page, trigger_source="CRON"):
         start_time = perf_counter()
+        run_context = RunContext()
         try:
             logger.debug("Invalidating cache key for %s", page.title())
             self.cache.invalidate(self.make_cache_key(page.title()))
             logger.info("Parsing page configuration...")
-            stats, grouping_link_mode = self.make_stats_object_for_page(page)
+            stats, grouping_link_mode = self.make_stats_object_for_page(
+                page, run_context=run_context
+            )
             groupings = stats.retrieve_data()
             report_groupings = stats.prepare_report_groupings(groupings)
             formatter = stats.build_formatter()
@@ -222,6 +238,7 @@ class PagesProcessor:
                 trigger_source=trigger_source,
                 elapsed_time=perf_counter() - start_time,
                 exc=e,
+                sparql_engine=run_context.sparql_engine,
             )
             raise
 
@@ -251,7 +268,9 @@ class PagesProcessor:
         except Exception as e:
             logger.warning("Failed to record run for %s: %s", page.title(), e)
 
-    def _record_run_fail(self, page, trigger_source, elapsed_time, exc):
+    def _record_run_fail(
+        self, page, trigger_source, elapsed_time, exc, sparql_engine=None
+    ):
         """Record a failed run. Best-effort: never mask the original error."""
         category = getattr(exc, "error_category", None)
         # Full traceback here (both WEB and CRON reach this) -- the DB only keeps
@@ -267,6 +286,7 @@ class PagesProcessor:
             trigger_source=trigger_source,
             duration_ms=int(elapsed_time * 1000),
             error_detail=str(exc)[:2000],
+            sparql_engine=sparql_engine,
         )
         try:
             with DashboardRegistry() as registry:

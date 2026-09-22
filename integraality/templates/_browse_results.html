@@ -25,7 +25,8 @@
         {% set chronic = failing and d.failures_since_success >= chronic_failure_threshold %}
         <tr class="{{ 'table-danger' if chronic else 'table-warning' if failing else '' }}">
             <td>
-                <a href="{{ d.page_url }}">{{ d.page_title }}</a>
+                <a href="{{ url_for('dashboard', wiki=d.site_hostname, page=d.page_title) }}">{{ d.page_title }}</a>
+                <a href="{{ d.page_url }}" title="View on wiki" class="text-muted">↗</a>
                 {% if d.site_hostname != 'www.wikidata.org' %}
                     <small class="text-muted">({{ d.site_name }})</small>
                 {% endif %}

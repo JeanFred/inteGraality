@@ -315,6 +315,8 @@ class RunsTests(AppTests):
         self.assertIn("SPARQL timeout", contents)
         self.assertIn("CRON", contents)  # trigger column
         self.assertIn("72.0s", contents)  # duration column (72000ms -> 72.0s)
+        # Each row links its title to the dashboard history page.
+        self.assertIn("/dashboard?wiki=www.wikidata.org&amp;page=Healthy", contents)
 
     def test_runs_empty(self):
         contents = self.app.get("/runs").get_data(as_text=True)

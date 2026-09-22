@@ -20,7 +20,8 @@
         {% for r in runs %}
         <tr>
             <td>
-                <a href="{{ r.page_url }}">{{ r.page_title }}</a>
+                <a href="{{ url_for('dashboard', wiki=r.site_hostname, page=r.page_title) }}">{{ r.page_title }}</a>
+                <a href="{{ r.page_url }}" title="View on wiki" class="text-muted">↗</a>
                 {% if r.site_hostname != 'www.wikidata.org' %}
                     <small class="text-muted">({{ r.site_name }})</small>
                 {% endif %}

@@ -393,6 +393,198 @@ class DashboardRegistry:
             cur.execute(sql, tuple(params))
             return cur.fetchall()
 
+    def get_dashboard(self, site_hostname, page_title):
+        """Identity row for one dashboard keyed on (hostname, page_title), or
+        None. Read-only: does not touch the wiki cache.
+        """
+        sql = """\
+            SELECT
+                p.page_url AS page_url,
+                p.page_title AS page_title,
+                p.namespace_canonical AS namespace_canonical,
+                p.namespace_localized AS namespace_localized,
+                p.root_page AS root_page,
+                w.hostname AS site_hostname,
+                w.name AS site_name
+            FROM dashboards AS d
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            WHERE w.hostname = %s AND p.page_title = %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (site_hostname, page_title))
+            return cur.fetchone()
+
+    def list_dashboard_run_history(self, site_hostname, page_title, limit=None):
+        """One dashboard's runs oldest->newest; optional limit keeps newest N.
+        Read-only."""
+        base = """\
+            SELECT
+                r.finished_at AS finished_at,
+                r.status AS status,
+                r.trigger_source AS trigger_source,
+                r.duration_ms AS duration_ms,
+                r.sparql_engine AS sparql_engine,
+                r.error_category AS error_category,
+                r.error_detail AS error_detail,
+                r.revision_id AS revision_id,
+                r.entity_total AS entity_total,
+                r.grouping_count AS grouping_count,
+                r.column_count AS column_count
+            FROM dashboard_runs AS r
+            JOIN dashboards AS d ON d.id = r.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = r.wiki_id
+            WHERE w.hostname = %s AND p.page_title = %s
+        """
+        params = [site_hostname, page_title]
+        if limit is None:
+            sql = base + "ORDER BY r.finished_at ASC, r.id ASC\n"
+        else:
+            # Keep the newest N, then re-sort ascending for display.
+            sql = (
+                "SELECT finished_at, status, trigger_source, duration_ms,\n"
+                "       sparql_engine, error_category, error_detail, revision_id,\n"
+                "       entity_total, grouping_count, column_count\n"
+                "FROM (\n"
+                + base
+                + "ORDER BY r.finished_at DESC, r.id DESC\n"
+                + "LIMIT %s\n"
+                + ") AS recent\n"
+                + "ORDER BY finished_at ASC\n"
+            )
+            params.append(limit)
+        with self.conn.cursor() as cur:
+            cur.execute(sql, tuple(params))
+            return cur.fetchall()
+
+    @staticmethod
+    def compute_health(runs):
+        """Summarize a run-history list (oldest->newest): counts, success rate,
+        streak, error categories, per-metric deltas, monthly buckets, engagement.
+        """
+        total = len(runs)
+        ok = sum(1 for r in runs if r["status"] == "OK")
+        fail = total - ok
+        last_success_at = next(
+            (r["finished_at"] for r in reversed(runs) if r["status"] == "OK"), None
+        )
+        # Trailing run of failures (from the newest run backwards).
+        failure_streak = 0
+        for r in reversed(runs):
+            if r["status"] == "FAIL":
+                failure_streak += 1
+            else:
+                break
+        error_categories = {}
+        for r in runs:
+            if r["status"] == "FAIL" and r["error_category"]:
+                error_categories[r["error_category"]] = (
+                    error_categories.get(r["error_category"], 0) + 1
+                )
+        return {
+            "total": total,
+            "ok": ok,
+            "fail": fail,
+            "success_rate": (ok / total) if total else None,
+            "first_run_at": runs[0]["finished_at"] if runs else None,
+            "last_run_at": runs[-1]["finished_at"] if runs else None,
+            "last_success_at": last_success_at,
+            "failure_streak": failure_streak,
+            "error_categories": error_categories,
+            "metrics": {
+                key: DashboardRegistry._metric_summary(runs, key)
+                for key in ("entity_total", "grouping_count", "column_count")
+            },
+            "monthly_runs": DashboardRegistry._monthly_runs(runs),
+            "engagement": DashboardRegistry._engagement(runs),
+        }
+
+    @staticmethod
+    def _monthly_runs(runs):
+        """Monthly run counts, oldest->newest, gap-filled; OK split by trigger
+        (ok_cron / ok_web / ok=sum) plus fail.
+        """
+        if not runs:
+            return []
+        counts = {}
+        for r in runs:
+            m = r["finished_at"].strftime("%Y-%m")
+            bucket = counts.setdefault(m, {"ok_cron": 0, "ok_web": 0, "fail": 0})
+            if r["status"] == "OK":
+                bucket["ok_web" if r.get("trigger_source") == "WEB" else "ok_cron"] += 1
+            else:
+                bucket["fail"] += 1
+        # Contiguous month range from first to last observed month.
+        first = min(counts)
+        last = max(counts)
+        year, month = int(first[:4]), int(first[5:7])
+        end_year, end_month = int(last[:4]), int(last[5:7])
+        out = []
+        while (year, month) <= (end_year, end_month):
+            key = f"{year:04d}-{month:02d}"
+            c = counts.get(key, {"ok_cron": 0, "ok_web": 0, "fail": 0})
+            out.append(
+                {
+                    "month": key,
+                    "ok_cron": c["ok_cron"],
+                    "ok_web": c["ok_web"],
+                    "ok": c["ok_cron"] + c["ok_web"],
+                    "fail": c["fail"],
+                }
+            )
+            month += 1
+            if month > 12:
+                month = 1
+                year += 1
+        return out
+
+    @staticmethod
+    def _engagement(runs):
+        """Manual (WEB) vs automatic (CRON) counts, web share, and last manual run"""
+        web = sum(1 for r in runs if r.get("trigger_source") == "WEB")
+        cron = sum(1 for r in runs if r.get("trigger_source") == "CRON")
+        total = len(runs)
+        last_web_at = next(
+            (
+                r["finished_at"]
+                for r in reversed(runs)
+                if r.get("trigger_source") == "WEB"
+            ),
+            None,
+        )
+        return {
+            "web": web,
+            "cron": cron,
+            "web_share": (web / total) if total else None,
+            "last_web_at": last_web_at,
+        }
+
+    @staticmethod
+    def _metric_summary(runs, key):
+        """current/first + delta-since-first/since-last + series for one metric,
+        over its non-null observations (failed runs carry no counts).
+        """
+        values = [r[key] for r in runs if r.get(key) is not None]
+        if not values:
+            return {
+                "current": None,
+                "first": None,
+                "delta_since_first": None,
+                "delta_since_last": None,
+                "series": [],
+            }
+        current = values[-1]
+        first = values[0]
+        previous = values[-2] if len(values) >= 2 else None
+        return {
+            "current": current,
+            "first": first,
+            "delta_since_first": current - first,
+            "delta_since_last": (current - previous) if previous is not None else None,
+            "series": values,
+        }
+
     def list_dashboards_missing_page_metadata(self, site_hostname):
         """Return dashboard pages missing page_created_at (id = pages.id)."""
         sql = """\

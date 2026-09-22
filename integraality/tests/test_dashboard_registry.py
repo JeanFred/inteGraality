@@ -1,6 +1,7 @@
 """Tests for dashboard_registry module."""
 
 import unittest
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from ..dashboard_registry import (
@@ -8,6 +9,12 @@ from ..dashboard_registry import (
     DashboardRegistry,
     RunResult,
 )
+
+
+def _dt(ts):
+    """Build a naive datetime from 'YYYY-MM-DD HH:MM:SS' − mirrors what the DB
+    driver returns for finished_at, so tests exercise the production path."""
+    return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
 
 
 class TestDashboardRegistry(unittest.TestCase):
@@ -703,6 +710,374 @@ class TestDashboardRegistry(unittest.TestCase):
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("w.hostname = %s", sql)
         self.assertEqual(params, ("commons.wikimedia.org", 100))
+
+    def test_get_dashboard_returns_identity_row(self):
+        """Keyed on (hostname, page_title); returns the aliased identity row."""
+        self.mock_cursor.fetchone.return_value = {
+            "page_url": "https://www.wikidata.org/wiki/X",
+            "page_title": "X",
+            "site_hostname": "www.wikidata.org",
+            "site_name": "Wikidata",
+        }
+
+        row = self.registry.get_dashboard("www.wikidata.org", "X")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("WHERE w.hostname = %s AND p.page_title = %s", sql)
+        self.assertIn("w.hostname AS site_hostname", sql)
+        self.assertEqual(params, ("www.wikidata.org", "X"))
+        self.assertEqual(row["page_title"], "X")
+
+    def test_get_dashboard_unknown_returns_none(self):
+        self.mock_cursor.fetchone.return_value = None
+        self.assertIsNone(self.registry.get_dashboard("www.wikidata.org", "Nope"))
+
+    def test_get_dashboard_does_not_preload_wiki_cache(self):
+        """Read-only use must not trigger the wiki preload SELECT."""
+        self.mock_cursor.fetchone.return_value = None
+        self.registry.get_dashboard("www.wikidata.org", "X")
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertEqual(
+            sum("SELECT id, hostname, name FROM wikis" in sql for sql in executed), 0
+        )
+
+    def test_list_dashboard_run_history_orders_oldest_first(self):
+        """Unlimited history is scanned in ascending (finished_at, id) order so
+        a chart reads left-to-right; keyed on (hostname, page_title)."""
+        self.mock_cursor.fetchall.return_value = [
+            {"finished_at": "2019-05-22 20:28:56", "status": "OK"},
+            {"finished_at": "2019-05-22 20:34:24", "status": "OK"},
+        ]
+
+        result = self.registry.list_dashboard_run_history("www.wikidata.org", "X")
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("WHERE w.hostname = %s AND p.page_title = %s", sql)
+        self.assertIn("ORDER BY r.finished_at ASC, r.id ASC", sql)
+        self.assertNotIn("LIMIT", sql)
+        self.assertEqual(params, ("www.wikidata.org", "X"))
+        self.assertEqual(len(result), 2)
+
+    def test_list_dashboard_run_history_limit_keeps_newest_then_resorts(self):
+        """With a limit, keep the newest N (DESC subquery + LIMIT) but return
+        them oldest->newest for display."""
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboard_run_history("www.wikidata.org", "X", limit=50)
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("ORDER BY r.finished_at DESC, r.id DESC", sql)
+        self.assertIn("LIMIT %s", sql)
+        self.assertIn("ORDER BY finished_at ASC", sql)
+        self.assertEqual(params, ("www.wikidata.org", "X", 50))
+
+    def test_list_dashboard_run_history_does_not_preload_wiki_cache(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboard_run_history("www.wikidata.org", "X")
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertEqual(
+            sum("SELECT id, hostname, name FROM wikis" in sql for sql in executed), 0
+        )
+
+    def test_compute_health_summarizes_runs(self):
+        """compute_health is a pure summary over an oldest->newest run list:
+        counts, success rate, first/last, last success, trailing failure streak,
+        and an error-category breakdown."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-02 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-03 00:00:00"),
+                "status": "FAIL",
+                "error_category": "timeout",
+            },
+            {
+                "finished_at": _dt("2019-01-04 00:00:00"),
+                "status": "FAIL",
+                "error_category": "query",
+            },
+        ]
+
+        health = DashboardRegistry.compute_health(runs)
+
+        self.assertEqual(health["total"], 4)
+        self.assertEqual(health["ok"], 2)
+        self.assertEqual(health["fail"], 2)
+        self.assertEqual(health["success_rate"], 0.5)
+        self.assertEqual(health["first_run_at"], _dt("2019-01-01 00:00:00"))
+        self.assertEqual(health["last_run_at"], _dt("2019-01-04 00:00:00"))
+        # Last OK is the 2nd run; the two trailing FAILs form the streak.
+        self.assertEqual(health["last_success_at"], _dt("2019-01-02 00:00:00"))
+        self.assertEqual(health["failure_streak"], 2)
+        self.assertEqual(health["error_categories"], {"timeout": 1, "query": 1})
+
+    def test_compute_health_all_ok_has_no_streak(self):
+        runs = [
+            {
+                "finished_at": _dt("2019-01-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-02 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+        ]
+        health = DashboardRegistry.compute_health(runs)
+        self.assertEqual(health["failure_streak"], 0)
+        self.assertEqual(health["success_rate"], 1.0)
+        self.assertEqual(health["error_categories"], {})
+
+    def test_compute_health_empty(self):
+        health = DashboardRegistry.compute_health([])
+        self.assertEqual(health["total"], 0)
+        self.assertIsNone(health["success_rate"])
+        self.assertIsNone(health["last_success_at"])
+        self.assertIsNone(health["first_run_at"])
+        self.assertEqual(health["failure_streak"], 0)
+
+    def test_compute_health_metric_deltas(self):
+        """Each metric card gets current/first + both deltas, computed over the
+        non-null observations (failed runs carry no counts)."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+                "entity_total": 100,
+                "grouping_count": 2,
+                "column_count": 9,
+            },
+            {
+                "finished_at": _dt("2019-02-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+                "entity_total": 150,
+                "grouping_count": 5,
+                "column_count": 9,
+            },
+            {
+                "finished_at": _dt("2019-03-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+                "entity_total": 180,
+                "grouping_count": 7,
+                "column_count": 9,
+            },
+            # A failure carries no counts and must not affect the deltas.
+            {
+                "finished_at": _dt("2019-04-01 00:00:00"),
+                "status": "FAIL",
+                "error_category": "query",
+                "entity_total": None,
+                "grouping_count": None,
+                "column_count": None,
+            },
+        ]
+
+        m = DashboardRegistry.compute_health(runs)["metrics"]
+
+        self.assertEqual(m["entity_total"]["current"], 180)
+        self.assertEqual(m["entity_total"]["first"], 100)
+        self.assertEqual(m["entity_total"]["delta_since_first"], 80)
+        # Last change is 150 -> 180 (the FAIL's None is skipped).
+        self.assertEqual(m["entity_total"]["delta_since_last"], 30)
+        self.assertEqual(m["entity_total"]["series"], [100, 150, 180])
+        # Columns never changed: deltas are zero, not None.
+        self.assertEqual(m["column_count"]["delta_since_first"], 0)
+        self.assertEqual(m["column_count"]["delta_since_last"], 0)
+
+    def test_compute_health_metric_single_observation(self):
+        """One observation: since-first delta is 0, since-last is None (no
+        prior value to compare)."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-01 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+                "entity_total": 100,
+                "grouping_count": 2,
+                "column_count": 9,
+            },
+        ]
+        m = DashboardRegistry.compute_health(runs)["metrics"]
+        self.assertEqual(m["entity_total"]["delta_since_first"], 0)
+        self.assertIsNone(m["entity_total"]["delta_since_last"])
+
+    def test_compute_health_metric_all_none(self):
+        """All-failed history: a metric with no observations is all-None."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-01 00:00:00"),
+                "status": "FAIL",
+                "error_category": "query",
+                "entity_total": None,
+                "grouping_count": None,
+                "column_count": None,
+            },
+        ]
+        m = DashboardRegistry.compute_health(runs)["metrics"]
+        self.assertIsNone(m["entity_total"]["current"])
+        self.assertIsNone(m["entity_total"]["delta_since_first"])
+        self.assertEqual(m["entity_total"]["series"], [])
+
+    def test_monthly_runs_buckets_ok_and_fail(self):
+        """Runs are bucketed per calendar month into OK/FAIL counts."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-05 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-20 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-28 00:00:00"),
+                "status": "FAIL",
+                "error_category": "query",
+            },
+        ]
+        monthly = DashboardRegistry.compute_health(runs)["monthly_runs"]
+        self.assertEqual(
+            monthly,
+            [{"month": "2019-01", "ok_cron": 2, "ok_web": 0, "ok": 2, "fail": 1}],
+        )
+
+    def test_monthly_runs_fills_empty_months(self):
+        """Months between first and last run with no runs appear as zeros, so a
+        bar chart's time axis stays continuous."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-15 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-04-15 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+        ]
+        monthly = DashboardRegistry.compute_health(runs)["monthly_runs"]
+        self.assertEqual(
+            monthly,
+            [
+                {"month": "2019-01", "ok_cron": 1, "ok_web": 0, "ok": 1, "fail": 0},
+                {"month": "2019-02", "ok_cron": 0, "ok_web": 0, "ok": 0, "fail": 0},
+                {"month": "2019-03", "ok_cron": 0, "ok_web": 0, "ok": 0, "fail": 0},
+                {"month": "2019-04", "ok_cron": 1, "ok_web": 0, "ok": 1, "fail": 0},
+            ],
+        )
+
+    def test_monthly_runs_crosses_year_boundary(self):
+        runs = [
+            {
+                "finished_at": _dt("2019-11-15 00:00:00"),
+                "status": "OK",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2020-01-15 00:00:00"),
+                "status": "FAIL",
+                "error_category": "timeout",
+            },
+        ]
+        months = [
+            b["month"] for b in DashboardRegistry.compute_health(runs)["monthly_runs"]
+        ]
+        self.assertEqual(months, ["2019-11", "2019-12", "2020-01"])
+
+    def test_monthly_runs_empty(self):
+        self.assertEqual(DashboardRegistry.compute_health([])["monthly_runs"], [])
+
+    def test_monthly_runs_splits_ok_by_trigger(self):
+        """Successful runs split into cron vs web (manual); ok is their sum."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-05 00:00:00"),
+                "status": "OK",
+                "trigger_source": "CRON",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-06 00:00:00"),
+                "status": "OK",
+                "trigger_source": "WEB",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-01-07 00:00:00"),
+                "status": "OK",
+                "trigger_source": "WEB",
+                "error_category": None,
+            },
+        ]
+        monthly = DashboardRegistry.compute_health(runs)["monthly_runs"]
+        self.assertEqual(
+            monthly,
+            [{"month": "2019-01", "ok_cron": 1, "ok_web": 2, "ok": 3, "fail": 0}],
+        )
+
+    def test_engagement_web_vs_cron(self):
+        """Engagement: web/cron counts, web share, and last manual (WEB) run."""
+        runs = [
+            {
+                "finished_at": _dt("2019-01-05 00:00:00"),
+                "status": "OK",
+                "trigger_source": "CRON",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-02-10 00:00:00"),
+                "status": "OK",
+                "trigger_source": "WEB",
+                "error_category": None,
+            },
+            {
+                "finished_at": _dt("2019-03-15 00:00:00"),
+                "status": "OK",
+                "trigger_source": "CRON",
+                "error_category": None,
+            },
+        ]
+        e = DashboardRegistry.compute_health(runs)["engagement"]
+        self.assertEqual(e["web"], 1)
+        self.assertEqual(e["cron"], 2)
+        self.assertAlmostEqual(e["web_share"], 1 / 3)
+        self.assertEqual(e["last_web_at"], _dt("2019-02-10 00:00:00"))
+
+    def test_engagement_no_web_runs(self):
+        runs = [
+            {
+                "finished_at": _dt("2019-01-05 00:00:00"),
+                "status": "OK",
+                "trigger_source": "CRON",
+                "error_category": None,
+            },
+        ]
+        e = DashboardRegistry.compute_health(runs)["engagement"]
+        self.assertEqual(e["web"], 0)
+        self.assertIsNone(e["last_web_at"])
+        self.assertEqual(e["web_share"], 0.0)
+
+    def test_engagement_empty(self):
+        e = DashboardRegistry.compute_health([])["engagement"]
+        self.assertEqual(e["web"], 0)
+        self.assertEqual(e["cron"], 0)
+        self.assertIsNone(e["web_share"])
+        self.assertIsNone(e["last_web_at"])
 
     def test_close(self):
         self.registry.close()

@@ -33,6 +33,13 @@ app = Flask(__name__)
 # which would otherwise collide with the "All / no filter" empty value.
 MAIN_NAMESPACE_TOKEN = "(Main)"
 
+# The charts and the run-outcome strip intentionally consume the *full* run
+# history (that's the point — long-term trend + every run at a glance). Only
+# the detailed runs *table* is capped, since it is the heaviest per-run markup
+# (a multi-cell row each); showing the most recent N bounds DOM growth while
+# the summaries stay complete. Paginating the full table is a future concern.
+RUNS_TABLE_CAP = 50
+
 
 def get_qlever_ui_url(page_url):
     """Return the QLever UI URL for the given wiki page URL."""
@@ -48,17 +55,17 @@ def add_prefixes_filter(query):
     return add_prefixes_to_query(query)
 
 
+def _iso_utc(value):
+    """Naive-UTC datetime -> ISO-8601 with a Z suffix (unambiguously UTC so the
+    browser doesn't read it as local time), or None. Shared by the template
+    filter and the chart-data builder."""
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ") if value is not None else None
+
+
 @app.template_filter("iso_utc")
 def iso_utc_filter(value):
-    """Render a naive-UTC datetime as ISO-8601 with a Z suffix.
-
-    DATETIME columns come back as naive datetimes (stored as UTC). The Z makes
-    the value unambiguously UTC so the browser parses it correctly rather than
-    as local time. Returns "" for None (never-run dashboards).
-    """
-    if value is None:
-        return ""
-    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+    """Template form of _iso_utc: "" for None (never-run dashboards)."""
+    return _iso_utc(value) or ""
 
 
 @app.route("/healthz")
@@ -139,6 +146,46 @@ def runs():
         "runs.html",
         runs=run_list,
         selected_wiki=site_hostname,
+    )
+
+
+def _chart_data(history, health):
+    """Client-side chart series as a plain dict (emitted via | tojson)."""
+    return {
+        "labels": [_iso_utc(r["finished_at"]) for r in history],
+        "entity_total": [r["entity_total"] for r in history],
+        "grouping_count": [r["grouping_count"] for r in history],
+        "column_count": [r["column_count"] for r in history],
+        "duration_s": [
+            (r["duration_ms"] / 1000) if r["duration_ms"] is not None else None
+            for r in history
+        ],
+        "month_labels": [b["month"] for b in health["monthly_runs"]],
+        "month_ok_cron": [b["ok_cron"] for b in health["monthly_runs"]],
+        "month_ok_web": [b["ok_web"] for b in health["monthly_runs"]],
+        "month_fail": [b["fail"] for b in health["monthly_runs"]],
+    }
+
+
+@app.route("/dashboard")
+def dashboard():
+    site_hostname = request.args.get("wiki")
+    page_title = request.args.get("page")
+    with DashboardRegistry() as registry:
+        identity = registry.get_dashboard(site_hostname, page_title)
+        if identity is None:
+            return render_template("page_not_found.html", title="Dashboard"), 404
+        history = registry.list_dashboard_run_history(site_hostname, page_title)
+        health = registry.compute_health(history)
+    return render_template(
+        "dashboard_history.html",
+        dashboard=identity,
+        history=history,
+        health=health,
+        chart_data=_chart_data(history, health),
+        has_duration=any(r["duration_ms"] is not None for r in history),
+        chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
+        runs_table_cap=RUNS_TABLE_CAP,
     )
 
 

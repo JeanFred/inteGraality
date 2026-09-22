@@ -4,7 +4,8 @@ from datetime import datetime
 from unittest.mock import patch
 
 from .. import column
-from ..app import app
+from ..app import RUNS_TABLE_CAP, app
+from ..dashboard_registry import DashboardRegistry
 from ..pages_processor import ProcessingException, TransientServerException
 from ..sparql_utils import QueryException, QueryTimeoutException
 
@@ -324,6 +325,149 @@ class RunsTests(AppTests):
         self.mock_registry.list_runs.assert_called_once_with(
             site_hostname="commons.wikimedia.org",
         )
+
+
+class DashboardHistoryTests(AppTests):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+        self.mock_registry.get_dashboard.return_value = {
+            "page_url": "https://www.wikidata.org/wiki/Wikidata:Test",
+            "page_title": "Wikidata:Test",
+            "namespace_canonical": "Project",
+            "namespace_localized": "Wikidata",
+            "root_page": "Test",
+            "site_hostname": "www.wikidata.org",
+            "site_name": "Wikidata",
+        }
+        self.mock_registry.list_dashboard_run_history.return_value = []
+        # Run the *real* compute_health over the mocked history rows (it's a
+        # pure staticmethod), so the route + summary integration is exercised
+        # rather than a hand-built fixture that can drift from real output.
+        self.mock_registry.compute_health.side_effect = DashboardRegistry.compute_health
+
+    def _run(self, finished_at, status="OK", **fields):
+        row = {
+            "finished_at": datetime.strptime(finished_at, "%Y-%m-%d %H:%M:%S"),
+            "status": status,
+            "trigger_source": "CRON",
+            "duration_ms": 60000,
+            "sparql_engine": "Wikidata Query Service",
+            "error_category": None,
+            "error_detail": None,
+            "revision_id": 12345,
+            "entity_total": 180579,
+            "grouping_count": 34,
+            "column_count": 9,
+        }
+        row.update(fields)
+        return row
+
+    def test_dashboard_unknown_returns_404(self):
+        self.mock_registry.get_dashboard.return_value = None
+        response = self.app.get("/dashboard?wiki=www.wikidata.org&page=Nope")
+        self.assertEqual(response.status_code, 404)
+
+    def test_dashboard_no_runs(self):
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("Wikidata:Test", contents)
+        self.assertIn("No runs recorded yet for this dashboard.", contents)
+
+    def test_dashboard_renders_trend_and_health(self):
+        history = [
+            self._run(
+                "2019-05-22 20:28:56",
+                entity_total=180579,
+                grouping_count=2,
+                trigger_source="WEB",
+            ),
+            self._run("2025-12-19 01:04:35", entity_total=381218, grouping_count=155),
+            self._run(
+                "2026-01-16 01:03:00",
+                status="FAIL",
+                error_category="query",
+                error_detail="SPARQL parse error",
+                revision_id=None,
+                duration_ms=800,
+                entity_total=None,
+                grouping_count=None,
+                column_count=None,
+            ),
+        ]
+        self.mock_registry.list_dashboard_run_history.return_value = history
+
+        response = self.app.get("/dashboard?wiki=www.wikidata.org&page=Wikidata:Test")
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+
+        # Behavioral: the run data reaches the page (health + chart series).
+        self.assertIn("Wikidata:Test", contents)  # header
+        self.assertIn("Failing", contents)  # 1 trailing failure -> failing badge
+        self.assertIn("query", contents)  # error category surfaced
+        self.assertIn("381218", contents)  # latest entity_total in chart JSON
+        self.assertIn("381,218", contents)  # thousands-formatted, reaches the page
+        # Charts load from the pinned cdnjs mirror (repo JS constraint), and the
+        # server-rendered runs table works without JS.
+        self.assertIn("tools-static.wmflabs.org/cdnjs", contents)
+        self.assertIn("<table", contents)
+        # A11y: the decorative run-tick strip is hidden from AT (table carries
+        # the same data); the wide runs table scrolls on mobile.
+        self.assertIn("run-strip", contents)
+        self.assertIn('aria-hidden="true"', contents)
+        self.assertIn("table-responsive", contents)
+        # Engagement (1 WEB of 3 runs) surfaced from the real compute_health.
+        self.assertIn("Manual refreshes", contents)
+        self.assertIn("33.3%", contents)  # web_share 1/3
+        self.assertIn("1 of 3 runs manual", contents)
+
+    def test_dashboard_passes_identity_to_registry(self):
+        self.app.get("/dashboard?wiki=commons.wikimedia.org&page=Foo")
+        self.mock_registry.get_dashboard.assert_called_once_with(
+            "commons.wikimedia.org", "Foo"
+        )
+        self.mock_registry.list_dashboard_run_history.assert_called_once_with(
+            "commons.wikimedia.org", "Foo"
+        )
+
+    def test_dashboard_runs_table_capped(self):
+        """The runs table shows at most RUNS_TABLE_CAP rows with a
+        'latest N of M' note; charts/health still consume the full history."""
+        n = RUNS_TABLE_CAP + 10
+        history = [
+            self._run(f"2020-01-01 00:{i // 60:02d}:{i % 60:02d}", revision_id=1000 + i)
+            for i in range(n)
+        ]
+        self.mock_registry.list_dashboard_run_history.return_value = history
+
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+
+        # Note reflects the cap and the true total.
+        self.assertIn(f"latest {RUNS_TABLE_CAP} of {n}", contents)
+        # At most RUNS_TABLE_CAP data rows rendered (count <tr> in <tbody>).
+        body = contents.split("<tbody>", 1)[1].split("</tbody>", 1)[0]
+        self.assertEqual(body.count("<tr"), RUNS_TABLE_CAP)
+
+    def test_dashboard_hides_duration_chart_when_no_duration(self):
+        """No run has a duration -> the Run duration heading/box is not rendered
+        (rather than a titled empty 280px box)."""
+        history = [self._run("2020-01-01 00:00:00", duration_ms=None)]
+        self.mock_registry.list_dashboard_run_history.return_value = history
+
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+
+        self.assertNotIn("Run duration", contents)
+        self.assertNotIn('id="duration-chart"', contents)
+        # The trend chart is still there.
+        self.assertIn('id="trend-chart"', contents)
 
 
 class PagesProcessorTests(AppTests):

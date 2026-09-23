@@ -1,24 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>inteGraality</h1>
-<p class='lead'>Assess data quality on Wikidata<br />Find the gaps, spot patterns, and focus your editing where it matters.</p>
-<div class="well">
-    <dl class="dl-horizontal">
-        <dt><a href='https://www.wikidata.org/wiki/Wikidata:inteGraality'>Documentation</a></dt>
-        <dd>Learn more about the tool and what it can do for you.</dd>
-        <dt><a href='https://www.wikidata.org/wiki/Wikidata:inteGraality/Tutorial'>Tutorial</a></dt>
-        <dd>Create your first dashboard.</dd>
-        <dt><a href='https://www.wikidata.org/wiki/Special:Contributions/InteGraalityBot'>Bot edits</a></dt>
-        <dd>See the latest dashboard updates.</dd>
+<p class="fs-5">Assess data quality on Wikidata<br />Find the gaps, spot patterns, and focus your editing where it matters.</p>
+<div class="card card-body bg-body-tertiary shadow-sm mb-4">
+    <dl class="row mb-0">
+        <dt class="col-sm-3"><a href='https://www.wikidata.org/wiki/Wikidata:inteGraality'>Documentation</a></dt>
+        <dd class="col-sm-9">Learn more about the tool and what it can do for you.</dd>
+        <dt class="col-sm-3"><a href='https://www.wikidata.org/wiki/Wikidata:inteGraality/Tutorial'>Tutorial</a></dt>
+        <dd class="col-sm-9">Create your first dashboard.</dd>
+        <dt class="col-sm-3"><a href='https://www.wikidata.org/wiki/Special:Contributions/InteGraalityBot'>Bot edits</a></dt>
+        <dd class="col-sm-9">See the latest dashboard updates.</dd>
     </dl>
 </div>
-<div class="well">
-    <ul style="list-style: none; padding-left: 0;">
-        <li style="margin-bottom: 10px;"><a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Lighthouses/numbers/by_continent_and_property">Lighthouses by continent</a> &mdash; a simple example</li>
-        <li style="margin-bottom: 10px;"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_sum_of_all_paintings/Property_statistics/Sandbox'>Sum of All Paintings</a> &mdash; the original example</li>
-        <li style="margin-bottom: 10px;"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Statistics/Platform'>Sum of all video games</a> &mdash; the second original example</li>
-        <li style="margin-bottom: 10px;"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_Red_pandas#Dashboard'>Red pandas</a> &mdash; aren't they cute? ^_^</li>
+<div class="card card-body bg-body-tertiary shadow-sm mb-4">
+    <ul class="list-unstyled mb-0">
+        <li class="mb-2"><a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Lighthouses/numbers/by_continent_and_property">Lighthouses by continent</a> &mdash; a simple example</li>
+        <li class="mb-2"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_sum_of_all_paintings/Property_statistics/Sandbox'>Sum of All Paintings</a> &mdash; the original example</li>
+        <li class="mb-2"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Statistics/Platform'>Sum of all video games</a> &mdash; the second original example</li>
+        <li class="mb-2"><a href='https://www.wikidata.org/wiki/Wikidata:WikiProject_Red_pandas#Dashboard'>Red pandas</a> &mdash; aren't they cute? ^_^</li>
     </ul>
-    <p class="text-right"><a href="{{ url_for('dashboards') }}">Browse all dashboards &rarr;</a></p>
+    <p class="text-end"><a href="{{ url_for('dashboards') }}">Browse all dashboards &rarr;</a></p>
 </div>
 {% endblock %}

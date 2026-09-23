@@ -144,8 +144,8 @@ class DashboardsTests(AppTests):
             ),
         ]
         contents = self.app.get("/dashboards").get_data(as_text=True)
-        self.assertIn('class="warning"', contents)  # transient
-        self.assertIn('class="danger"', contents)  # chronic
+        self.assertIn('class="table-warning"', contents)  # transient
+        self.assertIn('class="table-danger"', contents)  # chronic
         self.assertIn("failing for 9 runs", contents)
         self.assertIn("failing for 1 run", contents)  # singular
 
@@ -309,8 +309,8 @@ class RunsTests(AppTests):
         contents = self.app.get("/runs").get_data(as_text=True)
         self.assertIn("Broken", contents)
         self.assertIn("Healthy", contents)
-        self.assertIn("label-danger", contents)  # FAIL badge
-        self.assertIn("label-success", contents)  # OK badge
+        self.assertIn("text-bg-danger", contents)  # FAIL badge
+        self.assertIn("text-bg-success", contents)  # OK badge
         self.assertIn("SPARQL timeout", contents)
         self.assertIn("CRON", contents)  # trigger column
         self.assertIn("72.0s", contents)  # duration column (72000ms -> 72.0s)

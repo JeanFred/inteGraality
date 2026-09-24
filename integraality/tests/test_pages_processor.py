@@ -6,6 +6,8 @@ from unittest.mock import MagicMock, patch
 
 import fakeredis
 
+from ..column import ColumnMaker
+from ..grouping import GroupingConfiguration
 from ..pages_processor import (
     ConfigException,
     NoEndTemplateException,
@@ -17,7 +19,19 @@ from ..pages_processor import (
     main,
     validate_wiki_url,
 )
-from ..sparql_utils import QueryException, QueryTimeoutException
+from ..sparql_utils import QueryException, QueryTimeoutException, SparqlQueryEngine
+
+
+class RecordingEngine(SparqlQueryEngine):
+    """A picklable engine that counts live queries (class-level, so the count
+    survives the Redis pickle round-trip) and returns a dateTime datatype."""
+
+    name = "Recording"
+    calls = 0
+
+    def _do_select(self, query):
+        type(self).calls += 1
+        return [{"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}]
 
 
 class ValidateWikiUrlTest(unittest.TestCase):
@@ -74,6 +88,58 @@ class ProcessortTest(unittest.TestCase):
     def setUp(self):
         fake_cache_client = fakeredis.FakeStrictRedis()
         self.processor = PagesProcessor(cache_client=fake_cache_client)
+
+
+class TestGroupingTypeCaching(ProcessortTest):
+    """The grouping type is resolved before caching, so a cache hit builds a
+    PropertyStatistics without re-running the live type-detection query."""
+
+    def _unresolved_config(self, engine):
+        return {
+            "selector_sparql": "wdt:P31 wd:Q5",
+            "columns": [ColumnMaker.make("P585", None)],
+            "grouping_configuration": GroupingConfiguration(predicate="wdt:P585"),
+            "grouping_link_mode": "link",
+            "sparql_query_engine": engine,
+        }
+
+    def _patched_page(self, engine):
+        """Stub the assembler so parse_config yields our unresolved config."""
+        start_tpl = MagicMock()
+        start_tpl.title.return_value = "Property dashboard"
+        end_tpl = MagicMock()
+        end_tpl.title.return_value = "Property dashboard end"
+        page = MagicMock()
+        page.title.return_value = "User:Foo/Dashboard"
+        page.templatesWithParams.return_value = [(start_tpl, []), (end_tpl, [])]
+        assembler = self.processor.config_assembler
+        return page, (
+            patch.object(assembler, "parse_config_from_params", return_value={}),
+            patch.object(
+                assembler,
+                "parse_config",
+                return_value=self._unresolved_config(engine),
+            ),
+        )
+
+    def test_cache_hit_does_not_query(self):
+        RecordingEngine.calls = 0
+        engine = RecordingEngine()
+        page, patches = self._patched_page(engine)
+        with patches[0], patches[1]:
+            self.processor.make_stats_object_arguments_for_page(page)
+
+        # The cached config carries a resolved type...
+        cached = self.processor.cache.get_cache_value(
+            self.processor.make_cache_key(page.title())
+        )
+        self.assertIsNotNone(cached["grouping_configuration"].grouping_type)
+
+        # ...so a cache hit rebuilds PropertyStatistics with no live query.
+        RecordingEngine.calls = 0
+        stats = self.processor.make_stats_object_for_page_title(page.title())
+        self.assertEqual(RecordingEngine.calls, 0)
+        self.assertIsNotNone(stats.grouping_configuration.grouping_type)
 
 
 class TestReplaceInPage(ProcessortTest):

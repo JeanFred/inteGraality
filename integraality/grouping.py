@@ -358,8 +358,12 @@ class GroupingConfiguration:
             f"Predicate {self.predicate} has datatype {datatype} which is not supported."
         )
 
-    def _resolve_type(self, selector_sparql, sparql_query_engine):
-        """Detect grouping type via SPARQL if not already set."""
+    def resolve_type_if_needed(self, selector_sparql, sparql_query_engine):
+        """Detect the grouping type via SPARQL if not already set.
+
+        Idempotent: callers must run this before caching or building a
+        PropertyStatistics, so a cache hit needs no live detection query.
+        """
         if self.grouping_type is None:
             self.grouping_type = self._detect_grouping_type(
                 selector_sparql, sparql_query_engine

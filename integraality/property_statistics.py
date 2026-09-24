@@ -68,7 +68,9 @@ class PropertyStatistics:
         self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
-        self.grouping_configuration._resolve_type(selector_sparql, sparql_query_engine)
+        self.grouping_configuration.resolve_type_if_needed(
+            selector_sparql, sparql_query_engine
+        )
 
     def get_sparql_engine_name(self):
         return self.sparql_query_engine.name

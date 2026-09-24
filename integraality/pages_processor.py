@@ -160,6 +160,10 @@ class PagesProcessor:
             config = self.config_assembler.parse_config(parsed_config)
         except ConfigAssemblyException as e:
             raise ConfigException(e) from e
+        # Resolve the grouping type before caching so cache hits skip it.
+        config["grouping_configuration"].resolve_type_if_needed(
+            config["selector_sparql"], config["sparql_query_engine"]
+        )
         key = self.make_cache_key(page.title())
         self.cache.set_cache_value(key, config)
         return config

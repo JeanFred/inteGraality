@@ -346,7 +346,7 @@ class TestResolveType(unittest.TestCase):
         config = grouping.GroupingConfiguration(
             predicate="wdt:P569", raw_explicit_groupings="2020,2021"
         )
-        config._resolve_type("wdt:P31 wd:Q5", mock_engine)
+        config.resolve_type_if_needed("wdt:P31 wd:Q5", mock_engine)
         self.assertIsInstance(config.grouping_type, grouping.YearGroupingType)
         self.assertEqual(config.explicit_groupings, [2020, 2021])
 
@@ -355,7 +355,7 @@ class TestResolveType(unittest.TestCase):
         config = grouping.GroupingConfiguration(
             predicate="wdt:P17", grouping_type=grouping.ItemGroupingType()
         )
-        config._resolve_type("wdt:P31 wd:Q5", mock_engine)
+        config.resolve_type_if_needed("wdt:P31 wd:Q5", mock_engine)
         mock_engine.select.assert_not_called()
 
 

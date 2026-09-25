@@ -14,6 +14,22 @@ RECENT_RUNS_STRIP_SIZE = 12
 # (strong tint) rather than a possibly-transient blip (light tint).
 CHRONIC_FAILURE_THRESHOLD = 3
 
+# The latest *successful* run per dashboard, as a subquery aliased "latest"
+# (rn = 1 is the newest OK run). Landing-page reads use this so a dashboard
+# reflects its last known-good result, and a failed newest run neither zeroes
+# its coverage nor surfaces it as "recently updated". Shared by summary() and
+# list_recently_updated() to keep the "latest good run" definition singular.
+_LATEST_SUCCESSFUL_RUN = """\
+    SELECT
+        dashboard_id, finished_at, entity_total, grouping_count, column_count,
+        ROW_NUMBER() OVER (
+            PARTITION BY dashboard_id
+            ORDER BY finished_at DESC, id DESC
+        ) AS rn
+    FROM dashboard_runs
+    WHERE status = 'OK'
+"""
+
 
 @dataclass(frozen=True)
 class RunResult:
@@ -392,6 +408,37 @@ class DashboardRegistry:
         with self.conn.cursor() as cur:
             cur.execute(sql, tuple(params))
             return cur.fetchall()
+
+    def summary(self):
+        """Return headline totals for the landing page.
+
+        - dashboards: registered dashboards.
+        - entities_covered / coverage_checks: summed over each dashboard's
+          latest *successful* run (entity_total, and grouping_count *
+          column_count), so a dashboard reflects its last known-good size and a
+          failed newest run doesn't zero it out; never-succeeded dashboards
+          contribute nothing.
+        - updates_last_24h: runs finished in the trailing 24 hours.
+        """
+        sql = f"""\
+            SELECT
+                (SELECT COUNT(*) FROM dashboards) AS dashboards,
+                COALESCE(SUM(latest.entity_total), 0) AS entities_covered,
+                COALESCE(SUM(latest.grouping_count * latest.column_count), 0)
+                    AS coverage_checks,
+                (SELECT COUNT(*) FROM dashboard_runs
+                 WHERE finished_at >= %s) AS updates_last_24h
+            FROM (
+                {_LATEST_SUCCESSFUL_RUN}
+            ) AS latest
+            WHERE latest.rn = 1
+        """
+        cutoff = (
+            datetime.datetime.now(datetime.UTC) - datetime.timedelta(hours=24)
+        ).strftime("%Y-%m-%d %H:%M:%S")
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (cutoff,))
+            return cur.fetchone()
 
     def get_dashboard(self, site_hostname, page_title):
         """Identity row for one dashboard keyed on (hostname, page_title), or

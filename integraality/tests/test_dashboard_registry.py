@@ -711,6 +711,31 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("w.hostname = %s", sql)
         self.assertEqual(params, ("commons.wikimedia.org", 100))
 
+    def test_summary_returns_headline_totals(self):
+        """Totals are summed over each dashboard's latest successful run
+        (status = 'OK', rn = 1); the 24h window is a bound cutoff parameter."""
+        self.mock_cursor.fetchone.return_value = {
+            "dashboards": 1277,
+            "entities_covered": 12400000,
+            "coverage_checks": 128540,
+            "updates_last_24h": 63,
+        }
+
+        result = self.registry.summary()
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("FROM dashboards", sql)
+        self.assertIn("SUM(latest.entity_total)", sql)
+        self.assertIn("SUM(latest.grouping_count * latest.column_count)", sql)
+        self.assertIn("WHERE latest.rn = 1", sql)
+        # Latest run considered is a successful one.
+        self.assertIn("WHERE status = 'OK'", sql)
+        self.assertIn("finished_at >= %s", sql)
+        # A single cutoff timestamp is bound for the 24h window.
+        self.assertEqual(len(params), 1)
+        self.assertEqual(result["dashboards"], 1277)
+        self.assertEqual(result["coverage_checks"], 128540)
+
     def test_get_dashboard_returns_identity_row(self):
         """Keyed on (hostname, page_title); returns the aliased identity row."""
         self.mock_cursor.fetchone.return_value = {

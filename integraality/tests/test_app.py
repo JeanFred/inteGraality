@@ -47,6 +47,33 @@ class BasicTests(AppTests):
         self.assertEqual(response.status_code, 404)
         self.assertIn("This page does not exist.", response.get_data(as_text=True))
 
+    def test_nav_highlights_current_page(self):
+        """The navbar marks the current endpoint active + aria-current, and
+        only that one; other pages leave both nav links unmarked."""
+        # /dashboards and /runs need the registry (mocked in setUp); index too.
+        self.mock_registry.list_dashboards.return_value = []
+        self.mock_registry.list_wikis.return_value = []
+        self.mock_registry.list_namespaces.return_value = []
+        self.mock_registry.list_roots.return_value = []
+        self.mock_registry.list_runs.return_value = []
+
+        cases = {
+            "/dashboards": "Dashboards",
+            "/runs": "Runs",
+        }
+        for path, active_label in cases.items():
+            contents = self.app.get(path).get_data(as_text=True)
+            self.assertRegex(
+                contents,
+                rf'<a[^>]*class="nav-link active"[^>]*aria-current="page"[^>]*>\s*{active_label}',
+            )
+            # Exactly one nav link is marked active on the page.
+            self.assertEqual(contents.count('aria-current="page"'), 1)
+
+        # The landing page marks no nav link active.
+        index_contents = self.app.get("/").get_data(as_text=True)
+        self.assertNotIn('aria-current="page"', index_contents)
+
 
 class DashboardsTests(AppTests):
     def setUp(self):

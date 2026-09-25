@@ -42,10 +42,14 @@
     </head>
 
     <body>
-        <nav class="navbar bg-body-tertiary border-bottom" aria-label="Main navigation">
-            <div class="container d-flex justify-content-between align-items-center">
+        <nav class="navbar navbar-expand-sm bg-body-tertiary border-bottom" aria-label="Main navigation">
+            <div class="container">
                 <a class="navbar-brand" href="{{ url_for('index') }}">InteGraality</a>
-                <a href="//toolforge.org" class="d-flex align-items-center" title="Powered by Wikimedia Toolforge">
+                <a
+                    href="//toolforge.org"
+                    class="d-flex align-items-center order-sm-last ms-auto me-2 me-sm-0"
+                    title="Powered by Wikimedia Toolforge"
+                >
                     <img
                         src="//upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Toolforge_logo.svg/40px-Toolforge_logo.svg.png"
                         alt="Powered by Wikimedia Toolforge"
@@ -53,6 +57,42 @@
                         height="40"
                     >
                 </a>
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarMain"
+                    aria-controls="navbarMain"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarMain">
+                    {% set active = active_nav | default(request.endpoint) %}
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item">
+                            <a
+                                class="nav-link {{ 'active' if active == 'dashboards' }}"
+                                {% if active == 'dashboards' %}aria-current="page"{% endif %}
+                                href="{{ url_for('dashboards') }}"
+                            >Dashboards</a>
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link {{ 'active' if active == 'runs' }}"
+                                {% if active == 'runs' %}aria-current="page"{% endif %}
+                                href="{{ url_for('runs') }}"
+                            >Runs</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" href="https://www.wikidata.org/wiki/Wikidata:inteGraality">Documentation
+                                <span aria-hidden="true">&#8599;</span></a>
+                        </li>
+                    </ul>
+                </div>
             </div>
         </nav>
 

@@ -1,4 +1,5 @@
 import json
+import re
 import unittest
 from datetime import datetime
 from unittest.mock import patch
@@ -31,11 +32,79 @@ class IsoUtcFilterTest(unittest.TestCase):
         self.assertEqual(iso_utc_filter(None), "")
 
 
+class AbbreviateFilterTest(unittest.TestCase):
+    def test_abbreviates_by_magnitude(self):
+        from decimal import Decimal
+
+        from ..app import abbreviate_filter
+
+        cases = {
+            None: "0",
+            0: "0",
+            42: "42",
+            999: "999",
+            1000: "1K",
+            1277: "1.2K",
+            1999: "1.9K",  # truncates, does not round up to 2K
+            128540: "128.5K",
+            Decimal(12400000): "12.4M",
+            1_500_000_000: "1.5B",
+        }
+        for value, expected in cases.items():
+            self.assertEqual(abbreviate_filter(value), expected)
+
+
 class BasicTests(AppTests):
+    def setUp(self):
+        super().setUp()
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+        self.mock_registry.summary.return_value = {
+            "dashboards": 1277,
+            "entities_covered": 12400000,
+            "coverage_checks": 128540,
+            "updates_last_24h": 63,
+        }
+        self.mock_registry.list_recently_updated.return_value = [
+            {
+                "site_hostname": "www.wikidata.org",
+                "page_title": "Wikidata:Test",
+                "latest_finished_at": datetime(2026, 9, 11, 10, 0, 0),
+            },
+        ]
+
     def test_index_page(self):
         response = self.app.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("<h1>inteGraality</h1>", response.get_data(as_text=True))
+        contents = response.get_data(as_text=True)
+        self.assertIn("inteGraality", contents)
+        # Stats strip and recent list render from the registry.
+        self.assertIn("entities covered", contents)
+        self.assertIn("Recently updated", contents)
+        # The dashboards-registered stat card links to the registry.
+        card = re.search(
+            r'<a\b[^>]*class="card[^"]*"[^>]*>.*?dashboards registered',
+            contents,
+            re.DOTALL,
+        )
+        self.assertIsNotNone(card)
+        self.assertIn('href="/dashboards"', card.group(0))
+        # Recent dashboard links to its history page.
+        self.assertIn(
+            "/dashboard?wiki=www.wikidata.org&amp;page=Wikidata:Test", contents
+        )
+
+    def test_index_page_degrades_without_stats(self):
+        """A registry failure must not 500 the landing page; the hero still
+        renders, just without the stats/recent sections."""
+        self.mock_registry_cls.return_value.__enter__.side_effect = Exception("db down")
+        response = self.app.get("/")
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+        self.assertIn("inteGraality", contents)
+        self.assertIn("Browse dashboards", contents)
 
     def test_healthz(self):
         response = self.app.get("/healthz")

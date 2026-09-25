@@ -1,44 +1,85 @@
 {% extends "base.html" %}
+{% from "_macros.html" import relative_time %}
+{% block body_scripts %}{% include "_timeago.html" %}{% endblock %}
 {% block content %}
-    <h1>inteGraality</h1>
-    <p class="fs-5">
-        Assess data quality on Wikidata<br>Find the gaps, spot patterns, and focus your editing where it matters.
+    {# --- Hero --- #}
+    <div class="py-4 mb-4 border-bottom">
+        <h1 class="display-5">inteGraality</h1>
+        <p class="fs-4 text-body-secondary mb-4">
+            Assess data quality on Wikidata − find the gaps, spot patterns, and focus your editing where it matters.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <a href="{{ url_for('dashboards') }}" class="btn btn-primary btn-lg">Browse dashboards</a>
+            <a
+                href="https://www.wikidata.org/wiki/Wikidata:inteGraality/Tutorial"
+                class="btn btn-outline-secondary btn-lg"
+            >Create your first dashboard</a>
+        </div>
+    </div>
+
+    {# --- Stats strip --- #}
+    {% if summary %}
+        <div class="row text-center g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <a
+                    href="{{ url_for('dashboards') }}"
+                    class="card card-body bg-body-tertiary text-decoration-none text-reset"
+                >
+                    <div class="fs-3 fw-semibold">{{ summary.dashboards | abbreviate }}</div>
+                    <div class="text-body-secondary small">dashboards registered</div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card card-body bg-body-tertiary">
+                    <div class="fs-3 fw-semibold">{{ summary.entities_covered | abbreviate }}</div>
+                    <div class="text-body-secondary small">entities covered</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card card-body bg-body-tertiary">
+                    <div class="fs-3 fw-semibold">{{ summary.coverage_checks | abbreviate }}</div>
+                    <div class="text-body-secondary small">coverage checks</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <a href="{{ url_for('runs') }}" class="card card-body bg-body-tertiary text-decoration-none text-reset">
+                    <div class="fs-3 fw-semibold">{{ summary.updates_last_24h | abbreviate }}</div>
+                    <div class="text-body-secondary small">updates in last 24h</div>
+                </a>
+            </div>
+        </div>
+    {% endif %}
+
+    {# --- Recently updated --- #}
+    {% if recent %}
+        <div class="d-flex justify-content-between align-items-baseline mb-2">
+            <h2 class="h4 mb-0">Recently updated</h2>
+            <a href="{{ url_for('dashboards') }}">All dashboards &rarr;</a>
+        </div>
+        <div class="list-group mb-4">
+            {% for d in recent %}
+                <a
+                    href="{{ url_for('dashboard', wiki=d.site_hostname, page=d.page_title) }}"
+                    class="list-group-item list-group-item-action d-flex justify-content-between align-items-center gap-3"
+                >
+                    <span class="text-truncate">{{ d.page_title }}</span>
+                    <small class="text-body-secondary text-nowrap">
+                        {{ relative_time(d.latest_finished_at) }}
+                    </small>
+                </a>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    {# --- Classic examples --- #}
+    <p class="text-body-secondary small mb-1">Classic examples:</p>
+    <p class="small">
+        <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Lighthouses/numbers/by_continent_and_property"
+        >Lighthouses by continent</a> ·
+        <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_sum_of_all_paintings/Property_statistics/Sandbox"
+        >Sum of All Paintings</a> ·
+        <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Statistics/Platform"
+        >Sum of all video games</a> ·
+        <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Red_pandas#Dashboard">Red pandas</a>
     </p>
-    <div class="card card-body bg-body-tertiary shadow-sm mb-4">
-        <dl class="row mb-0">
-            <dt class="col-sm-3"><a href="https://www.wikidata.org/wiki/Wikidata:inteGraality">Documentation</a></dt>
-            <dd class="col-sm-9">Learn more about the tool and what it can do for you.</dd>
-            <dt class="col-sm-3">
-                <a href="https://www.wikidata.org/wiki/Wikidata:inteGraality/Tutorial">Tutorial</a>
-            </dt>
-            <dd class="col-sm-9">Create your first dashboard.</dd>
-            <dt class="col-sm-3">
-                <a href="https://www.wikidata.org/wiki/Special:Contributions/InteGraalityBot">Bot edits</a>
-            </dt>
-            <dd class="col-sm-9">See the latest dashboard updates.</dd>
-        </dl>
-    </div>
-    <div class="card card-body bg-body-tertiary shadow-sm mb-4">
-        <ul class="list-unstyled mb-0">
-            <li class="mb-2">
-                <a
-                    href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Lighthouses/numbers/by_continent_and_property"
-                >Lighthouses by continent</a> &mdash; a simple example
-            </li>
-            <li class="mb-2">
-                <a
-                    href="https://www.wikidata.org/wiki/Wikidata:WikiProject_sum_of_all_paintings/Property_statistics/Sandbox"
-                >Sum of All Paintings</a> &mdash; the original example
-            </li>
-            <li class="mb-2">
-                <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Video_games/Statistics/Platform"
-                >Sum of all video games</a> &mdash; the second original example
-            </li>
-            <li class="mb-2">
-                <a href="https://www.wikidata.org/wiki/Wikidata:WikiProject_Red_pandas#Dashboard">Red pandas</a> &mdash;
-                aren't they cute? ^_^
-            </li>
-        </ul>
-        <p class="text-end"><a href="{{ url_for('dashboards') }}">Browse all dashboards &rarr;</a></p>
-    </div>
 {% endblock %}

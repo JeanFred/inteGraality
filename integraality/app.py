@@ -68,6 +68,24 @@ def iso_utc_filter(value):
     return _iso_utc(value) or ""
 
 
+@app.template_filter("abbreviate")
+def abbreviate_filter(value):
+    """Compact large integers for stat display: 1277 -> 1.2K, 12400000 -> 12.4M.
+
+    Below 1000, returns the plain integer. Truncates rather than rounds, so a
+    count is never shown as more than reality. Handles Decimal/None from SQL sums.
+    """
+    if value is None:
+        return "0"
+    value = int(value)
+    for threshold, suffix in ((1_000_000_000, "B"), (1_000_000, "M"), (1_000, "K")):
+        if abs(value) >= threshold:
+            # Truncate to one decimal (not round), then drop a trailing ".0".
+            truncated = int(value / threshold * 10) / 10
+            return f"{truncated:.1f}".rstrip("0").rstrip(".") + suffix
+    return str(value)
+
+
 @app.route("/healthz")
 def healthcheck():
     return jsonify(status="healthy")
@@ -75,7 +93,19 @@ def healthcheck():
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # The landing page degrades gracefully: if the registry is unavailable,
+    # still render the hero/links rather than 500 on the site's front door.
+    summary = None
+    recent = []
+    try:
+        with DashboardRegistry() as registry:
+            summary = registry.summary()
+            recent = registry.list_recently_updated(limit=5)
+    except Exception:
+        app.logger.exception(
+            "Landing-page registry read failed; rendering without stats"
+        )
+    return render_template("index.html", summary=summary, recent=recent)
 
 
 @app.route("/browse")

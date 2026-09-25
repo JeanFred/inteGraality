@@ -1,0 +1,3 @@
+{% macro phabricator_report_link(error_message, text="report this on Phabricator") -%}
+<a href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=```{{ error_message }}```">{{ text }}</a>
+{%- endmacro %}

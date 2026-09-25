@@ -440,6 +440,34 @@ class DashboardRegistry:
             cur.execute(sql, (cutoff,))
             return cur.fetchone()
 
+    def list_recently_updated(self, limit=5):
+        """Return the most recently *successfully* updated dashboards, newest
+        first.
+
+        Ordered by each dashboard's latest successful run time, so the landing
+        page never surfaces a dashboard whose newest run failed as "fresh".
+        Carries page identity (site_hostname + page_title, the /dashboard route
+        key) and that run's finished_at for a relative timestamp. Only
+        dashboards with a successful run appear.
+        """
+        sql = f"""\
+            SELECT
+                w.hostname AS site_hostname,
+                p.page_title AS page_title,
+                latest.finished_at AS latest_finished_at
+            FROM dashboards AS d
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            JOIN (
+                {_LATEST_SUCCESSFUL_RUN}
+            ) AS latest ON latest.dashboard_id = d.id AND latest.rn = 1
+            ORDER BY latest.finished_at DESC
+            LIMIT %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (limit,))
+            return cur.fetchall()
+
     def get_dashboard(self, site_hostname, page_title):
         """Identity row for one dashboard keyed on (hostname, page_title), or
         None. Read-only: does not touch the wiki cache.

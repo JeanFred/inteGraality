@@ -736,6 +736,34 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(result["dashboards"], 1277)
         self.assertEqual(result["coverage_checks"], 128540)
 
+    def test_list_recently_updated_orders_newest_first(self):
+        """Newest successful run first; keyed identity + finished_at, bounded by
+        limit; only dashboards with a successful run (INNER JOIN)."""
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "site_hostname": "www.wikidata.org",
+                "page_title": "A",
+                "latest_finished_at": "2026-01-02 00:00:00",
+            },
+            {
+                "site_hostname": "www.wikidata.org",
+                "page_title": "B",
+                "latest_finished_at": "2026-01-01 00:00:00",
+            },
+        ]
+
+        result = self.registry.list_recently_updated(limit=3)
+
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("ORDER BY latest.finished_at DESC", sql)
+        self.assertIn("latest.rn = 1", sql)
+        # Only successful runs count as "updated".
+        self.assertIn("WHERE status = 'OK'", sql)
+        self.assertIn("LIMIT %s", sql)
+        self.assertEqual(params, (3,))
+        self.assertEqual(len(result), 2)
+        self.assertEqual(result[0]["page_title"], "A")
+
     def test_get_dashboard_returns_identity_row(self):
         """Keyed on (hostname, page_title); returns the aliased identity row."""
         self.mock_cursor.fetchone.return_value = {

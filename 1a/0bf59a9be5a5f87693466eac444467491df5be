@@ -1,0 +1,18 @@
+integraality/app.py
+  h_bc010f8da910ff 36-42,58-64,67-68,153,187
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 53,314-319,335
+integraality/tests/test_app.py
+  h_bc010f8da910ff 7,415,434-453
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "1a0bf59a9be5a5f87693466eac444467491df5be",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -3,3 +3,8 @@
         href="https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=```{{ error_message }}```"
     >{{ text }}</a>
 {%- endmacro %}
+
+{# relative_time(ts): a <time data-relative> element that _timeago.html turns into a live relative label, degrading to the UTC timestamp without JS. #}
+{% macro relative_time(ts) -%}
+    <time data-relative datetime="{{ ts | iso_utc }}" title="{{ ts }} UTC">{{ ts }}</time>
+{%- endmacro %}

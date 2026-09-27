@@ -15,6 +15,17 @@ repos:
       - id: ruff-check
       - id: ruff-format
 
+  - repo: https://github.com/UnknownPlatypus/djangofmt-pre-commit
+    rev: v1.0.0
+    hooks:
+      # Run the linter.
+      - id: djangofmt-check
+        args: [--fix]
+        files: ^integraality/templates/.*\.html$
+      # Run the formatter.
+      - id: djangofmt
+        files: ^integraality/templates/.*\.html$
+
   - repo: https://github.com/scop/pre-commit-shfmt
     rev: v3.11.0-1
     hooks:

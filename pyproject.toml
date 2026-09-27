@@ -41,6 +41,9 @@ ini_options.markers = [
   "functional: hits live SPARQL endpoints (WDQS/QLever) — slow, needs network",
 ]
 
+[tool.djangofmt]
+profile = "jinja"
+
 [tool.sqlfluff]
 core.dialect = "mariadb"
 core.max_line_length = 120

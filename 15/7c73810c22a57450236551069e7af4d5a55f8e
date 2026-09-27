@@ -1,0 +1,22 @@
+integraality/templates/_run_ticks_style.html
+  h_bc010f8da910ff 6-7,12-17,20-23
+integraality/templates/base.html
+  h_bc010f8da910ff 13-16,18-22,24-26,28-31,33-37,39-41
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 14-109
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 6-21
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 11-19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "157c73810c22a57450236551069e7af4d5a55f8e",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

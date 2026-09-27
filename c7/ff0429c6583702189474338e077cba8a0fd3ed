@@ -1,8 +1,8 @@
 integraality/dashboard_registry.py
-  h_bc010f8da910ff 1-185
+  h_bc010f8da910ff 1-185,186
   h_bc010f8da910ff 186
 integraality/tests/test_dashboard_registry.py
-  h_bc010f8da910ff 1-120,122-248,251-273
+  h_bc010f8da910ff 1-120,121,122-248,251-273,274-285
   h_bc010f8da910ff 121,274-285
 ---
 {

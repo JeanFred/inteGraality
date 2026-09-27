@@ -1,0 +1,50 @@
+integraality/templates/_browse_results.html
+  h_bc010f8da910ff 3,7-18,24-61,63,65
+integraality/templates/queries_error.html
+  h_bc010f8da910ff 3-9
+integraality/templates/update_unknown_error.html
+  h_bc010f8da910ff 4-12
+integraality/templates/queries_transient_error.html
+  h_bc010f8da910ff 3-7
+integraality/templates/update_error.html
+  h_bc010f8da910ff 3-7
+integraality/templates/_macros.html
+  h_bc010f8da910ff 2
+integraality/templates/update_query_error.html
+  h_bc010f8da910ff 3-14
+integraality/templates/index.html
+  h_bc010f8da910ff 3-33
+integraality/templates/update_transient_error.html
+  h_bc010f8da910ff 3-7
+integraality/templates/_browse_inner.html
+  h_bc010f8da910ff 17-22,27-39,42-56,60-66,71-73,82
+integraality/templates/runs.html
+  h_bc010f8da910ff 2-4,6-63
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 3,16-18,20-21
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 3-10,14-17,202
+integraality/templates/base.html
+  h_bc010f8da910ff 3-12,42-56,58-77
+integraality/templates/_timeago.html
+  h_bc010f8da910ff 8
+integraality/templates/queries_unknown_error.html
+  h_bc010f8da910ff 4-12
+integraality/templates/queries.html
+  h_bc010f8da910ff 3-5,15-20,25-30
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 9-11,49-52,167,170-174,179-197,200,204-207,213,215-231,233-251,253-258,260,263-264,266-298,300,302,305-316,318-321,323,325-367
+integraality/templates/update.html
+  h_bc010f8da910ff 3-6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "838a91d65b11bfb9a2c344f3911405819097d094",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

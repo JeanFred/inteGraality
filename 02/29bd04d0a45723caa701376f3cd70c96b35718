@@ -1,0 +1,16 @@
+.pre-commit-config.yaml
+  h_bc010f8da910ff 18-23
+pyproject.toml
+  h_bc010f8da910ff 44-46
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "0229bd04d0a45723caa701376f3cd70c96b35718",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -113,6 +113,16 @@ class DashboardsTests(AppTests):
         self.assertIn("run-tick-fail", contents)
         self.assertIn("never run", contents)  # the strip-less dashboard
 
+    def test_browse_renders_one_tick_per_status(self):
+        """One run-tick renders per recent status."""
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard(
+                "Flaky", "Flaky", latest_status="OK", recent_statuses="OK,FAIL,NULL"
+            ),
+        ]
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertEqual(contents.count('class="run-tick '), 3)  # one per status
+
     def test_browse_renders_null_edit_tick(self):
         """A NULL token (OK run, no revision) renders the hollow-green tick
         with a 'no change' tooltip, distinct from a plain OK tick."""
@@ -426,6 +436,17 @@ class DashboardHistoryTests(AppTests):
         self.assertIn("Manual refreshes", contents)
         self.assertIn("33.3%", contents)  # web_share 1/3
         self.assertIn("1 of 3 runs manual", contents)
+
+    def test_dashboard_renders_one_tick_per_run(self):
+        """One run-tick renders per run in the history."""
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-01 00:00:00"),
+            self._run("2020-01-02 00:00:00", status="FAIL", revision_id=None),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertEqual(contents.count('class="run-tick '), 2)  # one per run
 
     def test_dashboard_passes_identity_to_registry(self):
         self.app.get("/dashboard?wiki=commons.wikimedia.org&page=Foo")

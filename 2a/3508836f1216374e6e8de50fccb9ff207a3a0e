@@ -1,0 +1,14 @@
+.git-blame-ignore-revs
+  h_bc010f8da910ff 15-17,19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2a3508836f1216374e6e8de50fccb9ff207a3a0e",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

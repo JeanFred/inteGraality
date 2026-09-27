@@ -1,0 +1,14 @@
+integraality/templates/page_not_found.html
+  h_bc010f8da910ff 3-10
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c4829ce9d1ff7f8778d7ed85d996c774a5a6d02c",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

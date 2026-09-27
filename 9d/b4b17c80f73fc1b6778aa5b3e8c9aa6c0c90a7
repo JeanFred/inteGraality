@@ -1,14 +1,13 @@
 integraality/templates/_browse_results.html
   h_bc010f8da910ff 39-42
-integraality/tests/test_app.py
-  h_bc010f8da910ff 116-125,128,443-453,456
-  h_bc010f8da910ff 126-127,454-455
+integraality/templates/_run_ticks_style.html
+  h_bc010f8da910ff 1-17
 integraality/templates/dashboard_history.html
   h_bc010f8da910ff 12,14-15,21,268-277
 integraality/templates/dashboards.html
   h_bc010f8da910ff 4,12-13
-integraality/templates/_run_ticks_style.html
-  h_bc010f8da910ff 1-17
+integraality/tests/test_app.py
+  h_bc010f8da910ff 116-128,443-456
 ---
 {
   "schema_version": "authorship/3.0.0",

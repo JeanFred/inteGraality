@@ -1,0 +1,22 @@
+.pre-commit-config.yaml
+  h_bc010f8da910ff 23-25
+integraality/templates/_timeago.html
+  h_bc010f8da910ff 8
+integraality/templates/base.html
+  h_bc010f8da910ff 9
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 9-11
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "123d86d9c5ca3de3a12ee4d783313d578e49abf0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

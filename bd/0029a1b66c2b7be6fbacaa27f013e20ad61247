@@ -1,0 +1,63 @@
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 3,5-14,34-39,42-44,46-47
+  h_bc010f8da910ff 15-33
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 3-12,17-22,158,164-165,171-181,207
+  h_bc010f8da910ff 13-16,23-31,33-37,39-41,43-51,54-62,64-69,71-78,80-90,92-109,111-129,131-139,143-148,150-152,154,156-157,160-163,166-170,182-203,205-206
+integraality/templates/base.html
+  h_bc010f8da910ff 3-16,18-21,24-26,28-30,39,42-56,58-84
+  h_bc010f8da910ff 22,31,33-37,40-41
+integraality/templates/index.html
+  h_bc010f8da910ff 3-42,44-46
+  h_bc010f8da910ff 43
+integraality/templates/queries_unknown_error.html
+  h_bc010f8da910ff 4-16
+integraality/templates/_macros.html
+  h_bc010f8da910ff 2
+integraality/templates/_browse_inner.html
+  h_bc010f8da910ff 17-22,27-41,44-58,62-68,73-75,84
+integraality/templates/update_error.html
+  h_bc010f8da910ff 3-10
+integraality/templates/queries.html
+  h_bc010f8da910ff 3-8,11-13,16-17,21-26,31-36
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 9-11,131-134,249,252-256,261-279,282,286-289,295,297-315,317-335,337-342,344,347-348,350-355,357-358,360,362-387,390-408,410-468
+  h_bc010f8da910ff 13-127,135-139,141-150,153-185,187-216,218-219,222-243,245-248,388-389,469-472
+integraality/templates/update_unknown_error.html
+  h_bc010f8da910ff 4-12
+pyproject.toml
+  h_bc010f8da910ff 29-32
+integraality/templates/update_query_error.html
+  h_bc010f8da910ff 3-14
+.pre-commit-config.yaml
+  h_bc010f8da910ff 18-25
+integraality/templates/_timeago.html
+  h_bc010f8da910ff 8
+  h_bc010f8da910ff 10-16
+integraality/templates/update.html
+  h_bc010f8da910ff 3-6
+integraality/templates/_browse_results.html
+  h_bc010f8da910ff 3,7-18,24-65,67,69
+integraality/templates/page_not_found.html
+  h_bc010f8da910ff 3-5,7-15
+  h_bc010f8da910ff 6
+integraality/templates/update_transient_error.html
+  h_bc010f8da910ff 3-10
+integraality/templates/runs.html
+  h_bc010f8da910ff 2-4,6-63,65,67
+integraality/templates/queries_error.html
+  h_bc010f8da910ff 3-9
+integraality/templates/queries_transient_error.html
+  h_bc010f8da910ff 3-11
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "bd0029a1b66c2b7be6fbacaa27f013e20ad61247",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

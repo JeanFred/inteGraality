@@ -1,203 +1,212 @@
 {% extends "base.html" %}
 {% block content %}
-<h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
-<noscript>
-<div class="alert alert-info">
-    <p>This page requires JavaScript for real-time progress updates.</p>
-    <p><a href="{{ url_for('update', page=page_title, url=page_url, nostream='') }}">Run the update without JavaScript</a></p>
-</div>
-</noscript>
-<style>
-#progress details { margin: 1em 0; }
-#progress [id^="section-"] > :not(summary) { margin-left: 1.5em; }
-#result { display: none; }
-</style>
-<div id="progress"></div>
-<div id="result"></div>
-<script>
-(function() {
-    var pageUrl = {{ page_url|tojson }};
-    var pageTitle = {{ page_title|tojson }};
-    var qleverUiUrl = {{ qlever_ui_url|tojson }};
-    var sparqlPrefixes = {{ sparql_prefixes|tojson }};
-    var progress = document.getElementById("progress");
-    var result = document.getElementById("result");
-    var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
-    var source;
-
-    function escapeHtml(text) {
-        var div = document.createElement("div");
-        div.appendChild(document.createTextNode(text));
-        return div.innerHTML;
-    }
-
-    function addPrefixes(query) {
-        return sparqlPrefixes + query;
-    }
-
-    function findSection(stepKey) {
-        var idx = stepKey.indexOf("_");
-        if (idx > 0) {
-            var prefix = stepKey.substring(0, idx);
-            if (document.getElementById("section-" + prefix)) {
-                return prefix;
-            }
+    <h3>Updating <a href="{{ page_url }}">{{ page_title }}</a></h3>
+    <noscript>
+        <div class="alert alert-info">
+            <p>This page requires JavaScript for real-time progress updates.</p>
+            <p>
+                <a href="{{ url_for('update', page=page_title, url=page_url, nostream='') }}"
+                >Run the update without JavaScript</a>
+            </p>
+        </div>
+    </noscript>
+    <style>
+        #progress details {
+            margin: 1em 0;
         }
-        return null;
-    }
+        #progress [id^='section-'] > :not(summary) {
+            margin-left: 1.5em;
+        }
+        #result {
+            display: none;
+        }
+    </style>
+    <div id="progress"></div>
+    <div id="result"></div>
+    <script>
+        (function() {
+            var pageUrl = {{ page_url|tojson }};
+            var pageTitle = {{ page_title|tojson }};
+            var qleverUiUrl = {{ qlever_ui_url|tojson }};
+            var sparqlPrefixes = {{ sparql_prefixes|tojson }};
+            var progress = document.getElementById("progress");
+            var result = document.getElementById("result");
+            var streamUrl = "/update/stream?url=" + encodeURIComponent(pageUrl) + "&page=" + encodeURIComponent(pageTitle);
+            var source;
 
-    function startStream() {
-        progress.innerHTML = "";
-        result.style.display = "none";
-        result.className = "";
-        result.innerHTML = "";
-        source = new EventSource(streamUrl);
-        source.onmessage = onMessage;
-        source.onerror = onError;
-    }
+            function escapeHtml(text) {
+                var div = document.createElement("div");
+                div.appendChild(document.createTextNode(text));
+                return div.innerHTML;
+            }
 
-    function onMessage(e) {
-        var data = JSON.parse(e.data);
-        if (data.status === "progress") {
-            var icon = data.phase === "end" ? "✅" : "⏳";
-            var stepKey = data.step_key || "";
-            var section = findSection(stepKey);
+            function addPrefixes(query) {
+                return sparqlPrefixes + query;
+            }
 
-            if (data.phase === "end" && stepKey) {
-                // End of a section header → collapse the section
-                var sectionEl = document.getElementById("section-" + stepKey);
-                if (sectionEl) {
-                    sectionEl.removeAttribute("open");
-                    var sectionSummary = sectionEl.querySelector("summary");
-                    sectionSummary.innerHTML = "✅ " + escapeHtml(data.message) +
-                        " <small class=\"text-muted\">▸ details</small>";
-                } else {
-                    // End of an individual step → mutate its icon
-                    var el = document.getElementById("step-" + stepKey);
-                    if (el) {
-                        var summary = el.querySelector("summary");
-                        if (summary) {
-                            summary.innerHTML = "✅ " + escapeHtml(data.message) +
-                                " <small class=\"text-muted\">▸ show query</small>";
+            function findSection(stepKey) {
+                var idx = stepKey.indexOf("_");
+                if (idx > 0) {
+                    var prefix = stepKey.substring(0, idx);
+                    if (document.getElementById("section-" + prefix)) {
+                        return prefix;
+                    }
+                }
+                return null;
+            }
+
+            function startStream() {
+                progress.innerHTML = "";
+                result.style.display = "none";
+                result.className = "";
+                result.innerHTML = "";
+                source = new EventSource(streamUrl);
+                source.onmessage = onMessage;
+                source.onerror = onError;
+            }
+
+            function onMessage(e) {
+                var data = JSON.parse(e.data);
+                if (data.status === "progress") {
+                    var icon = data.phase === "end" ? "✅" : "⏳";
+                    var stepKey = data.step_key || "";
+                    var section = findSection(stepKey);
+
+                    if (data.phase === "end" && stepKey) {
+                        // End of a section header → collapse the section
+                        var sectionEl = document.getElementById("section-" + stepKey);
+                        if (sectionEl) {
+                            sectionEl.removeAttribute("open");
+                            var sectionSummary = sectionEl.querySelector("summary");
+                            sectionSummary.innerHTML = "✅ " + escapeHtml(data.message) +
+                                " <small class=\"text-muted\">▸ details</small>";
                         } else {
-                            el.innerHTML = "✅ " + escapeHtml(data.message);
+                            // End of an individual step → mutate its icon
+                            var el = document.getElementById("step-" + stepKey);
+                            if (el) {
+                                var summary = el.querySelector("summary");
+                                if (summary) {
+                                    summary.innerHTML = "✅ " + escapeHtml(data.message) +
+                                        " <small class=\"text-muted\">▸ show query</small>";
+                                } else {
+                                    el.innerHTML = "✅ " + escapeHtml(data.message);
+                                }
+                            }
                         }
-                    }
-                }
-            } else if (data.query) {
-                var query = data.query.trim();
-                var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
-                var html =
-                    "<details" + elId + "><summary>" + icon + " " + escapeHtml(data.message) +
-                    " <small class=\"text-muted\">▸ show query</small></summary>" +
-                    "<pre><code>" + escapeHtml(query) + "</code></pre>" +
-                    "<p>" +
-                    "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
-                    "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
-                    "</p></details>";
-                var container = section ? document.getElementById("section-" + section) : null;
-                if (container) {
-                    container.insertAdjacentHTML("beforeend", html);
-                } else {
-                    progress.insertAdjacentHTML("beforeend", html);
-                }
-                progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
-            } else {
-                // Plain message — could be a section header or a standalone step
-                if (stepKey && !section) {
-                    // Section header: create a collapsible wrapper
-                    progress.insertAdjacentHTML("beforeend",
-                        "<details open id=\"section-" + escapeHtml(stepKey) + "\">" +
-                        "<summary>" + icon + " " + escapeHtml(data.message) + "</summary>" +
-                        "</details>");
-                } else {
-                    var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
-                    var container = section ? document.getElementById("section-" + section) : null;
-                    if (container) {
-                        container.insertAdjacentHTML("beforeend",
-                            "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                    } else if (data.query) {
+                        var query = data.query.trim();
+                        var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
+                        var html =
+                            "<details" + elId + "><summary>" + icon + " " + escapeHtml(data.message) +
+                            " <small class=\"text-muted\">▸ show query</small></summary>" +
+                            "<pre><code>" + escapeHtml(query) + "</code></pre>" +
+                            "<p>" +
+                            "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
+                            "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
+                            "</p></details>";
+                        var container = section ? document.getElementById("section-" + section) : null;
+                        if (container) {
+                            container.insertAdjacentHTML("beforeend", html);
+                        } else {
+                            progress.insertAdjacentHTML("beforeend", html);
+                        }
+                        progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
                     } else {
-                        progress.insertAdjacentHTML("beforeend",
-                            "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                        // Plain message — could be a section header or a standalone step
+                        if (stepKey && !section) {
+                            // Section header: create a collapsible wrapper
+                            progress.insertAdjacentHTML("beforeend",
+                                "<details open id=\"section-" + escapeHtml(stepKey) + "\">" +
+                                "<summary>" + icon + " " + escapeHtml(data.message) + "</summary>" +
+                                "</details>");
+                        } else {
+                            var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
+                            var container = section ? document.getElementById("section-" + section) : null;
+                            if (container) {
+                                container.insertAdjacentHTML("beforeend",
+                                    "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                            } else {
+                                progress.insertAdjacentHTML("beforeend",
+                                    "<p" + elId + ">" + icon + " " + escapeHtml(data.message) + "</p>");
+                            }
+                        }
+                        progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
                     }
+                } else if (data.status === "done") {
+                    var elapsed = parseFloat(data.result).toFixed(2);
+                    result.style.display = "block";
+                    result.className = "alert alert-success";
+                    result.innerHTML = "<p>✅ Updated page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a> (in " + elapsed + "s)</p>";
+                    source.close();
+                } else if (data.status === "error") {
+                    showError(data);
+                    source.close();
                 }
-                progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
             }
-        } else if (data.status === "done") {
-            var elapsed = parseFloat(data.result).toFixed(2);
-            result.style.display = "block";
-            result.className = "alert alert-success";
-            result.innerHTML = "<p>✅ Updated page <a href=\"" + escapeHtml(pageUrl) + "\">" + escapeHtml(pageTitle) + "</a> (in " + elapsed + "s)</p>";
-            source.close();
-        } else if (data.status === "error") {
-            showError(data);
-            source.close();
-        }
-    }
 
-    function onError() {
-        result.style.display = "block";
-        result.className = "alert alert-danger";
-        result.innerHTML = "<p>❌ Connection lost.</p>" + retryButton();
-        source.close();
-    }
+            function onError() {
+                result.style.display = "block";
+                result.className = "alert alert-danger";
+                result.innerHTML = "<p>❌ Connection lost.</p>" + retryButton();
+                source.close();
+            }
 
-    function retryButton() {
-        return "<button class=\"btn btn-primary\" onclick=\"window.__retryStream()\">🔄 Retry</button>";
-    }
+            function retryButton() {
+                return "<button class=\"btn btn-primary\" onclick=\"window.__retryStream()\">🔄 Retry</button>";
+            }
 
-    window.__retryStream = startStream;
+            window.__retryStream = startStream;
 
-    function showError(data) {
-        result.style.display = "block";
-        var category = data.error_category || "error";
+            function showError(data) {
+                result.style.display = "block";
+                var category = data.error_category || "error";
 
-        if (category === "query") {
-            result.className = "alert alert-danger";
-            var query = data.query || "";
-            result.innerHTML =
-                "<p>The following SPARQL query could not be run (it may contain a syntax error):</p>" +
-                "<p>" + escapeHtml(data.message) + "</p>" +
-                "<pre><code>" + escapeHtml(query) + "</code></pre>" +
-                "<p>" +
-                "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +
-                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">Try it in QLever</a>" +
-                "</p>";
-        } else if (category === "timeout") {
-            result.className = "alert alert-warning";
-            var tquery = data.query || "";
-            result.innerHTML =
-                "<p>The query timed out. This can be a temporary slow moment, a query that is too expensive, or a subtle mistake making it churn (e.g. a mistyped variable). Try it directly to investigate:</p>" +
-                "<pre><code>" + escapeHtml(tquery) + "</code></pre>" +
-                "<p>" +
-                "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(tquery) + "\">Try it in Wikidata Query Service</a> " +
-                "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(tquery)) + "\">Try it in QLever</a>" +
-                "</p>" +
-                retryButton();
-        } else if (category === "transient") {
-            result.className = "alert alert-warning";
-            result.innerHTML =
-                "<p>A temporary server issue occurred. This is usually caused by high server load and is not a bug.</p>" +
-                "<p>" + escapeHtml(data.message) + "</p>" +
-                "<p>Please try again later.</p>" +
-                retryButton();
-        } else if (category === "config") {
-            result.className = "alert alert-danger";
-            result.innerHTML =
-                "<p>Please check your configuration.</p>" +
-                "<p>" + escapeHtml(data.message) + "</p>";
-        } else {
-            result.className = "alert alert-danger";
-            var tb = (data.traceback || []).join("");
-            var phabUrl = "https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=" + encodeURIComponent("```\n" + tb + "```");
-            result.innerHTML =
-                "<p>Something catastrophic happened. This is very likely a bug in inteGraality itself, not a configuration issue.</p>" +
-                "<p><a class=\"btn btn-warning\" href=\"" + phabUrl + "\">Report this on Phabricator</a></p>" +
-                "<pre>" + escapeHtml(tb) + "</pre>";
-        }
-    }
+                if (category === "query") {
+                    result.className = "alert alert-danger";
+                    var query = data.query || "";
+                    result.innerHTML =
+                        "<p>The following SPARQL query could not be run (it may contain a syntax error):</p>" +
+                        "<p>" + escapeHtml(data.message) + "</p>" +
+                        "<pre><code>" + escapeHtml(query) + "</code></pre>" +
+                        "<p>" +
+                        "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">Try it in Wikidata Query Service</a> " +
+                        "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">Try it in QLever</a>" +
+                        "</p>";
+                } else if (category === "timeout") {
+                    result.className = "alert alert-warning";
+                    var tquery = data.query || "";
+                    result.innerHTML =
+                        "<p>The query timed out. This can be a temporary slow moment, a query that is too expensive, or a subtle mistake making it churn (e.g. a mistyped variable). Try it directly to investigate:</p>" +
+                        "<pre><code>" + escapeHtml(tquery) + "</code></pre>" +
+                        "<p>" +
+                        "<a class=\"btn btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(tquery) + "\">Try it in Wikidata Query Service</a> " +
+                        "<a class=\"btn btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(tquery)) + "\">Try it in QLever</a>" +
+                        "</p>" +
+                        retryButton();
+                } else if (category === "transient") {
+                    result.className = "alert alert-warning";
+                    result.innerHTML =
+                        "<p>A temporary server issue occurred. This is usually caused by high server load and is not a bug.</p>" +
+                        "<p>" + escapeHtml(data.message) + "</p>" +
+                        "<p>Please try again later.</p>" +
+                        retryButton();
+                } else if (category === "config") {
+                    result.className = "alert alert-danger";
+                    result.innerHTML =
+                        "<p>Please check your configuration.</p>" +
+                        "<p>" + escapeHtml(data.message) + "</p>";
+                } else {
+                    result.className = "alert alert-danger";
+                    var tb = (data.traceback || []).join("");
+                    var phabUrl = "https://phabricator.wikimedia.org/maniphest/task/create/?projects=tool-integraality&description=" + encodeURIComponent("```\n" + tb + "```");
+                    result.innerHTML =
+                        "<p>Something catastrophic happened. This is very likely a bug in inteGraality itself, not a configuration issue.</p>" +
+                        "<p><a class=\"btn btn-warning\" href=\"" + phabUrl + "\">Report this on Phabricator</a></p>" +
+                        "<pre>" + escapeHtml(tb) + "</pre>";
+                }
+            }
 
-    startStream();
-})();
-</script>
+            startStream();
+        })();
+    </script>
 {% endblock %}

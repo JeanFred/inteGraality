@@ -1,66 +1,74 @@
 <datalist id="root-options">
     {% for r in roots %}
-    <option value="{{ r }}"></option>
+        <option value="{{ r }}"></option>
     {% endfor %}
 </datalist>
 {% if dashboards %}
-<p><strong>{{ dashboards | length }}</strong> dashboards registered.</p>
-<table class="table table-striped table-sm" id="dashboard-table">
-    <thead>
-        <tr>
-            <th>Dashboard</th>
-            <th>Recent runs</th>
-            <th>Last success</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for d in dashboards %}
-        {#
+    <p><strong>{{ dashboards | length }}</strong> dashboards registered.</p>
+    <table class="table table-striped table-sm" id="dashboard-table">
+        <thead>
+            <tr>
+                <th>Dashboard</th>
+                <th>Recent runs</th>
+                <th>Last success</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in dashboards %}
+                {#
           Row tint by failure severity: a currently-failing dashboard is
           "warning" (amber, possibly transient) until it has failed
           chronic_failure_threshold times in a row, then "danger" (red).
           Healthy rows are untinted.
         #}
-        {% set failing = d.latest_status == 'FAIL' %}
-        {% set chronic = failing and d.failures_since_success >= chronic_failure_threshold %}
-        <tr class="{{ 'table-danger' if chronic else 'table-warning' if failing else '' }}">
-            <td>
-                <a href="{{ url_for('dashboard', wiki=d.site_hostname, page=d.page_title) }}">{{ d.page_title }}</a>
-                <a href="{{ d.page_url }}" title="View on wiki" class="text-muted">↗</a>
-                {% if d.site_hostname != 'www.wikidata.org' %}
-                    <small class="text-muted">({{ d.site_name }})</small>
-                {% endif %}
-                {% if failing %}
-                    <small class="text-muted">&mdash; failing for {{ d.failures_since_success }} run{{ 's' if d.failures_since_success != 1 }}</small>
-                {% endif %}
-            </td>
-            <td class="run-strip" aria-label="recent run outcomes, oldest to newest">
-                {% if d.recent_statuses %}
-                    {% for s in d.recent_statuses.split(',') %}
-                        <span class="run-tick run-tick-{{ 'fail' if s == 'FAIL' else 'null' if s == 'NULL' else 'ok' }}"
-                              title="{{ 'FAIL' if s == 'FAIL' else 'OK — no change (null edit)' if s == 'NULL' else 'OK' }}"></span>
-                    {% endfor %}
-                {% else %}
-                    <span class="text-muted">never run</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if d.last_success_at %}
-                    <small class="text-muted">
-                        <time data-relative
-                              datetime="{{ d.last_success_at | iso_utc }}"
-                              title="{{ d.last_success_at }} UTC">{{ d.last_success_at }}</time>
-                    </small>
-                {% else %}
-                    <span class="text-muted">never</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                {% set failing = d.latest_status == 'FAIL' %}
+                {% set chronic = failing and d.failures_since_success >= chronic_failure_threshold %}
+                <tr class="{{ 'table-danger' if chronic else 'table-warning' if failing else '' }}">
+                    <td>
+                        <a href="{{ url_for('dashboard', wiki=d.site_hostname, page=d.page_title) }}">{{
+                            d.page_title
+                        }}</a>
+                        <a href="{{ d.page_url }}" title="View on wiki" class="text-muted">↗</a>
+                        {% if d.site_hostname != 'www.wikidata.org' %}
+                            <small class="text-muted">({{ d.site_name }})</small>
+                        {% endif %}
+                        {% if failing %}
+                            <small class="text-muted">&mdash; failing for {{ d.failures_since_success }} run{{
+                                    's' if d.failures_since_success != 1
+                                }}</small>
+                        {% endif %}
+                    </td>
+                    <td class="run-strip" aria-label="recent run outcomes, oldest to newest">
+                        {% if d.recent_statuses %}
+                            {% for s in d.recent_statuses.split(',') %}
+                                <span
+                                    class="run-tick run-tick-{{ 'fail' if s == 'FAIL' else 'null' if s == 'NULL' else 'ok' }}"
+                                    title="{{ 'FAIL' if s == 'FAIL' else 'OK — no change (null edit)' if s == 'NULL' else 'OK' }}"
+                                ></span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">never run</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if d.last_success_at %}
+                            <small class="text-muted">
+                                <time
+                                    data-relative
+                                    datetime="{{ d.last_success_at | iso_utc }}"
+                                    title="{{ d.last_success_at }} UTC"
+                                >{{ d.last_success_at }}</time>
+                            </small>
+                        {% else %}
+                            <span class="text-muted">never</span>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% elif is_filtered %}
-<p class="text-muted">No dashboards match these filters.</p>
+    <p class="text-muted">No dashboards match these filters.</p>
 {% else %}
-<p class="text-muted">No dashboards registered yet.</p>
+    <p class="text-muted">No dashboards registered yet.</p>
 {% endif %}

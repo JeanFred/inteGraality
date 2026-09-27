@@ -10,9 +10,10 @@
 <style>
 #progress details { margin: 1em 0; }
 #progress [id^="section-"] > :not(summary) { margin-left: 1.5em; }
+#result { display: none; }
 </style>
 <div id="progress"></div>
-<div id="result" style="display:none"></div>
+<div id="result"></div>
 <script>
 (function() {
     var pageUrl = {{ page_url|tojson }};

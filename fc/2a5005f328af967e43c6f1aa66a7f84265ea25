@@ -1,0 +1,14 @@
+integraality/templates/_run_ticks_style.html
+  h_bc010f8da910ff 11,14,18
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "fc2a5005f328af967e43c6f1aa66a7f84265ea25",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

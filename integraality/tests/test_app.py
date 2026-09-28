@@ -111,6 +111,25 @@ class BasicTests(AppTests):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.get_json(), {"status": "healthy"})
 
+    def test_theme_toggle_present(self):
+        """The base layout ships the theme toggle (with an aria-pressed state and
+        an icon hook) and sets data-bs-theme before paint (stored choice or OS
+        preference), guarded so disabled storage can't break init."""
+        contents = self.app.get("/").get_data(as_text=True)
+        self.assertIn('id="theme-toggle"', contents)
+        self.assertIn("aria-pressed", contents)
+        self.assertIn("data-theme-icon", contents)
+        self.assertIn("data-bs-theme", contents)
+        self.assertIn("prefers-color-scheme: dark", contents)
+        self.assertIn('localStorage.setItem("theme"', contents)
+
+    def test_contextual_row_muted_text_inherits(self):
+        """Muted cells on tinted (failed/warning) rows inherit the row colour
+        instead of double-dimming on top of the tint."""
+        contents = self.app.get("/").get_data(as_text=True)
+        self.assertIn(".table-danger .text-muted", contents)
+        self.assertIn(".table-warning .text-muted", contents)
+
     def test_404_page(self):
         response = self.app.get("/unexisting_page")
         self.assertEqual(response.status_code, 404)

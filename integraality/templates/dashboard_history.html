@@ -119,23 +119,10 @@
             if (!el) { return; }
             var d = JSON.parse(el.textContent);
 
-            // Read the BS5 theme palette once so charts (canvas can't use CSS
-            // vars) stay in sync with the rest of the UI and follow the theme.
+            // getComputedStyle returns a live view, so re-reading getPropertyValue
+            // in render() after a theme toggle reflects the new --bs-* values.
             var css = getComputedStyle(document.documentElement);
             function themeColor(name) { return css.getPropertyValue(name).trim(); }
-            var COLOR = {
-                primary: themeColor("--bs-primary"),
-                success: themeColor("--bs-success"),
-                danger: themeColor("--bs-danger"),
-                warning: themeColor("--bs-warning"),
-            };
-
-            // Chart chrome (tick labels, axis titles, grid lines, legend) is left
-            // to Chart.js defaults, which are a fixed near-black — fine on light,
-            // invisible on dark. Point the defaults at the theme so it matches the
-            // body/border colour and follows data-bs-theme.
-            Chart.defaults.color = themeColor("--bs-body-color");
-            Chart.defaults.borderColor = themeColor("--bs-border-color");
 
             // {x: ISO timestamp, y: value} points, dropping nulls (failed runs) so the
             // time axis spaces runs by their real dates. The date-fns adapter parses
@@ -149,83 +136,12 @@
                          ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } };
             }
 
-            new Chart(document.getElementById("trend-chart"), {
-                type: "line",
-                data: {
-                    datasets: [
-                        { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
-                          borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
-                        { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
-                          borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
-                    ]
-                },
-                options: {
-                    responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-                    scales: {
-                        x: timeScale(),
-                        yEntities: { type: "linear", position: "left", title: { display: true, text: "Entities" }, beginAtZero: false },
-                        ySmall: { type: "linear", position: "right", title: { display: true, text: "Groupings" }, beginAtZero: true, grid: { drawOnChartArea: false } }
-                    }
-                }
-            });
-
-            var hasDuration = d.duration_s.some(function (v) { return v !== null; });
-            if (hasDuration) {
-                new Chart(document.getElementById("duration-chart"), {
-                    type: "line",
-                    data: { datasets: [
-                        { label: "Duration (s)", data: points(d.duration_s), borderColor: COLOR.danger,
-                          backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1 }
-                    ] },
-                    options: { responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: "index", intersect: false },
-                        scales: { x: timeScale(), y: { beginAtZero: true, title: { display: true, text: "Seconds" } } } }
-                });
-            }
-
-            // Runs per month, stacked OK-cron (green) / OK-manual (blue) / FAIL (red)
-            // − health cadence + engagement over time. Category axis on the contiguous
-            // month buckets; ticks show the year only at each January (matching the
-            // year cadence of the line charts).
-            var barCanvas = document.getElementById("monthly-runs-chart");
-            if (barCanvas && d.month_labels.length) {
-                new Chart(barCanvas, {
-                    type: "bar",
-                    data: {
-                        labels: d.month_labels,
-                        datasets: [
-                            { label: "OK (cron)", data: d.month_ok_cron, backgroundColor: COLOR.success, stack: "runs" },
-                            { label: "OK (manual)", data: d.month_ok_web, backgroundColor: COLOR.primary, stack: "runs" },
-                            { label: "Failed", data: d.month_fail, backgroundColor: COLOR.danger, stack: "runs" }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false,
-                        interaction: { mode: "index", intersect: false },
-                        scales: {
-                            x: { stacked: true, ticks: {
-                                maxRotation: 0, autoSkip: false,
-                                callback: function (value, index) {
-                                    var m = d.month_labels[index];
-                                    if (!m) { return ""; }
-                                    return (m.slice(5) === "01" || index === 0) ? m.slice(0, 4) : "";
-                                }
-                            } },
-                            y: { stacked: true, beginAtZero: true, ticks: { precision: 0 },
-                                 title: { display: true, text: "Runs" } }
-                        }
-                    }
-                });
-            }
-
-            // Sparklines: tiny axis-less line charts drawn as the background of each
-            // stat card. Nulls dropped so the line is continuous; no interaction.
-            function sparkline(canvasId, series, color) {
+            function sparkline(charts, canvasId, series, color) {
                 var canvas = document.getElementById(canvasId);
                 if (!canvas) { return; }
                 var vals = series.filter(function (v) { return v !== null; });
                 if (vals.length < 2) { return; }  // nothing to trend
-                new Chart(canvas, {
+                charts.push(new Chart(canvas, {
                     type: "line",
                     data: {
                         labels: vals.map(function (_, i) { return i; }),
@@ -239,11 +155,104 @@
                         elements: { line: { capBezierPoints: true } },
                         animation: false
                     }
-                });
+                }));
             }
-            sparkline("spark-entities", d.entity_total, COLOR.primary);
-            sparkline("spark-groupings", d.grouping_count, COLOR.success);
-            sparkline("spark-columns", d.column_count, COLOR.warning);
+
+            // (Re)build all charts, re-reading the palette so a theme toggle
+            // recolours them; destroy the old instances first to avoid leaks.
+            var charts = [];
+            function render() {
+                charts.forEach(function (c) { c.destroy(); });
+                charts = [];
+
+                var COLOR = {
+                    primary: themeColor("--bs-primary"),
+                    success: themeColor("--bs-success"),
+                    danger: themeColor("--bs-danger"),
+                    warning: themeColor("--bs-warning"),
+                };
+                Chart.defaults.color = themeColor("--bs-body-color");
+                Chart.defaults.borderColor = themeColor("--bs-border-color");
+
+                charts.push(new Chart(document.getElementById("trend-chart"), {
+                    type: "line",
+                    data: {
+                        datasets: [
+                            { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
+                              borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
+                            { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
+                              borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+                        scales: {
+                            x: timeScale(),
+                            yEntities: { type: "linear", position: "left", title: { display: true, text: "Entities" }, beginAtZero: false },
+                            ySmall: { type: "linear", position: "right", title: { display: true, text: "Groupings" }, beginAtZero: true, grid: { drawOnChartArea: false } }
+                        }
+                    }
+                }));
+
+                var hasDuration = d.duration_s.some(function (v) { return v !== null; });
+                if (hasDuration) {
+                    charts.push(new Chart(document.getElementById("duration-chart"), {
+                        type: "line",
+                        data: { datasets: [
+                            { label: "Duration (s)", data: points(d.duration_s), borderColor: COLOR.danger,
+                              backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1 }
+                        ] },
+                        options: { responsive: true, maintainAspectRatio: false,
+                            interaction: { mode: "index", intersect: false },
+                            scales: { x: timeScale(), y: { beginAtZero: true, title: { display: true, text: "Seconds" } } } }
+                    }));
+                }
+
+                // Runs per month, stacked OK-cron (green) / OK-manual (blue) / FAIL (red)
+                // − health cadence + engagement over time. Category axis on the contiguous
+                // month buckets; ticks show the year only at each January (matching the
+                // year cadence of the line charts).
+                var barCanvas = document.getElementById("monthly-runs-chart");
+                if (barCanvas && d.month_labels.length) {
+                    charts.push(new Chart(barCanvas, {
+                        type: "bar",
+                        data: {
+                            labels: d.month_labels,
+                            datasets: [
+                                { label: "OK (cron)", data: d.month_ok_cron, backgroundColor: COLOR.success, stack: "runs" },
+                                { label: "OK (manual)", data: d.month_ok_web, backgroundColor: COLOR.primary, stack: "runs" },
+                                { label: "Failed", data: d.month_fail, backgroundColor: COLOR.danger, stack: "runs" }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false,
+                            interaction: { mode: "index", intersect: false },
+                            scales: {
+                                x: { stacked: true, ticks: {
+                                    maxRotation: 0, autoSkip: false,
+                                    callback: function (value, index) {
+                                        var m = d.month_labels[index];
+                                        if (!m) { return ""; }
+                                        return (m.slice(5) === "01" || index === 0) ? m.slice(0, 4) : "";
+                                    }
+                                } },
+                                y: { stacked: true, beginAtZero: true, ticks: { precision: 0 },
+                                     title: { display: true, text: "Runs" } }
+                            }
+                        }
+                    }));
+                }
+
+                // Sparklines: tiny axis-less line charts drawn as the background of
+                // each stat card. Nulls dropped so the line is continuous.
+                sparkline(charts, "spark-entities", d.entity_total, COLOR.primary);
+                sparkline(charts, "spark-groupings", d.grouping_count, COLOR.success);
+                sparkline(charts, "spark-columns", d.column_count, COLOR.warning);
+            }
+
+            render();
+            // Rebuild with the new palette when the theme toggles (base.html fires this).
+            document.addEventListener("themechange", render);
         })();
     </script>
 {% endblock %}

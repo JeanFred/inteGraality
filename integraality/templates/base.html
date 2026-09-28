@@ -5,6 +5,19 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>InteGraality - dashboard for Wikidata properties</title>
+        <script>
+            // Set the theme before first paint (no flash): stored choice, else OS
+            // preference. Guarded because localStorage/matchMedia can throw when
+            // storage is disabled (private mode), and this must not break paint.
+            (function () {
+                try {
+                    var stored = localStorage.getItem("theme");
+                    var theme = stored
+                        || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+                    document.documentElement.setAttribute("data-bs-theme", theme);
+                } catch (e) { /* leave default (light) */ }
+            })();
+        </script>
         <link rel="stylesheet" href="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/css/bootstrap.min.css">
         <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/bootstrap/5.3.8/js/bootstrap.bundle.min.js"></script>
         {% block head_scripts %}{% endblock %}
@@ -37,6 +50,34 @@
 
             main {
                 flex: 1;
+            }
+
+            /* On contextual (tinted) rows the tint already de-emphasises; muted
+               text on top double-dims and reads faint in both themes. Let it
+               inherit the row colour. */
+            .table-danger .text-muted,
+            .table-warning .text-muted {
+                color: inherit;
+            }
+
+            /* BS5.3 .table-* contextual variants use fixed light tints that don't
+               follow data-bs-theme, so failed/warning rows render as light pink/
+               amber with unreadable muted text in dark mode. Redefine the row
+               variables to dark-appropriate tints (light text on a dim colour). */
+            [data-bs-theme='dark'] .table-danger {
+                --bs-table-color: var(--bs-body-color);
+                --bs-table-bg: rgba(var(--bs-danger-rgb), 0.25);
+                --bs-table-border-color: rgba(var(--bs-danger-rgb), 0.35);
+                --bs-table-striped-bg: rgba(var(--bs-danger-rgb), 0.3);
+                --bs-table-hover-bg: rgba(var(--bs-danger-rgb), 0.35);
+            }
+
+            [data-bs-theme='dark'] .table-warning {
+                --bs-table-color: var(--bs-body-color);
+                --bs-table-bg: rgba(var(--bs-warning-rgb), 0.2);
+                --bs-table-border-color: rgba(var(--bs-warning-rgb), 0.3);
+                --bs-table-striped-bg: rgba(var(--bs-warning-rgb), 0.25);
+                --bs-table-hover-bg: rgba(var(--bs-warning-rgb), 0.3);
             }
         </style>
     </head>
@@ -91,6 +132,18 @@
                             <a class="nav-link" href="https://www.wikidata.org/wiki/Wikidata:inteGraality">Documentation
                                 <span aria-hidden="true">&#8599;</span></a>
                         </li>
+                        <li class="nav-item">
+                            <button
+                                id="theme-toggle"
+                                type="button"
+                                class="btn btn-link nav-link"
+                                aria-pressed="false"
+                                aria-label="Toggle dark mode"
+                                title="Toggle dark mode"
+                            >
+                                <span aria-hidden="true" data-theme-icon>🌓</span>
+                            </button>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -126,5 +179,33 @@
                 </div>
             </div>
         </footer>
+        <script>
+            // Reflect and toggle the theme. The initial data-bs-theme is set in
+            // <head> (pre-paint); here we sync the button's icon + aria-pressed to
+            // it, and update all three on click. Charts read colours once at load,
+            // so they listen for 'themechange' to rebuild (canvas can't use vars).
+            (function () {
+                var btn = document.getElementById("theme-toggle");
+                if (!btn) { return; }
+                var icon = btn.querySelector("[data-theme-icon]");
+                var root = document.documentElement;
+
+                function sync(theme) {
+                    var dark = theme === "dark";
+                    btn.setAttribute("aria-pressed", String(dark));
+                    // Icon shows the action: sun to go light, moon to go dark.
+                    if (icon) { icon.textContent = dark ? "☀️" : "🌙"; }
+                }
+                sync(root.getAttribute("data-bs-theme"));
+
+                btn.addEventListener("click", function () {
+                    var next = root.getAttribute("data-bs-theme") === "dark" ? "light" : "dark";
+                    root.setAttribute("data-bs-theme", next);
+                    try { localStorage.setItem("theme", next); } catch (e) { /* not persisted */ }
+                    sync(next);
+                    document.dispatchEvent(new CustomEvent("themechange", { detail: next }));
+                });
+            })();
+        </script>
     </body>
 </html>

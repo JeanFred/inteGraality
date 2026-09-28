@@ -32,7 +32,7 @@
             cursor: pointer;
         }
         a.run-tick:hover {
-            outline: 1px solid #555;
+            outline: 1px solid var(--bs-border-color);
         }
         .run-tick-fail::after {
             content: '\00d7';
@@ -129,6 +129,13 @@
                 danger: themeColor("--bs-danger"),
                 warning: themeColor("--bs-warning"),
             };
+
+            // Chart chrome (tick labels, axis titles, grid lines, legend) is left
+            // to Chart.js defaults, which are a fixed near-black — fine on light,
+            // invisible on dark. Point the defaults at the theme so it matches the
+            // body/border colour and follows data-bs-theme.
+            Chart.defaults.color = themeColor("--bs-body-color");
+            Chart.defaults.borderColor = themeColor("--bs-border-color");
 
             // {x: ISO timestamp, y: value} points, dropping nulls (failed runs) so the
             // time axis spaces runs by their real dates. The date-fns adapter parses

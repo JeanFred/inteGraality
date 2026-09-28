@@ -523,6 +523,12 @@ class DashboardHistoryTests(AppTests):
         # server-rendered runs table works without JS.
         self.assertIn("tools-static.wmflabs.org/cdnjs", contents)
         self.assertIn("<table", contents)
+        # Chart colours come from the BS5 theme (read via CSS vars), not the old
+        # hardcoded Bootstrap 3 hex palette. Guard every retired hex so a revert
+        # to the BS3 colours fails here.
+        self.assertIn("--bs-primary", contents)
+        for retired_hex in ("#337ab7", "#5cb85c", "#a94442", "#f0ad4e"):
+            self.assertNotIn(retired_hex, contents)
         # A11y: the decorative run-tick strip is hidden from AT (table carries
         # the same data); the wide runs table scrolls on mobile.
         self.assertIn("run-strip", contents)

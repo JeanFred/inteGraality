@@ -52,7 +52,7 @@
             line-height: 1;
         }
         .health-metric .label {
-            color: #777;
+            color: var(--bs-secondary-color);
             font-size: 0.85em;
         }
         /* Datadog-style single-value cards with a background sparkline. */
@@ -82,7 +82,7 @@
             pointer-events: none;
         }
         .stat-card .sc-label {
-            color: #777;
+            color: var(--bs-secondary-color);
             font-size: 0.85em;
             letter-spacing: 0.03em;
             text-transform: uppercase;
@@ -99,13 +99,13 @@
             font-size: 0.85em;
         }
         .delta-up {
-            color: #3c763d;
+            color: var(--bs-success);
         }
         .delta-down {
-            color: #a94442;
+            color: var(--bs-danger);
         }
         .delta-flat {
-            color: #999;
+            color: var(--bs-secondary-color);
         }
     </style>
 {% endblock %}
@@ -121,6 +121,17 @@
             var el = document.getElementById("run-series");
             if (!el) { return; }
             var d = JSON.parse(el.textContent);
+
+            // Read the BS5 theme palette once so charts (canvas can't use CSS
+            // vars) stay in sync with the rest of the UI and follow the theme.
+            var css = getComputedStyle(document.documentElement);
+            function themeColor(name) { return css.getPropertyValue(name).trim(); }
+            var COLOR = {
+                primary: themeColor("--bs-primary"),
+                success: themeColor("--bs-success"),
+                danger: themeColor("--bs-danger"),
+                warning: themeColor("--bs-warning"),
+            };
 
             // {x: ISO timestamp, y: value} points, dropping nulls (failed runs) so the
             // time axis spaces runs by their real dates. The date-fns adapter parses
@@ -139,9 +150,9 @@
                 data: {
                     datasets: [
                         { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
-                          borderColor: "#337ab7", backgroundColor: "#337ab7", pointRadius: 0, tension: 0.1 },
+                          borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
                         { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
-                          borderColor: "#5cb85c", backgroundColor: "#5cb85c", pointRadius: 0, tension: 0.1 }
+                          borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
                     ]
                 },
                 options: {
@@ -159,8 +170,8 @@
                 new Chart(document.getElementById("duration-chart"), {
                     type: "line",
                     data: { datasets: [
-                        { label: "Duration (s)", data: points(d.duration_s), borderColor: "#a94442",
-                          backgroundColor: "#a94442", pointRadius: 0, tension: 0.1 }
+                        { label: "Duration (s)", data: points(d.duration_s), borderColor: COLOR.danger,
+                          backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1 }
                     ] },
                     options: { responsive: true, maintainAspectRatio: false,
                         interaction: { mode: "index", intersect: false },
@@ -179,9 +190,9 @@
                     data: {
                         labels: d.month_labels,
                         datasets: [
-                            { label: "OK (cron)", data: d.month_ok_cron, backgroundColor: "#5cb85c", stack: "runs" },
-                            { label: "OK (manual)", data: d.month_ok_web, backgroundColor: "#337ab7", stack: "runs" },
-                            { label: "Failed", data: d.month_fail, backgroundColor: "#a94442", stack: "runs" }
+                            { label: "OK (cron)", data: d.month_ok_cron, backgroundColor: COLOR.success, stack: "runs" },
+                            { label: "OK (manual)", data: d.month_ok_web, backgroundColor: COLOR.primary, stack: "runs" },
+                            { label: "Failed", data: d.month_fail, backgroundColor: COLOR.danger, stack: "runs" }
                         ]
                     },
                     options: {
@@ -226,9 +237,9 @@
                     }
                 });
             }
-            sparkline("spark-entities", d.entity_total, "#337ab7");
-            sparkline("spark-groupings", d.grouping_count, "#5cb85c");
-            sparkline("spark-columns", d.column_count, "#f0ad4e");
+            sparkline("spark-entities", d.entity_total, COLOR.primary);
+            sparkline("spark-groupings", d.grouping_count, COLOR.success);
+            sparkline("spark-columns", d.column_count, COLOR.warning);
         })();
     </script>
 {% endblock %}

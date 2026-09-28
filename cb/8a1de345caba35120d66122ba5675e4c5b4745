@@ -1,0 +1,18 @@
+integraality/templates/_run_ticks_style.html
+  h_bc010f8da910ff 11,14,18
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 55,58-60,82,99,102,105,122-132,150,152,170-171,190-192,237-239,255,257-267,376-398
+integraality/tests/test_app.py
+  h_bc010f8da910ff 526,529,540-541
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "cb8a1de345caba35120d66122ba5675e4c5b4745",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

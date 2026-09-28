@@ -5,7 +5,7 @@
 </datalist>
 {% if dashboards %}
     <p><strong>{{ dashboards | length }}</strong> dashboards registered.</p>
-    <table class="table table-striped table-sm" id="dashboard-table">
+    <table class="table table-striped table-sm align-middle" id="dashboard-table">
         <thead>
             <tr>
                 <th>Dashboard</th>
@@ -38,17 +38,19 @@
                                 }}</small>
                         {% endif %}
                     </td>
-                    <td class="run-strip" aria-label="recent run outcomes, oldest to newest">
-                        {% if d.recent_statuses %}
-                            {% for s in d.recent_statuses.split(',') %}
-                                <span
-                                    class="run-tick run-tick-{{ 'fail' if s == 'FAIL' else 'null' if s == 'NULL' else 'ok' }}"
-                                    title="{{ 'FAIL' if s == 'FAIL' else 'OK — no change (null edit)' if s == 'NULL' else 'OK' }}"
-                                ></span>
-                            {% endfor %}
-                        {% else %}
-                            <span class="text-muted">never run</span>
-                        {% endif %}
+                    <td>
+                        <div class="run-strip" aria-label="recent run outcomes, oldest to newest">
+                            {% if d.recent_statuses %}
+                                {% for s in d.recent_statuses.split(',') %}
+                                    <span
+                                        class="run-tick run-tick-{{ 'fail' if s == 'FAIL' else 'null' if s == 'NULL' else 'ok' }}"
+                                        title="{{ 'FAIL' if s == 'FAIL' else 'OK — no change (null edit)' if s == 'NULL' else 'OK' }}"
+                                    ></span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">never run</span>
+                            {% endif %}
+                        </div>
                     </td>
                     <td>
                         {% if d.last_success_at %}

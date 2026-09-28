@@ -55,7 +55,9 @@
             color: var(--bs-secondary-color);
             font-size: 0.85em;
         }
-        /* Datadog-style single-value cards with a background sparkline. */
+        /* Datadog-style single-value cards: a BS .card (border/bg/radius from
+           the theme) plus the layout bits the card doesn't provide — equal
+           flex sizing and overflow:hidden to clip the background sparkline. */
         .stat-cards {
             display: flex;
             flex-wrap: wrap;
@@ -63,14 +65,9 @@
             gap: 12px;
         }
         .stat-card {
-            position: relative;
             flex: 1 1 0;
             min-width: 180px;
-            padding: 12px 14px;
             overflow: hidden;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background: #fff;
         }
         .stat-card .spark {
             position: absolute;
@@ -255,17 +252,19 @@
   JS). `m` is a health.metrics[...] summary; `spark_id` matches the JS.
 #}
     {% macro stat_card(title, m, spark_id) %}
-        <div class="stat-card">
+        <div class="card stat-card">
             <canvas class="spark" id="{{ spark_id }}"></canvas>
-            <div class="sc-label">{{ title }}</div>
-            <div class="sc-value">{{ '{:,}'.format(m.current) if m.current is not none else '−' }}</div>
-            {% if m.current is not none %}
-                <div class="sc-deltas">
-                    {{ delta_badge(m.delta_since_first, "since start") }}
-                    &nbsp;·&nbsp;
-                    {{ delta_badge(m.delta_since_last, "last run") }}
-                </div>
-            {% endif %}
+            <div class="card-body p-2">
+                <div class="sc-label">{{ title }}</div>
+                <div class="sc-value">{{ '{:,}'.format(m.current) if m.current is not none else '−' }}</div>
+                {% if m.current is not none %}
+                    <div class="sc-deltas">
+                        {{ delta_badge(m.delta_since_first, "since start") }}
+                        &nbsp;·&nbsp;
+                        {{ delta_badge(m.delta_since_last, "last run") }}
+                    </div>
+                {% endif %}
+            </div>
         </div>
     {% endmacro %}
 
@@ -374,26 +373,29 @@
             {{ stat_card("Entities", health.metrics.entity_total, "spark-entities") }}
             {{ stat_card("Groupings", health.metrics.grouping_count, "spark-groupings") }}
             {{ stat_card("Columns", health.metrics.column_count, "spark-columns") }}
-            <div class="stat-card">
-                <div class="sc-label">Manual refreshes</div>
-                <div class="sc-value">
-                    {% if health.engagement.web_share is not none %}{{
-                            (health.engagement.web_share * 100) | round(1)
-                        }}%{% else %}−{% endif %}
-                </div>
-                <div class="sc-deltas">
-                    <span class="delta-flat">{{ health.engagement.web }} of {{ health.total }} runs manual</span><br>
-                    {% if health.engagement.last_web_at %}
-                        <span class="delta-flat">last manual
-                            <time
-                                data-relative
-                                datetime="{{ health.engagement.last_web_at | iso_utc }}"
-                                title="{{ health.engagement.last_web_at }} UTC"
-                            >{{ health.engagement.last_web_at }}</time>
-                        </span>
-                    {% else %}
-                        <span class="delta-flat">never run manually</span>
-                    {% endif %}
+            <div class="card stat-card">
+                <div class="card-body p-2">
+                    <div class="sc-label">Manual refreshes</div>
+                    <div class="sc-value">
+                        {% if health.engagement.web_share is not none %}{{
+                                (health.engagement.web_share * 100) | round(1)
+                            }}%{% else %}−{% endif %}
+                    </div>
+                    <div class="sc-deltas">
+                        <span class="delta-flat">{{ health.engagement.web }} of {{ health.total }} runs
+                            manual</span><br>
+                        {% if health.engagement.last_web_at %}
+                            <span class="delta-flat">last manual
+                                <time
+                                    data-relative
+                                    datetime="{{ health.engagement.last_web_at | iso_utc }}"
+                                    title="{{ health.engagement.last_web_at }} UTC"
+                                >{{ health.engagement.last_web_at }}</time>
+                            </span>
+                        {% else %}
+                            <span class="delta-flat">never run manually</span>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>

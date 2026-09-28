@@ -537,7 +537,8 @@ class DashboardHistoryTests(AppTests):
         # Engagement (1 WEB of 3 runs) surfaced from the real compute_health.
         self.assertIn("Manual refreshes", contents)
         self.assertIn("33.3%", contents)  # web_share 1/3
-        self.assertIn("1 of 3 runs manual", contents)
+        # Whitespace-insensitive: the formatter may wrap this inline text.
+        self.assertRegex(contents, r"1\s+of\s+3\s+runs\s+manual")
 
     def test_dashboard_renders_one_tick_per_run(self):
         """One run-tick renders per run in the history."""

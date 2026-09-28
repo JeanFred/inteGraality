@@ -6,6 +6,10 @@ integraality/templates/base.html
   h_bc010f8da910ff 72,77,84
 integraality/tests/test_app.py
   h_bc010f8da910ff 50-76
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 444-451,453,462
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 740-741,760-761
 ---
 {
   "schema_version": "authorship/3.0.0",

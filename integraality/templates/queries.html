@@ -1,42 +1,82 @@
 {% extends "base.html" %}
 {% block content %}
+    <h1>Drill-down queries</h1>
     <p>
-        From page <a href="{{ page_url }}">{{ page_title }}</a>, {{ column.format_html_snippet() | safe }}, {%
-            if grouping == 'None'
-        -%}
-            without {{ formatted_predicate | safe }} grouping
+        You reached this page by following a 🔍 link in the
+        <a href="{{ page_url }}">{{ page_title }}</a> dashboard.
+        {% if grouping == 'None' -%}
+            For items with no {{ formatted_predicate | safe }} value,
         {%- elif grouping == 'UNKNOWN_VALUE' -%}
-            with unknown value as {{ formatted_predicate | safe }}
+            For items where {{ formatted_predicate | safe }} is unknown,
         {%- elif grouping -%}
-            with <a href="https://wikidata.org/wiki/{{ grouping }}">{{ grouping }}</a> as {{
-                formatted_predicate | safe
-            }}
+            For items where {{ formatted_predicate | safe }} is
+            <a href="https://wikidata.org/wiki/{{ grouping }}">{{ grouping }}</a>,
         {%- else -%}
-            for the totals
-        {%- endif %}.
+            For all items,
+        {%- endif %}
+        these queries show which ones have or lack {{ column.format_html_snippet() | safe }} − the ones lacking it are
+        your worklist. Pick a query below to see them.
     </p>
+
+    <div class="alert alert-info small">
+        <strong>New here?</strong> To start, use the <strong>Wikidata Query Service</strong> buttons on the left −
+        they query live Wikidata. If it times out, try out <strong>QLever</strong> (right) − it is faster for very
+        large result sets but may lag slightly behind recent edits.
+        <a href="https://www.wikidata.org/wiki/Wikidata:InteGraality/Concepts#SPARQL_engine">What's the difference?</a>
+    </div>
+
     <div class="row">
         <div class="col-md-6">
+            <h2 class="h6 text-body-secondary">Wikidata Query Service <small>(live)</small></h2>
             <div class="btn-group-vertical w-100" role="group">
-                <a class="btn btn-primary" href="https://query.wikidata.org/#{{positive_query}}" role="button"
-                >WDQS: All items with the {{ column.get_type_name() }} set</a>
-                <a class="btn btn-primary" href="https://query.wikidata.org/#{{negative_query}}" role="button"
-                >WDQS: All items without the {{ column.get_type_name() }} set</a>
+                <a
+                    class="btn btn-primary text-start"
+                    href="https://query.wikidata.org/#{{positive_query}}"
+                    role="button"
+                    aria-label="Wikidata Query Service − All items with the {{ column.get_type_name() }} set"
+                ><span class="me-1" aria-hidden="true">●</span> All items <strong>with</strong> the {{
+                        column.get_type_name()
+                    }}
+                    set</a>
+                <a
+                    class="btn btn-primary text-start"
+                    href="https://query.wikidata.org/#{{negative_query}}"
+                    role="button"
+                    aria-label="Wikidata Query Service − All items without the {{ column.get_type_name() }} set"
+                ><span class="me-1" aria-hidden="true">○</span> All items <strong>without</strong> the {{
+                        column.get_type_name()
+                    }}
+                    set</a>
             </div>
         </div>
         <div class="col-md-6">
+            <h2 class="h6 text-body-secondary">QLever <small>(faster, may lag)</small></h2>
             <div class="btn-group-vertical w-100" role="group">
                 <a
-                    class="btn btn-info"
+                    class="btn btn-info text-start"
                     href="{{ qlever_ui_url }}?query={{positive_query | add_prefixes | urlencode}}"
                     role="button"
-                >QLever: All items with the {{ column.get_type_name() }} set</a>
+                    aria-label="QLever − All items with the {{ column.get_type_name() }} set"
+                ><span class="me-1" aria-hidden="true">●</span> All items <strong>with</strong> the {{
+                        column.get_type_name()
+                    }}
+                    set</a>
                 <a
-                    class="btn btn-info"
+                    class="btn btn-info text-start"
                     href="{{ qlever_ui_url }}?query={{negative_query | add_prefixes | urlencode}}"
                     role="button"
-                >QLever: All items without the {{ column.get_type_name() }} set</a>
+                    aria-label="QLever − All items without the {{ column.get_type_name() }} set"
+                ><span class="me-1" aria-hidden="true">○</span> All items <strong>without</strong> the {{
+                        column.get_type_name()
+                    }}
+                    set</a>
             </div>
         </div>
     </div>
+
+    <p class="text-body-secondary small mt-3">
+        Want to work through the gaps systematically? See the
+        <a href="https://www.wikidata.org/wiki/Wikidata:InteGraality/How-to_guides/Gap-fixing_workflow"
+        >gap-fixing workflow</a>.
+    </p>
 {% endblock %}

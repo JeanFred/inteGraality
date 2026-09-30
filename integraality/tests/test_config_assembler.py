@@ -18,7 +18,7 @@ class TestParseConfig(unittest.TestCase):
             "grouping_link": "Wikidata:WikiProject Video games/Reports/Platform",
             "grouping_property": "P400",
             "row_no_group": "1",
-            "properties": "P136:genre,P404",
+            "columns": "P136:genre,P404",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
         }
         result = self.assembler.parse_config(input_config)
@@ -45,7 +45,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136:genre,P404",
+            "columns": "P136:genre,P404",
         }
         result = self.assembler.parse_config(input_config)
         expected = {
@@ -66,7 +66,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "grouping_property": "P400",
             "row_no_group": "1",
-            "properties": "P136:genre,P404",
+            "columns": "P136:genre,P404",
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_threshold": "1",
             "property_threshold": "2",
@@ -111,11 +111,39 @@ class TestParseConfig(unittest.TestCase):
         result = self.assembler.parse_config(input_config)
         self.assertFalse(result["row_no_group"])
 
+    def test_legacy_properties(self):
+        """Backwards compatibility: old template param properties maps to columns."""
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "properties": "P136:genre,P404",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertNotIn("properties", result)
+        self.assertEqual(
+            result["columns"],
+            [
+                PropertyColumn(property="P136", title="genre"),
+                PropertyColumn(property="P404"),
+            ],
+        )
+
+    def test_columns_takes_precedence_over_legacy_properties(self):
+        """If both are given, the new columns param wins."""
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "columns": "P136",
+            "properties": "P404",
+        }
+        result = self.assembler.parse_config(input_config)
+        self.assertEqual(result["columns"], [PropertyColumn(property="P136")])
+
     def test_row_totals_disabled(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136",
+            "columns": "P136",
             "row_totals": "0",
         }
         result = self.assembler.parse_config(input_config)
@@ -134,7 +162,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136",
+            "columns": "P136",
             "row_totals": "1",
         }
         result = self.assembler.parse_config(input_config)
@@ -156,7 +184,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136,P404",
+            "columns": "P136,P404",
             "grouping_link": "Foo",
             "grouping_link_mode": "create",
         }
@@ -167,7 +195,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136,P404",
+            "columns": "P136,P404",
             "grouping_link_mode": "crate",
         }
         with self.assertRaises(ConfigAssemblyException):
@@ -177,7 +205,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136:genre,P404",
+            "columns": "P136:genre,P404",
             "sparql_endpoint": "https://qlever.dev/wikidata/",
         }
         result = self.assembler.parse_config(input_config)
@@ -188,7 +216,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": '(p:P170/pq:P4174) "Coyau"',
             "grouping_property": "P571",
-            "properties": "P4082,P180",
+            "columns": "P4082,P180",
         }
         result = assembler.parse_config(input_config)
         self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
@@ -201,7 +229,7 @@ class TestParseConfig(unittest.TestCase):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
             "grouping_property": "P400",
-            "properties": "P136:genre,P404",
+            "columns": "P136:genre,P404",
             "sparql_endpoint": "query.wikidata.org",
         }
         result = self.assembler.parse_config(input_config)
@@ -256,13 +284,13 @@ class TestParseParams(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
-class TestParseConfigProperties(unittest.TestCase):
+class TestParseConfigColumns(unittest.TestCase):
     def setUp(self):
         self.assembler = ConfigAssembler(site_url="https://www.wikidata.org/wiki/")
 
     def test(self):
         properties = "P136:genre,P404"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
@@ -271,7 +299,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_trail_comma(self):
         properties = "P136:genre,P404,"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
@@ -280,7 +308,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_more_properties(self):
         properties = "P136,P178,P123,P495,P577,P404,P437"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136"),
             PropertyColumn(property="P178"),
@@ -294,7 +322,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_qualifier(self):
         properties = "P136:genre,P404,P669/P670"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
@@ -304,7 +332,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_qualifier_and_value(self):
         properties = "P136:genre,P404,P553/Q17459/P670"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             PropertyColumn(property="P404"),
@@ -314,7 +342,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_label(self):
         properties = "P136:genre,Lbr,P553"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             LabelColumn(language="br"),
@@ -324,7 +352,7 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_description(self):
         properties = "P136:genre,Lxy,P553"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [
             PropertyColumn(property="P136", title="genre"),
             DescriptionColumn(language="xy"),
@@ -334,11 +362,11 @@ class TestParseConfigProperties(unittest.TestCase):
 
     def test_with_space(self):
         properties = "P131, P17"
-        result = self.assembler.parse_config_properties(properties)
+        result = self.assembler.parse_config_columns(properties)
         expected = [PropertyColumn(property="P131"), PropertyColumn(property="P17")]
         self.assertEqual(result, expected)
 
     def test_with_incorrect_syntax(self):
         properties = "P131,Something"
         with self.assertRaises(ConfigAssemblyException):
-            self.assembler.parse_config_properties(properties)
+            self.assembler.parse_config_columns(properties)

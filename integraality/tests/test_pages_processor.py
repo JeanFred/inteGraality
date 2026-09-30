@@ -203,9 +203,18 @@ class TestMigrateTemplateParams(ProcessortTest):
         result = self.processor.migrate_template_params(text)
         self.assertEqual(result, text)
 
-    def test_no_false_match(self):
+    def test_renames_properties_to_columns(self):
         text = (
             "{{Property dashboard\n|properties=P136\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertIn("|columns=P136", result)
+        self.assertNotIn("properties", result)
+
+    def test_no_false_match(self):
+        text = (
+            "{{Property dashboard\n|grouping_property=P136\n}}\n"
             "table\n{{Property dashboard end}}"
         )
         result = self.processor.migrate_template_params(text)

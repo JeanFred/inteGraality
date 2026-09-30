@@ -7,10 +7,11 @@ from .grouping import GroupingConfigurationMaker
 from .grouping_link import GroupingLinkSyntaxException
 from .sparql_utils import SparqlEngineBuilder
 
-REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "properties"]
+REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "columns"]
 VALID_GROUPING_LINK_MODES = ("link", "create")
 PARAM_RENAMES = {
     "stats_for_no_group": "row_no_group",
+    "properties": "columns",
 }
 
 
@@ -52,8 +53,7 @@ class ConfigAssembler:
         for field in REQUIRED_CONFIG_FIELDS:
             if field not in config:
                 raise ConfigAssemblyException(f"A required field is missing: {field}")
-        config["columns"] = self.parse_config_properties(config["properties"])
-        del config["properties"]
+        config["columns"] = self.parse_config_columns(config.pop("columns"))
         try:
             config["grouping_configuration"] = GroupingConfigurationMaker.make(
                 config.pop("grouping_property"),
@@ -80,17 +80,17 @@ class ConfigAssembler:
         return config
 
     @staticmethod
-    def parse_config_properties(properties_string):
-        properties = [x.strip() for x in properties_string.split(",")]
-        properties_data = []
-        for prop in properties:
+    def parse_config_columns(columns_string):
+        columns = [x.strip() for x in columns_string.split(",")]
+        columns_data = []
+        for column in columns:
             try:
-                (key, title) = prop.split(":")
+                (key, title) = column.split(":")
             except ValueError:
-                (key, title) = (prop, None)
+                (key, title) = (column, None)
             if key:
                 try:
-                    properties_data.append(ColumnMaker.make(key, title))
+                    columns_data.append(ColumnMaker.make(key, title))
                 except ColumnSyntaxException as e:
                     raise ConfigAssemblyException(e)
-        return properties_data
+        return columns_data

@@ -1,0 +1,22 @@
+deploy/templates/uwsgi.ini.j2
+  h_bc010f8da910ff 11-12
+integraality/app.py
+  h_bc010f8da910ff 4,33-38,43,45-54
+  h_bc010f8da910ff 39-42,44,113,136
+integraality/tests/test_app.py
+  h_bc010f8da910ff 57-85,101-102
+  h_bc010f8da910ff 86-100
+integraality/templates/base.html
+  h_bc010f8da910ff 181-190
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ae0cf70746e9ee892ce2b0997cb3fc9d2a90fcbe",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

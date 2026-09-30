@@ -1,0 +1,14 @@
+integraality/templates/base.html
+  h_bc010f8da910ff 178-186
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "6cb2640bc2c9c042e4ca41f9fdbc81c2b1e44314",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

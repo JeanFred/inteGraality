@@ -54,6 +54,74 @@ class AbbreviateFilterTest(unittest.TestCase):
             self.assertEqual(abbreviate_filter(value), expected)
 
 
+class AnalyticsContextProcessorTest(AppTests):
+    """The context processor decides the toolcounter page label per request.
+
+    Driven through real request contexts / the test client so we assert on
+    behaviour, not framework internals.
+    """
+
+    def setUp(self):
+        super().setUp()
+        # The landing page reads the registry; mock it so `/` renders.
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        registry = self.mock_registry_cls.return_value.__enter__.return_value
+        registry.summary.return_value = None
+        registry.list_recently_updated.return_value = []
+
+    def _page_for(self, path):
+        """analytics_page the processor yields for a real request to path."""
+        from ..app import app, inject_analytics
+
+        with app.test_request_context(path):
+            return inject_analytics()["analytics_page"]
+
+    def test_disabled_yields_none(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", False):
+            self.assertIsNone(self._page_for("/"))
+
+    def test_enabled_counts_endpoint(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", True):
+            self.assertEqual(self._page_for("/"), "index")
+            self.assertEqual(self._page_for("/runs"), "runs")
+
+    def test_enabled_skips_annotated_endpoints(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", True):
+            # @no_analytics: health probe and the /browse redirect.
+            self.assertIsNone(self._page_for("/healthz"))
+            self.assertIsNone(self._page_for("/browse"))
+
+    def test_enabled_skips_unmatched_request(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", True):
+            # No matching rule → no endpoint → not a fabricated page view.
+            self.assertIsNone(self._page_for("/does-not-exist"))
+
+    def test_pixel_rendered_when_enabled(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", True):
+            contents = self.app.get("/").get_data(as_text=True)
+        self.assertIn("toolcounter.toolforge.org/badge.php", contents)
+        self.assertIn("page=index", contents)
+
+    def test_pixel_absent_when_disabled(self):
+        with patch("integraality.app.ANALYTICS_ENABLED", False):
+            contents = self.app.get("/").get_data(as_text=True)
+        self.assertNotIn("toolcounter", contents)
+
+    def test_no_analytics_decorator_contract(self):
+        from ..app import no_analytics
+
+        def some_view():
+            return "ok"
+
+        decorated = no_analytics(some_view)
+        # Returns the same function (Flask endpoint name preserved) + sets flag.
+        self.assertIs(decorated, some_view)
+        self.assertEqual(decorated.__name__, "some_view")
+        self.assertFalse(decorated.track_analytics)
+
+
 class BasicTests(AppTests):
     def setUp(self):
         super().setUp()

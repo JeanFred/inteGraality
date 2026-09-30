@@ -1,6 +1,7 @@
 #!/usr/bin/python
 """Flask web application."""
 
+import os
 import traceback
 
 from flask import (
@@ -28,6 +29,28 @@ from .sparql_utils import (
 from .sse import run_with_sse
 
 app = Flask(__name__)
+
+# Analytics is opt-in via ANALYTICS_ENABLED (set in the Toolforge deploy), not
+# inferred from other env vars — so CI, review deploys, or prod-like local runs
+# don't silently ping toolcounter with junk.
+ANALYTICS_ENABLED = os.environ.get("ANALYTICS_ENABLED") == "1"
+
+
+def no_analytics(view):
+    """Mark a route as not a page view (health probes, redirects)."""
+    view.track_analytics = False
+    return view
+
+
+@app.context_processor
+def inject_analytics():
+    if not ANALYTICS_ENABLED or not request.endpoint:
+        return {"analytics_page": None}
+    view = app.view_functions.get(request.endpoint)
+    if view is not None and not getattr(view, "track_analytics", True):
+        return {"analytics_page": None}
+    return {"analytics_page": request.endpoint}
+
 
 # Form token for the Main namespace, whose canonical name is the empty string
 # which would otherwise collide with the "All / no filter" empty value.
@@ -87,6 +110,7 @@ def abbreviate_filter(value):
 
 
 @app.route("/healthz")
+@no_analytics
 def healthcheck():
     return jsonify(status="healthy")
 
@@ -109,6 +133,7 @@ def index():
 
 
 @app.route("/browse")
+@no_analytics
 def browse():
     # /browse was the original (published) name; /dashboards is now canonical.
     # Redirect so existing links/bookmarks keep working, carrying any filters.

@@ -212,6 +212,17 @@ class TestMigrateTemplateParams(ProcessortTest):
         self.assertIn("|columns=P136", result)
         self.assertNotIn("properties", result)
 
+    def test_renames_drops_deprecated_when_new_present(self):
+        """If both names are present, drop the deprecated one (no duplicate)."""
+        text = (
+            "{{Property dashboard\n|columns=P136\n|properties=P404\n}}\n"
+            "table\n{{Property dashboard end}}"
+        )
+        result = self.processor.migrate_template_params(text)
+        self.assertEqual(result.count("|columns="), 1)
+        self.assertIn("|columns=P136", result)
+        self.assertNotIn("properties", result)
+
     def test_no_false_match(self):
         text = (
             "{{Property dashboard\n|grouping_property=P136\n}}\n"

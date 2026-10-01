@@ -311,7 +311,10 @@ class PagesProcessor:
             if template.name.matches(self.template_name):
                 for old, new in PARAM_RENAMES.items():
                     if template.has(old):
-                        template.get(old).name = new
+                        if template.has(new):
+                            template.remove(old)
+                        else:
+                            template.get(old).name = new
         return str(code)
 
     @staticmethod

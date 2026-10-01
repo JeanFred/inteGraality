@@ -1,0 +1,36 @@
+integraality/tests/test_db.py
+  h_bc010f8da910ff 38-72,38-71,72,73-117,118-155
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 3,5,34-37,40-64,66-77,87-93,95-97,163,165,173,181-212,223-237,241-251,252-260,261,262,263-267,269-276,280-293,306-316,318-329,331,667-668,670-672,674,677,682-683,685,690,712-714,727-731,751-752,807,810,816,825,839-840,844,859,862-863,870,884,886-887,895,899
+integraality/db.py
+  h_bc010f8da910ff 17-20,22-30
+integraality/schema.sql
+  h_bc010f8da910ff 10,13,24,26-31,32-35,37-43,45,47-52,54,55-57,55-56,57,58-81
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 34-35,37,51-65,67,80-87,99-109,111,130-131,143-147,327,338,352,362,370,380,401,410,419,443-445,466,472,482,496,502,508,515-532,534-589,1169-1171,1176-1202
+integraality/page_saving.py
+  h_bc010f8da910ff 42,48,56
+integraality/tests/test_page_saving.py
+  h_bc010f8da910ff 37,44-48,65-67,69
+integraality/sse.py
+  h_bc010f8da910ff 10-11
+integraality/pages_processor.py
+  h_bc010f8da910ff 15,187,190-193,197-206,208-210,211-229,231,237,240-244,246-274,278-279,288,290-292,294-299,424
+integraality/property_statistics.py
+  h_bc010f8da910ff 386-394
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 483-534,535-540,542-546,548-549,633-645,647-663
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 2969-2981
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "66ff7017923438b35d2cc8ff05d6b96029bb233f",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

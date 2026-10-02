@@ -6,6 +6,7 @@ from ..column import (
     DescriptionColumn,
     LabelColumn,
     PropertyColumn,
+    PropertySourceColumn,
     QualifierColumn,
     ReferenceColumn,
     SitelinkColumn,
@@ -457,6 +458,22 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_unknown_syntax(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("SomethingSomething", None)
+
+    def test_property_source(self):
+        result = ColumnMaker.make("P1963(Q39715)", None)
+        expected = PropertySourceColumn(source_property="P1963", source_item="Q39715")
+        self.assertEqual(result, expected)
+
+    def test_property_source_rejects_title(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1963(Q39715)", "genre")
+
+    def test_property_source_malformed_falls_through_to_property(self):
+        # Missing the closing paren -- not the source syntax. It falls through
+        # to the (lenient) property parser, producing a plain PropertyColumn
+        # whose key is the raw string. Documents the fallthrough contract.
+        result = ColumnMaker.make("P1963(Q39715", None)
+        self.assertEqual(result, PropertyColumn(property="P1963(Q39715"))
 
 
 class TestColumnMakerReference(PropertyStatisticsTest):

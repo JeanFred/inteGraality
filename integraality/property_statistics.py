@@ -3,7 +3,7 @@
 import collections
 import logging
 
-from .column import ColumnMaker
+from .column import ColumnMaker, PropertySourceColumn, UnresolvedColumnSourceException
 from .grouping import (
     EmptyGroupingException,
     GroupingConfiguration,
@@ -59,6 +59,13 @@ class PropertyStatistics:
         """
         if sparql_query_engine is None:
             sparql_query_engine = WdqsSparqlQueryEngine()
+        unresolved = [c for c in columns if isinstance(c, PropertySourceColumn)]
+        if unresolved:
+            raise UnresolvedColumnSourceException(
+                "Column source(s) reached PropertyStatistics unresolved: "
+                f"{', '.join(c.get_key() for c in unresolved)}. "
+                "They must be expanded via ColumnSourceResolver before use."
+            )
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_configuration = grouping_configuration
         self.higher_grouping_type = higher_grouping_type

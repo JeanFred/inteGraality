@@ -6,8 +6,9 @@ from unittest.mock import MagicMock, patch
 
 import fakeredis
 
-from ..column import ColumnMaker
-from ..grouping import GroupingConfiguration
+from ..column import ColumnMaker, PropertyColumn, PropertySourceColumn
+from ..column_source import ColumnSourceException
+from ..grouping import GroupingConfiguration, ItemGroupingType
 from ..pages_processor import (
     ConfigException,
     NoEndTemplateException,
@@ -140,6 +141,90 @@ class TestGroupingTypeCaching(ProcessortTest):
         stats = self.processor.make_stats_object_for_page_title(page.title())
         self.assertEqual(RecordingEngine.calls, 0)
         self.assertIsNotNone(stats.grouping_configuration.grouping_type)
+
+
+class TestColumnSourceResolution(ProcessortTest):
+    """Pxxx(Qyyy) column sources are expanded (via the Wikidata repo) into
+    concrete columns before the config is cached, so a cache hit and
+    PropertyStatistics see a plain column list."""
+
+    def _unresolved_config(self):
+        return {
+            "selector_sparql": "wdt:P31 wd:Q39715",
+            "columns": [
+                PropertyColumn(property="P136"),
+                PropertySourceColumn(source_property="P1963", source_item="Q39715"),
+                PropertyColumn(property="P404"),
+            ],
+            "grouping_configuration": GroupingConfiguration(
+                predicate="wdt:P585", grouping_type=ItemGroupingType()
+            ),
+            "grouping_link_mode": "link",
+            "sparql_query_engine": RecordingEngine(),
+        }
+
+    def _patched_page(self):
+        start_tpl = MagicMock()
+        start_tpl.title.return_value = "Property dashboard"
+        end_tpl = MagicMock()
+        end_tpl.title.return_value = "Property dashboard end"
+        page = MagicMock()
+        page.title.return_value = "User:Foo/Dashboard"
+        page.templatesWithParams.return_value = [(start_tpl, []), (end_tpl, [])]
+        assembler = self.processor.config_assembler
+        return page, (
+            patch.object(assembler, "parse_config_from_params", return_value={}),
+            patch.object(
+                assembler, "parse_config", return_value=self._unresolved_config()
+            ),
+        )
+
+    def test_source_is_expanded_before_caching(self):
+        page, patches = self._patched_page()
+        # Stub the resolver so no live API call is made; it returns the fully
+        # expanded, position-preserved column list.
+        expanded = [
+            PropertyColumn(property="P136"),
+            PropertyColumn(property="P31"),
+            PropertyColumn(property="P625"),
+            PropertyColumn(property="P404"),
+        ]
+        with (
+            patches[0],
+            patches[1],
+            patch("integraality.pages_processor.ColumnSourceResolver") as resolver_cls,
+        ):
+            resolver_cls.return_value.resolve_placeholders.return_value = expanded
+            config = self.processor.make_stats_object_arguments_for_page(page)
+
+        # The resolver was handed the parsed columns (with the placeholder)...
+        resolver_cls.return_value.resolve_placeholders.assert_called_once()
+        (passed_columns,), _ = resolver_cls.return_value.resolve_placeholders.call_args
+        self.assertTrue(
+            any(isinstance(c, PropertySourceColumn) for c in passed_columns)
+        )
+        # ...and its expanded result is what ends up in the config.
+        self.assertEqual(config["columns"], expanded)
+        # The cached config carries the expanded columns (no placeholder).
+        cached = self.processor.cache.get_cache_value(
+            self.processor.make_cache_key(page.title())
+        )
+        self.assertFalse(
+            any(isinstance(c, PropertySourceColumn) for c in cached["columns"])
+        )
+
+    def test_source_error_is_config_exception(self):
+        page, patches = self._patched_page()
+        with (
+            patches[0],
+            patches[1],
+            patch("integraality.pages_processor.ColumnSourceResolver") as resolver_cls,
+        ):
+            resolver_cls.return_value.resolve_placeholders.side_effect = (
+                ColumnSourceException("Q404 does not exist")
+            )
+            with self.assertRaises(ConfigException):
+                self.processor.make_stats_object_arguments_for_page(page)
 
 
 class TestReplaceInPage(ProcessortTest):

@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 
 from .reference_check import (
     AllPropertiesReferenceCheck,
@@ -10,6 +11,10 @@ from .reference_check import (
     GoodReferenceCheck,
     PropertyReferenceCheck,
 )
+
+# "P1963(Q5)": source the dashboard columns from the values of property P1963
+# on item Q5, preserving the on-wiki order. Resolved later via the wiki API.
+PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)$")
 
 
 class ColumnSyntaxException(Exception):
@@ -30,6 +35,16 @@ class ColumnMaker:
 
     @staticmethod
     def make(key, title):
+        source_match = PROPERTY_SOURCE_RE.match(key)
+        if source_match:
+            if title:
+                raise ColumnSyntaxException(
+                    f"A title is not supported on a column source: {key}"
+                )
+            (source_property, source_item) = source_match.groups()
+            return PropertySourceColumn(
+                source_property=source_property, source_item=source_item
+            )
         if key.startswith("P"):
             return ColumnMaker._make_property_column(key, title)
         elif key.startswith("L"):
@@ -181,6 +196,40 @@ class ColumnMaker:
                     f"Invalid reference property in list: {part}"
                 )
             return ("P" + part[1:], None)
+
+
+class UnresolvedColumnSourceException(Exception):
+    """A PropertySourceColumn reached code that expects concrete columns.
+
+    Signals a programming error -- a column source was not expanded by
+    ColumnSourceResolver before building PropertyStatistics."""
+
+
+class PropertySourceColumn:
+    """A placeholder column sourced from a property's values on an item.
+
+    Produced purely from the "Pxxx(Qyyy)" syntax; carries no query/render
+    behaviour. A resolver expands it into concrete PropertyColumns (one per
+    property value, in on-wiki order) before PropertyStatistics is built, so
+    this object must never reach rendering.
+    """
+
+    def __init__(self, source_property, source_item):
+        self.source_property = source_property
+        self.source_item = source_item
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, PropertySourceColumn)
+            and self.source_property == other.source_property
+            and self.source_item == other.source_item
+        )
+
+    def __repr__(self):
+        return f"PropertySourceColumn({self.source_property}({self.source_item}))"
+
+    def get_key(self):
+        return f"{self.source_property}({self.source_item})"
 
 
 class AbstractColumn:

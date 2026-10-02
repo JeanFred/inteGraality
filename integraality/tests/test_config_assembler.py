@@ -2,7 +2,13 @@
 
 import unittest
 
-from ..column import DescriptionColumn, LabelColumn, PropertyColumn, QualifierColumn
+from ..column import (
+    DescriptionColumn,
+    LabelColumn,
+    PropertyColumn,
+    PropertySourceColumn,
+    QualifierColumn,
+)
 from ..config_assembler import ConfigAssembler, ConfigAssemblyException
 from ..grouping import GroupingConfiguration
 from ..grouping_link import LabelGroupingLink
@@ -368,5 +374,28 @@ class TestParseConfigColumns(unittest.TestCase):
 
     def test_with_incorrect_syntax(self):
         properties = "P131,Something"
+        with self.assertRaises(ConfigAssemblyException):
+            self.assembler.parse_config_columns(properties)
+
+    def test_with_property_source(self):
+        properties = "P1963(Q39715)"
+        result = self.assembler.parse_config_columns(properties)
+        expected = [
+            PropertySourceColumn(source_property="P1963", source_item="Q39715"),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_with_property_source_hybrid(self):
+        properties = "P136:genre,P1963(Q39715),P404"
+        result = self.assembler.parse_config_columns(properties)
+        expected = [
+            PropertyColumn(property="P136", title="genre"),
+            PropertySourceColumn(source_property="P1963", source_item="Q39715"),
+            PropertyColumn(property="P404"),
+        ]
+        self.assertEqual(result, expected)
+
+    def test_with_property_source_and_title_rejected(self):
+        properties = "P1963(Q39715):genre"
         with self.assertRaises(ConfigAssemblyException):
             self.assembler.parse_config_columns(properties)

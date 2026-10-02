@@ -11,6 +11,7 @@ import pywikibot
 from redis import StrictRedis
 
 from .cache import RedisCache
+from .column_source import ColumnSourceException, ColumnSourceResolver
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
 from .dashboard_registry import DashboardRegistry, RunResult
 from .error_category import ErrorCategory
@@ -164,6 +165,14 @@ class PagesProcessor:
         config["grouping_configuration"].resolve_type_if_needed(
             config["selector_sparql"], config["sparql_query_engine"]
         )
+        # Expand any "Pxxx(Qyyy)" column sources into concrete columns before
+        # caching, so cache hits (and PropertyStatistics) see a plain column
+        # list. Items live on the Wikidata repo even for Commons dashboards.
+        resolver = ColumnSourceResolver(repo=self.site.data_repository())
+        try:
+            config["columns"] = resolver.resolve_placeholders(config["columns"])
+        except ColumnSourceException as e:
+            raise ConfigException(e) from e
         key = self.make_cache_key(page.title())
         self.cache.set_cache_value(key, config)
         return config

@@ -3124,3 +3124,27 @@ class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
             "|}\n"
         )
         self.assertEqual(result, expected)
+
+
+class TestUnresolvedColumnSourceGuard(unittest.TestCase):
+    """PropertyStatistics must refuse an unexpanded column source placeholder,
+    failing loudly instead of silently producing a broken dashboard."""
+
+    def test_rejects_unresolved_source(self):
+        from ..column import PropertySourceColumn, UnresolvedColumnSourceException
+
+        columns = [
+            PropertyColumn(property="P136"),
+            PropertySourceColumn(source_property="P1963", source_item="Q39715"),
+        ]
+        with self.assertRaises(UnresolvedColumnSourceException):
+            PropertyStatistics(
+                columns=columns,
+                grouping_configuration=GroupingConfiguration(
+                    predicate="wdt:P17", grouping_type=ItemGroupingType()
+                ),
+                selector_sparql="wdt:P31 wd:Q39715",
+                sparql_query_engine=create_autospec(
+                    WdqsSparqlQueryEngine, instance=True
+                ),
+            )

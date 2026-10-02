@@ -336,6 +336,18 @@ class TestDetectGroupingType(unittest.TestCase):
         with self.assertRaises(grouping.UnsupportedGroupingConfigurationException):
             self._detect("wdt:P528", "wdt:P31 wd:Q5", mock_engine)
 
+    def test_logs_detection(self):
+        mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
+        mock_engine.select.return_value = [
+            {"datatype": "http://www.w3.org/2001/XMLSchema#dateTime"}
+        ]
+        with self.assertLogs("integraality.update", level="INFO") as cm:
+            self._detect("wdt:P569", "wdt:P31 wd:Q5", mock_engine)
+        self.assertTrue(any("Detecting grouping type" in m for m in cm.output))
+        self.assertTrue(
+            any("Detected grouping type YearGroupingType" in m for m in cm.output)
+        )
+
 
 class TestResolveType(unittest.TestCase):
     def test_resolve_sets_grouping_type(self):

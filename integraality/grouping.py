@@ -1,12 +1,15 @@
 """Grouping configuration and types."""
 
 import collections
+import logging
 import re
 
 from .error_category import ErrorCategory
 from .grouping_link import GroupingLinkMaker
 from .line import ItemGrouping, SitelinkGrouping, UnknownValueGrouping, YearGrouping
 from .sparql_utils import UNKNOWN_VALUE_PREFIX
+
+logger = logging.getLogger("integraality.update")
 
 
 class UnsupportedGroupingConfigurationException(Exception):
@@ -342,6 +345,11 @@ class GroupingConfiguration:
             f"  ?entity {self.predicate} ?value .\n"
             f"}} LIMIT 1"
         )
+        logger.info(
+            "Detecting grouping type for %s...",
+            self.predicate,
+            extra={"query": query, "step_key": "grouping_type"},
+        )
         result = sparql_query_engine.select(query)
         if not result:
             raise EmptyGroupingException(
@@ -350,13 +358,21 @@ class GroupingConfiguration:
             )
         datatype = result[0].get("datatype", "")
         if not datatype:
-            return ItemGroupingType()
-        grouping_type_class = DATATYPE_TO_GROUPING_TYPE.get(datatype)
-        if grouping_type_class:
-            return grouping_type_class()
-        raise UnsupportedGroupingConfigurationException(
-            f"Predicate {self.predicate} has datatype {datatype} which is not supported."
+            grouping_type = ItemGroupingType()
+        else:
+            grouping_type_class = DATATYPE_TO_GROUPING_TYPE.get(datatype)
+            if not grouping_type_class:
+                raise UnsupportedGroupingConfigurationException(
+                    f"Predicate {self.predicate} has datatype {datatype} which is not supported."
+                )
+            grouping_type = grouping_type_class()
+        logger.info(
+            "Detected grouping type %s for %s",
+            type(grouping_type).__name__,
+            self.predicate,
+            extra={"phase": "end", "step_key": "grouping_type"},
         )
+        return grouping_type
 
     def resolve_type_if_needed(self, selector_sparql, sparql_query_engine):
         """Detect the grouping type via SPARQL if not already set.

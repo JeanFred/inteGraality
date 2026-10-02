@@ -3,12 +3,18 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from ..column import LabelColumn, PropertyColumn, PropertySourceColumn
+from ..column import (
+    LabelColumn,
+    PropertyColumn,
+    PropertySourceColumn,
+    ReferenceColumn,
+)
 from ..column_source import (
     MAX_SOURCED_COLUMNS,
     ColumnSourceException,
     ColumnSourceResolver,
 )
+from ..reference_check import AnyReferenceCheck
 
 
 class ColumnSourceResolverTest(unittest.TestCase):
@@ -63,6 +69,23 @@ class ColumnSourceResolverTest(unittest.TestCase):
                 PropertyColumn(property="P31"),
                 PropertyColumn(property="P625"),
                 PropertyColumn(property="P18"),
+            ],
+        )
+
+    def test_resolve_with_reference_check(self):
+        claims = [self._prop_claim("P31"), self._prop_claim("P18")]
+        self._item_with_claims("P1963", claims)
+        source = PropertySourceColumn(
+            source_property="P1963",
+            source_item="Q39715",
+            reference_check=AnyReferenceCheck(),
+        )
+        result = self.resolver.resolve(source)
+        self.assertEqual(
+            result,
+            [
+                ReferenceColumn(property="P31", reference_check=AnyReferenceCheck()),
+                ReferenceColumn(property="P18", reference_check=AnyReferenceCheck()),
             ],
         )
 

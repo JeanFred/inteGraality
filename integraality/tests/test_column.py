@@ -16,6 +16,7 @@ from ..property_statistics import PropertyStatistics
 from ..reference_check import (
     AllPropertiesReferenceCheck,
     AnyOfPropertiesReferenceCheck,
+    AnyReferenceCheck,
     GoodReferenceCheck,
     PropertyReferenceCheck,
 )
@@ -474,6 +475,35 @@ class TestColumnMaker(PropertyStatisticsTest):
         # whose key is the raw string. Documents the fallthrough contract.
         result = ColumnMaker.make("P1963(Q39715", None)
         self.assertEqual(result, PropertyColumn(property="P1963(Q39715"))
+
+    def test_property_source_with_reference_check(self):
+        result = ColumnMaker.make("P1963(Q39715)/S*", None)
+        expected = PropertySourceColumn(
+            source_property="P1963",
+            source_item="Q39715",
+            reference_check=AnyReferenceCheck(),
+        )
+        self.assertEqual(result, expected)
+
+    def test_property_source_non_reference_suffix_falls_through(self):
+        # A non-S suffix doesn't match the source pattern, so it's not a column
+        # source; it falls through to the (lenient) property parser.
+        result = ColumnMaker.make("P1963(Q39715)/P670", None)
+        self.assertNotIsInstance(result, PropertySourceColumn)
+
+    def test_property_source_malformed_reference_check_raises(self):
+        # An S-suffix that isn't valid reference syntax is a real error.
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1963(Q39715)/Sfoo", None)
+
+    def test_property_source_reference_distinct_key(self):
+        plain = PropertySourceColumn(source_property="P1963", source_item="Q39715")
+        referenced = PropertySourceColumn(
+            source_property="P1963",
+            source_item="Q39715",
+            reference_check=AnyReferenceCheck(),
+        )
+        self.assertNotEqual(plain.get_key(), referenced.get_key())
 
 
 class TestColumnMakerReference(PropertyStatisticsTest):

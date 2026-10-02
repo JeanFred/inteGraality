@@ -11,7 +11,7 @@ import logging
 
 import pywikibot
 
-from .column import PropertyColumn, PropertySourceColumn
+from .column import PropertyColumn, PropertySourceColumn, ReferenceColumn
 from .error_category import ErrorCategory
 
 logger = logging.getLogger("integraality.update")
@@ -72,7 +72,15 @@ class ColumnSourceResolver:
             property_id = self._property_id_from_claim(claim)
             if property_id is None:
                 continue
-            columns.append(PropertyColumn(property=property_id))
+            if source_column.reference_check is not None:
+                columns.append(
+                    ReferenceColumn(
+                        property=property_id,
+                        reference_check=source_column.reference_check,
+                    )
+                )
+            else:
+                columns.append(PropertyColumn(property=property_id))
         if len(columns) > MAX_SOURCED_COLUMNS:
             raise ColumnSourceException(
                 f"Column source {source_column.get_key()} expands to "

@@ -14,7 +14,9 @@ from .reference_check import (
 
 # "P1963(Q5)": source the dashboard columns from the values of property P1963
 # on item Q5, preserving the on-wiki order. Resolved later via the wiki API.
-PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)$")
+# An optional "/S..." suffix (e.g. "P1963(Q5)/S*") makes each sourced column a
+# reference column with that reference-check applied.
+PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)(?:/(S.+))?$")
 
 
 class ColumnSyntaxException(Exception):
@@ -41,9 +43,14 @@ class ColumnMaker:
                 raise ColumnSyntaxException(
                     f"A title is not supported on a column source: {key}"
                 )
-            (source_property, source_item) = source_match.groups()
+            (source_property, source_item, ref_syntax) = source_match.groups()
+            reference_check = None
+            if ref_syntax is not None:
+                reference_check = ColumnMaker._parse_reference_check(ref_syntax)
             return PropertySourceColumn(
-                source_property=source_property, source_item=source_item
+                source_property=source_property,
+                source_item=source_item,
+                reference_check=reference_check,
             )
         if key.startswith("P"):
             return ColumnMaker._make_property_column(key, title)
@@ -209,27 +216,33 @@ class PropertySourceColumn:
     """A placeholder column sourced from a property's values on an item.
 
     Produced purely from the "Pxxx(Qyyy)" syntax; carries no query/render
-    behaviour. A resolver expands it into concrete PropertyColumns (one per
-    property value, in on-wiki order) before PropertyStatistics is built, so
-    this object must never reach rendering.
+    behaviour. A resolver expands it into concrete columns (one per property
+    value, in on-wiki order) before PropertyStatistics is built, so this object
+    must never reach rendering. With a reference_check it expands into
+    ReferenceColumns, otherwise into PropertyColumns.
     """
 
-    def __init__(self, source_property, source_item):
+    def __init__(self, source_property, source_item, reference_check=None):
         self.source_property = source_property
         self.source_item = source_item
+        self.reference_check = reference_check
 
     def __eq__(self, other):
         return (
             isinstance(other, PropertySourceColumn)
             and self.source_property == other.source_property
             and self.source_item == other.source_item
+            and self.reference_check == other.reference_check
         )
 
     def __repr__(self):
-        return f"PropertySourceColumn({self.source_property}({self.source_item}))"
+        return f"PropertySourceColumn({self.get_key()})"
 
     def get_key(self):
-        return f"{self.source_property}({self.source_item})"
+        base = f"{self.source_property}({self.source_item})"
+        if self.reference_check is not None:
+            return f"{base}/{self.reference_check.key_suffix()}"
+        return base
 
 
 class AbstractColumn:

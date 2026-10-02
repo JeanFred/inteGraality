@@ -12,6 +12,7 @@ from ..column import (
 from ..config_assembler import ConfigAssembler, ConfigAssemblyException
 from ..grouping import GroupingConfiguration
 from ..grouping_link import LabelGroupingLink
+from ..reference_check import AnyReferenceCheck
 from ..sparql_utils import QLeverSparqlQueryEngine, WdqsSparqlQueryEngine
 
 
@@ -399,3 +400,15 @@ class TestParseConfigColumns(unittest.TestCase):
         properties = "P1963(Q39715):genre"
         with self.assertRaises(ConfigAssemblyException):
             self.assembler.parse_config_columns(properties)
+
+    def test_with_property_source_reference_check(self):
+        properties = "P1963(Q39715)/S*"
+        result = self.assembler.parse_config_columns(properties)
+        expected = [
+            PropertySourceColumn(
+                source_property="P1963",
+                source_item="Q39715",
+                reference_check=AnyReferenceCheck(),
+            )
+        ]
+        self.assertEqual(result, expected)

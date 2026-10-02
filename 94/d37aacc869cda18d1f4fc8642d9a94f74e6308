@@ -1,0 +1,16 @@
+integraality/grouping.py
+  h_bc010f8da910ff 4,12-13,348-352,361-373,375
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 339-350
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "94d37aacc869cda18d1f4fc8642d9a94f74e6308",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

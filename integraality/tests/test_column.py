@@ -485,16 +485,20 @@ class TestColumnMaker(PropertyStatisticsTest):
         )
         self.assertEqual(result, expected)
 
-    def test_property_source_non_reference_suffix_falls_through(self):
-        # A non-S suffix doesn't match the source pattern, so it's not a column
-        # source; it falls through to the (lenient) property parser.
-        result = ColumnMaker.make("P1963(Q39715)/P670", None)
-        self.assertNotIsInstance(result, PropertySourceColumn)
+    def test_property_source_non_reference_suffix_raises(self):
+        # A source token with a non-reference suffix is a hard error, not a
+        # silent fall-through to the lenient property parser.
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1963(Q39715)/P670", None)
 
     def test_property_source_malformed_reference_check_raises(self):
         # An S-suffix that isn't valid reference syntax is a real error.
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P1963(Q39715)/Sfoo", None)
+
+    def test_property_source_empty_suffix_raises(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1963(Q39715)/", None)
 
     def test_property_source_reference_distinct_key(self):
         plain = PropertySourceColumn(source_property="P1963", source_item="Q39715")

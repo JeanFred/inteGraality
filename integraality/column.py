@@ -14,9 +14,10 @@ from .reference_check import (
 
 # "P1963(Q5)": source the dashboard columns from the values of property P1963
 # on item Q5, preserving the on-wiki order. Resolved later via the wiki API.
-# An optional "/S..." suffix (e.g. "P1963(Q5)/S*") makes each sourced column a
-# reference column with that reference-check applied.
-PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)(?:/(S.+))?$")
+# An optional reference-check suffix (e.g. "P1963(Q5)/S*") makes each sourced
+# column a reference column. The parens mark the token as a source, so any
+# suffix is validated as a reference-check rather than silently ignored.
+PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)(?:/(.*))?$")
 
 
 class ColumnSyntaxException(Exception):
@@ -46,6 +47,11 @@ class ColumnMaker:
             (source_property, source_item, ref_syntax) = source_match.groups()
             reference_check = None
             if ref_syntax is not None:
+                if not ref_syntax.startswith("S"):
+                    raise ColumnSyntaxException(
+                        f"A column source only accepts a reference-check suffix "
+                        f"(S...), got {key}"
+                    )
                 reference_check = ColumnMaker._parse_reference_check(ref_syntax)
             return PropertySourceColumn(
                 source_property=source_property,

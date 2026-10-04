@@ -1,0 +1,22 @@
+integraality/tests/test_config_assembler.py
+  h_bc010f8da910ff 15,403-414
+integraality/column_source.py
+  h_bc010f8da910ff 14,75-83
+integraality/tests/test_column.py
+  h_bc010f8da910ff 19,479-507
+integraality/tests/test_column_source.py
+  h_bc010f8da910ff 6-11,17,75-91
+integraality/column.py
+  h_bc010f8da910ff 17-19,46-49,51-53,219-222,225,228,235,239,242-245
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b258f498a1b2b7b5a88f5da04b84cb98619d6bde",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

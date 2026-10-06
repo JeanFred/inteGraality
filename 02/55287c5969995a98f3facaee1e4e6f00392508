@@ -1,0 +1,20 @@
+integraality/tests/test_results_formatter.py
+  h_bc010f8da910ff 50,66,234,253,280,317,359,398,439,515,557
+integraality/results_formatter.py
+  h_bc010f8da910ff 39
+integraality/config_assembler.py
+  h_bc010f8da910ff 72
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 2985,3062
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0255287c5969995a98f3facaee1e4e6f00392508",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

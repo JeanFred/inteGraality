@@ -39,7 +39,6 @@ class PropertyStatisticsTest(unittest.TestCase):
             columns=columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q39715",
-            property_threshold=10,
         )
 
     def test_complete_queries_are_valid_sparql_11(self):
@@ -115,7 +114,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -179,7 +177,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -248,7 +245,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -286,7 +282,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -367,7 +362,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -835,7 +829,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """

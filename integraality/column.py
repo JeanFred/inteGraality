@@ -275,7 +275,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {{
   }})
 }}
 GROUP BY ?grouping
-HAVING (?count >= {property_statistics.property_threshold})
 ORDER BY DESC(?count)
 LIMIT 1000
 """

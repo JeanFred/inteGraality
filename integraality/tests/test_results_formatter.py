@@ -38,7 +38,6 @@ class ResultsFormatterTest(unittest.TestCase):
         self.formatter = ResultsFormatter(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=10,
         )
 
 
@@ -48,7 +47,7 @@ class TestFormatHeader(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -64,7 +63,7 @@ class TestFormatHeader(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="3" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! \n"
             "! Name\n"
@@ -79,7 +78,6 @@ class TestFormatHeader(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns={},
             grouping_configuration=self.grouping_configuration,
-            property_threshold=0,
         )
         result = formatter._format_header()
         expected = (
@@ -127,7 +125,6 @@ class TestFormatGrouping(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=10,
             cell_template="Custom cell",
         )
         grouping = ItemGrouping(title="Q3115846", count=10)
@@ -234,7 +231,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -253,7 +250,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -280,7 +277,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -317,7 +314,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -359,7 +356,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -398,7 +395,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -430,7 +427,6 @@ class TestFormatReport(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns=columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=5,
         )
 
         grouping = ItemGrouping(title="Q123", count=10)
@@ -440,7 +436,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="2"|Top Properties (used at least 5 times per grouping)\n'
+            '! colspan="2"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -460,7 +456,6 @@ class TestFormatReport(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns={},
             grouping_configuration=self.grouping_configuration,
-            property_threshold=0,
         )
 
         grouping1 = ItemGrouping(title="Q46", count=6124)
@@ -502,7 +497,6 @@ class TestFormatReport(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns=columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=10,
         )
 
         grouping = ItemGrouping(title="Q142", count=10)
@@ -518,7 +512,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="3"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="3"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -549,7 +543,6 @@ class TestFormatReport(ResultsFormatterTest):
         formatter = ResultsFormatter(
             columns=columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=10,
         )
 
         grouping = ItemGrouping(title="Q142", count=10)
@@ -561,7 +554,7 @@ class TestFormatReport(ResultsFormatterTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="2"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="2"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"

@@ -51,7 +51,6 @@ class PropertyStatistics:
         higher_grouping_type=None,
         row_no_group=False,
         row_totals=True,
-        property_threshold=0,
         sparql_query_engine=None,
     ):
         """
@@ -72,7 +71,6 @@ class PropertyStatistics:
         self.selector_sparql = selector_sparql
         self.row_no_group = row_no_group
         self.row_totals = row_totals
-        self.property_threshold = property_threshold
         self.sparql_query_engine = sparql_query_engine
 
         self.grouping_configuration.resolve_type_if_needed(
@@ -387,7 +385,6 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return formatter_class(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
-            property_threshold=self.property_threshold,
         )
 
     @staticmethod
@@ -418,7 +415,6 @@ def main(*args):
             predicate="wdt:P551", grouping_type=ItemGroupingType(), grouping_threshold=5
         ),
         row_no_group=True,
-        property_threshold=1,
     )
     groupings = stats.retrieve_data()
     report_groupings = stats.prepare_report_groupings(groupings)

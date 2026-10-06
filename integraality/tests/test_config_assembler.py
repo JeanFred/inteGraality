@@ -90,7 +90,6 @@ class TestParseConfig(unittest.TestCase):
             ],
             "row_no_group": True,
             "row_totals": True,
-            "property_threshold": "2",
             "grouping_link_mode": "link",
         }
         self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)

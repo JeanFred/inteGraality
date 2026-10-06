@@ -56,7 +56,6 @@ class PropertyStatisticsTest(unittest.TestCase):
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q39715",
-            property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
         self._wrap_query_builders_with_sparql_11_check()
@@ -141,7 +140,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -201,7 +199,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -507,7 +504,6 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
             selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
-            property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_positive(
             self.stats.columns.get("P1435"), 1892
@@ -726,7 +722,6 @@ class GetQueryForItemsForPropertyPositiveUnresolvedType(PropertyStatisticsTest):
             grouping_configuration=config,
             selector_sparql="wdt:P31 wd:Q39715",
             sparql_query_engine=self.mock_sparql_query,
-            property_threshold=10,
         )
         self.mock_sparql_query.reset_mock()
         result = stats.get_query_for_items_for_property_positive(
@@ -758,7 +753,6 @@ SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
   })
 }
 GROUP BY ?grouping
-HAVING (?count >= 10)
 ORDER BY DESC(?count)
 LIMIT 1000
 """
@@ -2004,7 +1998,6 @@ SELECT ?entity ?entityLabel WHERE {
             selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
-            property_threshold=10,
         )
         result = stats.get_query_for_items_for_property_negative(
             self.stats.columns.get("P1435"), 1892
@@ -2469,7 +2462,6 @@ LIMIT 1000
             selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
-            property_threshold=10,
         )
 
         self.mock_sparql_query.select.return_value = [
@@ -2508,7 +2500,6 @@ LIMIT 1000
             selector_sparql="wdt:P31 wd:Q39715",
             grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
-            property_threshold=10,
         )
 
         self.mock_sparql_query.select.return_value = [
@@ -2963,7 +2954,6 @@ class BuildFormatterTest(PropertyStatisticsTest):
         self.assertEqual(
             formatter.grouping_configuration, self.stats.grouping_configuration
         )
-        self.assertEqual(formatter.property_threshold, self.stats.property_threshold)
 
 
 class GetEntityTotalTest(PropertyStatisticsTest):
@@ -2992,7 +2982,7 @@ class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="7"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="7"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"
@@ -3055,7 +3045,6 @@ class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
             selector_sparql="wdt:P31 wd:Q39715",
-            property_threshold=10,
             sparql_query_engine=self.mock_sparql_query,
         )
 
@@ -3070,7 +3059,7 @@ class RetrievePrepareAndFormatTest(PropertyStatisticsTest):
         expected = (
             '{| class="wikitable sortable"\n'
             '! colspan="2" |Top groupings (Minimum 20 items)\n'
-            '! colspan="7"|Top Properties (used at least 10 times per grouping)\n'
+            '! colspan="7"|Top Properties\n'
             "|-\n"
             "! Name\n"
             "! Count\n"

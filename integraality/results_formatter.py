@@ -8,12 +8,10 @@ class ResultsFormatter:
         self,
         columns,
         grouping_configuration,
-        property_threshold=0,
         cell_template="Integraality cell",
     ):
         self.columns = columns
         self.grouping_configuration = grouping_configuration
-        self.property_threshold = property_threshold
         self.cell_template = cell_template
 
     def format_report(self, groupings):
@@ -38,7 +36,7 @@ class ResultsFormatter:
         colspan = 3 if self.grouping_configuration.higher_grouping else 2
         text += f'! colspan="{colspan}" |Top groupings (Minimum {self.grouping_configuration.grouping_threshold} items)\n'
         if self.columns:
-            text += f'! colspan="{len(self.columns)}"|Top Properties (used at least {self.property_threshold} times per grouping)\n'
+            text += f'! colspan="{len(self.columns)}"|Top Properties\n'
         text += "|-\n"
 
         if self.grouping_configuration.higher_grouping:

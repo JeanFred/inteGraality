@@ -315,9 +315,13 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 
 
 class PropertyColumn(AbstractColumn):
-    def __init__(self, property, title=None):
+    def __init__(self, property, title=None, source_property=None, source_item=None):
         self.property = property
         self.title = title
+        # Back-reference to the "Pxxx(Qyyy)" source this column was expanded
+        # from; both None for directly-authored columns.
+        self.source_property = source_property
+        self.source_item = source_item
 
     def __eq__(self, other):
         return self.property == other.property and self.title == other.title
@@ -364,8 +368,18 @@ class PropertyColumn(AbstractColumn):
 
 
 class QualifierColumn(PropertyColumn):
-    def __init__(self, property, qualifier, value=None, title=None):
-        super().__init__(property, title)
+    def __init__(
+        self,
+        property,
+        qualifier,
+        value=None,
+        title=None,
+        source_property=None,
+        source_item=None,
+    ):
+        super().__init__(
+            property, title, source_property=source_property, source_item=source_item
+        )
         self.qualifier = qualifier
         self.value = value
 
@@ -431,9 +445,18 @@ class ReferenceColumn(PropertyColumn):
     """Column tracking whether all statements for a property are referenced."""
 
     def __init__(
-        self, property, title=None, reference_check=None, value=None, qualifier=None
+        self,
+        property,
+        title=None,
+        reference_check=None,
+        value=None,
+        qualifier=None,
+        source_property=None,
+        source_item=None,
     ):
-        super().__init__(property, title)
+        super().__init__(
+            property, title, source_property=source_property, source_item=source_item
+        )
         if reference_check is None:
             reference_check = AnyReferenceCheck()
         self.reference_check = reference_check

@@ -77,10 +77,18 @@ class ColumnSourceResolver:
                     ReferenceColumn(
                         property=property_id,
                         reference_check=source_column.reference_check,
+                        source_property=source_column.source_property,
+                        source_item=source_column.source_item,
                     )
                 )
             else:
-                columns.append(PropertyColumn(property=property_id))
+                columns.append(
+                    PropertyColumn(
+                        property=property_id,
+                        source_property=source_column.source_property,
+                        source_item=source_column.source_item,
+                    )
+                )
         if len(columns) > MAX_SOURCED_COLUMNS:
             raise ColumnSourceException(
                 f"Column source {source_column.get_key()} expands to "

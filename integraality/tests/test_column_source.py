@@ -110,6 +110,44 @@ class ColumnSourceResolverTest(unittest.TestCase):
         source = PropertySourceColumn(source_property="P1963", source_item="Q39715")
         self.assertEqual(self.resolver.resolve(source), [])
 
+    def test_resolve_stamps_source_provenance(self):
+        claims = [self._prop_claim("P31"), self._prop_claim("P18")]
+        self._item_with_claims("P1963", claims)
+        source = PropertySourceColumn(source_property="P1963", source_item="Q39715")
+        result = self.resolver.resolve(source)
+        for column in result:
+            self.assertEqual(column.source_property, "P1963")
+            self.assertEqual(column.source_item, "Q39715")
+
+    def test_resolve_stamps_source_provenance_on_reference_columns(self):
+        claims = [self._prop_claim("P31"), self._prop_claim("P18")]
+        self._item_with_claims("P1963", claims)
+        source = PropertySourceColumn(
+            source_property="P1963",
+            source_item="Q39715",
+            reference_check=AnyReferenceCheck(),
+        )
+        result = self.resolver.resolve(source)
+        for column in result:
+            self.assertEqual(column.source_property, "P1963")
+            self.assertEqual(column.source_item, "Q39715")
+
+    def test_directly_authored_columns_have_no_source(self):
+        # A directly-authored column (not expanded from a source) carries no
+        # back-reference -- both provenance fields are None.
+        self.assertIsNone(PropertyColumn(property="P18").source_property)
+        self.assertIsNone(PropertyColumn(property="P18").source_item)
+        self.assertIsNone(
+            ReferenceColumn(
+                property="P18", reference_check=AnyReferenceCheck()
+            ).source_property
+        )
+        self.assertIsNone(
+            ReferenceColumn(
+                property="P18", reference_check=AnyReferenceCheck()
+            ).source_item
+        )
+
     def test_resolve_placeholders_hybrid_preserves_position(self):
         claims = [self._prop_claim("P31"), self._prop_claim("P18")]
         self._item_with_claims("P1963", claims)

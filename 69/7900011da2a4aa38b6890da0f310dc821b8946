@@ -1,0 +1,16 @@
+integraality/config_hash.py
+  h_bc010f8da910ff 1-98
+integraality/tests/test_config_hash.py
+  h_bc010f8da910ff 1-120
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "697900011da2a4aa38b6890da0f310dc821b8946",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

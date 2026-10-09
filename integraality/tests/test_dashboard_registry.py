@@ -722,6 +722,100 @@ class TestDashboardRegistry(unittest.TestCase):
         )
         self.mock_cursor.executemany.assert_not_called()
 
+    def test_record_backfilled_configuration_uses_resolved_id_no_commit(self):
+        # config SELECT misses -> INSERT; no wiki/page resolution, no commit.
+        self.mock_cursor.fetchone.side_effect = [None]
+        self.mock_cursor.lastrowid = 55
+
+        config_id = self.registry.record_backfilled_configuration(
+            3, self._config_facets(columns=[]), introduced_by_rev_id=100, author="Al"
+        )
+
+        self.assertEqual(config_id, 55)
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertEqual(
+            sum("SELECT id, hostname, name FROM wikis" in s for s in executed), 0
+        )
+        self.mock_conn.commit.assert_not_called()
+
+    def test_record_backfilled_configuration_corrects_provenance_on_existing(self):
+        # Existing row (config SELECT hits 42): the backfiller still issues a
+        # provenance UPDATE guarded to only overwrite a later/absent timestamp,
+        # so a live-written head-revision guess is corrected to the authored one.
+        self.mock_cursor.fetchone.side_effect = [{"id": 42}]
+
+        config_id = self.registry.record_backfilled_configuration(
+            3,
+            self._config_facets(columns=[]),
+            introduced_by_rev_id=100,
+            introduced_at="2021-01-01 00:00:00",
+            author="Alice",
+        )
+
+        self.assertEqual(config_id, 42)
+        update = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "UPDATE dashboard_configurations" in c[0][0]
+        )
+        sql, params = update
+        self.assertIn("introduced_at IS NULL OR introduced_at > %s", sql)
+        self.assertEqual(
+            params, (100, "2021-01-01 00:00:00", "Alice", 42, "2021-01-01 00:00:00")
+        )
+        self.mock_conn.commit.assert_not_called()
+
+    def test_record_backfilled_configuration_skips_correction_without_timestamp(self):
+        # No introduced_at -> nothing authoritative to correct -> no UPDATE.
+        self.mock_cursor.fetchone.side_effect = [{"id": 42}]
+
+        self.registry.record_backfilled_configuration(
+            3, self._config_facets(columns=[]), introduced_by_rev_id=100
+        )
+
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertEqual(
+            sum("UPDATE dashboard_configurations" in s for s in executed), 0
+        )
+
+    def test_configuration_dedup_key_is_per_dashboard(self):
+        # Two different dashboards with an identical config_hash each get their
+        # own row: the lookup is scoped by (dashboard_id, config_hash), so an
+        # identical hash on a different dashboard misses and inserts.
+        facets = self._config_facets(config_hash="shared", columns=[])
+        # Dashboard 3: config SELECT misses -> INSERT id 50.
+        # Dashboard 4: config SELECT misses again -> INSERT id 51.
+        self.mock_cursor.fetchone.side_effect = [None, None]
+        self.mock_cursor.lastrowid = 50
+        id_a = self.registry.record_backfilled_configuration(3, facets)
+        self.mock_cursor.lastrowid = 51
+        id_b = self.registry.record_backfilled_configuration(4, facets)
+
+        self.assertEqual((id_a, id_b), (50, 51))
+        selects = [
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "SELECT id FROM dashboard_configurations" in c[0][0]
+        ]
+        # Both lookups bind the same hash but different dashboard_ids.
+        self.assertEqual(selects[0][1], (3, "shared"))
+        self.assertEqual(selects[1][1], (4, "shared"))
+
+    def test_link_run_to_configuration_updates_only_unlinked(self):
+        self.mock_cursor.rowcount = 1
+        linked = self.registry.link_run_to_configuration(555, 42)
+        self.assertTrue(linked)
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("UPDATE dashboard_runs", sql)
+        self.assertIn("configuration_id = %s", sql)
+        self.assertIn("configuration_id IS NULL", sql)
+        self.assertEqual(params, (42, 555))
+        self.mock_conn.commit.assert_not_called()
+
+    def test_link_run_to_configuration_returns_false_when_no_match(self):
+        self.mock_cursor.rowcount = 0
+        self.assertFalse(self.registry.link_run_to_configuration(555, 42))
+
     def test_list_dashboards_for_backfill_returns_title_and_ids(self):
         """Returns (page_title, dashboard_id, wiki_id) rows for the API
         backfiller: title to query the API, ids for the resolved insert."""

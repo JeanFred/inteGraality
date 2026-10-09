@@ -309,6 +309,77 @@ class DashboardRegistry:
         self.conn.commit()
         return config_id
 
+    def record_backfilled_configuration(
+        self,
+        dashboard_id,
+        facets,
+        introduced_by_rev_id=None,
+        introduced_at=None,
+        author=None,
+    ):
+        """Get-or-create a config row, then correct its provenance.
+
+        For the forward-walk backfiller (dashboard_id comes from
+        list_dashboards_for_backfill, so no wiki/page re-resolution). Idempotent
+        via uq_dashboard_config and does NOT commit -- the backfiller commits
+        per dashboard. Returns the config id.
+
+        The backfiller walks full history, so it holds the authoritative
+        introducing revision; the live writer only has the page head (a later,
+        approximate guess). When the row already exists, overwrite provenance
+        with the backfiller's values iff they are strictly earlier (or the row
+        has none) -- so backfilling corrects a live-written row without
+        clobbering already-earlier data, and is safe to re-run.
+        """
+        config_id = self._get_or_create_configuration(
+            dashboard_id, facets, introduced_by_rev_id, introduced_at, author
+        )
+        if introduced_at is not None:
+            self._correct_configuration_provenance(
+                config_id, introduced_by_rev_id, introduced_at, author
+            )
+        return config_id
+
+    def _correct_configuration_provenance(
+        self, config_id, introduced_by_rev_id, introduced_at, author
+    ):
+        """Overwrite a config's provenance iff ``introduced_at`` is earlier than
+        the stored value (or the stored value is NULL). Does NOT commit."""
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                UPDATE dashboard_configurations
+                SET introduced_by_rev_id = %s, introduced_at = %s, author = %s
+                WHERE id = %s
+                  AND (introduced_at IS NULL OR introduced_at > %s)
+                """,
+                (
+                    introduced_by_rev_id,
+                    introduced_at,
+                    author,
+                    config_id,
+                    introduced_at,
+                ),
+            )
+
+    def link_run_to_configuration(self, revision_id, configuration_id):
+        """Set dashboard_runs.configuration_id for a run matched by revision_id.
+
+        Only unlinked rows (configuration_id IS NULL), so the two writers --
+        backfiller and live path -- never clobber each other. Does NOT commit.
+        Returns whether a row was updated.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                UPDATE dashboard_runs
+                SET configuration_id = %s
+                WHERE revision_id = %s AND configuration_id IS NULL
+                """,
+                (configuration_id, revision_id),
+            )
+            return cur.rowcount > 0
+
     def _get_or_create_configuration(
         self, dashboard_id, facets, introduced_by_rev_id, introduced_at, author
     ):

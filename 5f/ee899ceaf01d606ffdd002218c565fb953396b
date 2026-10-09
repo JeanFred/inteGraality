@@ -1,0 +1,14 @@
+integraality/config_facets.py
+  h_bc010f8da910ff 1,3-4,74,80,87,92,176-178
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5fee899ceaf01d606ffdd002218c565fb953396b",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

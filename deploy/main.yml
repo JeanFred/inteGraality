@@ -46,6 +46,15 @@
       mem: 1Gi
 
   handlers:
+    - name: Install requirements
+      ansible.builtin.command: >
+        toolforge jobs run update-deps
+        --command webservice-python-bootstrap
+        --image {{ runtime_image }}
+        --wait
+      register: update_deps_result
+      changed_when: update_deps_result.rc == 0
+
     - name: Restart webservice
       ansible.builtin.command: >
         webservice restart
@@ -104,12 +113,15 @@
         - git
         - skip_ansible_lint  # Skip E401, we always want latest version
 
-    # - name: Install requirements
-    #   pip:
-    #     requirements: '{{ checkout_path }}/requirements.txt'
-    #     virtualenv: '{{ virtualenv_path }}'
-    #   tags:
-    #     - requirements
+    - name: Track requirements.txt for change detection
+      ansible.builtin.copy:
+        src: '{{ checkout_path }}/requirements.txt'
+        dest: '{{ virtualenv_path }}/.requirements.deployed.txt'
+        remote_src: true
+        mode: "0644"
+      notify: Install requirements
+      tags:
+        - requirements
 
     - name: Deploy uwsgi configuration file
       ansible.builtin.template:

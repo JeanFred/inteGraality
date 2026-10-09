@@ -49,6 +49,23 @@ class TestParseConfig(unittest.TestCase):
             ],
         )
         self.assertEqual(result.selector_sparql, "wdt:P31/wdt:P279* wd:Q7889")
+
+    def test_captures_raw_facets_not_parsed_forms(self):
+        # The hash is defined over the AUTHORED strings: raw_grouping_property is
+        # "P400", not the assembled "wdt:P400" predicate; authored_column_keys
+        # are the pre-expansion keys (the source expression, not expanded P-ids).
+        result = self.assembler.parse_config(
+            {
+                "grouping_property": "P400",
+                "groupings": "Q1,Q2",
+                "columns": "P136,P1963(Q5)",
+                "selector_sparql": "wdt:P31 wd:Q5",
+            }
+        )
+        self.assertEqual(result.raw_grouping_property, "P400")
+        self.assertEqual(result.grouping_configuration.get_predicate(), "wdt:P400")
+        self.assertEqual(result.raw_groupings, "Q1,Q2")
+        self.assertEqual(result.authored_column_keys, ("P136", "P1963(Q5)"))
         self.assertEqual(result.grouping_link_mode, "link")
 
     def test_minimal_config(self):

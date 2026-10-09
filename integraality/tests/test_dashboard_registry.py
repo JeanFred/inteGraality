@@ -587,6 +587,118 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["error_category"], "query")
         self.assertIsNone(row["revision_id"])  # NULL on failure
 
+    def _config_facets(self, config_hash="abc123", columns=None):
+        from ..config_facets import ColumnFacets, ConfigFacets
+
+        if columns is None:
+            columns = [
+                ColumnFacets(
+                    position=0,
+                    column_type="property",
+                    raw_key="P569",
+                    property_id="P569",
+                ),
+                ColumnFacets(
+                    position=1,
+                    column_type="reference",
+                    raw_key="P18/S!",
+                    property_id="P18",
+                    reference_check_kind="good",
+                    source_property="P1963",
+                    source_item="Q5",
+                ),
+            ]
+        return ConfigFacets(
+            config_hash=config_hash,
+            grouping_predicate="wdt:P21",
+            grouping_property="P21",
+            grouping_type="item",
+            grouping_threshold=20,
+            higher_grouping=None,
+            selector_sparql="wdt:P31 wd:Q5",
+            selector_mentions=",P31,Q5,",
+            row_totals=True,
+            row_no_group=False,
+            grouping_link_mode="link",
+            explicit_groupings=None,
+            columns=columns,
+        )
+
+    def test_record_configuration_inserts_new_config_and_columns(self):
+        """A new (dashboard_id, hash) inserts the config row + its column rows."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        # page SELECT -> 20, dashboard SELECT -> 3, config SELECT -> None (new).
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}, None]
+        self.mock_cursor.lastrowid = 99
+
+        config_id = self.registry.record_configuration(
+            self._page_metadata(),
+            self._config_facets(),
+            introduced_by_rev_id=555,
+            introduced_at="2026-01-02 03:04:05",
+            author="Alice",
+        )
+
+        self.assertEqual(config_id, 99)
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertTrue(
+            any("SELECT id FROM dashboard_configurations" in s for s in executed)
+        )
+        self.assertTrue(
+            any("INSERT INTO dashboard_configurations" in s for s in executed)
+        )
+        # The column rows go in via executemany.
+        self.assertTrue(
+            any(
+                "INSERT INTO dashboard_configuration_columns" in c[0][0]
+                for c in self.mock_cursor.executemany.call_args_list
+            )
+        )
+        # Provenance is stamped on the config INSERT.
+        config_insert = next(
+            c[0]
+            for c in self.mock_cursor.execute.call_args_list
+            if "INSERT INTO dashboard_configurations" in c[0][0]
+        )
+        params = config_insert[1]
+        self.assertIn(555, params)
+        self.assertIn("Alice", params)
+        self.mock_conn.commit.assert_called_once()
+
+    def test_record_configuration_existing_hash_reuses_no_insert(self):
+        """A recurring (dashboard_id, hash) returns the existing id, writing no
+        config row and no column rows (change-gated / no AUTO_INCREMENT burn)."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        # page SELECT -> 20, dashboard SELECT -> 3, config SELECT -> existing 42.
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}, {"id": 42}]
+
+        config_id = self.registry.record_configuration(
+            self._page_metadata(), self._config_facets()
+        )
+
+        self.assertEqual(config_id, 42)
+        executed = [c[0][0] for c in self.mock_cursor.execute.call_args_list]
+        self.assertEqual(
+            sum("INSERT INTO dashboard_configurations" in s for s in executed), 0
+        )
+        self.mock_cursor.executemany.assert_not_called()
+
+    def test_record_configuration_no_columns_skips_executemany(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}, None]
+        self.mock_cursor.lastrowid = 99
+
+        self.registry.record_configuration(
+            self._page_metadata(), self._config_facets(columns=[])
+        )
+        self.mock_cursor.executemany.assert_not_called()
+
     def test_list_dashboards_for_backfill_returns_title_and_ids(self):
         """Returns (page_title, dashboard_id, wiki_id) rows for the API
         backfiller: title to query the API, ids for the resolved insert."""

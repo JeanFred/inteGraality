@@ -765,6 +765,65 @@ class TestRunRecording(ProcessortTest):
         )
 
     @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_configuration_passes_facets_and_provenance(self, mock_cls):
+        """_record_configuration forwards facets + approximate provenance from
+        the page head to the registry."""
+        from ..config_facets import ConfigFacets
+
+        registry = mock_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        facets = ConfigFacets(
+            config_hash="h",
+            grouping_predicate="wdt:P21",
+            grouping_property="P21",
+            grouping_type="item",
+            grouping_threshold=20,
+            higher_grouping=None,
+            selector_sparql="wdt:P31 wd:Q5",
+            selector_mentions=",P31,Q5,",
+            row_totals=True,
+            row_no_group=False,
+            grouping_link_mode="link",
+            explicit_groupings=None,
+            columns=[],
+        )
+
+        self.processor._record_configuration(page, facets)
+
+        registry.record_configuration.assert_called_once()
+        _meta, passed_facets = registry.record_configuration.call_args[0]
+        self.assertIs(passed_facets, facets)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_configuration_none_is_noop(self, mock_cls):
+        self.processor._record_configuration(self._dashboard_page(), None)
+        mock_cls.assert_not_called()
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_configuration_is_best_effort(self, mock_cls):
+        from ..config_facets import ConfigFacets
+
+        registry = mock_cls.return_value.__enter__.return_value
+        registry.record_configuration.side_effect = Exception("db gone")
+        facets = ConfigFacets(
+            config_hash="h",
+            grouping_predicate="wdt:P21",
+            grouping_property="P21",
+            grouping_type="item",
+            grouping_threshold=20,
+            higher_grouping=None,
+            selector_sparql="wdt:P31 wd:Q5",
+            selector_mentions=",P31,Q5,",
+            row_totals=True,
+            row_no_group=False,
+            grouping_link_mode="link",
+            explicit_groupings=None,
+            columns=[],
+        )
+        # Should not raise.
+        self.processor._record_configuration(self._dashboard_page(), facets)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_ok_records_with_null_revision(self, mock_registry_cls):
         """A local write (LOCAL_WRITE_PATH) or null edit produces no oldid. The
         run still records, with revision_id=None -- OK runs are not required to

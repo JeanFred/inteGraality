@@ -271,6 +271,128 @@ class DashboardRegistry:
         """Naive-UTC DATETIME string, matching the schema's DATETIME columns."""
         return datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%d %H:%M:%S")
 
+    def record_configuration(
+        self,
+        page_metadata,
+        facets,
+        introduced_by_rev_id=None,
+        introduced_at=None,
+        author=None,
+    ):
+        """Get-or-create one configuration row for a dashboard, keyed on hash.
+
+        Change-gated via uq_dashboard_config: a recurring hash reuses the row
+        (no id burn, no column rows); a new hash inserts the facet row + its
+        ordered column rows and stamps provenance (write-once). Commits.
+        """
+        wiki_id = self._get_or_create_wiki(
+            page_metadata["site_hostname"], page_metadata["site_name"]
+        )
+        page_pk = self._get_or_create_page(
+            wiki_id,
+            page_metadata["page_id"],
+            page_metadata["page_url"],
+            page_metadata["page_title"],
+            page_metadata["namespace_canonical"],
+            page_metadata["namespace_localized"],
+            page_metadata["root_page"],
+        )
+        dashboard_id = self._get_or_create_dashboard(page_pk)
+        config_id = self._get_or_create_configuration(
+            dashboard_id, facets, introduced_by_rev_id, introduced_at, author
+        )
+        self.conn.commit()
+        return config_id
+
+    def _get_or_create_configuration(
+        self, dashboard_id, facets, introduced_by_rev_id, introduced_at, author
+    ):
+        """Return the config id for (dashboard_id, hash), inserting if new.
+
+        Read-then-write on uq_dashboard_config so a recurring hash burns no id.
+        On insert, writes the facet row plus its ordered column rows.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                SELECT id FROM dashboard_configurations
+                WHERE dashboard_id = %s AND config_hash = %s
+                """,
+                (dashboard_id, facets.config_hash),
+            )
+            row = cur.fetchone()
+            if row is not None:
+                return row["id"]
+            cur.execute(
+                """\
+                INSERT INTO dashboard_configurations
+                    (dashboard_id, config_hash, introduced_by_rev_id,
+                     introduced_at, author, selector_sparql, selector_mentions,
+                     grouping_predicate, grouping_property, grouping_type,
+                     grouping_threshold, higher_grouping, explicit_groupings,
+                     row_totals, row_no_group, grouping_link_mode)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
+                        %s, %s)
+                """,
+                (
+                    dashboard_id,
+                    facets.config_hash,
+                    introduced_by_rev_id,
+                    introduced_at,
+                    author,
+                    facets.selector_sparql,
+                    facets.selector_mentions,
+                    facets.grouping_predicate,
+                    facets.grouping_property,
+                    facets.grouping_type,
+                    facets.grouping_threshold,
+                    facets.higher_grouping,
+                    facets.explicit_groupings,
+                    facets.row_totals,
+                    facets.row_no_group,
+                    facets.grouping_link_mode,
+                ),
+            )
+            config_id = cur.lastrowid
+            self._insert_configuration_columns(cur, config_id, facets.columns)
+            return config_id
+
+    @staticmethod
+    def _insert_configuration_columns(cur, config_id, columns):
+        """Insert the ordered column rows for a freshly created config row."""
+        if not columns:
+            return
+        cur.executemany(
+            """\
+            INSERT INTO dashboard_configuration_columns
+                (configuration_id, position, column_type, property_id,
+                 qualifier_id, value, value_item, value_traversal,
+                 reference_check_kind, reference_check_tokens, source_property,
+                 source_item, language, project, raw_key)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            [
+                (
+                    config_id,
+                    column.position,
+                    column.column_type,
+                    column.property_id,
+                    column.qualifier_id,
+                    column.value,
+                    column.value_item,
+                    column.value_traversal,
+                    column.reference_check_kind,
+                    column.reference_check_tokens,
+                    column.source_property,
+                    column.source_item,
+                    column.language,
+                    column.project,
+                    column.raw_key,
+                )
+                for column in columns
+            ],
+        )
+
     def record_run(self, page_metadata, run: "RunResult"):
         """Append one completed run for a dashboard.
 

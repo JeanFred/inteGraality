@@ -1,6 +1,11 @@
-"""The assembled dashboard configuration as a single typed object."""
+"""The assembled dashboard configuration as a single typed object.
 
-from dataclasses import dataclass, replace
+ParsedConfig is the output of ConfigAssembler.parse_config: one frozen value
+carrying the PropertyStatistics inputs, the grouping_link_mode, and the
+resolution-independent facts the config-persistence feature hashes.
+"""
+
+from dataclasses import dataclass, field, replace
 
 from .column import AbstractColumn, PropertySourceColumn
 from .grouping import GroupingConfiguration
@@ -18,6 +23,15 @@ class ParsedConfig:
     row_totals: bool = True
     # --- parsed extra, consumed by the processor / page creator ---
     grouping_link_mode: str = "link"
+    # --- resolution-independent facts preserved for the config hash / facets ---
+    # The RAW grouping params (verbatim authored strings, NOT the
+    # parsed/expanded predicate) and the PRE-expansion authored column keys.
+    # Captured at parse time so neither assembly nor column-source expansion can
+    # shift the hash input; this is what lets the live writer and the offline
+    # backfiller compute identical hashes for the same authored config.
+    raw_grouping_property: str | None = None
+    raw_groupings: str | None = None
+    authored_column_keys: tuple[str, ...] = field(default_factory=tuple)
 
     def stats_kwargs(self):
         """The kwargs for PropertyStatistics (no splat of the whole object)."""
@@ -33,6 +47,9 @@ class ParsedConfig:
     def resolved(self, column_resolver):
         """Return a new ParsedConfig with the grouping type detected and column
         sources expanded. Value-returning: pure with respect to self.
+
+        ``authored_column_keys`` is intentionally NOT replaced -- it pins the
+        pre-expansion hash input through source expansion.
         """
         grouping_configuration = self.grouping_configuration.with_resolved_type(
             self.selector_sparql, self.sparql_query_engine

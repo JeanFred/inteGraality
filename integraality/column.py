@@ -31,7 +31,7 @@ class ColumnSyntaxException(Exception):
     pass
 
 
-def _split_value_traversal(value):
+def split_value_traversal(value):
     """Split a value into (bare_value, traversal_suffix).
 
     traversal_suffix is the "<property><quantifier>" part after the tilde
@@ -49,7 +49,7 @@ def _format_value_sparql(value):
     A traversal suffix (Q...~P279*) is ignored here: it modifies the ps:
     predicate path, not the value term.
     """
-    bare, _ = _split_value_traversal(value)
+    bare, _ = split_value_traversal(value)
     return bare if bare.startswith("?") else f"wd:{bare}"
 
 
@@ -58,7 +58,7 @@ def _format_value_html(value):
     with any traversal suffix appended as "~<traversal>"."""
     if value.startswith("?"):
         return value
-    bare, traversal = _split_value_traversal(value)
+    bare, traversal = split_value_traversal(value)
     link = f'<a href="https://wikidata.org/wiki/{bare}">{bare}</a>'
     return f"{link}~{traversal}" if traversal else link
 
@@ -377,7 +377,7 @@ class PropertyColumn(AbstractColumn):
         Plain `ps:Pxxx`, or `ps:Pxxx/wdt:Pyyy<quant>` when the column's value
         carries a traversal suffix (Q...~Pyyy* to also match subclasses, etc.).
         """
-        _, traversal = _split_value_traversal(self.value)
+        _, traversal = split_value_traversal(self.value)
         if not traversal:
             return f"ps:{self.property}"
         return f"ps:{self.property}/wdt:{traversal}"

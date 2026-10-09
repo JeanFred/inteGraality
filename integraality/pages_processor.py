@@ -12,6 +12,7 @@ from redis import StrictRedis
 from .cache import RedisCache, redis_host
 from .column_source import ColumnSourceException, ColumnSourceResolver
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
+from .config_facets import build_config_facets
 from .dashboard_registry import DashboardRegistry, RunResult
 from .error_category import ErrorCategory
 from .grouping import EmptyGroupingException, UnsupportedGroupingConfigurationException
@@ -180,13 +181,16 @@ class PagesProcessor:
         engine = config.sparql_query_engine
         if engine is not None:
             run_context.sparql_engine = engine.name
+        # The persistable config facets are derived from the (frozen) config on
+        # demand -- the run path records them, read-only callers ignore them.
+        config_facets = build_config_facets(config)
         try:
             stats = PropertyStatistics(**config.stats_kwargs())
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         except UnsupportedGroupingConfigurationException as e:
             raise ConfigException(e) from e
-        return stats, config.grouping_link_mode
+        return stats, config.grouping_link_mode, config_facets
 
     def process_page(self, page, trigger_source="CRON"):
         start_time = perf_counter()
@@ -195,9 +199,12 @@ class PagesProcessor:
             logger.debug("Invalidating cache key for %s", page.title())
             self.cache.invalidate(self.make_cache_key(page.title()))
             logger.info("Parsing page configuration...")
-            stats, grouping_link_mode = self.make_stats_object_for_page(
+            stats, grouping_link_mode, config_facets = self.make_stats_object_for_page(
                 page, run_context=run_context
             )
+            # Record the config at successful assembly -- earlier than the run,
+            # so a config whose query later fails is still captured.
+            self._record_configuration(page, config_facets)
             groupings = stats.retrieve_data()
             report_groupings = stats.prepare_report_groupings(groupings)
             formatter = stats.build_formatter()
@@ -256,6 +263,37 @@ class PagesProcessor:
                 sparql_engine=run_context.sparql_engine,
             )
             raise
+
+    def _record_configuration(self, page, config_facets):
+        """Record the assembled config (get-or-create by hash). Best-effort.
+
+        Provenance is approximate (page head, not the human config edit); the
+        backfiller corrects the full history offline.
+        """
+        if config_facets is None:
+            return
+        rev_id, introduced_at, author = self._approximate_provenance(page)
+        try:
+            with DashboardRegistry() as registry:
+                registry.record_configuration(
+                    self._dashboard_metadata(page),
+                    config_facets,
+                    introduced_by_rev_id=rev_id,
+                    introduced_at=introduced_at,
+                    author=author,
+                )
+        except Exception as e:
+            logger.warning("Failed to record configuration for %s: %s", page.title(), e)
+
+    @staticmethod
+    def _approximate_provenance(page):
+        """Best-effort (rev_id, introduced_at, author) from the page head."""
+        rev_id = getattr(page, "latest_revision_id", None)
+        revision = getattr(page, "latest_revision", None)
+        author = getattr(revision, "user", None)
+        timestamp = getattr(revision, "timestamp", None)
+        introduced_at = timestamp.strftime("%Y-%m-%d %H:%M:%S") if timestamp else None
+        return rev_id, introduced_at, author
 
     def _record_run_ok(
         self,

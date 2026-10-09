@@ -2,6 +2,8 @@
 Assemble Property dashboard configuration from template parameters.
 """
 
+from collections import namedtuple
+
 from .column import ColumnMaker, ColumnSyntaxException
 from .config import ParsedConfig
 from .grouping import GroupingConfigurationMaker
@@ -14,6 +16,12 @@ PARAM_RENAMES = {
     "stats_for_no_group": "row_no_group",
     "properties": "columns",
 }
+
+# The resolution-independent facts captured before assembly consumes them, that
+# the config hash / persisted facets are defined over.
+RawFacets = namedtuple(
+    "RawFacets", ["grouping_property", "groupings", "authored_column_keys"]
+)
 
 
 class ConfigAssemblyException(Exception):
@@ -116,6 +124,21 @@ class ConfigAssembler:
         except UnsupportedSparqlEngineException as e:
             raise ConfigAssemblyException(e) from e
 
+    @staticmethod
+    def _extract_raw_facets(config, columns):
+        """The resolution-independent facts the config hash / persisted facets
+        need: the RAW grouping params (not the parsed/expanded forms) and the
+        PRE-expansion authored column keys, in order.
+
+        Must be called before assembly consumes the grouping params and before
+        any later column-source expansion, so these cannot shift the hash input.
+        """
+        return RawFacets(
+            grouping_property=config.get("grouping_property"),
+            groupings=config.get("groupings"),
+            authored_column_keys=tuple(column.get_key() for column in columns),
+        )
+
     def parse_config(self, raw_params):
         # Work on a private copy: the body consumes keys via pop() as it builds,
         # so never mutate the caller's dict.
@@ -123,6 +146,9 @@ class ConfigAssembler:
         self._apply_legacy_renames(config)
         self._check_required_fields(config)
         columns = self.parse_config_columns(config.pop("columns"))
+        # Resolution-independent facts for the hash/facets, captured before
+        # assembly consumes the grouping params.
+        raw = self._extract_raw_facets(config, columns)
         grouping_threshold = self._parse_grouping_threshold(config)
         grouping_configuration = self._assemble_grouping(config, grouping_threshold)
         row_no_group = _parse_bool_param(config, "row_no_group", default=False)
@@ -138,6 +164,9 @@ class ConfigAssembler:
             row_no_group=row_no_group,
             row_totals=row_totals,
             grouping_link_mode=grouping_link_mode,
+            raw_grouping_property=raw.grouping_property,
+            raw_groupings=raw.groupings,
+            authored_column_keys=raw.authored_column_keys,
         )
 
     @staticmethod

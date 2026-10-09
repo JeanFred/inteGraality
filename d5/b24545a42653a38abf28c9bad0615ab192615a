@@ -1,0 +1,22 @@
+integraality/reference_check.py
+  h_bc010f8da910ff 82-83,100-101,126-127,236,270,297-298
+integraality/tests/test_reference_check.py
+  h_bc010f8da910ff 9,288-329
+integraality/column.py
+  h_bc010f8da910ff 318,321-325,449-456,458-460
+integraality/column_source.py
+  h_bc010f8da910ff 80-81,85-91
+integraality/tests/test_column_source.py
+  h_bc010f8da910ff 113-150
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d5b24545a42653a38abf28c9bad0615ab192615a",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

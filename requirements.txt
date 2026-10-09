@@ -116,9 +116,9 @@ pyparsing==3.3.2 \
     --hash=sha256:850ba148bd908d7e2411587e247a1e4f0327839c40e2e5e6d05a007ecc69911d \
     --hash=sha256:c777f4d763f140633dcb6d8a3eda953bf7a214dc4eff598413c070bcdc117cbc
     # via rdflib
-pywikibot==11.7.0 \
-    --hash=sha256:599a5cba7edcfe290dc9dfb0fde85c37b2f68bb814c762365604d0a7a72eb335 \
-    --hash=sha256:bd7f4c5b59a20843e46cd5540a03d92922f5db46c9d615ce009ced56a1ef683b
+pywikibot==11.8.0 \
+    --hash=sha256:9420694d59df59ae46327376c277a5169495a0aeaa15565d94ad2ef5e54a30fd \
+    --hash=sha256:f91930d1591efea475f48f294f3287d82f7ee6240b3d38a40e5d31b52cb8ccc1
     # via integraality
 rdflib==7.6.0 \
     --hash=sha256:30c0a3ebf4c0e09215f066be7246794b6492e054e782d7ac2a34c9f70a15e0dd \

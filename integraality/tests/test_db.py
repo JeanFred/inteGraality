@@ -1,5 +1,6 @@
 """Tests for db module."""
 
+import re
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -33,6 +34,16 @@ class TestReadSchema(unittest.TestCase):
                 stmt.upper().startswith(valid_prefixes),
                 f"Unexpected statement: {stmt[:50]}",
             )
+
+    def test_no_inline_semicolons_in_ddl(self):
+        """`_read_schema` splits on ';', so a ';' anywhere but a statement
+        terminator (notably in a trailing comment) silently truncates the
+        table. Guard the whole file, not just one table."""
+        from ..db import SCHEMA_PATH
+
+        for lineno, line in enumerate(SCHEMA_PATH.read_text().splitlines(), start=1):
+            if ";" in line and not line.rstrip().endswith(";"):
+                self.fail(f"Inline ';' on schema line {lineno}: {line.strip()!r}")
 
 
 class TestDashboardRunsTable(unittest.TestCase):
@@ -106,6 +117,104 @@ class TestDashboardsTable(unittest.TestCase):
         self.assertIn("page_pk", stmt)
         self.assertIn("REFERENCES pages (id)", stmt)
         self.assertIn("uq_page", stmt)
+
+
+class TestDashboardConfigurationsTable(unittest.TestCase):
+    """dashboard_configurations: append-only config history, hash-keyed."""
+
+    def _stmt(self):
+        stmts = [s for s in _read_schema() if "EXISTS dashboard_configurations (" in s]
+        self.assertEqual(len(stmts), 1)
+        return stmts[0]
+
+    def test_is_a_single_create_table(self):
+        stmt = self._stmt()
+        self.assertTrue(stmt.upper().startswith("CREATE TABLE"))
+        self.assertIn("IF NOT EXISTS", stmt.upper())
+
+    def test_identity_is_dashboard_scoped_hash(self):
+        stmt = self._stmt()
+        self.assertIn("uq_dashboard_config", stmt)
+        self.assertIn("config_hash", stmt)
+        self.assertIn("REFERENCES dashboards (id)", stmt)
+
+    def test_owns_grouping_and_selector_facets(self):
+        stmt = self._stmt()
+        for col in (
+            "grouping_predicate",
+            "grouping_property",
+            "grouping_type",
+            "selector_sparql",
+            "selector_mentions",
+            "explicit_groupings",
+        ):
+            self.assertIn(col, stmt)
+
+    def test_indexes_adoption_facets(self):
+        stmt = self._stmt()
+        self.assertIn("idx_grouping_property", stmt)
+        self.assertIn("idx_grouping_type", stmt)
+
+
+class TestDashboardConfigurationColumnsTable(unittest.TestCase):
+    """dashboard_configuration_columns: expanded per-config columns."""
+
+    def _stmt(self):
+        stmts = [
+            s for s in _read_schema() if "EXISTS dashboard_configuration_columns (" in s
+        ]
+        self.assertEqual(len(stmts), 1)
+        return stmts[0]
+
+    def test_is_a_single_create_table(self):
+        stmt = self._stmt()
+        self.assertTrue(stmt.upper().startswith("CREATE TABLE"))
+
+    def test_cascades_from_configuration(self):
+        stmt = self._stmt()
+        self.assertIn("REFERENCES dashboard_configurations (id)", stmt)
+        self.assertIn("ON DELETE CASCADE", stmt)
+
+    def test_owns_column_facets_and_provenance(self):
+        stmt = self._stmt()
+        for col in (
+            "position",
+            "column_type",
+            "property_id",
+            "qualifier_id",
+            "value",
+            "value_item",
+            "value_traversal",
+            "reference_check_kind",
+            "reference_check_tokens",
+            "source_property",
+            "source_item",
+            "raw_key",
+        ):
+            self.assertIn(col, stmt)
+
+    def test_indexes_value_and_qualifier_facets(self):
+        stmt = self._stmt()
+        self.assertIn("idx_qualifier_id", stmt)
+        self.assertIn("idx_value_item", stmt)
+
+
+class TestSchemaOrdering(unittest.TestCase):
+    """FK statement order is load-bearing for ensure_schema (top-to-bottom)."""
+
+    def test_config_tables_follow_dashboards_in_fk_order(self):
+        names = []
+        for stmt in _read_schema():
+            match = re.search(r"EXISTS (\w+) \(", stmt)
+            if match:
+                names.append(match.group(1))
+        self.assertLess(
+            names.index("dashboards"), names.index("dashboard_configurations")
+        )
+        self.assertLess(
+            names.index("dashboard_configurations"),
+            names.index("dashboard_configuration_columns"),
+        )
 
 
 class TestEnsureSchema(unittest.TestCase):

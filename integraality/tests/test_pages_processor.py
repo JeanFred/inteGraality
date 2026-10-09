@@ -356,6 +356,7 @@ class TestMain(unittest.TestCase):
             url=url,
             warm_cache_only=False,
             populate_registry=False,
+            snapshot_configurations=False,
             page=None,
             limit=None,
         )
@@ -371,6 +372,7 @@ class TestMain(unittest.TestCase):
             url=url,
             warm_cache_only=False,
             populate_registry=False,
+            snapshot_configurations=False,
             page="Bar/Dashboard",
             limit=None,
         )
@@ -401,6 +403,7 @@ class TestMain(unittest.TestCase):
             url=url,
             warm_cache_only=False,
             populate_registry=False,
+            snapshot_configurations=False,
             page=None,
             limit=5,
         )
@@ -408,6 +411,20 @@ class TestMain(unittest.TestCase):
         self.mock_pages_processor.return_value.process_all.assert_called_once_with(
             limit=5
         )
+
+    def test_main_snapshot_configurations_argument(self):
+        url = "Foo"
+        self.mock_args.return_value = argparse.Namespace(
+            url=url,
+            warm_cache_only=False,
+            populate_registry=False,
+            snapshot_configurations=True,
+            page=None,
+            limit=None,
+        )
+        main()
+        snapshot = self.mock_pages_processor.return_value.snapshot_configurations
+        snapshot.assert_called_once_with(limit=None)
 
     def test_main_limit_argument_with_populate_registry(self):
         url = "Foo"
@@ -566,6 +583,135 @@ class TestPopulateRegistryDerivesBrowseDimensions(ProcessortTest):
             self.processor.populate_registry()  # must not raise
 
         self.assertEqual(registry.record.call_count, 2)
+
+
+class TestSnapshotConfigurations(ProcessortTest):
+    """snapshot_configurations records each dashboard's current config."""
+
+    def _dashboard_page(self):
+        namespace = MagicMock()
+        namespace.canonical_name = "Project"
+        namespace.custom_name = "Wikidata"
+        page = MagicMock()
+        page.site.hostname.return_value = "www.wikidata.org"
+        page.pageid = 42
+        page.full_url.return_value = "https://www.wikidata.org/wiki/Wikidata:Stats"
+        page.title.side_effect = lambda with_ns=True: (
+            "Wikidata:Stats" if with_ns else "Stats"
+        )
+        page.site.siteinfo = {"sitename": "Wikidata"}
+        page.namespace.return_value = namespace
+        return page
+
+    def _facets(self):
+        from ..config_facets import ConfigFacets
+
+        return ConfigFacets(
+            config_hash="h",
+            grouping_predicate="wdt:P21",
+            grouping_property="P21",
+            grouping_type="item",
+            grouping_threshold=20,
+            higher_grouping=None,
+            selector_sparql="wdt:P31 wd:Q5",
+            selector_mentions=",P31,Q5,",
+            row_totals=True,
+            row_no_group=False,
+            grouping_link_mode="link",
+            explicit_groupings=None,
+            columns=[],
+        )
+
+    def _parsed_config(self):
+        # A real ParsedConfig -- the shape make_stats_object_arguments_for_page
+        # actually returns (a frozen object, NOT a dict with "config_facets").
+        from ..config import ParsedConfig
+        from ..grouping import GroupingConfiguration, ItemGroupingType
+
+        return ParsedConfig(
+            selector_sparql="wdt:P31 wd:Q5",
+            columns=(),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P21", grouping_type=ItemGroupingType()
+            ),
+            sparql_query_engine=object(),
+        )
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_records_current_config_with_null_provenance(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        facets = self._facets()
+        with (
+            patch.object(self.processor, "get_all_pages", return_value=[page]),
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                return_value=self._parsed_config(),
+            ),
+            patch(
+                "integraality.pages_processor.build_config_facets",
+                return_value=facets,
+            ) as build,
+        ):
+            self.processor.snapshot_configurations()
+
+        # Facets are built from the ParsedConfig, then recorded without
+        # provenance (snapshot does not attribute authors).
+        build.assert_called_once()
+        registry.record_configuration.assert_called_once()
+        args, kwargs = registry.record_configuration.call_args
+        self.assertIs(args[1], facets)
+        self.assertEqual(kwargs, {})
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_skips_non_dashboard(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        with (
+            patch.object(self.processor, "get_all_pages", return_value=[page]),
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                side_effect=NoStartTemplateException("no start"),
+            ),
+        ):
+            self.processor.snapshot_configurations()
+        registry.record_configuration.assert_not_called()
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_skips_unparseable_config(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        page = self._dashboard_page()
+        with (
+            patch.object(self.processor, "get_all_pages", return_value=[page]),
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                side_effect=ConfigException("bad config"),
+            ),
+        ):
+            self.processor.snapshot_configurations()
+        registry.record_configuration.assert_not_called()
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_survives_a_failed_record(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        registry.record_configuration.side_effect = Exception("db gone")
+        page = self._dashboard_page()
+        with (
+            patch.object(self.processor, "get_all_pages", return_value=[page]),
+            patch.object(
+                self.processor,
+                "make_stats_object_arguments_for_page",
+                return_value=self._parsed_config(),
+            ),
+            patch(
+                "integraality.pages_processor.build_config_facets",
+                return_value=self._facets(),
+            ),
+        ):
+            self.processor.snapshot_configurations()  # must not raise
 
 
 class TestRunRecording(ProcessortTest):

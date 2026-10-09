@@ -426,6 +426,45 @@ class PagesProcessor:
             "Registered %d dashboards (skipped %d non-dashboards)", count, skipped
         )
 
+    def snapshot_configurations(self, limit=None):
+        """Record every dashboard's CURRENT config in one pass (no history).
+
+        Parses each page's current template and records its config facets with
+        NULL provenance (author attribution is the backfiller's job). Gives the
+        "how many dashboards use feature X today" adoption baseline. Best-effort.
+        """
+        logger.info("Snapshotting configurations on site %s", self.site.sitename)
+        recorded = 0
+        skipped = 0
+        for page in self.get_all_pages(limit=limit):
+            try:
+                config = self.make_stats_object_arguments_for_page(page)
+            except NoStartTemplateException:
+                logger.info("Skipping non-dashboard page %s", page.title())
+                skipped += 1
+                continue
+            except Exception as e:
+                logger.info("Skipping unparseable dashboard %s: %s", page.title(), e)
+                continue
+            if not self._record_dashboard(page):
+                continue
+            config_facets = build_config_facets(config)
+            try:
+                with DashboardRegistry() as registry:
+                    registry.record_configuration(
+                        self._dashboard_metadata(page), config_facets
+                    )
+                recorded += 1
+            except Exception as e:
+                logger.warning(
+                    "Failed to snapshot configuration for %s: %s", page.title(), e
+                )
+        logger.info(
+            "Snapshotted %d configurations (skipped %d non-dashboards)",
+            recorded,
+            skipped,
+        )
+
     def process_all(self, limit=None):
         self.summary = "Weekly update of property usage stats"
         logger.info("Processing pages on site %s", self.site.sitename)
@@ -527,6 +566,11 @@ def args_parser():
         help="record all dashboard pages in the registry (no SPARQL queries)",
     )
     parser.add_argument(
+        "--snapshot-configurations",
+        action="store_true",
+        help="record every dashboard's current config (one-shot, no history)",
+    )
+    parser.add_argument(
         "--limit",
         type=int,
         default=None,
@@ -546,6 +590,8 @@ def main():
         processor.warm_cache(limit=args.limit)
     elif args.populate_registry:
         processor.populate_registry(limit=args.limit)
+    elif args.snapshot_configurations:
+        processor.snapshot_configurations(limit=args.limit)
     elif args.page:
         processor.process_one_page(args.page)
     else:

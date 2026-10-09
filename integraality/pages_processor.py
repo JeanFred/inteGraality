@@ -29,6 +29,7 @@ class RunContext:
     """Values learned while processing a page, needed if it later fails."""
 
     sparql_engine: str | None = None
+    configuration_id: int | None = None
 
 
 class ProcessingException(Exception):
@@ -203,8 +204,11 @@ class PagesProcessor:
                 page, run_context=run_context
             )
             # Record the config at successful assembly -- earlier than the run,
-            # so a config whose query later fails is still captured.
-            self._record_configuration(page, config_facets)
+            # so a config whose query later fails is still captured. The id is
+            # threaded onto the run via run_context.
+            run_context.configuration_id = self._record_configuration(
+                page, config_facets
+            )
             groupings = stats.retrieve_data()
             report_groupings = stats.prepare_report_groupings(groupings)
             formatter = stats.build_formatter()
@@ -227,6 +231,7 @@ class PagesProcessor:
                 groupings=groupings,
                 report_groupings=report_groupings,
                 revision_id=revision_id,
+                configuration_id=run_context.configuration_id,
             )
 
             if grouping_link_mode == "create":
@@ -261,21 +266,23 @@ class PagesProcessor:
                 elapsed_time=perf_counter() - start_time,
                 exc=e,
                 sparql_engine=run_context.sparql_engine,
+                configuration_id=run_context.configuration_id,
             )
             raise
 
     def _record_configuration(self, page, config_facets):
         """Record the assembled config (get-or-create by hash). Best-effort.
 
-        Provenance is approximate (page head, not the human config edit); the
-        backfiller corrects the full history offline.
+        Returns the config id (or None on missing facets / failed write) to
+        thread onto the run. Provenance is approximate (page head, not the
+        human config edit); the backfiller corrects the full history offline.
         """
         if config_facets is None:
-            return
+            return None
         rev_id, introduced_at, author = self._approximate_provenance(page)
         try:
             with DashboardRegistry() as registry:
-                registry.record_configuration(
+                return registry.record_configuration(
                     self._dashboard_metadata(page),
                     config_facets,
                     introduced_by_rev_id=rev_id,
@@ -284,6 +291,7 @@ class PagesProcessor:
                 )
         except Exception as e:
             logger.warning("Failed to record configuration for %s: %s", page.title(), e)
+            return None
 
     @staticmethod
     def _approximate_provenance(page):
@@ -304,6 +312,7 @@ class PagesProcessor:
         groupings,
         report_groupings,
         revision_id,
+        configuration_id=None,
     ):
         """Record a successful run. Best-effort: never break the crawl."""
         run = RunResult.ok(
@@ -314,6 +323,7 @@ class PagesProcessor:
             entity_total=stats.get_entity_total(report_groupings),
             grouping_count=len(groupings),
             column_count=len(stats.columns),
+            configuration_id=configuration_id,
         )
         try:
             with DashboardRegistry() as registry:
@@ -322,7 +332,13 @@ class PagesProcessor:
             logger.warning("Failed to record run for %s: %s", page.title(), e)
 
     def _record_run_fail(
-        self, page, trigger_source, elapsed_time, exc, sparql_engine=None
+        self,
+        page,
+        trigger_source,
+        elapsed_time,
+        exc,
+        sparql_engine=None,
+        configuration_id=None,
     ):
         """Record a failed run. Best-effort: never mask the original error."""
         category = getattr(exc, "error_category", None)
@@ -340,6 +356,7 @@ class PagesProcessor:
             duration_ms=int(elapsed_time * 1000),
             error_detail=str(exc)[:2000],
             sparql_engine=sparql_engine,
+            configuration_id=configuration_id,
         )
         try:
             with DashboardRegistry() as registry:

@@ -49,6 +49,7 @@ class RunResult:
     entity_total: int | None = None
     grouping_count: int | None = None
     column_count: int | None = None
+    configuration_id: int | None = None
 
     @classmethod
     def ok(
@@ -61,6 +62,7 @@ class RunResult:
         entity_total,
         grouping_count,
         column_count,
+        configuration_id=None,
     ):
         """A successful run (``revision_id`` may be None: no oldid produced)."""
         return cls(
@@ -72,6 +74,7 @@ class RunResult:
             entity_total=entity_total,
             grouping_count=grouping_count,
             column_count=column_count,
+            configuration_id=configuration_id,
         )
 
     @classmethod
@@ -83,6 +86,7 @@ class RunResult:
         duration_ms,
         error_detail=None,
         sparql_engine=None,
+        configuration_id=None,
     ):
         """A failed run. ``error_category`` is required (FAIL => category)."""
         return cls(
@@ -92,6 +96,7 @@ class RunResult:
             duration_ms=duration_ms,
             error_detail=error_detail,
             sparql_engine=sparql_engine,
+            configuration_id=configuration_id,
         )
 
 
@@ -427,8 +432,9 @@ class DashboardRegistry:
             {verb} INTO dashboard_runs
                 (dashboard_id, wiki_id, finished_at, duration_ms, status,
                  trigger_source, sparql_engine, error_category, error_detail,
-                 revision_id, entity_total, grouping_count, column_count)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 revision_id, entity_total, grouping_count, column_count,
+                 configuration_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         with self.conn.cursor() as cur:
             cur.execute(
@@ -447,6 +453,7 @@ class DashboardRegistry:
                     run.entity_total,
                     run.grouping_count,
                     run.column_count,
+                    run.configuration_id,
                 ),
             )
             return cur.rowcount > 0

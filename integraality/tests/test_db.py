@@ -80,6 +80,30 @@ class TestDashboardRunsTable(unittest.TestCase):
         stmt = self._dashboard_runs_stmt()
         self.assertIn("ENUM('OK', 'FAIL')", stmt)
 
+    def test_links_to_configuration(self):
+        stmt = self._dashboard_runs_stmt()
+        self.assertIn("configuration_id", stmt)
+        self.assertIn("REFERENCES dashboard_configurations (id)", stmt)
+
+    def test_configuration_tables_declared_before_runs(self):
+        # dashboard_runs FKs into dashboard_configurations, so the config table
+        # must be created first (no ALTER needed).
+        names = []
+        for stmt in _read_schema():
+            match = re.search(r"EXISTS (\w+) \(", stmt)
+            if match:
+                names.append(match.group(1))
+        self.assertLess(
+            names.index("dashboard_configurations"), names.index("dashboard_runs")
+        )
+
+    def test_schema_has_no_alter_statements(self):
+        # Everything is additive CREATE TABLE IF NOT EXISTS -- no ALTER to make
+        # ensure_schema non-idempotent across restarts.
+        self.assertEqual(
+            [s for s in _read_schema() if s.upper().startswith("ALTER")], []
+        )
+
 
 class TestPagesTable(unittest.TestCase):
     """pages: the shared wiki-page dimension."""

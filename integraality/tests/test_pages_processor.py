@@ -894,6 +894,35 @@ class TestRunRecording(ProcessortTest):
         self.assertEqual(run.error_category, "error")
 
     @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_ok_threads_configuration_id(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        self.processor._record_run_ok(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=1.0,
+            stats=self._stats(),
+            groupings={},
+            report_groupings=[],
+            revision_id=1,
+            configuration_id=99,
+        )
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.configuration_id, 99)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
+    def test_record_run_fail_threads_configuration_id(self, mock_registry_cls):
+        registry = mock_registry_cls.return_value.__enter__.return_value
+        self.processor._record_run_fail(
+            self._dashboard_page(),
+            trigger_source="CRON",
+            elapsed_time=0.1,
+            exc=ValueError("boom"),
+            configuration_id=99,
+        )
+        _page_meta, run = registry.record_run.call_args[0]
+        self.assertEqual(run.configuration_id, 99)
+
+    @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_ok_is_best_effort(self, mock_registry_cls):
         """A recording failure must not propagate (never break the crawl)."""
         registry = mock_registry_cls.return_value.__enter__.return_value

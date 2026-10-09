@@ -566,6 +566,29 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["entity_total"], 39163)
         self.mock_conn.commit.assert_called_once()
 
+    def test_record_run_persists_configuration_id(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
+
+        self.registry.record_run(
+            self._page_metadata(),
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=72000,
+                sparql_engine="WDQS",
+                revision_id=555,
+                entity_total=1,
+                grouping_count=1,
+                column_count=1,
+                configuration_id=99,
+            ),
+        )
+
+        row = self._run_insert_by_column()
+        self.assertEqual(row["configuration_id"], 99)
+
     def test_record_run_fail_carries_category_not_revision(self):
         self.mock_cursor.fetchall.return_value = [
             {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},

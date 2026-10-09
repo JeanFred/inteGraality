@@ -77,6 +77,10 @@ class ReferenceCheck(ABC):
         )
         return (lines, ["?refProperty", "?refValue"])
 
+    # Stable per-leaf token (any|good|property|any_of|all_of); a plain ClassVar,
+    # enforced by a test rather than @abstractmethod.
+    kind: ClassVar[str]
+
     @abstractmethod
     def key_suffix(self):
         """Suffix for the column key (e.g. 'S*', 'S248')."""
@@ -92,6 +96,8 @@ class ReferenceCheck(ABC):
 
 class AnyReferenceCheck(ReferenceCheck):
     """S* − statement has any reference (prov:wasDerivedFrom)."""
+
+    kind: ClassVar[str] = "any"
 
     def __eq__(self, other):
         return isinstance(other, AnyReferenceCheck)
@@ -116,6 +122,8 @@ class AnyReferenceCheck(ReferenceCheck):
 
 class PropertyReferenceCheck(ReferenceCheck):
     """S248 or S248=Q19216625 − statement has a reference using a specific property (optionally with a specific value)."""
+
+    kind: ClassVar[str] = "property"
 
     def __init__(self, property, value=None):
         self.property = property
@@ -225,6 +233,7 @@ class AnyOfPropertiesReferenceCheck(MultiPropertyReferenceCheck):
     _key_separator = ";"
     _label_separator = "/"
     _html_separator = " / "
+    kind: ClassVar[str] = "any_of"
 
     def sparql_pattern(self):
         """SPARQL pattern that is true when the statement has a ref with any of the properties."""
@@ -258,6 +267,7 @@ class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
     _key_separator = "+"
     _label_separator = "+"
     _html_separator = " + "
+    kind: ClassVar[str] = "all_of"
 
     def sparql_pattern(self):
         """SPARQL pattern: a single ref node has all listed properties."""
@@ -283,6 +293,8 @@ class AllPropertiesReferenceCheck(MultiPropertyReferenceCheck):
 
 class GoodReferenceCheck(ReferenceCheck):
     """S! − statement has a reference that is not from a known-subpar source."""
+
+    kind: ClassVar[str] = "good"
 
     BAD_PROPERTIES: ClassVar[list[str]] = ["P143", "P3452", "P887"]
 

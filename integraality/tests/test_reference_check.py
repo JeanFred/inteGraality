@@ -6,6 +6,7 @@ from ..reference_check import (
     AnyReferenceCheck,
     GoodReferenceCheck,
     PropertyReferenceCheck,
+    ReferenceCheck,
 )
 
 
@@ -284,3 +285,40 @@ class TestReferenceCheckStrategies(unittest.TestCase):
 
     def test_good_reference_check_equality(self):
         self.assertEqual(GoodReferenceCheck(), GoodReferenceCheck())
+
+    def test_kind_tokens(self):
+        self.assertEqual(AnyReferenceCheck().kind, "any")
+        self.assertEqual(GoodReferenceCheck().kind, "good")
+        self.assertEqual(PropertyReferenceCheck("P248").kind, "property")
+        self.assertEqual(PropertyReferenceCheck("P248", "Q19216625").kind, "property")
+        self.assertEqual(
+            AnyOfPropertiesReferenceCheck([("P248", None), ("P854", None)]).kind,
+            "any_of",
+        )
+        self.assertEqual(
+            AllPropertiesReferenceCheck([("P248", None), ("P304", None)]).kind,
+            "all_of",
+        )
+
+    def test_every_concrete_leaf_defines_kind(self):
+        # The runtime guard that replaces @abstractmethod for `kind`.
+        valid = {"any", "good", "property", "any_of", "all_of"}
+        leaves = self._concrete_leaves(ReferenceCheck)
+        self.assertTrue(leaves)  # sanity: we actually found subclasses
+        for leaf in leaves:
+            kind = getattr(leaf, "kind", None)
+            self.assertIsInstance(
+                kind, str, f"{leaf.__name__} is missing a `kind` token"
+            )
+            self.assertTrue(kind, f"{leaf.__name__} has an empty `kind`")
+            self.assertIn(kind, valid, f"{leaf.__name__} has unknown kind")
+
+    @staticmethod
+    def _concrete_leaves(base):
+        """All instantiable (non-abstract) subclasses of base, recursively."""
+        leaves = []
+        for sub in base.__subclasses__():
+            leaves.extend(TestReferenceCheckStrategies._concrete_leaves(sub))
+            if not getattr(sub, "__abstractmethods__", None):
+                leaves.append(sub)
+        return leaves

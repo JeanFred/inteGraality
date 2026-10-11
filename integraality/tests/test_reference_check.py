@@ -5,6 +5,7 @@ from ..reference_check import (
     AnyOfPropertiesReferenceCheck,
     AnyReferenceCheck,
     GoodReferenceCheck,
+    MultiPropertyReferenceCheck,
     PropertyReferenceCheck,
     ReferenceCheck,
 )
@@ -322,3 +323,56 @@ class TestReferenceCheckStrategies(unittest.TestCase):
             if not getattr(sub, "__abstractmethods__", None):
                 leaves.append(sub)
         return leaves
+
+    def test_reference_atoms_empty_for_any_and_good(self):
+        self.assertEqual(AnyReferenceCheck().reference_atoms(), [])
+        self.assertEqual(GoodReferenceCheck().reference_atoms(), [])
+
+    def test_reference_atoms_single_for_property(self):
+        self.assertEqual(PropertyReferenceCheck("P248").reference_atoms(), ["S248"])
+
+    def test_reference_atoms_valued_is_atoms_only(self):
+        self.assertEqual(
+            PropertyReferenceCheck("P248", "Q19216625").reference_atoms(),
+            ["S248=Q19216625"],
+        )
+
+    def test_reference_atoms_multi_returns_each_part(self):
+        self.assertEqual(
+            AnyOfPropertiesReferenceCheck(
+                [("P248", None), ("P854", None)]
+            ).reference_atoms(),
+            ["S248", "S854"],
+        )
+        self.assertEqual(
+            AllPropertiesReferenceCheck(
+                [("P248", "Q135436770"), ("P813", None)]
+            ).reference_atoms(),
+            ["S248=Q135436770", "S813"],
+        )
+
+    def test_every_concrete_leaf_reference_atoms_is_list(self):
+        # Parallel safeguard to the kind guard: a new leaf must return a list
+        # (empty only for the valueless any/good).
+        valueless = (AnyReferenceCheck, GoodReferenceCheck)
+        for leaf in self._concrete_leaves(ReferenceCheck):
+            atoms = self._make_instance(leaf).reference_atoms()
+            self.assertIsInstance(atoms, list, f"{leaf.__name__} atoms not a list")
+            if leaf in valueless:
+                self.assertEqual(atoms, [], f"{leaf.__name__} should have no atoms")
+            else:
+                self.assertTrue(atoms, f"{leaf.__name__} should expose atoms")
+
+    @staticmethod
+    def _make_instance(leaf):
+        """A representative instance of a concrete leaf, for the atoms safeguard.
+
+        Covers the two constructor shapes (valueless / property / list-of-pairs)
+        from the leaf's own signature, so a newly-added leaf is handled or fails
+        loudly here rather than being silently skipped by a stale lookup table.
+        """
+        if issubclass(leaf, MultiPropertyReferenceCheck):
+            return leaf([("P248", None)])
+        if issubclass(leaf, PropertyReferenceCheck):
+            return leaf("P248")
+        return leaf()

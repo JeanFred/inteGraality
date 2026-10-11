@@ -85,6 +85,20 @@ class ReferenceCheck(ABC):
     def key_suffix(self):
         """Suffix for the column key (e.g. 'S*', 'S248')."""
 
+    def reference_atoms(self):
+        """Structured reference atoms for the reference_check_tokens bag.
+
+        An atom is the smallest indivisible token in the bag: one reference
+        constraint, S<prop> optionally bound to =Q<value> (e.g. S248=Q19216625).
+        Property and value stay fused in a single token (not two separate
+        entries) so canonical sorting reorders constraints without scrambling
+        which value belongs to which property.
+
+        Empty for any/good (whose checks have no specific property). Sourced
+        from the per-item builders, not by splitting the joined key_suffix().
+        """
+        return []
+
     @abstractmethod
     def column_label_suffix(self):
         """Wikitext suffix appended after the property template in the column header."""
@@ -128,6 +142,9 @@ class PropertyReferenceCheck(ReferenceCheck):
     def __init__(self, property, value=None):
         self.property = property
         self.value = value
+
+    def reference_atoms(self):
+        return [self.key_suffix()]
 
     def __eq__(self, other):
         return (
@@ -213,6 +230,9 @@ class MultiPropertyReferenceCheck(ReferenceCheck):
         return self._key_separator.join(
             self._key_for_item(prop, value) for prop, value in self.properties
         )
+
+    def reference_atoms(self):
+        return [self._key_for_item(prop, value) for prop, value in self.properties]
 
     def column_label_suffix(self):
         props = self._label_separator.join(

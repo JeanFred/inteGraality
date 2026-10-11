@@ -13,7 +13,7 @@ integraality/schema.sql
 integraality/tests/test_db.py
   h_bc010f8da910ff 3,112-199
 integraality/config_hash.py
-  h_bc010f8da910ff 2,6-9,12-13,14,16-18,20,23-30,31-34,35-51,55-64,66-70,72-73
+  h_bc010f8da910ff 1-73
 integraality/tests/test_config_hash.py
   h_bc010f8da910ff 1-12,13-34,35-85,86-105
 ---

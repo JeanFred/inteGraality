@@ -1,0 +1,30 @@
+integraality/tests/test_db.py
+  h_bc010f8da910ff 3,112-199
+integraality/schema.sql
+  h_bc010f8da910ff 58-78,58-69,73-78,80-83,84-113
+integraality/reference_check.py
+  h_bc010f8da910ff 82-83,100-101,126-127,236,270,297-298
+integraality/tests/test_reference_check.py
+  h_bc010f8da910ff 9,288-329
+integraality/column.py
+  h_bc010f8da910ff 318,323-324,448-455,457-459
+integraality/column_source.py
+  h_bc010f8da910ff 80-81,85-91
+integraality/tests/test_column_source.py
+  h_bc010f8da910ff 113-150
+integraality/config_hash.py
+  h_bc010f8da910ff 1-73
+integraality/tests/test_config_hash.py
+  h_bc010f8da910ff 1-12,13-34,35-85,86-105
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "e59616dae31247d5e453af0883b5fe3728b64c6c",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

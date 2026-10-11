@@ -1,5 +1,5 @@
 integraality/config_facets.py
-  h_bc010f8da910ff 2,5-73,75-79,81-86,88-91,93-98,99-175,179-208
+  h_bc010f8da910ff 1-208
 integraality/dashboard_registry.py
   h_bc010f8da910ff 274-283,287-389
 integraality/pages_processor.py

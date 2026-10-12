@@ -47,7 +47,6 @@ class PropertyStatistics:
         selector_sparql,
         columns,
         grouping_configuration,
-        grouping_type=None,
         row_no_group=False,
         row_totals=True,
         sparql_query_engine=None,

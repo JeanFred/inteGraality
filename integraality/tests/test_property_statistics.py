@@ -502,7 +502,6 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
                 predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
             selector_sparql="wdt:P31 wd:Q39715",
-            grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
         )
         result = stats.get_query_for_items_for_property_positive(
@@ -1996,7 +1995,6 @@ SELECT ?entity ?entityLabel WHERE {
                 predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
             selector_sparql="wdt:P31 wd:Q39715",
-            grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
         )
         result = stats.get_query_for_items_for_property_negative(
@@ -2460,7 +2458,6 @@ LIMIT 1000
                 predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
             selector_sparql="wdt:P31 wd:Q39715",
-            grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
         )
 
@@ -2498,7 +2495,6 @@ LIMIT 1000
                 predicate="wdt:P571", grouping_type=YearGroupingType()
             ),
             selector_sparql="wdt:P31 wd:Q39715",
-            grouping_type="year",
             sparql_query_engine=self.mock_sparql_query,
         )
 

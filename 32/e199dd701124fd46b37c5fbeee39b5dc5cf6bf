@@ -1,0 +1,16 @@
+integraality/reference_check.py
+  h_bc010f8da910ff 80-83,100-101,126-127,236,270,297-298
+integraality/tests/test_reference_check.py
+  h_bc010f8da910ff 9,288-324
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "32e199dd701124fd46b37c5fbeee39b5dc5cf6bf",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

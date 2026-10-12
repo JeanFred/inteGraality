@@ -1,5 +1,7 @@
 """SPARQL engine abstraction (WDQS and QLever)."""
 
+import time
+
 import pywikibot
 import pywikibot.data.sparql
 import requests
@@ -164,8 +166,22 @@ def validate_query_syntax(query):
         ) from e
 
 
+USER_AGENT = (
+    "inteGraality (https://integraality.toolforge.org/) "
+    f"{requests.utils.default_user_agent()}"
+)
+
+
 class QLeverSparqlQueryEngine(SparqlQueryEngine):
     name = "QLever"
+
+    # A dashboard fires one query per column (times up to three for the
+    # no-group and totals rows) back to back, which can trip QLever's rate
+    # limiting (HTTP 429) on larger dashboards. Retry those with backoff
+    # rather than failing the whole run.
+    max_retries = 3
+    retry_base_delay = 2  # seconds; doubled on each attempt
+    retry_max_delay = 30  # seconds; caps any server-provided Retry-After
 
     def __init__(self, endpoint="https://qlever.dev/api/wikidata"):
         self.endpoint = endpoint
@@ -174,12 +190,31 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
     def ui_url(self):
         return self.endpoint.replace("/api/", "/") + "/"
 
+    def _get_retry_delay(self, response, attempt):
+        """Seconds to wait before retrying, honouring Retry-After if numeric."""
+        retry_after = response.headers.get("Retry-After", "")
+        if retry_after.isdigit():
+            delay = int(retry_after)
+        else:
+            delay = self.retry_base_delay * 2**attempt
+        return min(delay, self.retry_max_delay)
+
+    def _get(self, query):
+        params = {"query": query}
+        headers = {"User-Agent": USER_AGENT}
+        for attempt in range(self.max_retries + 1):
+            response = requests.get(
+                self.endpoint, params=params, headers=headers, timeout=30
+            )
+            if response.status_code != 429 or attempt == self.max_retries:
+                return response
+            time.sleep(self._get_retry_delay(response, attempt))
+
     def _do_select(self, query):
         try:
             query = add_prefixes_to_query(query)
 
-            params = {"query": query}
-            response = requests.get(self.endpoint, params=params, timeout=30)
+            response = self._get(query)
             response.raise_for_status()
 
             data = response.json()

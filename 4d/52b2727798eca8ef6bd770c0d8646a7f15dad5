@@ -1,0 +1,19 @@
+integraality/column.py
+  s_fcbf6fd47e22a2::t_e3c3cabcec48f5 396-398
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4d52b2727798eca8ef6bd770c0d8646a7f15dad5",
+  "prompts": {},
+  "sessions": {
+    "s_fcbf6fd47e22a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3166e3b7-7500-42e4-9c7a-986b034584e2",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+integraality/config_backfiller.py
+  h_bc010f8da910ff 1-44,45-48,49-51,52-174,175-179,180-283
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 328-366
+integraality/tests/test_config_backfiller.py
+  h_bc010f8da910ff 1-138,139-154,155-239
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 828-858
+integraality/schema.sql
+  h_bc010f8da910ff 81-83
+integraality/config_facets.py
+  h_bc010f8da910ff 92-101,103,105-106,108-109,111,113-116,118-121
+integraality/tests/test_config_facets.py
+  h_bc010f8da910ff 6,13,16,224-282
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0db90b4cf56e1278d15fd4579b44a4302bd47f65",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

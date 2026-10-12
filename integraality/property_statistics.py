@@ -48,7 +48,6 @@ class PropertyStatistics:
         columns,
         grouping_configuration,
         grouping_type=None,
-        higher_grouping_type=None,
         row_no_group=False,
         row_totals=True,
         sparql_query_engine=None,
@@ -67,7 +66,6 @@ class PropertyStatistics:
             )
         self.columns = {column.get_key(): column for column in columns}
         self.grouping_configuration = grouping_configuration
-        self.higher_grouping_type = higher_grouping_type
         self.selector_sparql = selector_sparql
         self.row_no_group = row_no_group
         self.row_totals = row_totals

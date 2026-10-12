@@ -393,6 +393,9 @@ class QualifierColumn(PropertyColumn):
     def get_key(self):
         return "/".join([x for x in [self.property, self.value, self.qualifier] if x])
 
+    def get_type_name(self):
+        return "qualifier"
+
     def get_column_label(self):
         if self.title:
             return f"[[Property:{self.qualifier}|{self.title}]]"

@@ -136,6 +136,10 @@ class TestPropertyColumnWithQualifier(PropertyStatisticsTest):
         super().setUp()
         self.column = QualifierColumn("P1030", qualifier="P805")
 
+    def test_get_type_name(self):
+        # Distinct from PropertyColumn's "property" (it used to inherit it).
+        self.assertEqual(self.column.get_type_name(), "qualifier")
+
     def test_make_column_header(self):
         result = self.column.make_column_header()
         expected = '! data-sort-type="number"|{{Property|P805}}\n'

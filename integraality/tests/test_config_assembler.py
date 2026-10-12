@@ -207,6 +207,18 @@ class TestParseConfig(unittest.TestCase):
         with self.assertRaises(ConfigAssemblyException):
             self.assembler.parse_config(input_config)
 
+    def test_config_with_non_integer_grouping_threshold(self):
+        # A non-integer threshold is a config error (CONFIG category), not a
+        # bare ValueError that would surface as an unclassified failure.
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "columns": "P136,P404",
+            "grouping_threshold": "abc",
+        }
+        with self.assertRaises(ConfigAssemblyException):
+            self.assembler.parse_config(input_config)
+
     def test_config_with_qlever_endpoint(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",

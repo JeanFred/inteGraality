@@ -46,6 +46,22 @@ class ConfigAssembler:
             if key
         }
 
+    @staticmethod
+    def _parse_grouping_threshold(config):
+        """Pop grouping_threshold as an int (default 20).
+
+        A non-integer value is a config error, not an unclassified crash, so it
+        raises ConfigAssemblyException (CONFIG category) rather than a bare
+        ValueError from int().
+        """
+        raw = config.pop("grouping_threshold", 20)
+        try:
+            return int(raw)
+        except (TypeError, ValueError):
+            raise ConfigAssemblyException(
+                f"grouping_threshold must be an integer, got {raw!r}"
+            )
+
     def parse_config(self, config):
         for old, new in PARAM_RENAMES.items():
             if old in config:
@@ -54,11 +70,12 @@ class ConfigAssembler:
             if field not in config:
                 raise ConfigAssemblyException(f"A required field is missing: {field}")
         config["columns"] = self.parse_config_columns(config.pop("columns"))
+        grouping_threshold = self._parse_grouping_threshold(config)
         try:
             config["grouping_configuration"] = GroupingConfigurationMaker.make(
                 config.pop("grouping_property"),
                 config.pop("higher_grouping", None),
-                int(config.pop("grouping_threshold", 20)),
+                grouping_threshold,
                 config.pop("grouping_link", None),
                 config.pop("groupings", None),
             )

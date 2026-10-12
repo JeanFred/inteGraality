@@ -1,0 +1,36 @@
+integraality/config_assembler.py
+  h_bc010f8da910ff 49-64,73,78
+integraality/tests/test_config_assembler.py
+  h_bc010f8da910ff 210-221
+integraality/reference_check.py
+  h_bc010f8da910ff 82-83,114-115,140-141,256,290,317-318
+integraality/tests/test_reference_check.py
+  h_bc010f8da910ff 10,289-304,306-325
+integraality/column.py
+  s_fcbf6fd47e22a2::t_e3c3cabcec48f5 396-398
+integraality/schema.sql
+  h_bc010f8da910ff 58-106,110-117
+integraality/tests/test_db.py
+  h_bc010f8da910ff 3,112-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4a18b5b629674e944e5b10a41f706b34dfb3898d",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_fcbf6fd47e22a2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3166e3b7-7500-42e4-9c7a-986b034584e2",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

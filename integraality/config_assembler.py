@@ -5,7 +5,7 @@ Assemble Property dashboard configuration from template parameters.
 from .column import ColumnMaker, ColumnSyntaxException
 from .grouping import GroupingConfigurationMaker
 from .grouping_link import GroupingLinkSyntaxException
-from .sparql_utils import SparqlEngineBuilder
+from .sparql_utils import SparqlEngineBuilder, UnsupportedSparqlEngineException
 
 REQUIRED_CONFIG_FIELDS = ["selector_sparql", "grouping_property", "columns"]
 VALID_GROUPING_LINK_MODES = ("link", "create")
@@ -62,6 +62,19 @@ class ConfigAssembler:
                 f"grouping_threshold must be an integer, got {raw!r}"
             )
 
+    def _assemble_engine(self, config):
+        """Build the SPARQL engine, translating an unsupported endpoint into a
+        ConfigAssemblyException (CONFIG category) rather than letting it surface
+        as an unclassified failure.
+        """
+        try:
+            return SparqlEngineBuilder.make(
+                config.pop("sparql_endpoint", None),
+                site_url=self.site_url,
+            )
+        except UnsupportedSparqlEngineException as e:
+            raise ConfigAssemblyException(e) from e
+
     def parse_config(self, config):
         for old, new in PARAM_RENAMES.items():
             if old in config:
@@ -91,10 +104,7 @@ class ConfigAssembler:
             raise ConfigAssemblyException(
                 f"Unknown grouping_link_mode: {config['grouping_link_mode']}"
             )
-        config["sparql_query_engine"] = SparqlEngineBuilder.make(
-            config.pop("sparql_endpoint", None),
-            site_url=self.site_url,
-        )
+        config["sparql_query_engine"] = self._assemble_engine(config)
         return config
 
     @staticmethod

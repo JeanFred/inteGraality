@@ -243,6 +243,19 @@ class TestParseConfig(unittest.TestCase):
             "https://qlever.dev/api/wikimedia-commons",
         )
 
+    def test_config_with_unsupported_endpoint(self):
+        # An unrecognized sparql_endpoint is a config error (CONFIG category),
+        # not a bare UnsupportedSparqlEngineException that would surface as an
+        # unclassified failure.
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "columns": "P136:genre,P404",
+            "sparql_endpoint": "https://example.com/not-a-sparql-endpoint",
+        }
+        with self.assertRaises(ConfigAssemblyException):
+            self.assembler.parse_config(input_config)
+
     def test_config_with_wdqs_endpoint(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",

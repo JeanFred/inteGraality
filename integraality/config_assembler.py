@@ -62,6 +62,43 @@ class ConfigAssembler:
                 f"grouping_threshold must be an integer, got {raw!r}"
             )
 
+    @staticmethod
+    def _apply_legacy_renames(config):
+        """Migrate deprecated template param names to their canonical form.
+
+        The canonical name wins if both are present (so an explicit `columns`
+        beats a legacy `properties`).
+        """
+        for old, new in PARAM_RENAMES.items():
+            if old in config:
+                config.setdefault(new, config.pop(old))
+
+    @staticmethod
+    def _check_required_fields(config):
+        for field in REQUIRED_CONFIG_FIELDS:
+            if field not in config:
+                raise ConfigAssemblyException(f"A required field is missing: {field}")
+
+    @staticmethod
+    def _assemble_grouping(config, grouping_threshold):
+        try:
+            return GroupingConfigurationMaker.make(
+                config.pop("grouping_property"),
+                config.pop("higher_grouping", None),
+                grouping_threshold,
+                config.pop("grouping_link", None),
+                config.pop("groupings", None),
+            )
+        except GroupingLinkSyntaxException as e:
+            raise ConfigAssemblyException(e)
+
+    @staticmethod
+    def _parse_grouping_link_mode(config):
+        mode = config.pop("grouping_link_mode", "link")
+        if mode not in VALID_GROUPING_LINK_MODES:
+            raise ConfigAssemblyException(f"Unknown grouping_link_mode: {mode}")
+        return mode
+
     def _assemble_engine(self, config):
         """Build the SPARQL engine, translating an unsupported endpoint into a
         ConfigAssemblyException (CONFIG category) rather than letting it surface
@@ -79,34 +116,19 @@ class ConfigAssembler:
         # Work on a private copy: the body consumes keys via pop() as it builds,
         # so never mutate the caller's dict.
         config = dict(raw_params)
-        for old, new in PARAM_RENAMES.items():
-            if old in config:
-                config.setdefault(new, config.pop(old))
-        for field in REQUIRED_CONFIG_FIELDS:
-            if field not in config:
-                raise ConfigAssemblyException(f"A required field is missing: {field}")
+        self._apply_legacy_renames(config)
+        self._check_required_fields(config)
         config["columns"] = self.parse_config_columns(config.pop("columns"))
         grouping_threshold = self._parse_grouping_threshold(config)
-        try:
-            config["grouping_configuration"] = GroupingConfigurationMaker.make(
-                config.pop("grouping_property"),
-                config.pop("higher_grouping", None),
-                grouping_threshold,
-                config.pop("grouping_link", None),
-                config.pop("groupings", None),
-            )
-        except GroupingLinkSyntaxException as e:
-            raise ConfigAssemblyException(e)
+        config["grouping_configuration"] = self._assemble_grouping(
+            config, grouping_threshold
+        )
         config["row_no_group"] = _parse_bool_param(
             config, "row_no_group", default=False
         )
         config["row_totals"] = _parse_bool_param(config, "row_totals", default=True)
-        config["grouping_link_mode"] = config.pop("grouping_link_mode", "link")
+        config["grouping_link_mode"] = self._parse_grouping_link_mode(config)
         config.pop("property_threshold", None)
-        if config["grouping_link_mode"] not in VALID_GROUPING_LINK_MODES:
-            raise ConfigAssemblyException(
-                f"Unknown grouping_link_mode: {config['grouping_link_mode']}"
-            )
         config["sparql_query_engine"] = self._assemble_engine(config)
         return config
 

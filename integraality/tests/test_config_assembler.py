@@ -256,6 +256,18 @@ class TestParseConfig(unittest.TestCase):
         with self.assertRaises(ConfigAssemblyException):
             self.assembler.parse_config(input_config)
 
+    def test_parse_config_does_not_mutate_input(self):
+        # parse_config consumes keys via pop() internally; it must do so on a
+        # private copy, leaving the caller's dict intact.
+        input_config = {
+            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
+            "grouping_property": "P400",
+            "columns": "P136:genre,P404",
+        }
+        before = dict(input_config)
+        self.assembler.parse_config(input_config)
+        self.assertEqual(input_config, before)
+
     def test_config_with_wdqs_endpoint(self):
         input_config = {
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",

@@ -75,7 +75,10 @@ class ConfigAssembler:
         except UnsupportedSparqlEngineException as e:
             raise ConfigAssemblyException(e) from e
 
-    def parse_config(self, config):
+    def parse_config(self, raw_params):
+        # Work on a private copy: the body consumes keys via pop() as it builds,
+        # so never mutate the caller's dict.
+        config = dict(raw_params)
         for old, new in PARAM_RENAMES.items():
             if old in config:
                 config.setdefault(new, config.pop(old))

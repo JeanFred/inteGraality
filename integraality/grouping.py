@@ -374,20 +374,38 @@ class GroupingConfiguration:
         )
         return grouping_type
 
-    def resolve_type_if_needed(self, selector_sparql, sparql_query_engine):
-        """Detect the grouping type via SPARQL if not already set.
+    def _copy_with(self, *, grouping_type, explicit_groupings):
+        clone = GroupingConfiguration(
+            predicate=self.predicate,
+            higher_grouping=self.higher_grouping,
+            grouping_link_type=self.grouping_link_type,
+            grouping_threshold=self.grouping_threshold,
+            explicit_groupings=explicit_groupings,
+            grouping_type=grouping_type,
+            raw_explicit_groupings=self._raw_explicit_groupings,
+        )
+        return clone
 
-        Idempotent: callers must run this before caching or building a
+    def with_resolved_type(self, selector_sparql, sparql_query_engine):
+        """Return a GroupingConfiguration with its grouping type resolved.
+
+        Value-returning (no mutation of self): if the type is already known the
+        same instance is returned; otherwise the type is detected via SPARQL and
+        a new instance carrying it (and any parsed explicit groupings) is
+        returned. Callers must resolve before caching or building a
         PropertyStatistics, so a cache hit needs no live detection query.
         """
-        if self.grouping_type is None:
-            self.grouping_type = self._detect_grouping_type(
-                selector_sparql, sparql_query_engine
+        if self.grouping_type is not None:
+            return self
+        grouping_type = self._detect_grouping_type(selector_sparql, sparql_query_engine)
+        explicit_groupings = self.explicit_groupings
+        if self._raw_explicit_groupings:
+            explicit_groupings = grouping_type.parse_groupings(
+                self._raw_explicit_groupings
             )
-            if self._raw_explicit_groupings:
-                self.explicit_groupings = self.grouping_type.parse_groupings(
-                    self._raw_explicit_groupings
-                )
+        return self._copy_with(
+            grouping_type=grouping_type, explicit_groupings=explicit_groupings
+        )
 
     def get_grouping_information(self, selector_sparql, sparql_query_engine):
         """

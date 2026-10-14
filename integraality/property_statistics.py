@@ -70,7 +70,9 @@ class PropertyStatistics:
         self.row_totals = row_totals
         self.sparql_query_engine = sparql_query_engine
 
-        self.grouping_configuration.resolve_type_if_needed(
+        # Safety net for stats objects constructed directly (tests, __main__);
+        # the processor already resolves before constructing.
+        self.grouping_configuration = self.grouping_configuration.with_resolved_type(
             selector_sparql, sparql_query_engine
         )
 

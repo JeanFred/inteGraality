@@ -162,9 +162,10 @@ class PagesProcessor:
         except ConfigAssemblyException as e:
             raise ConfigException(e) from e
         # Resolve the grouping type before caching so cache hits skip it.
-        config["grouping_configuration"].resolve_type_if_needed(
-            config["selector_sparql"], config["sparql_query_engine"]
-        )
+        # with_resolved_type is value-returning: rebind rather than mutate.
+        config["grouping_configuration"] = config[
+            "grouping_configuration"
+        ].with_resolved_type(config["selector_sparql"], config["sparql_query_engine"])
         # Expand any "Pxxx(Qyyy)" column sources into concrete columns before
         # caching, so cache hits (and PropertyStatistics) see a plain column
         # list. Items live on the Wikidata repo even for Commons dashboards.

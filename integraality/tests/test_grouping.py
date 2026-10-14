@@ -358,17 +358,20 @@ class TestResolveType(unittest.TestCase):
         config = grouping.GroupingConfiguration(
             predicate="wdt:P569", raw_explicit_groupings="2020,2021"
         )
-        config.resolve_type_if_needed("wdt:P31 wd:Q5", mock_engine)
-        self.assertIsInstance(config.grouping_type, grouping.YearGroupingType)
-        self.assertEqual(config.explicit_groupings, [2020, 2021])
+        resolved = config.with_resolved_type("wdt:P31 wd:Q5", mock_engine)
+        self.assertIsInstance(resolved.grouping_type, grouping.YearGroupingType)
+        self.assertEqual(resolved.explicit_groupings, [2020, 2021])
+        # Value-returning: the original config is left untouched.
+        self.assertIsNone(config.grouping_type)
 
     def test_resolve_skips_if_type_already_set(self):
         mock_engine = create_autospec(WdqsSparqlQueryEngine, instance=True)
         config = grouping.GroupingConfiguration(
             predicate="wdt:P17", grouping_type=grouping.ItemGroupingType()
         )
-        config.resolve_type_if_needed("wdt:P31 wd:Q5", mock_engine)
+        resolved = config.with_resolved_type("wdt:P31 wd:Q5", mock_engine)
         mock_engine.select.assert_not_called()
+        self.assertIs(resolved, config)
 
 
 class TestParseGroupings(unittest.TestCase):

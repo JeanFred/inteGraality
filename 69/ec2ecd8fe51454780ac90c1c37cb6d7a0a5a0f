@@ -1,0 +1,31 @@
+integraality/property_statistics.py
+  h_bc010f8da910ff 73-75
+integraality/pages_processor.py
+  h_bc010f8da910ff 165-167
+  s_a3be03d3ec2ea7::t_6fdf9869e7c124 168
+integraality/grouping.py
+  h_bc010f8da910ff 377-390,392-395,398-404,406-408
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 361-365,372,374
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "69ec2ecd8fe51454780ac90c1c37cb6d7a0a5a0f",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_a3be03d3ec2ea7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7806bea4-bfa0-45af-acb1-8d977d1f2cad",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -8,6 +8,7 @@ import fakeredis
 
 from ..column import ColumnMaker, PropertyColumn, PropertySourceColumn
 from ..column_source import ColumnSourceException
+from ..config import ParsedConfig
 from ..grouping import GroupingConfiguration, ItemGroupingType
 from ..pages_processor import (
     ConfigException,
@@ -96,13 +97,13 @@ class TestGroupingTypeCaching(ProcessortTest):
     PropertyStatistics without re-running the live type-detection query."""
 
     def _unresolved_config(self, engine):
-        return {
-            "selector_sparql": "wdt:P31 wd:Q5",
-            "columns": [ColumnMaker.make("P585", None)],
-            "grouping_configuration": GroupingConfiguration(predicate="wdt:P585"),
-            "grouping_link_mode": "link",
-            "sparql_query_engine": engine,
-        }
+        return ParsedConfig(
+            selector_sparql="wdt:P31 wd:Q5",
+            columns=(ColumnMaker.make("P585", None),),
+            grouping_configuration=GroupingConfiguration(predicate="wdt:P585"),
+            grouping_link_mode="link",
+            sparql_query_engine=engine,
+        )
 
     def _patched_page(self, engine):
         """Stub the assembler so parse_config yields our unresolved config."""
@@ -134,7 +135,7 @@ class TestGroupingTypeCaching(ProcessortTest):
         cached = self.processor.cache.get_cache_value(
             self.processor.make_cache_key(page.title())
         )
-        self.assertIsNotNone(cached["grouping_configuration"].grouping_type)
+        self.assertIsNotNone(cached.grouping_configuration.grouping_type)
 
         # ...so a cache hit rebuilds PropertyStatistics with no live query.
         RecordingEngine.calls = 0
@@ -149,19 +150,19 @@ class TestColumnSourceResolution(ProcessortTest):
     PropertyStatistics see a plain column list."""
 
     def _unresolved_config(self):
-        return {
-            "selector_sparql": "wdt:P31 wd:Q39715",
-            "columns": [
+        return ParsedConfig(
+            selector_sparql="wdt:P31 wd:Q39715",
+            columns=(
                 PropertyColumn(property="P136"),
                 PropertySourceColumn(source_property="P1963", source_item="Q39715"),
                 PropertyColumn(property="P404"),
-            ],
-            "grouping_configuration": GroupingConfiguration(
+            ),
+            grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P585", grouping_type=ItemGroupingType()
             ),
-            "grouping_link_mode": "link",
-            "sparql_query_engine": RecordingEngine(),
-        }
+            grouping_link_mode="link",
+            sparql_query_engine=RecordingEngine(),
+        )
 
     def _patched_page(self):
         start_tpl = MagicMock()
@@ -204,13 +205,13 @@ class TestColumnSourceResolution(ProcessortTest):
             any(isinstance(c, PropertySourceColumn) for c in passed_columns)
         )
         # ...and its expanded result is what ends up in the config.
-        self.assertEqual(config["columns"], expanded)
+        self.assertEqual(list(config.columns), expanded)
         # The cached config carries the expanded columns (no placeholder).
         cached = self.processor.cache.get_cache_value(
             self.processor.make_cache_key(page.title())
         )
         self.assertFalse(
-            any(isinstance(c, PropertySourceColumn) for c in cached["columns"])
+            any(isinstance(c, PropertySourceColumn) for c in cached.columns)
         )
 
     def test_source_error_is_config_exception(self):
@@ -655,7 +656,15 @@ class TestRunRecording(ProcessortTest):
     def test_make_stats_object_fills_run_context_engine(self):
         engine = MagicMock()
         engine.name = "QLever"
-        config = {"sparql_query_engine": engine, "grouping_link_mode": "link"}
+        config = ParsedConfig(
+            selector_sparql="wdt:P31 wd:Q5",
+            columns=(),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P1", grouping_type=ItemGroupingType()
+            ),
+            sparql_query_engine=engine,
+            grouping_link_mode="link",
+        )
         run_context = RunContext()
 
         with (
@@ -676,7 +685,15 @@ class TestRunRecording(ProcessortTest):
         # Engine is captured even when PropertyStatistics(**config) later fails.
         engine = MagicMock()
         engine.name = "QLever"
-        config = {"sparql_query_engine": engine, "grouping_link_mode": "link"}
+        config = ParsedConfig(
+            selector_sparql="wdt:P31 wd:Q5",
+            columns=(),
+            grouping_configuration=GroupingConfiguration(
+                predicate="wdt:P1", grouping_type=ItemGroupingType()
+            ),
+            sparql_query_engine=engine,
+            grouping_link_mode="link",
+        )
         run_context = RunContext()
 
         with (

@@ -161,17 +161,14 @@ class PagesProcessor:
             config = self.config_assembler.parse_config(parsed_config)
         except ConfigAssemblyException as e:
             raise ConfigException(e) from e
-        # Resolve the grouping type before caching so cache hits skip it.
-        # with_resolved_type is value-returning: rebind rather than mutate.
-        config["grouping_configuration"] = config[
-            "grouping_configuration"
-        ].with_resolved_type(config["selector_sparql"], config["sparql_query_engine"])
-        # Expand any "Pxxx(Qyyy)" column sources into concrete columns before
-        # caching, so cache hits (and PropertyStatistics) see a plain column
-        # list. Items live on the Wikidata repo even for Commons dashboards.
+        # Resolve the grouping type and expand any "Pxxx(Qyyy)" column sources
+        # into concrete columns before caching, so a cache hit (and
+        # PropertyStatistics) sees a resolved type and a plain column list with
+        # no live query. Items live on the Wikidata repo even for Commons
+        # dashboards.
         resolver = ColumnSourceResolver(repo=self.site.data_repository())
         try:
-            config["columns"] = resolver.resolve_placeholders(config["columns"])
+            config = config.resolved(resolver)
         except ColumnSourceException as e:
             raise ConfigException(e) from e
         key = self.make_cache_key(page.title())
@@ -181,18 +178,17 @@ class PagesProcessor:
     def make_stats_object_for_page(self, page, run_context):
         config = self.make_stats_object_arguments_for_page(page)
         # Record the engine as soon as config resolves it, so a failure in
-        # PropertyStatistics(**config) still carries the engine.
-        engine = config.get("sparql_query_engine")
+        # PropertyStatistics still carries the engine.
+        engine = config.sparql_query_engine
         if engine is not None:
             run_context.sparql_engine = engine.name
-        grouping_link_mode = config.pop("grouping_link_mode", "link")
         try:
-            stats = PropertyStatistics(**config)
+            stats = PropertyStatistics(**config.stats_kwargs())
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         except UnsupportedGroupingConfigurationException as e:
             raise ConfigException(e) from e
-        return stats, grouping_link_mode
+        return stats, config.grouping_link_mode
 
     def process_page(self, page, trigger_source="CRON"):
         start_time = perf_counter()
@@ -455,9 +451,8 @@ class PagesProcessor:
                     f"Temporary server issue: {e}. Please try again later."
                 ) from e
             result = self.make_stats_object_arguments_for_page(page)
-        result.pop("grouping_link_mode", None)
         try:
-            return PropertyStatistics(**result)
+            return PropertyStatistics(**result.stats_kwargs())
         except TypeError:
             raise ConfigException("The template parameters are incorrect.")
         except UnsupportedGroupingConfigurationException as e:

@@ -29,24 +29,27 @@ class TestParseConfig(unittest.TestCase):
             "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
         }
         result = self.assembler.parse_config(input_config)
-        expected = {
-            "grouping_configuration": GroupingConfiguration(
+        self.assertIsInstance(result.sparql_query_engine, WdqsSparqlQueryEngine)
+        self.assertEqual(
+            result.grouping_configuration,
+            GroupingConfiguration(
                 predicate="wdt:P400",
                 grouping_link_type=LabelGroupingLink(
                     template="Wikidata:WikiProject Video games/Reports/Platform/{Len}",
                 ),
             ),
-            "row_no_group": True,
-            "row_totals": True,
-            "columns": [
+        )
+        self.assertTrue(result.row_no_group)
+        self.assertTrue(result.row_totals)
+        self.assertEqual(
+            list(result.columns),
+            [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
-            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_link_mode": "link",
-        }
-        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
-        self.assertEqual(result, expected)
+        )
+        self.assertEqual(result.selector_sparql, "wdt:P31/wdt:P279* wd:Q7889")
+        self.assertEqual(result.grouping_link_mode, "link")
 
     def test_minimal_config(self):
         input_config = {
@@ -55,19 +58,22 @@ class TestParseConfig(unittest.TestCase):
             "columns": "P136:genre,P404",
         }
         result = self.assembler.parse_config(input_config)
-        expected = {
-            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_configuration": GroupingConfiguration(predicate="wdt:P400"),
-            "columns": [
+        self.assertIsInstance(result.sparql_query_engine, WdqsSparqlQueryEngine)
+        self.assertEqual(result.selector_sparql, "wdt:P31/wdt:P279* wd:Q7889")
+        self.assertEqual(
+            result.grouping_configuration,
+            GroupingConfiguration(predicate="wdt:P400"),
+        )
+        self.assertEqual(
+            list(result.columns),
+            [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
-            "row_no_group": False,
-            "row_totals": True,
-            "grouping_link_mode": "link",
-        }
-        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
-        self.assertEqual(result, expected)
+        )
+        self.assertFalse(result.row_no_group)
+        self.assertTrue(result.row_totals)
+        self.assertEqual(result.grouping_link_mode, "link")
 
     def test_full_config(self):
         input_config = {
@@ -79,21 +85,22 @@ class TestParseConfig(unittest.TestCase):
             "property_threshold": "2",
         }
         result = self.assembler.parse_config(input_config)
-        expected = {
-            "selector_sparql": "wdt:P31/wdt:P279* wd:Q7889",
-            "grouping_configuration": GroupingConfiguration(
-                predicate="wdt:P400", grouping_threshold=1
-            ),
-            "columns": [
+        self.assertIsInstance(result.sparql_query_engine, WdqsSparqlQueryEngine)
+        self.assertEqual(result.selector_sparql, "wdt:P31/wdt:P279* wd:Q7889")
+        self.assertEqual(
+            result.grouping_configuration,
+            GroupingConfiguration(predicate="wdt:P400", grouping_threshold=1),
+        )
+        self.assertEqual(
+            list(result.columns),
+            [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
             ],
-            "row_no_group": True,
-            "row_totals": True,
-            "grouping_link_mode": "link",
-        }
-        self.assertIsInstance(result.pop("sparql_query_engine"), WdqsSparqlQueryEngine)
-        self.assertEqual(result, expected)
+        )
+        self.assertTrue(result.row_no_group)
+        self.assertTrue(result.row_totals)
+        self.assertEqual(result.grouping_link_mode, "link")
 
     def test_legacy_stats_for_no_group(self):
         """Backwards compatibility: old template param stats_for_no_group still works."""
@@ -104,7 +111,7 @@ class TestParseConfig(unittest.TestCase):
             "stats_for_no_group": "1",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertTrue(result["row_no_group"])
+        self.assertTrue(result.row_no_group)
 
     def test_legacy_stats_for_no_group_disabled(self):
         """stats_for_no_group=0 should be treated as disabled."""
@@ -115,7 +122,7 @@ class TestParseConfig(unittest.TestCase):
             "stats_for_no_group": "0",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertFalse(result["row_no_group"])
+        self.assertFalse(result.row_no_group)
 
     def test_legacy_properties(self):
         """Backwards compatibility: old template param properties maps to columns."""
@@ -125,9 +132,8 @@ class TestParseConfig(unittest.TestCase):
             "properties": "P136:genre,P404",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertNotIn("properties", result)
         self.assertEqual(
-            result["columns"],
+            list(result.columns),
             [
                 PropertyColumn(property="P136", title="genre"),
                 PropertyColumn(property="P404"),
@@ -143,7 +149,7 @@ class TestParseConfig(unittest.TestCase):
             "properties": "P404",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertEqual(result["columns"], [PropertyColumn(property="P136")])
+        self.assertEqual(list(result.columns), [PropertyColumn(property="P136")])
 
     def test_row_totals_disabled(self):
         input_config = {
@@ -153,7 +159,7 @@ class TestParseConfig(unittest.TestCase):
             "row_totals": "0",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertFalse(result["row_totals"])
+        self.assertFalse(result.row_totals)
 
     def test_row_totals_default(self):
         input_config = {
@@ -162,7 +168,7 @@ class TestParseConfig(unittest.TestCase):
             "properties": "P136",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertTrue(result["row_totals"])
+        self.assertTrue(result.row_totals)
 
     def test_row_totals_explicit_enabled(self):
         input_config = {
@@ -172,7 +178,7 @@ class TestParseConfig(unittest.TestCase):
             "row_totals": "1",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertTrue(result["row_totals"])
+        self.assertTrue(result.row_totals)
 
     def test_empty_config(self):
         input_config = {}
@@ -195,7 +201,7 @@ class TestParseConfig(unittest.TestCase):
             "grouping_link_mode": "create",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertEqual(result["grouping_link_mode"], "create")
+        self.assertEqual(result.grouping_link_mode, "create")
 
     def test_config_with_invalid_grouping_link_mode(self):
         input_config = {
@@ -227,7 +233,7 @@ class TestParseConfig(unittest.TestCase):
             "sparql_endpoint": "https://qlever.dev/wikidata/",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
+        self.assertIsInstance(result.sparql_query_engine, QLeverSparqlQueryEngine)
 
     def test_config_with_commons_site_url(self):
         assembler = ConfigAssembler(site_url="https://commons.wikimedia.org/wiki/")
@@ -237,9 +243,9 @@ class TestParseConfig(unittest.TestCase):
             "columns": "P4082,P180",
         }
         result = assembler.parse_config(input_config)
-        self.assertIsInstance(result["sparql_query_engine"], QLeverSparqlQueryEngine)
+        self.assertIsInstance(result.sparql_query_engine, QLeverSparqlQueryEngine)
         self.assertEqual(
-            result["sparql_query_engine"].endpoint,
+            result.sparql_query_engine.endpoint,
             "https://qlever.dev/api/wikimedia-commons",
         )
 
@@ -276,7 +282,7 @@ class TestParseConfig(unittest.TestCase):
             "sparql_endpoint": "query.wikidata.org",
         }
         result = self.assembler.parse_config(input_config)
-        self.assertIsInstance(result["sparql_query_engine"], WdqsSparqlQueryEngine)
+        self.assertIsInstance(result.sparql_query_engine, WdqsSparqlQueryEngine)
 
 
 class TestParseParams(unittest.TestCase):

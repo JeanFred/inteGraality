@@ -3,6 +3,7 @@ Assemble Property dashboard configuration from template parameters.
 """
 
 from .column import ColumnMaker, ColumnSyntaxException
+from .config import ParsedConfig
 from .grouping import GroupingConfigurationMaker
 from .grouping_link import GroupingLinkSyntaxException
 from .sparql_utils import SparqlEngineBuilder, UnsupportedSparqlEngineException
@@ -118,19 +119,23 @@ class ConfigAssembler:
         config = dict(raw_params)
         self._apply_legacy_renames(config)
         self._check_required_fields(config)
-        config["columns"] = self.parse_config_columns(config.pop("columns"))
+        columns = self.parse_config_columns(config.pop("columns"))
         grouping_threshold = self._parse_grouping_threshold(config)
-        config["grouping_configuration"] = self._assemble_grouping(
-            config, grouping_threshold
-        )
-        config["row_no_group"] = _parse_bool_param(
-            config, "row_no_group", default=False
-        )
-        config["row_totals"] = _parse_bool_param(config, "row_totals", default=True)
-        config["grouping_link_mode"] = self._parse_grouping_link_mode(config)
+        grouping_configuration = self._assemble_grouping(config, grouping_threshold)
+        row_no_group = _parse_bool_param(config, "row_no_group", default=False)
+        row_totals = _parse_bool_param(config, "row_totals", default=True)
+        grouping_link_mode = self._parse_grouping_link_mode(config)
         config.pop("property_threshold", None)
-        config["sparql_query_engine"] = self._assemble_engine(config)
-        return config
+        sparql_query_engine = self._assemble_engine(config)
+        return ParsedConfig(
+            selector_sparql=config.get("selector_sparql"),
+            columns=tuple(columns),
+            grouping_configuration=grouping_configuration,
+            sparql_query_engine=sparql_query_engine,
+            row_no_group=row_no_group,
+            row_totals=row_totals,
+            grouping_link_mode=grouping_link_mode,
+        )
 
     @staticmethod
     def parse_config_columns(columns_string):

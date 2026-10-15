@@ -181,6 +181,78 @@ class QLeverSparqlQueryEngineTest(unittest.TestCase):
 
         mock_get.assert_not_called()
 
+    @patch("requests.get")
+    def test_select_sends_user_agent(self, mock_get):
+        mock_get.return_value = self._make_response(200)
+
+        self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        user_agent = mock_get.call_args.kwargs["headers"]["User-Agent"]
+        self.assertTrue(user_agent.startswith("inteGraality "))
+
+    @patch("time.sleep")
+    @patch("requests.get")
+    def test_select_retries_on_429(self, mock_get, mock_sleep):
+        mock_get.side_effect = [
+            self._make_response(429),
+            self._make_response(429),
+            self._make_response(200),
+        ]
+
+        result = self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        self.assertEqual(result, [{"entity": "http://www.wikidata.org/entity/Q1"}])
+        self.assertEqual(mock_get.call_count, 3)
+        self.assertEqual([c.args[0] for c in mock_sleep.call_args_list], [2, 4])
+
+    @patch("time.sleep")
+    @patch("requests.get")
+    def test_select_429_honours_retry_after(self, mock_get, mock_sleep):
+        mock_get.side_effect = [
+            self._make_response(429, {"Retry-After": "7"}),
+            self._make_response(429, {"Retry-After": "600"}),
+            self._make_response(200),
+        ]
+
+        self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        # The second, excessive Retry-After is capped at retry_max_delay.
+        self.assertEqual([c.args[0] for c in mock_sleep.call_args_list], [7, 30])
+
+    @patch("time.sleep")
+    @patch("requests.get")
+    def test_select_429_gives_up_after_max_retries(self, mock_get, mock_sleep):
+        mock_get.return_value = self._make_response(429)
+
+        with self.assertRaises(BackendUnavailableException) as cm:
+            self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        self.assertEqual(cm.exception.error_category, ErrorCategory.TRANSIENT)
+        self.assertEqual(mock_get.call_count, self.engine.max_retries + 1)
+        self.assertEqual(mock_sleep.call_count, self.engine.max_retries)
+
+    @patch("time.sleep")
+    @patch("requests.get")
+    def test_select_other_http_error_not_retried(self, mock_get, mock_sleep):
+        mock_get.return_value = self._make_response(503)
+
+        with self.assertRaises(BackendUnavailableException):
+            self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
+
+        self.assertEqual(mock_get.call_count, 1)
+        mock_sleep.assert_not_called()
+
+    @staticmethod
+    def _make_response(status_code, headers=None):
+        response = requests.Response()
+        response.status_code = status_code
+        response.headers.update(headers or {})
+        response._content = (
+            b'{"results": {"bindings": '
+            b'[{"entity": {"value": "http://www.wikidata.org/entity/Q1"}}]}}'
+        )
+        return response
+
     def test_transform_response_valid(self):
         data = {
             "results": {

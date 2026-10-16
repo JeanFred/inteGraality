@@ -34,9 +34,12 @@ class ConfigAssembler:
 
     @staticmethod
     def extract_elements_from_template_param(template_param):
-        """Extract and sanitize the contents of a parsed template param."""
+        """Extract and sanitize the contents of a parsed template param.
+
+        The value is stripped as MediaWiki trims template-param whitespace.
+        """
         (field, _, value) = template_param.partition("=")
-        return (field.strip(), value.replace("{{!}}", "|"))
+        return (field.strip(), value.strip().replace("{{!}}", "|"))
 
     def parse_config_from_params(self, params):
         return {

@@ -332,6 +332,18 @@ class TestParseParams(unittest.TestCase):
         result = self.assembler.parse_config_from_params(params)
         self.assertEqual(result, expected)
 
+    def test_parse_config_from_params_strips_value_whitespace(self):
+        # Leading/trailing whitespace (incl. the trailing newline mwparser keeps
+        # before }}) must be stripped, else it leaks into the future config hash
+        # and a cosmetic reflow would fork config identity.
+        params = [
+            "grouping_property=P571\n",
+            "  selector_sparql = wdt:P31 wd:Q5  ",
+        ]
+        result = self.assembler.parse_config_from_params(params)
+        self.assertEqual(result["grouping_property"], "P571")
+        self.assertEqual(result["selector_sparql"], "wdt:P31 wd:Q5")
+
 
 class TestParseConfigColumns(unittest.TestCase):
     def setUp(self):

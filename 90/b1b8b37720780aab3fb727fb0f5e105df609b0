@@ -1,0 +1,24 @@
+integraality/config_backfiller.py
+  h_bc010f8da910ff 12-13,18,21-25,28,69-77,79-83,87-88,92-117,121,124-126,180-184,291-297
+integraality/config_facets.py
+  h_bc010f8da910ff 30-36
+integraality/grouping.py
+  h_bc010f8da910ff 401-410
+integraality/grouping_type_cache.py
+  h_bc010f8da910ff 1-61
+integraality/tests/test_config_backfiller.py
+  h_bc010f8da910ff 4,11,74-78,175,245-290
+integraality/tests/test_grouping_type_cache.py
+  h_bc010f8da910ff 1-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "90b1b8b37720780aab3fb727fb0f5e105df609b0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

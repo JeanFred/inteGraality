@@ -19,14 +19,48 @@ from .reference_check import (
 # suffix is validated as a reference-check rather than silently ignored.
 PROPERTY_SOURCE_RE = re.compile(r"^(P\d+)\((Q\d+)\)(?:/(.*))?$")
 
+# "Q10387575~P279*": match the value Q10387575 or anything reachable from it
+# by the traversal property and quantifier (e.g. subclasses via P279*).
+# The tilde separates the value QID from "<property><quantifier>"; the
+# quantifier is an optional SPARQL property-path operator (*, +, ?, or empty).
+# Rendered on the ps: predicate side (see _value_predicate).
+VALUE_TRAVERSAL_RE = re.compile(r"^(Q\d+)~(P\d+)([*+?]?)$")
+
 
 class ColumnSyntaxException(Exception):
     pass
 
 
+def _split_value_traversal(value):
+    """Split a value into (bare_value, traversal_suffix).
+
+    traversal_suffix is the "<property><quantifier>" part after the tilde
+    (e.g. "P279*"), or None when the value carries no traversal.
+    """
+    if value is None or "~" not in value:
+        return value, None
+    match = VALUE_TRAVERSAL_RE.match(value)
+    return match.group(1), f"{match.group(2)}{match.group(3)}"
+
+
 def _format_value_sparql(value):
-    """Format a value as a SPARQL term: variable as-is, QID with wd: prefix."""
-    return value if value.startswith("?") else f"wd:{value}"
+    """Format a value as a SPARQL term: variable as-is, QID with wd: prefix.
+
+    A traversal suffix (Q...~P279*) is ignored here: it modifies the ps:
+    predicate path, not the value term.
+    """
+    bare, _ = _split_value_traversal(value)
+    return bare if bare.startswith("?") else f"wd:{bare}"
+
+
+def _format_value_html(value):
+    """Render a value as HTML: a variable as-is, a QID as a wiki link,
+    with any traversal suffix appended as "~<traversal>"."""
+    if value.startswith("?"):
+        return value
+    bare, traversal = _split_value_traversal(value)
+    link = f'<a href="https://wikidata.org/wiki/{bare}">{bare}</a>'
+    return f"{link}~{traversal}" if traversal else link
 
 
 class ColumnMaker:
@@ -140,10 +174,18 @@ class ColumnMaker:
 
     @staticmethod
     def _validate_value(value):
-        """Raise if a value placeholder is not the supported ?grouping variable."""
-        if value.startswith("?") and value != "?grouping":
+        """Raise if a value is not a QID, the ?grouping variable, or a valid
+        traversal value (Q...~P279* / ~P279+ / ~P279? / ~P279)."""
+        if value.startswith("?"):
+            if value != "?grouping":
+                raise ColumnSyntaxException(
+                    f"Only ?grouping is supported as a variable value, got {value}"
+                )
+            return
+        if "~" in value and not VALUE_TRAVERSAL_RE.match(value):
             raise ColumnSyntaxException(
-                f"Only ?grouping is supported as a variable value, got {value}"
+                f"Invalid value traversal syntax: {value} "
+                f"(expected Q<id>~P<id> optionally followed by *, + or ?)"
             )
 
     @staticmethod
@@ -318,6 +360,9 @@ class PropertyColumn(AbstractColumn):
     def __init__(self, property, title=None, source_property=None, source_item=None):
         self.property = property
         self.title = title
+        # Overridden by subclasses that scope to a specific statement value
+        # (QualifierColumn, ReferenceColumn); None for a plain property column.
+        self.value = None
         # Back-reference to the "Pxxx(Qyyy)" source this column was expanded
         # from; both None for directly-authored columns.
         self.source_property = source_property
@@ -327,8 +372,15 @@ class PropertyColumn(AbstractColumn):
         return self.property == other.property and self.title == other.title
 
     def _value_predicate(self):
-        """The ps: predicate reaching the statement value."""
-        return f"ps:{self.property}"
+        """The ps: predicate reaching the statement value.
+
+        Plain `ps:Pxxx`, or `ps:Pxxx/wdt:Pyyy<quant>` when the column's value
+        carries a traversal suffix (Q...~Pyyy* to also match subclasses, etc.).
+        """
+        _, traversal = _split_value_traversal(self.value)
+        if not traversal:
+            return f"ps:{self.property}"
+        return f"ps:{self.property}/wdt:{traversal}"
 
     def get_key(self):
         return self.property
@@ -411,7 +463,7 @@ class QualifierColumn(PropertyColumn):
         elif self.value.startswith("?"):
             property_value = self.value
         else:
-            property_value = f"wd:{self.value}"
+            property_value = _format_value_sparql(self.value)
         return f"""
     ?entity p:{self.property} [ {self._value_predicate()} {property_value} ; pq:{self.qualifier} [] ]"""
 
@@ -518,13 +570,7 @@ class ReferenceColumn(PropertyColumn):
         )
         parts = [prop_link]
         if self.value:
-            if self.value.startswith("?"):
-                value_ref = self.value
-            else:
-                value_ref = (
-                    f'<a href="https://wikidata.org/wiki/{self.value}">{self.value}</a>'
-                )
-            parts.append(f"= {value_ref}")
+            parts.append(f"= {_format_value_html(self.value)}")
         if self.qualifier:
             qualifier_link = (
                 f'<a href="https://wikidata.org/wiki/Property:{self.qualifier}">'

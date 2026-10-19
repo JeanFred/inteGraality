@@ -317,6 +317,76 @@ SELECT (COUNT(*) AS ?count) WHERE {
         self.assertEqual(result, expected)
 
 
+class TestPropertyColumnWithQualifierAndValueTraversal(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        # "Lighthouses that are any heritage site (Q358 or any subclass), by country."
+        self.column = QualifierColumn(
+            property="P1435", value="Q358~P279*", qualifier="P580"
+        )
+
+    def test_get_info_query(self):
+        result = self.column.get_info_query(self.stats)
+        expected = """
+SELECT ?grouping (COUNT(DISTINCT ?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q39715 .
+  ?entity wdt:P17 ?grouping .
+  FILTER(EXISTS {
+    ?entity p:P1435 [ ps:P1435/wdt:P279* wd:Q358 ; pq:P580 [] ]
+  })
+}
+GROUP BY ?grouping
+ORDER BY DESC(?count)
+LIMIT 1000
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_totals_query(self):
+        result = self.column.get_totals_query(self.stats)
+        expected = """
+SELECT (COUNT(*) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q39715
+  FILTER(EXISTS {
+    ?entity p:P1435 [ ps:P1435/wdt:P279* wd:Q358 ; pq:P580 [] ]
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_info_no_grouping_query(self):
+        result = self.column.get_info_no_grouping_query(self.stats)
+        expected = """
+SELECT (COUNT(*) AS ?count) WHERE {
+  ?entity wdt:P31 wd:Q39715 .
+  MINUS { ?entity wdt:P17 _:b28. }
+  FILTER(EXISTS {
+    ?entity p:P1435 [ ps:P1435/wdt:P279* wd:Q358 ; pq:P580 [] ]
+  })
+}
+"""
+        self.assertEqual(result, expected)
+
+    def test_get_filter_for_positive_query(self):
+        body, _ = self.column.get_filter_for_positive_query()
+        self.assertIn("?statement ps:P1435/wdt:P279* wd:Q358 .", body)
+
+    def test_get_filter_for_negative_query(self):
+        body, _ = self.column.get_filter_for_negative_query()
+        self.assertIn("?statement ps:P1435/wdt:P279* wd:Q358 .", body)
+
+    def test_quantifier_rendered_in_predicate(self):
+        # The * form is covered by the full-query tests above; check the
+        # remaining quantifiers land in the ps: predicate path.
+        for quant in ("+", "?", ""):
+            with self.subTest(quantifier=quant or "none"):
+                column = QualifierColumn(
+                    property="P1435", value=f"Q358~P279{quant}", qualifier="P580"
+                )
+                self.assertIn(
+                    f"ps:P1435/wdt:P279{quant} wd:Q358", column.get_filter_for_info()
+                )
+
+
 class TestSitelinkColumn(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
@@ -434,6 +504,33 @@ class TestColumnMaker(PropertyStatisticsTest):
     def test_property_with_qualifier_and_invalid_variable_value(self):
         with self.assertRaises(ColumnSyntaxException):
             ColumnMaker.make("P17/?foo/P580", None)
+
+    def test_property_with_qualifier_and_value_traversal(self):
+        # Every quantifier (*, +, ?, none) round-trips through the 3-part form.
+        for quant in ("*", "+", "?", ""):
+            key = f"P1435/Q358~P279{quant}/P580"
+            with self.subTest(quantifier=quant or "none"):
+                result = ColumnMaker.make(key, None)
+                expected = QualifierColumn(
+                    property="P1435", value=f"Q358~P279{quant}", qualifier="P580"
+                )
+                self.assertEqual(result, expected)
+                self.assertEqual(result.get_key(), key)
+
+    def test_property_with_qualifier_and_invalid_value_traversal(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1435/Q358~Q123/P580", None)
+
+    def test_property_with_qualifier_and_invalid_value_traversal_quantifier(self):
+        with self.assertRaises(ColumnSyntaxException):
+            ColumnMaker.make("P1435/Q358~P279#/P580", None)
+
+    def test_reference_value_traversal(self):
+        key = "P1435/Q358~P279*/S*"
+        result = ColumnMaker.make(key, None)
+        expected = ReferenceColumn(property="P1435", value="Q358~P279*")
+        self.assertEqual(result, expected)
+        self.assertEqual(result.get_key(), key)
 
     def test_label(self):
         result = ColumnMaker.make("Lxy", None)
@@ -1157,6 +1254,37 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
   OPTIONAL { ?entity p:P131 ?_show_stmt . ?_show_stmt ps:P131 ?value . }
 """
         self.assertEqual(result, (expected_fragment, ["?entity", "?value"]))
+
+
+class TestReferenceColumnValueTraversal(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.column = ReferenceColumn("P1435", value="Q358~P279*")
+
+    def test_get_key(self):
+        self.assertEqual(self.column.get_key(), "P1435/Q358~P279*/S*")
+
+    def test_value_constraint(self):
+        self.assertEqual(
+            self.column._value_constraint("?statement"),
+            "?statement ps:P1435/wdt:P279* wd:Q358 .",
+        )
+
+    def test_negative_query_show_value_uses_path(self):
+        body, _ = self.column.get_filter_for_negative_query()
+        self.assertIn(
+            "?_show_stmt ps:P1435/wdt:P279* wd:Q358 . BIND(wd:Q358 AS ?value)",
+            body,
+        )
+
+    def test_format_html_snippet(self):
+        result = self.column.format_html_snippet()
+        expected = (
+            '<a href="https://wikidata.org/wiki/Property:P1435">P1435</a>'
+            ' = <a href="https://wikidata.org/wiki/Q358">Q358</a>~P279*'
+            " referenced"
+        )
+        self.assertEqual(result, expected)
 
 
 class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):

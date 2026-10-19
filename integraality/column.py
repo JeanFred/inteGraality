@@ -326,6 +326,10 @@ class PropertyColumn(AbstractColumn):
     def __eq__(self, other):
         return self.property == other.property and self.title == other.title
 
+    def _value_predicate(self):
+        """The ps: predicate reaching the statement value."""
+        return f"ps:{self.property}"
+
     def get_key(self):
         return self.property
 
@@ -409,11 +413,11 @@ class QualifierColumn(PropertyColumn):
         else:
             property_value = f"wd:{self.value}"
         return f"""
-    ?entity p:{self.property} [ ps:{self.property} {property_value} ; pq:{self.qualifier} [] ]"""
+    ?entity p:{self.property} [ {self._value_predicate()} {property_value} ; pq:{self.qualifier} [] ]"""
 
     def get_filter_for_positive_query(self):
         if self.value:
-            restrict_statement_to_value = f"\n  ?statement ps:{self.property} {_format_value_sparql(self.value)} ."
+            restrict_statement_to_value = f"\n  ?statement {self._value_predicate()} {_format_value_sparql(self.value)} ."
         else:
             restrict_statement_to_value = ""
         return (
@@ -428,7 +432,7 @@ class QualifierColumn(PropertyColumn):
 
     def get_filter_for_negative_query(self):
         if self.value:
-            restrict_statement_to_value = f"\n    ?statement ps:{self.property} {_format_value_sparql(self.value)} ."
+            restrict_statement_to_value = f"\n    ?statement {self._value_predicate()} {_format_value_sparql(self.value)} ."
         else:
             restrict_statement_to_value = ""
         return (
@@ -478,7 +482,9 @@ class ReferenceColumn(PropertyColumn):
         """SPARQL triple restricting a statement variable to a specific value, or None."""
         if not self.value:
             return None
-        return f"{stmt_var} ps:{self.property} {_format_value_sparql(self.value)} ."
+        return (
+            f"{stmt_var} {self._value_predicate()} {_format_value_sparql(self.value)} ."
+        )
 
     def _qualifier_constraint(self, stmt_var):
         """SPARQL triple restricting a statement variable to having a qualifier, or None."""
@@ -628,7 +634,7 @@ class ReferenceColumn(PropertyColumn):
         # Use explicit two-triple pattern (not property path) for QLever compatibility.
         if self.value:
             value_ref = _format_value_sparql(self.value)
-            show_value = f"  OPTIONAL {{ ?entity p:{self.property} ?_show_stmt . ?_show_stmt ps:{self.property} {value_ref} . BIND({value_ref} AS ?value) }}"
+            show_value = f"  OPTIONAL {{ ?entity p:{self.property} ?_show_stmt . ?_show_stmt {self._value_predicate()} {value_ref} . BIND({value_ref} AS ?value) }}"
         else:
             show_value = f"  OPTIONAL {{ ?entity p:{self.property} ?_show_stmt . ?_show_stmt ps:{self.property} ?value . }}"
         return (

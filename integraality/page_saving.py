@@ -29,7 +29,9 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
 
     if not local_path:
         try:
-            revision_before = page.latest_revision_id
+            # A not-yet-existing page has no revision to read, and no null edit
+            # to detect, so skip the pre-save read (page.exists() -> NoPageError).
+            revision_before = page.latest_revision_id if page.exists() else None
             page.put(newtext=content, summary=summary, minor=minor)
             # On a null edit MediaWiki produces no revision; pywikibot's editpage
             # takes the 'nochange' branch and leaves latest_revision_id untouched,
@@ -37,7 +39,10 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
             # therefore means "no revision produced" -> return None (so the run is
             # recorded with a NULL revision_id, exempt from uq_revision, instead of
             # colliding on the previous run's oldid).
-            if page.latest_revision_id == revision_before:
+            if (
+                revision_before is not None
+                and page.latest_revision_id == revision_before
+            ):
                 return None
             return page.latest_revision_id
         except (

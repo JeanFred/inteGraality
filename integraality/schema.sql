@@ -112,11 +112,14 @@ CREATE TABLE IF NOT EXISTS dashboard_runs (
     entity_total INT UNSIGNED DEFAULT NULL,
     grouping_count INT UNSIGNED DEFAULT NULL,
     column_count INT UNSIGNED DEFAULT NULL,
+    configuration_id INT UNSIGNED DEFAULT NULL,  -- The config this run executed (NULL for historical/unlinked runs).
     UNIQUE KEY uq_revision (revision_id),
     KEY idx_dashboard_finished (dashboard_id, finished_at),
     KEY idx_wiki_finished (wiki_id, finished_at),
+    KEY idx_run_configuration (configuration_id),
     -- A failure must carry a category (an OK run may lack a revision_id).
     CONSTRAINT chk_fail_has_category CHECK (status <> 'FAIL' OR error_category IS NOT NULL),
     FOREIGN KEY (dashboard_id) REFERENCES dashboards (id),
-    FOREIGN KEY (wiki_id) REFERENCES wikis (id)
+    FOREIGN KEY (wiki_id) REFERENCES wikis (id),
+    FOREIGN KEY (configuration_id) REFERENCES dashboard_configurations (id)
 );

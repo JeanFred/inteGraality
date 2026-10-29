@@ -398,6 +398,14 @@ class GroupingConfiguration:
         if self.grouping_type is not None:
             return self
         grouping_type = self._detect_grouping_type(selector_sparql, sparql_query_engine)
+        return self.with_grouping_type(grouping_type)
+
+    def with_grouping_type(self, grouping_type):
+        """Return a copy carrying ``grouping_type`` (already-known or cached).
+
+        The type-dependent explicit-groupings parse happens here, so the caller
+        need not know whether the type came from detection or a cache.
+        """
         explicit_groupings = self.explicit_groupings
         if self._raw_explicit_groupings:
             explicit_groupings = grouping_type.parse_groupings(

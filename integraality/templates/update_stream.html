@@ -40,6 +40,13 @@
                 return div.innerHTML;
             }
 
+            function renderMessage(message, url) {
+                if (url) {
+                    return "<a href=\"" + escapeHtml(url) + "\">" + escapeHtml(message) + "</a>";
+                }
+                return escapeHtml(message);
+            }
+
             function addPrefixes(query) {
                 return sparqlPrefixes + query;
             }
@@ -93,7 +100,7 @@
                                     summary.innerHTML = "✅ " + escapeHtml(data.message) +
                                         " <small class=\"text-muted\">▸ show query</small>";
                                 } else {
-                                    el.innerHTML = "✅ " + escapeHtml(data.message);
+                                    el.innerHTML = "✅ " + renderMessage(data.message, data.url);
                                 }
                             }
                         }

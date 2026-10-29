@@ -29,6 +29,7 @@ class GroupingPageCreatorTest(unittest.TestCase):
         mock_page = MagicMock()
         mock_page.exists.return_value = exists
         mock_page.site = self.site
+        mock_page.full_url.return_value = "https://www.wikidata.org/wiki/Foo/Game_Gear"
         mock_page_cls.return_value = mock_page
         return mock_page
 
@@ -59,6 +60,7 @@ class GroupingPageCreatorTest(unittest.TestCase):
         self.assertFalse(hasattr(start, "phase"))
         self.assertEqual(end.step_key, "page_creation_0")
         self.assertEqual(end.phase, "end")
+        self.assertEqual(end.url, "https://www.wikidata.org/wiki/Foo/Game_Gear")
 
     def test_skips_existing_page(self, mock_page_cls, mock_save):
         self._make_local_page(mock_page_cls, exists=True)

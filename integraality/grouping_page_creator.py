@@ -63,6 +63,10 @@ class GroupingPageCreator:
         save_to_wiki_or_local(page, summary, content, minor=False)
         logger.info(
             f"Created page {grouping.grouping_link}",
-            extra={"phase": "end", "step_key": f"page_creation_{index}"},
+            extra={
+                "phase": "end",
+                "step_key": f"page_creation_{index}",
+                "url": page.full_url(),
+            },
         )
         return True

@@ -1,7 +1,6 @@
 """Orchestration — reads wiki pages, triggers updates."""
 
 import logging
-import os
 import re
 from dataclasses import dataclass
 from time import perf_counter
@@ -10,7 +9,7 @@ import mwparserfromhell
 import pywikibot
 from redis import StrictRedis
 
-from .cache import RedisCache
+from .cache import RedisCache, redis_host
 from .column_source import ColumnSourceException, ColumnSourceResolver
 from .config_assembler import PARAM_RENAMES, ConfigAssembler, ConfigAssemblyException
 from .dashboard_registry import DashboardRegistry, RunResult
@@ -98,8 +97,7 @@ class PagesProcessor:
         self.config_assembler = ConfigAssembler(site_url=url)
 
         if not cache_client:
-            host = os.getenv("REDIS_HOST", "tools-redis.svc.eqiad.wmflabs")
-            cache_client = StrictRedis(host=host, decode_responses=False)
+            cache_client = StrictRedis(host=redis_host(), decode_responses=False)
         self.cache = RedisCache(cache_client=cache_client)
 
     @property

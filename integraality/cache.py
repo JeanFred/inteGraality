@@ -2,9 +2,18 @@
 
 # Inspired/copied from https://github.com/taylorhakes/python-redis-cache/blob/master/redis_cache/__init__.py, MIT-licensed
 
+import os
 import pickle
 
 DEFAULT_TTL = 604800  # 1 week
+
+# Toolforge Redis; overridable via REDIS_HOST (set to "redis" in Docker).
+DEFAULT_REDIS_HOST = "tools-redis.svc.eqiad.wmflabs"
+
+
+def redis_host():
+    """The Redis host from REDIS_HOST, defaulting to Toolforge's."""
+    return os.getenv("REDIS_HOST", DEFAULT_REDIS_HOST)
 
 
 class RedisCache:

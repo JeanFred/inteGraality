@@ -9,15 +9,23 @@ message for the algorithm and invariants.
 import argparse
 import datetime
 import logging
+from dataclasses import replace
 
 import mwparserfromhell
 import pywikibot
 from pywikibot.data import api
+from redis import StrictRedis
 
+from .cache import redis_host
 from .config_assembler import ConfigAssembler, ConfigAssemblyException
-from .config_facets import build_config_facets
+from .config_facets import (
+    build_config_facets,
+    grouping_type_from_token,
+    grouping_type_token,
+)
 from .dashboard_registry import DashboardRegistry
 from .grouping import UnsupportedGroupingConfigurationException
+from .grouping_type_cache import GroupingTypeCache
 from .runs_backfiller import BOT_USERNAME
 
 logger = logging.getLogger(__name__)
@@ -58,28 +66,55 @@ def extract_template_params(wikitext):
     return None
 
 
-def build_config_facets_offline(raw_params, site_url):
-    """Build ConfigFacets from a revision's raw template params, no live queries.
+def build_config_facets_offline(raw_params, site_url, grouping_type_cache=None):
+    """Build ConfigFacets from a revision's raw template params.
 
-    The backfiller's offline adapter: parse_config yields a ParsedConfig that
-    already carries the resolution-independent facts (raw grouping params +
-    pre-expansion authored keys), so the hash is exact. The config is NOT
-    resolved -- grouping_type stays NULL (needs a live query) and column sources
-    stay as placeholders (can't expand offline), which build_config_facets drops
-    from the column rows while still hashing their authored key. Raises
-    ConfigAssemblyException on unparseable params.
+    config_hash is exact (it hashes resolution-independent facts); grouping_type
+    is resolved via the cache when given (hit: no query; miss: one query, then
+    cached; failure: NULL, uncached). Raises ConfigAssemblyException on
+    unparseable params.
     """
     assembler = ConfigAssembler(site_url=site_url)
     config = assembler.parse_config(raw_params)
+    if grouping_type_cache is not None:
+        config = _resolve_grouping_type(config, grouping_type_cache)
     return build_config_facets(config)
+
+
+def _resolve_grouping_type(config, cache):
+    """Return config with grouping_type set from cache (hit) or a datatype query
+    (miss, then cached). Graceful-NULL on failure (unchanged, not cached)."""
+    grouping_configuration = config.grouping_configuration
+    if grouping_configuration.grouping_type is not None:
+        return config
+    predicate = grouping_configuration.get_predicate()
+    cached = cache.get(predicate)
+    if cached is not None:
+        resolved = grouping_configuration.with_grouping_type(
+            grouping_type_from_token(cached)
+        )
+        return replace(config, grouping_configuration=resolved)
+    try:
+        resolved = grouping_configuration.with_resolved_type(
+            config.selector_sparql, config.sparql_query_engine
+        )
+    except Exception as e:
+        # Datatype query failed / empty / unsupported: leave NULL, do not cache.
+        logger.warning("Grouping-type resolution failed for %s: %s", predicate, e)
+        return config
+    cache.set(predicate, grouping_type_token(resolved.grouping_type))
+    return replace(config, grouping_configuration=resolved)
 
 
 class ConfigBackfiller:
     """Forward-walk backfill of dashboard_configurations + run links."""
 
-    def __init__(self, site):
+    def __init__(self, site, grouping_type_cache=None):
         self.site = site
         self.config_assembler = ConfigAssembler(site_url=site.hostname())
+        # One shared grouping-type cache for the whole crawl (preloaded from
+        # Redis if available, else an in-process dict). Injectable for tests.
+        self.grouping_type_cache = grouping_type_cache or GroupingTypeCache()
 
     @property
     def site_hostname(self):
@@ -88,9 +123,8 @@ class ConfigBackfiller:
     def _all_revisions(self, title):
         """Yield (revid, timestamp, user, is_bot, content) oldest->newest.
 
-        All actors (no rvuser filter): authors are precisely the non-bot edits.
-        rvdir=newer walks chronologically so the forward walk falls out of the
-        iteration order.
+        No rvuser filter (authors = the non-bot edits); rvdir=newer so the
+        forward walk falls out of iteration order.
         """
         generator = api.PropertyGenerator(
             "revisions",
@@ -133,7 +167,11 @@ class ConfigBackfiller:
             return None
         raw = self.config_assembler.parse_config_from_params(params)
         try:
-            return build_config_facets_offline(raw, site_url=self.site_hostname)
+            return build_config_facets_offline(
+                raw,
+                site_url=self.site_hostname,
+                grouping_type_cache=self.grouping_type_cache,
+            )
         except PARSER_DRIFT_ERRORS as e:
             # Old syntax today's assembler can't parse/resolve: skip this
             # revision for transition detection (a NULL hole in the timeline).
@@ -240,7 +278,12 @@ def main():
     )
     args = parser.parse_args()
     site = pywikibot.Site(url=args.url)
-    ConfigBackfiller(site).backfill_configurations(limit=args.limit)
+    # Persist grouping-type resolutions across runs via Redis when available;
+    # a missing/unreachable Redis degrades to an in-process cache.
+    cache = GroupingTypeCache(StrictRedis(host=redis_host(), decode_responses=True))
+    ConfigBackfiller(site, grouping_type_cache=cache).backfill_configurations(
+        limit=args.limit
+    )
 
 
 if __name__ == "__main__":

@@ -27,6 +27,13 @@ _GROUPING_TYPE_TOKEN = {
     YearGroupingType: "year",
     SitelinkGroupingType: "sitelink",
 }
+_TOKEN_TO_GROUPING_TYPE = {token: cls for cls, token in _GROUPING_TYPE_TOKEN.items()}
+
+
+def grouping_type_from_token(token):
+    """A GroupingType instance for a cached token, or None if unknown/None."""
+    cls = _TOKEN_TO_GROUPING_TYPE.get(token)
+    return cls() if cls else None
 
 
 @dataclass(frozen=True)

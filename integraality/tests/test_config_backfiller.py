@@ -1,13 +1,14 @@
 """Tests for config_backfiller: the full-history forward walk (T440134)."""
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from ..config_backfiller import (
     ConfigBackfiller,
     build_config_facets_offline,
     extract_template_params,
 )
+from ..grouping_type_cache import GroupingTypeCache
 
 
 class TestExtractTemplateParams(unittest.TestCase):
@@ -70,6 +71,11 @@ class TestForwardWalk(unittest.TestCase):
     def _run(self, revisions):
         backfiller = _Backfiller(revisions)
         backfiller.config_assembler = self.assembler
+        # Pre-seed the grouping-type cache so resolution is a hit (no live
+        # query): the fixtures all group by P400 -> predicate wdt:P400.
+        cache = GroupingTypeCache()
+        cache.set("wdt:P400", "item")
+        backfiller.grouping_type_cache = cache
         registry = self._registry()
         configs, links = backfiller.backfill_dashboard(registry, "Dash", 7)
         return registry, configs, links
@@ -162,12 +168,11 @@ class TestForwardWalk(unittest.TestCase):
     def test_non_drift_exception_surfaces(self):
         # A bug in facet extraction (not parser drift) must NOT be swallowed as
         # a graceful NULL -- it should propagate so the backfill fails loudly.
-        from unittest.mock import patch
-
         backfiller = _Backfiller(
             [("100", "2021-01-01T00:00:00Z", "Alice", False, _wikitext())]
         )
         backfiller.config_assembler = self.assembler
+        backfiller.grouping_type_cache = GroupingTypeCache()
         with (
             patch(
                 "integraality.config_backfiller.build_config_facets_offline",
@@ -237,3 +242,49 @@ class TestBuildConfigFacetsOffline(unittest.TestCase):
                 {"selector_sparql": "wdt:P31 wd:Q5"},  # missing required fields
                 site_url=self.SITE,
             )
+
+    def test_cache_hit_resolves_type_without_a_query(self):
+        # A preloaded predicate stamps grouping_type with no live query.
+        cache = GroupingTypeCache()
+        cache.set("wdt:P400", "year")
+        with patch(
+            "integraality.grouping.GroupingConfiguration._detect_grouping_type"
+        ) as detect:
+            facets = build_config_facets_offline(
+                self._raw(), site_url=self.SITE, grouping_type_cache=cache
+            )
+        detect.assert_not_called()
+        self.assertEqual(facets.grouping_type, "year")
+
+    def test_cache_miss_resolves_live_then_caches(self):
+        cache = GroupingTypeCache()
+        from ..grouping import YearGroupingType
+
+        with patch(
+            "integraality.grouping.GroupingConfiguration._detect_grouping_type",
+            return_value=YearGroupingType(),
+        ) as detect:
+            facets = build_config_facets_offline(
+                self._raw(), site_url=self.SITE, grouping_type_cache=cache
+            )
+            # One live resolution...
+            detect.assert_called_once()
+            self.assertEqual(facets.grouping_type, "year")
+            # ...then cached, so a second build for the same predicate is a hit.
+            detect.reset_mock()
+            build_config_facets_offline(
+                self._raw(), site_url=self.SITE, grouping_type_cache=cache
+            )
+            detect.assert_not_called()
+
+    def test_resolution_failure_leaves_null_and_is_not_cached(self):
+        cache = GroupingTypeCache()
+        with patch(
+            "integraality.grouping.GroupingConfiguration._detect_grouping_type",
+            side_effect=Exception("WDQS timeout"),
+        ):
+            facets = build_config_facets_offline(
+                self._raw(), site_url=self.SITE, grouping_type_cache=cache
+            )
+        self.assertIsNone(facets.grouping_type)  # graceful NULL
+        self.assertIsNone(cache.get("wdt:P400"))  # failure not cached (retryable)

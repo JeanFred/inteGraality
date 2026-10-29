@@ -2,7 +2,13 @@ import collections
 import unittest
 
 from .. import line
-from ..column import DescriptionColumn, LabelColumn, PropertyColumn, SitelinkColumn
+from ..column import (
+    ColumnMaker,
+    DescriptionColumn,
+    LabelColumn,
+    PropertyColumn,
+    SitelinkColumn,
+)
 from ..grouping import GroupingConfiguration, ItemGroupingType
 
 
@@ -423,6 +429,23 @@ class ItemGroupingListeriaTest(unittest.TestCase):
         )
         self.assertIn("|columns=label,P21\n", result)
         self.assertNotIn("brwiki", result)
+
+    def test_format_listeria_wikitext_deduplicates_columns(self):
+        grouping = line.ItemGrouping(count=10, title="Q751719")
+        columns = collections.OrderedDict(
+            [
+                ("P136", ColumnMaker.make("P136", None)),
+                ("P136/S*", ColumnMaker.make("P136/S*", None)),
+                ("P136/S!", ColumnMaker.make("P136/S!", None)),
+                ("P178", ColumnMaker.make("P178", None)),
+            ]
+        )
+        result = grouping.format_listeria_wikitext(
+            selector_sparql="wdt:P31/wdt:P279* wd:Q7889",
+            grouping_predicate="wdt:P400",
+            columns=columns,
+        )
+        self.assertIn("|columns=label,P136,P178\n", result)
 
 
 class YearGroupingListeriaTest(unittest.TestCase):

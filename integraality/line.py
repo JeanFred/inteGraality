@@ -125,6 +125,7 @@ class Grouping(AbstractLine):
             c for c in listeria_columns if c not in labels and c not in descriptions
         ]
         listeria_columns = (labels or ["label"]) + descriptions + others
+        listeria_columns = list(dict.fromkeys(listeria_columns))
 
         lines = []
         lines.append("{{Wikidata list|sparql=")

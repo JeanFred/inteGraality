@@ -225,6 +225,9 @@ class PagesProcessor:
             )
 
             if grouping_link_mode == "create":
+                logger.info(
+                    "Creating grouping pages...", extra={"step_key": "page_creation"}
+                )
                 creator = GroupingPageCreator(
                     site=self.site,
                     selector_sparql=stats.selector_sparql,
@@ -233,6 +236,10 @@ class PagesProcessor:
                     page_title=page.title(),
                 )
                 creator.create_pages(groupings.values())
+                logger.info(
+                    "Creating grouping pages done",
+                    extra={"phase": "end", "step_key": "page_creation"},
+                )
 
             return elapsed_time
         except (NoStartTemplateException, NoEndTemplateException):

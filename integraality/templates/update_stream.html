@@ -69,6 +69,9 @@
             function onMessage(e) {
                 var data = JSON.parse(e.data);
                 if (data.status === "progress") {
+                    // icon is the glyph for plain, standalone lines (no step_key,
+                    // no query); phase=end lines always carry a step_key and are
+                    // handled by mutating their existing element below.
                     var icon = data.phase === "end" ? "✅" : "⏳";
                     var stepKey = data.step_key || "";
                     var section = findSection(stepKey);

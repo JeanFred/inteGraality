@@ -235,9 +235,9 @@ class PagesProcessor:
                     columns=stats.columns,
                     page_title=page.title(),
                 )
-                creator.create_pages(groupings.values())
+                created = creator.create_pages(groupings.values())
                 logger.info(
-                    "Creating grouping pages done",
+                    f"Created {created} grouping page{'' if created == 1 else 's'}",
                     extra={"phase": "end", "step_key": "page_creation"},
                 )
 

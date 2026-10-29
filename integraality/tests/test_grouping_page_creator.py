@@ -38,8 +38,9 @@ class GroupingPageCreatorTest(unittest.TestCase):
             count=10, title="Q751719", grouping_link="Foo/Game Gear"
         )
         with self.assertLogs("integraality.update", level="INFO") as cm:
-            self.creator.create_pages([grouping])
+            created = self.creator.create_pages([grouping])
 
+        self.assertEqual(created, 1)
         mock_page_cls.assert_called_once_with(self.site, "Foo/Game Gear")
         mock_save.assert_called_once()
         content = mock_save.call_args[0][2]
@@ -50,8 +51,6 @@ class GroupingPageCreatorTest(unittest.TestCase):
         self.assertIn(
             "[[Wikidata:WikiProject Video games/Statistics/Platform]]", summary
         )
-        messages = [r.getMessage() for r in cm.records]
-        self.assertIn("Created 1 grouping page(s)", messages)
         # The per-page start/end pair carries the SSE step_key/phase payload that
         # drives the nested progress rows -- assert the metadata, not just text.
         start = next(r for r in cm.records if r.getMessage().startswith("Creating "))
@@ -66,12 +65,10 @@ class GroupingPageCreatorTest(unittest.TestCase):
         grouping = ItemGrouping(
             count=10, title="Q751719", grouping_link="Foo/Game Gear"
         )
-        with self.assertLogs("integraality.update", level="INFO") as cm:
-            self.creator.create_pages([grouping])
+        created = self.creator.create_pages([grouping])
 
         mock_save.assert_not_called()
-        messages = [r.getMessage() for r in cm.records]
-        self.assertIn("Created 0 grouping page(s)", messages)
+        self.assertEqual(created, 0)
 
     def test_skips_external_links(self, mock_page_cls, mock_save):
         grouping = ItemGrouping(

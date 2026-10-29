@@ -38,8 +38,8 @@ class GroupingPageCreator:
                     f"Cannot resolve {grouping.grouping_link} as a local page, "
                     "stopping page creation"
                 )
-                return
-        logger.info(f"Created {created} grouping page(s)")
+                return created
+        return created
 
     def _create_page_if_missing(self, grouping, index):
         page = pywikibot.Page(self.site, grouping.grouping_link)

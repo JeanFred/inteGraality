@@ -45,7 +45,8 @@
             }
 
             function findSection(stepKey) {
-                var idx = stepKey.indexOf("_");
+                // Everything before the last underscore is the section name
+                var idx = stepKey.lastIndexOf("_");
                 if (idx > 0) {
                     var prefix = stepKey.substring(0, idx);
                     if (document.getElementById("section-" + prefix)) {

@@ -62,6 +62,9 @@ MAIN_NAMESPACE_TOKEN = "(Main)"
 # (a multi-cell row each); showing the most recent N bounds DOM growth while
 # the summaries stay complete. Paginating the full table is a future concern.
 RUNS_TABLE_CAP = 50
+# The decorative health run-strip shows only the most recent N runs, so a
+# long-lived dashboard's 1000+ ticks don't fill the screen.
+RUNS_STRIP_CAP = 180
 
 
 def get_qlever_ui_url(page_url):
@@ -241,6 +244,7 @@ def dashboard():
         has_duration=any(r["duration_ms"] is not None for r in history),
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
         runs_table_cap=RUNS_TABLE_CAP,
+        runs_strip_cap=RUNS_STRIP_CAP,
     )
 
 

@@ -363,10 +363,18 @@
                         {% endfor %}
                     </p>
                 {% endif %}
-                {# Decorative: same data is in the accessible runs table below, so hide
-           the tick strip from assistive tech rather than emit opaque ticks. #}
+                {# Decorative recent-cadence cue: the accessible runs table below is
+           the source of truth, so hide from AT and cap to the most recent
+           runs_strip_cap ticks (a 1000+ run history would otherwise fill the
+           screen). The full history still drives the charts and table. #}
+                {% set strip_runs = history[-runs_strip_cap:] %}
+                {% if history | length > runs_strip_cap %}
+                    <p class="text-muted small mb-1">
+                        Showing the last {{ runs_strip_cap }} of {{ history | length }} runs.
+                    </p>
+                {% endif %}
                 <div class="run-strip" aria-hidden="true">
-                    {% for r in history %}
+                    {% for r in strip_runs %}
                         {% if r.status == 'OK' and r.revision_id is not none %}
                             <a
                                 href="{{ revision_url_prefix }}{{ r.revision_id }}"

@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import patch
 
 from .. import column
-from ..app import RUNS_TABLE_CAP, app
+from ..app import RUNS_STRIP_CAP, RUNS_TABLE_CAP, app
 from ..dashboard_registry import DashboardRegistry
 from ..pages_processor import ProcessingException, TransientServerException
 from ..sparql_utils import QueryException, QueryTimeoutException
@@ -637,6 +637,21 @@ class DashboardHistoryTests(AppTests):
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
         self.assertEqual(contents.count('class="run-tick '), 2)  # one per run
+
+    def test_dashboard_run_strip_capped_to_recent(self):
+        """The decorative health strip caps at RUNS_STRIP_CAP recent ticks (with
+        a note), so a long history doesn't fill the screen; the table keeps all."""
+        n = RUNS_STRIP_CAP + 40
+        history = [
+            self._run(f"2020-01-01 00:{i // 60:02d}:{i % 60:02d}", revision_id=2000 + i)
+            for i in range(n)
+        ]
+        self.mock_registry.list_dashboard_run_history.return_value = history
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertEqual(contents.count('class="run-tick '), RUNS_STRIP_CAP)
+        self.assertIn(f"last {RUNS_STRIP_CAP} of {n} runs", contents)
 
     def test_dashboard_passes_identity_to_registry(self):
         self.app.get("/dashboard?wiki=commons.wikimedia.org&page=Foo")

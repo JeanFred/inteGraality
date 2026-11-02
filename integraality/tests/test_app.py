@@ -243,6 +243,14 @@ class DashboardsTests(AppTests):
         self.mock_registry.list_wikis.return_value = []
         self.mock_registry.list_namespaces.return_value = []
         self.mock_registry.list_roots.return_value = []
+        self.mock_registry.feature_facet_values.return_value = {
+            "grouping_property": [],
+            "tracks_property": [],
+            "language": [],
+            "project": [],
+            "source_item": [],
+            "mentions": [],
+        }
 
     def _dashboard(
         self,
@@ -253,6 +261,10 @@ class DashboardsTests(AppTests):
         last_success_at=None,
         recent_statuses=None,
         failures_since_success=0,
+        grouping_type=None,
+        grouping_property=None,
+        config_author=None,
+        config_introduced_at=None,
     ):
         return {
             "page_url": "https://www.wikidata.org/wiki/{}".format(
@@ -270,6 +282,10 @@ class DashboardsTests(AppTests):
             "last_success_at": last_success_at,
             "recent_statuses": recent_statuses,
             "failures_since_success": failures_since_success,
+            "grouping_type": grouping_type,
+            "grouping_property": grouping_property,
+            "config_author": config_author,
+            "config_introduced_at": config_introduced_at,
         }
 
     def test_browse_with_dashboards(self):
@@ -282,7 +298,33 @@ class DashboardsTests(AppTests):
         contents = response.get_data(as_text=True)
         self.assertIn("My Dashboard", contents)
         self.assertIn("Other", contents)
-        self.assertIn("2</strong> dashboards registered.", contents)
+        normalized = " ".join(contents.split())
+        self.assertIn("2</strong> dashboards registered.", normalized)
+
+    def test_browse_count_copy_reflects_filter_and_plurality(self):
+        # Unfiltered says "registered"; a filter (either tier) says "match",
+        # and the verb agrees with the count (1 matches / N match).
+        self.mock_registry.list_dashboards.return_value = [self._dashboard("A", "A")]
+        unfiltered = " ".join(
+            self.app.get("/dashboards").get_data(as_text=True).split()
+        )
+        self.assertIn("1</strong> dashboard registered.", unfiltered)
+
+        one_filtered = " ".join(
+            self.app.get("/dashboards?status=OK").get_data(as_text=True).split()
+        )
+        self.assertIn("1</strong> dashboard matches.", one_filtered)
+
+        self.mock_registry.list_dashboards.return_value = [
+            self._dashboard("A", "A"),
+            self._dashboard("B", "B"),
+        ]
+        two_filtered = " ".join(
+            self.app.get("/dashboards?grouping_type=item")
+            .get_data(as_text=True)
+            .split()
+        )
+        self.assertIn("2</strong> dashboards match.", two_filtered)
 
     def test_browse_renders_run_history_strip(self):
         self.mock_registry.list_dashboards.return_value = [
@@ -373,42 +415,30 @@ class DashboardsTests(AppTests):
 
     def test_browse_filtered_by_wiki(self):
         self.app.get("/dashboards?wiki=meta.wikimedia.org")
-        self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname="meta.wikimedia.org",
-            namespace_canonical=None,
-            root_page=None,
-            search=None,
-            status=None,
+        self.assertEqual(
+            self.mock_registry.list_dashboards.call_args.kwargs["site_hostname"],
+            "meta.wikimedia.org",
         )
 
     def test_browse_filtered_by_namespace(self):
         self.app.get("/dashboards?namespace=User")
-        self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname=None,
-            namespace_canonical="User",
-            root_page=None,
-            search=None,
-            status=None,
+        self.assertEqual(
+            self.mock_registry.list_dashboards.call_args.kwargs["namespace_canonical"],
+            "User",
         )
 
     def test_browse_filtered_by_root(self):
         self.app.get("/dashboards?root=WikiProject+Music")
-        self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname=None,
-            namespace_canonical=None,
-            root_page="WikiProject Music",
-            search=None,
-            status=None,
+        self.assertEqual(
+            self.mock_registry.list_dashboards.call_args.kwargs["root_page"],
+            "WikiProject Music",
         )
 
     def test_browse_filtered_by_search(self):
         self.app.get("/dashboards?search=coverage")
-        self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname=None,
-            namespace_canonical=None,
-            root_page=None,
-            search="coverage",
-            status=None,
+        self.assertEqual(
+            self.mock_registry.list_dashboards.call_args.kwargs["search"],
+            "coverage",
         )
 
     def test_browse_htmx_request_returns_full_page_with_browse_content(self):
@@ -437,12 +467,9 @@ class DashboardsTests(AppTests):
 
     def test_dashboards_filtered_by_status(self):
         self.app.get("/dashboards?status=FAIL")
-        self.mock_registry.list_dashboards.assert_called_once_with(
-            site_hostname=None,
-            namespace_canonical=None,
-            root_page=None,
-            search=None,
-            status="FAIL",
+        self.assertEqual(
+            self.mock_registry.list_dashboards.call_args.kwargs["status"],
+            "FAIL",
         )
 
     def test_dashboards_status_control_reflects_selection(self):
@@ -457,6 +484,135 @@ class DashboardsTests(AppTests):
         self.assertEqual(response.status_code, 301)
         self.assertIn("/dashboards", response.headers["Location"])
         self.assertIn("wiki=meta.wikimedia.org", response.headers["Location"])
+
+
+class FeatureFacetsTests(AppTests):
+    """The feature facets are now Tier 2 of /dashboards (not a separate page)."""
+
+    def setUp(self):
+        super().setUp()
+        patcher = patch("integraality.app.DashboardRegistry", autospec=True)
+        self.mock_registry_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        self.mock_registry = self.mock_registry_cls.return_value.__enter__.return_value
+        self.mock_registry.list_dashboards.return_value = []
+        self.mock_registry.list_wikis.return_value = []
+        self.mock_registry.list_namespaces.return_value = []
+        self.mock_registry.list_roots.return_value = []
+        self.mock_registry.feature_facet_values.return_value = {
+            "grouping_property": ["P17", "P21"],
+            "tracks_property": ["P18", "P569"],
+            "language": ["en", "fr"],
+            "project": ["enwiki", "frwiki"],
+            "source_item": ["Q5"],
+            "mentions": ["P31", "Q7889"],
+        }
+
+    def test_feature_filters_passed_to_list_dashboards(self):
+        self.app.get(
+            "/dashboards?grouping_type=item&reference_check_kind=good"
+            "&references_property=P248&tracks_property=P569&grouping_property=P21"
+            "&project=enwiki&source_item=Q5&mentions=Q7889"
+            "&column_type=label&label_language=en&description_language=fr"
+        )
+        kwargs = self.mock_registry.list_dashboards.call_args.kwargs
+        for key, value in {
+            "grouping_type": "item",
+            "reference_check_kind": "good",
+            "references_property": "P248",
+            "tracks_property": "P569",
+            "grouping_property": "P21",
+            "project": "enwiki",
+            "source_item": "Q5",
+            "mentions": "Q7889",
+            "column_type": "label",
+            "label_language": "en",
+            "description_language": "fr",
+        }.items():
+            self.assertEqual(kwargs[key], value)
+
+    def test_feature_facets_collapsed_by_default_open_when_active(self):
+        collapsed = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn('<details class="feature-facets', collapsed)
+        self.assertNotIn('feature-facets mt-2" open', collapsed)
+        opened = self.app.get("/dashboards?tracks_property=P18").get_data(as_text=True)
+        self.assertIn('feature-facets mt-2" open', opened)
+
+    def test_feature_autocomplete_datalists_from_real_values(self):
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn('<datalist id="dl-tracks">', contents)
+        self.assertIn('<option value="P569">', contents)
+        self.assertIn('<option value="frwiki">', contents)
+        self.assertIn('list="dl-tracks"', contents)
+
+    def test_feature_exposes_column_type_and_languages(self):
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn('name="column_type"', contents)
+        self.assertIn('name="label_language"', contents)
+        self.assertIn('name="description_language"', contents)
+
+    def test_unified_form_swaps_browse_content(self):
+        contents = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertIn("htmx.min.js", contents)
+        self.assertIn('hx-target="#browse-content"', contents)
+        self.assertIn('hx-select="#browse-content"', contents)
+
+    def test_feature_active_filter_chips(self):
+        contents = self.app.get(
+            "/dashboards?wiki=meta.wikimedia.org&grouping_type=item&tracks_property=P18"
+        ).get_data(as_text=True)
+        self.assertIn("Grouping type: item", contents)
+        self.assertIn("Tracks: P18", contents)
+        # A chip's remove link drops its own feature key but preserves the
+        # operational wiki filter and the other feature filter.
+        self.assertRegex(
+            contents,
+            r'href="/dashboards\?[^"]*wiki=meta.wikimedia.org[^"]*tracks_property=P18',
+        )
+
+    def test_no_chips_when_no_feature_filter(self):
+        contents = self.app.get("/dashboards?wiki=meta.wikimedia.org").get_data(
+            as_text=True
+        )
+        self.assertNotIn("badge rounded-pill", contents)
+
+    def test_feature_filtered_results_show_grouping_and_author_columns(self):
+        # When the feature tier is engaged, the results table surfaces the
+        # config author + grouping the user filtered on (so they can reach the
+        # right people), with the config panel's time convention (human-visible,
+        # ISO in title). The plain Browse table stays operational-only.
+        self.mock_registry.list_dashboards.return_value = [
+            {
+                "page_url": "https://meta.wikimedia.org/wiki/X",
+                "page_title": "X",
+                "site_hostname": "meta.wikimedia.org",
+                "site_name": "Meta",
+                "namespace_canonical": "Project",
+                "namespace_localized": "Meta",
+                "root_page": "X",
+                "latest_status": "OK",
+                "latest_finished_at": None,
+                "latest_duration_ms": None,
+                "last_success_at": None,
+                "recent_statuses": None,
+                "failures_since_success": 0,
+                "grouping_type": "item",
+                "grouping_property": "P17",
+                "config_author": "Carol",
+                "config_introduced_at": datetime(2026, 1, 2, 3, 4, 5),
+            },
+        ]
+        # Feature-filtered: columns + author present.
+        filtered = self.app.get("/dashboards?tracks_property=P18").get_data(
+            as_text=True
+        )
+        self.assertIn("<th>Grouping</th>", filtered)
+        self.assertIn("<th>Last edited by</th>", filtered)
+        self.assertIn("/wiki/User:Carol", filtered)
+        self.assertIn('title="2026-01-02 03:04:05 UTC"', filtered)  # ISO in title
+        # Plain browse: operational-only, no cfg columns.
+        plain = self.app.get("/dashboards").get_data(as_text=True)
+        self.assertNotIn("<th>Last edited by</th>", plain)
 
 
 class RunsTests(AppTests):
@@ -539,6 +695,8 @@ class DashboardHistoryTests(AppTests):
             "site_name": "Wikidata",
         }
         self.mock_registry.list_dashboard_run_history.return_value = []
+        self.mock_registry.list_dashboard_configurations.return_value = []
+        self.mock_registry.get_latest_configuration.return_value = None
         # Run the *real* compute_health over the mocked history rows (it's a
         # pure staticmethod), so the route + summary integration is exercised
         # rather than a hand-built fixture that can drift from real output.

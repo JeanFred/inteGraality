@@ -31,6 +31,33 @@ _LATEST_SUCCESSFUL_RUN = """\
 """
 
 
+def _latest_config_order(alias=""):
+    """ORDER BY terms ranking one dashboard's configs newest-first (NULL
+    introduced_at last, NOT by id: the backfiller can insert an older config
+    with a higher id). Shared by the _LATEST_CONFIG CTE and
+    get_latest_configuration (which needs the alias prefix: `id` is ambiguous
+    across its joins) so the two can't drift. Built from literals only — never
+    request data."""
+    p = f"{alias}." if alias else ""
+    return f"{p}introduced_at IS NULL, {p}introduced_at DESC, {p}id DESC"
+
+
+# Latest config row per dashboard (rn = 1); see _latest_config_order for the
+# ranking. No supporting index; fine at a few hundred dashboards, else maintain
+# a latest_configuration_id pointer instead of re-ranking every call.
+_LATEST_CONFIG = f"""\
+    SELECT
+        id, dashboard_id, config_hash, author, introduced_at,
+        grouping_predicate, grouping_property, grouping_type,
+        selector_mentions, explicit_groupings,
+        ROW_NUMBER() OVER (
+            PARTITION BY dashboard_id
+            ORDER BY {_latest_config_order()}
+        ) AS rn
+    FROM dashboard_configurations
+"""
+
+
 @dataclass(frozen=True)
 class RunResult:
     """One completed run, as recorded in dashboard_runs.
@@ -897,6 +924,17 @@ class DashboardRegistry:
         root_page=None,
         search=None,
         status=None,
+        grouping_type=None,
+        grouping_property=None,
+        tracks_property=None,
+        reference_check_kind=None,
+        references_property=None,
+        project=None,
+        source_item=None,
+        mentions=None,
+        column_type=None,
+        label_language=None,
+        description_language=None,
     ):
         """Return all registered dashboards, optionally filtered.
 
@@ -921,8 +959,17 @@ class DashboardRegistry:
         run that produced no revision (null edit), else OK) and
         failures_since_success (runs after the last OK by (finished_at, id), so
         a same-second FAIL still counts; drives the severity tint).
+
+        Feature filters (all optional, AND-combined with the above) match on the
+        dashboard's LATEST recorded configuration: grouping_type/grouping_property,
+        tracks_property, reference_check_kind, references_property,
+        project, source_item, mentions (fuzzy selector-bag P/Q id), column_type,
+        label_language, description_language. The config is LEFT-joined, so a
+        dashboard with no recorded config still appears under operational-only
+        filters; applying ANY feature filter necessarily excludes config-less
+        dashboards (they can't match a config predicate), which is correct.
         """
-        sql = """\
+        sql = f"""\
             SELECT
                 p.page_url AS page_url,
                 p.page_title AS page_title,
@@ -936,6 +983,10 @@ class DashboardRegistry:
                 r.duration_ms AS latest_duration_ms,
                 ok.finished_at AS last_success_at,
                 strip.statuses AS recent_statuses,
+                cfg.grouping_type AS grouping_type,
+                cfg.grouping_property AS grouping_property,
+                cfg.author AS config_author,
+                cfg.introduced_at AS config_introduced_at,
                 CASE
                     WHEN ok.finished_at IS NULL THEN (
                         SELECT COUNT(*) FROM dashboard_runs f
@@ -995,6 +1046,9 @@ class DashboardRegistry:
                 WHERE rn <= %s
                 GROUP BY dashboard_id
             ) AS strip ON strip.dashboard_id = d.id
+            LEFT JOIN (
+                {_LATEST_CONFIG}
+            ) AS cfg ON cfg.dashboard_id = d.id AND cfg.rn = 1
         """
         conditions = []
         # The strip subquery's LIMIT placeholder comes first in SQL order, so
@@ -1020,12 +1074,145 @@ class DashboardRegistry:
             # dashboard has NULL here and is correctly excluded by equality.
             conditions.append("r.status = %s")
             params.append(status)
+
+        # --- Feature filters (match the LEFT-joined latest config `cfg`) ---
+        if grouping_type:
+            conditions.append("cfg.grouping_type = %s")
+            params.append(grouping_type)
+        if grouping_property:
+            conditions.append("cfg.grouping_property = %s")
+            params.append(grouping_property)
+        if mentions:
+            # Fuzzy membership in the comma-padded selector bag (unindexable
+            # leading-% LIKE; fine at current scale).
+            conditions.append("cfg.selector_mentions LIKE %s")
+            params.append(f"%,{mentions},%")
+        if references_property:
+            # A reference check on this property in ANY value-form: atoms-only
+            # bag, so match bare atom (",S248,") OR any valued atom (",S248=...").
+            atom = "S" + references_property.removeprefix("P")
+            conditions.append(
+                """EXISTS (
+                    SELECT 1 FROM dashboard_configuration_columns AS c
+                    WHERE c.configuration_id = cfg.id
+                      AND (c.reference_check_tokens LIKE %s
+                           OR c.reference_check_tokens LIKE %s)
+                )"""
+            )
+            params.append(f"%,{atom},%")
+            params.append(f"%,{atom}=%")
+        # Single-column EXISTS facets. NOTE: `column` is interpolated into the
+        # SQL via f-string, but it only ever comes from the hardcoded literal
+        # tuples below — never request data. The filter VALUES are bound as %s
+        # params. Keep it that way: never thread a request value into `column`.
+        for column, value in (
+            ("reference_check_kind", reference_check_kind),
+            ("property_id", tracks_property),
+            ("source_item", source_item),
+        ):
+            if value:
+                conditions.append(
+                    f"""EXISTS (
+                        SELECT 1 FROM dashboard_configuration_columns AS c
+                        WHERE c.configuration_id = cfg.id AND c.{column} = %s
+                    )"""
+                )
+                params.append(value)
+        # project and column_type are INDEPENDENT facets ("has a column with
+        # this sitelink project" / "...of this kind"). They are NOT co-scoped to
+        # one column row: a project filter implies sitelink columns, so pairing
+        # it with column_type=property would be contradictory (no column is
+        # both). The label-/description-language distinction is handled below by
+        # label_language/description_language.
+        for column, value in (
+            ("project", project),
+            ("column_type", column_type),
+        ):
+            if value:
+                conditions.append(
+                    f"""EXISTS (
+                        SELECT 1 FROM dashboard_configuration_columns AS c
+                        WHERE c.configuration_id = cfg.id AND c.{column} = %s
+                    )"""
+                )
+                params.append(value)
+        # Label-/description-language as INDEPENDENT scoped constraints.
+        for col_kind, value in (
+            ("label", label_language),
+            ("description", description_language),
+        ):
+            if value:
+                conditions.append(
+                    """EXISTS (
+                        SELECT 1 FROM dashboard_configuration_columns AS c
+                        WHERE c.configuration_id = cfg.id
+                          AND c.column_type = %s AND c.language = %s
+                    )"""
+                )
+                params.append(col_kind)
+                params.append(value)
+
         if conditions:
             sql += "WHERE " + " AND ".join(conditions) + "\n"
         sql += "ORDER BY p.page_title\n"
         with self.conn.cursor() as cur:
             cur.execute(sql, tuple(params))
             return cur.fetchall()
+
+    def feature_facet_values(self):
+        """Distinct values present across latest configs, for the by-feature
+        form's autocomplete datalists. Only suggests facets that actually exist
+        in the data (grounded autocomplete, no cold guessing).
+
+        Returns a dict of sorted value lists keyed by facet name.
+        """
+        latest = f"({_LATEST_CONFIG}) AS cfg"
+        # (key, SQL selecting a single `v` column of distinct non-null values)
+        queries = {
+            "grouping_property": f"""
+                SELECT DISTINCT cfg.grouping_property AS v FROM {latest}
+                WHERE cfg.rn = 1 AND cfg.grouping_property IS NOT NULL
+            """,
+            "tracks_property": f"""
+                SELECT DISTINCT c.property_id AS v FROM {latest}
+                JOIN dashboard_configuration_columns AS c ON c.configuration_id = cfg.id
+                WHERE cfg.rn = 1 AND c.property_id IS NOT NULL
+            """,
+            "language": f"""
+                SELECT DISTINCT c.language AS v FROM {latest}
+                JOIN dashboard_configuration_columns AS c ON c.configuration_id = cfg.id
+                WHERE cfg.rn = 1 AND c.language IS NOT NULL
+            """,
+            "project": f"""
+                SELECT DISTINCT c.project AS v FROM {latest}
+                JOIN dashboard_configuration_columns AS c ON c.configuration_id = cfg.id
+                WHERE cfg.rn = 1 AND c.project IS NOT NULL
+            """,
+            "source_item": f"""
+                SELECT DISTINCT c.source_item AS v FROM {latest}
+                JOIN dashboard_configuration_columns AS c ON c.configuration_id = cfg.id
+                WHERE cfg.rn = 1 AND c.source_item IS NOT NULL
+            """,
+        }
+        values = {}
+        with self.conn.cursor() as cur:
+            for key, sql in queries.items():
+                cur.execute(sql)
+                values[key] = sorted(row["v"] for row in cur.fetchall())
+
+            # Selector mentions are a comma-padded token BAG per config, not a
+            # single column, so unpack every latest bag into distinct tokens.
+            cur.execute(
+                f"""
+                SELECT cfg.selector_mentions AS bag FROM {latest}
+                WHERE cfg.rn = 1 AND cfg.selector_mentions IS NOT NULL
+                """
+            )
+            tokens = set()
+            for row in cur.fetchall():
+                tokens.update(t for t in (row["bag"] or "").split(",") if t)
+            values["mentions"] = sorted(tokens)
+        return values
 
     def list_wikis(self, namespace_canonical=None):
         """Return known wikis with their dashboard counts, optionally scoped

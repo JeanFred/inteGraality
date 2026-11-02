@@ -1,0 +1,178 @@
+{#
+  Tier-2 feature facets inside a <details> expander (open when a feature filter
+  is active). Posts inside the browse <form>; datalists autocomplete from values
+  present in the data.
+#}
+<datalist id="dl-tracks">
+    {% for v in facet_values.tracks_property %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+<datalist id="dl-grouping">
+    {% for v in facet_values.grouping_property %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+<datalist id="dl-language">
+    {% for v in facet_values.language %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+<datalist id="dl-project">
+    {% for v in facet_values.project %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+<datalist id="dl-source">
+    {% for v in facet_values.source_item %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+<datalist id="dl-mentions">
+    {% for v in facet_values.mentions %}<option value="{{ v }}"></option>{% endfor %}
+</datalist>
+
+<details class="feature-facets mt-2" {{ 'open' if features_active }}>
+    <summary class="text-muted small">
+        Filter by feature <span class="text-muted">(configuration content)</span>
+    </summary>
+    <div class="d-flex flex-wrap align-items-end gap-3 mt-2">
+        <div class="facet-group flex-fill d-flex flex-wrap align-items-end gap-2 border rounded p-2">
+            <span class="facet-group-label text-secondary mb-1">Selection</span>
+            <div class="facet-field d-flex flex-column">
+                <label for="mentions">Selector mentions</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="mentions"
+                    name="mentions"
+                    list="dl-mentions"
+                    placeholder="e.g. Q7889"
+                    title="A P/Q id appearing in the item-selection query"
+                    value="{{ feature_filters.mentions or '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="facet-group flex-fill d-flex flex-wrap align-items-end gap-2 border rounded p-2">
+            <span class="facet-group-label text-secondary mb-1">Grouping</span>
+            <div class="facet-field d-flex flex-column">
+                <label for="grouping_type">Type</label>
+                <select class="form-select form-select-sm" id="grouping_type" name="grouping_type">
+                    <option value="">Any</option>
+                    {% for value in ("item", "year", "sitelink") %}
+                        <option value="{{ value }}" {{ 'selected' if feature_filters.grouping_type == value }}>
+                            {{ value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="grouping_property">Grouped by property</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="grouping_property"
+                    name="grouping_property"
+                    list="dl-grouping"
+                    placeholder="e.g. P21"
+                    value="{{ feature_filters.grouping_property or '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="facet-group flex-fill d-flex flex-wrap align-items-end gap-2 border rounded p-2">
+            <span class="facet-group-label text-secondary mb-1">Columns</span>
+            <div class="facet-field d-flex flex-column">
+                <label for="tracks_property">Tracks property</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="tracks_property"
+                    name="tracks_property"
+                    list="dl-tracks"
+                    placeholder="e.g. P569"
+                    value="{{ feature_filters.tracks_property or '' }}"
+                >
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="column_type">Column kind</label>
+                <select class="form-select form-select-sm" id="column_type" name="column_type">
+                    <option value="">Any</option>
+                    {% for value in ("property", "label", "description", "sitelink", "qualifier", "reference") %}
+                        <option value="{{ value }}" {{ 'selected' if feature_filters.column_type == value }}>
+                            {{ value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="source_item">Sourced from item</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="source_item"
+                    name="source_item"
+                    list="dl-source"
+                    placeholder="e.g. Q5"
+                    value="{{ feature_filters.source_item or '' }}"
+                >
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="label_language">Label language</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="label_language"
+                    name="label_language"
+                    list="dl-language"
+                    placeholder="e.g. en"
+                    title="Dashboards with a label column in this language"
+                    value="{{ feature_filters.label_language or '' }}"
+                >
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="description_language">Description language</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="description_language"
+                    name="description_language"
+                    list="dl-language"
+                    placeholder="e.g. en"
+                    title="Dashboards with a description column in this language"
+                    value="{{ feature_filters.description_language or '' }}"
+                >
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="project">Sitelink project</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="project"
+                    name="project"
+                    list="dl-project"
+                    placeholder="e.g. enwiki"
+                    value="{{ feature_filters.project or '' }}"
+                >
+            </div>
+        </div>
+
+        <div class="facet-group flex-fill d-flex flex-wrap align-items-end gap-2 border rounded p-2">
+            <span class="facet-group-label text-secondary mb-1">References</span>
+            <div class="facet-field d-flex flex-column">
+                <label for="reference_check_kind">Reference check</label>
+                <select class="form-select form-select-sm" id="reference_check_kind" name="reference_check_kind">
+                    <option value="">Any</option>
+                    {% for value in ("any", "good", "property", "any_of", "all_of") %}
+                        <option value="{{ value }}" {{ 'selected' if feature_filters.reference_check_kind == value }}>
+                            {{ value }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="facet-field d-flex flex-column">
+                <label for="references_property">References property</label>
+                <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    id="references_property"
+                    name="references_property"
+                    placeholder="e.g. P248"
+                    title="A source property asserted by a reference check"
+                    value="{{ feature_filters.references_property or '' }}"
+                >
+            </div>
+        </div>
+    </div>
+</details>

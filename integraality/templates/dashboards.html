@@ -20,6 +20,29 @@
             gap: 2px;
             line-height: 1;
         }
+        /* Tier-2 feature facets. Layout (flex/wrap/gap/border) is Bootstrap
+           utilities in the markup; only the bits utilities can't express stay
+           here: the full-width uppercase group label and the field min-width. */
+        .feature-facets > summary {
+            width: fit-content;
+            cursor: pointer;
+        }
+        .facet-group-label {
+            flex-basis: 100%;
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+        .facet-field > label {
+            color: var(--bs-secondary-color);
+            font-size: 0.72rem;
+            white-space: nowrap;
+        }
+        .facet-field .form-select-sm,
+        .facet-field .form-control-sm {
+            min-width: 9rem;
+        }
     </style>
 {% endblock %}
 {% block body_scripts %}{% include "_timeago.html" %}{% endblock %}

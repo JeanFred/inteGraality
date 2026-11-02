@@ -1,14 +1,24 @@
+{% from "_macros.html" import relative_time %}
 <datalist id="root-options">
     {% for r in roots %}
         <option value="{{ r }}"></option>
     {% endfor %}
 </datalist>
 {% if dashboards %}
-    <p><strong>{{ dashboards | length }}</strong> dashboards registered.</p>
+    <p>
+        <strong>{{ dashboards | length }}</strong> dashboard{{ 's' if dashboards | length != 1 }}
+        {%- if is_filtered %}
+            match{{ 'es' if dashboards | length == 1 }}{% else %}
+            registered{% endif %}.
+    </p>
     <table class="table table-striped table-sm align-middle" id="dashboard-table">
         <thead>
             <tr>
                 <th>Dashboard</th>
+                {% if features_active %}
+                    <th>Grouping</th>
+                    <th>Last edited by</th>
+                {% endif %}
                 <th>Recent runs</th>
                 <th>Last success</th>
             </tr>
@@ -38,6 +48,32 @@
                                 }}</small>
                         {% endif %}
                     </td>
+                    {% if features_active %}
+                        <td>
+                            {% if d.grouping_type %}
+                                {{ d.grouping_type }}{% if d.grouping_property %}
+                                    <small class="text-muted">({{ d.grouping_property }})</small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if d.config_author %}
+                                <a href="https://{{ d.site_hostname }}/wiki/User:{{ d.config_author }}">{{
+                                    d.config_author
+                                }}</a>
+                                {% if d.config_introduced_at %}
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ relative_time(d.config_introduced_at) }}
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">unknown</span>
+                            {% endif %}
+                        </td>
+                    {% endif %}
                     <td>
                         <div class="run-strip" aria-label="recent run outcomes, oldest to newest">
                             {% if d.recent_statuses %}

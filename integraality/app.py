@@ -66,6 +66,45 @@ RUNS_TABLE_CAP = 50
 # long-lived dashboard's 1000+ ticks don't fill the screen.
 RUNS_STRIP_CAP = 180
 
+# Tier-2 (config-content) filter query params on /dashboards, with human labels
+# for the active-filter chips. Order here is the display order of the chips.
+FEATURE_FILTER_LABELS = {
+    "grouping_type": "Grouping type",
+    "grouping_property": "Grouped by",
+    "tracks_property": "Tracks",
+    "column_type": "Column kind",
+    "source_item": "Sourced from",
+    "label_language": "Label language",
+    "description_language": "Description language",
+    "project": "Sitelink project",
+    "reference_check_kind": "Reference check",
+    "references_property": "References property",
+    "mentions": "Selector mentions",
+}
+FEATURE_FILTER_KEYS = tuple(FEATURE_FILTER_LABELS)
+
+
+def _feature_chips(feature_filters):
+    """Removable active-filter chips for the set feature filters. Each chip's
+    remove URL is the full current query (operational + feature) minus that one
+    feature key, so removing a feature chip preserves the operational filters."""
+    base = {k: v for k, v in request.args.items() if v}
+    chips = []
+    for key in FEATURE_FILTER_KEYS:
+        value = feature_filters.get(key)
+        if not value:
+            continue
+        remaining = {k: v for k, v in base.items() if k != key}
+        chips.append(
+            {
+                "key": key,
+                "label": FEATURE_FILTER_LABELS[key],
+                "value": value,
+                "remove_url": url_for("dashboards", **remaining),
+            }
+        )
+    return chips
+
 
 def get_qlever_ui_url(page_url):
     """Return the QLever UI URL for the given wiki page URL."""
@@ -161,7 +200,16 @@ def dashboards():
     namespace_active = namespace_filter is not None and (
         namespace_filter != "" or namespace == MAIN_NAMESPACE_TOKEN
     )
-    is_filtered = any([site_hostname, namespace_active, root_page, search, status])
+    # Tier 2: feature facets (config-content filters). Progressive-disclosure —
+    # the expander auto-opens when any of these is active (e.g. a pivot link).
+    feature_filters = {
+        key: (request.args.get(key) or None) for key in FEATURE_FILTER_KEYS
+    }
+    features_active = any(feature_filters.values())
+    is_filtered = (
+        any([site_hostname, namespace_active, root_page, search, status])
+        or features_active
+    )
     with DashboardRegistry() as registry:
         dashboards = registry.list_dashboards(
             site_hostname=site_hostname,
@@ -169,6 +217,7 @@ def dashboards():
             root_page=root_page,
             search=search,
             status=status,
+            **feature_filters,
         )
         wikis = registry.list_wikis(
             namespace_canonical=namespace_filter if namespace_active else None,
@@ -178,6 +227,8 @@ def dashboards():
             site_hostname=site_hostname,
             namespace_canonical=namespace_filter if namespace_active else None,
         )
+        facet_values = registry.feature_facet_values()
+    active_chips = _feature_chips(feature_filters)
     return render_template(
         "dashboards.html",
         dashboards=dashboards,
@@ -192,6 +243,10 @@ def dashboards():
         selected_status=status,
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
         main_namespace_token=MAIN_NAMESPACE_TOKEN,
+        feature_filters=feature_filters,
+        features_active=features_active,
+        facet_values=facet_values,
+        active_chips=active_chips,
     )
 
 

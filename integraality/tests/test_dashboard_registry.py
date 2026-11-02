@@ -454,6 +454,160 @@ class TestDashboardRegistry(unittest.TestCase):
             ),
         )
 
+    # --- Unified browse feature facets (list_dashboards config filters) ---
+
+    def test_list_dashboards_by_feature_grouping_type(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(grouping_type="year")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("cfg.grouping_type = %s", sql)
+        self.assertIn("cfg.rn = 1", sql)
+        self.assertIn("year", params)
+
+    def test_latest_config_ranks_by_introduced_at_not_id(self):
+        # Regression: the backfiller can insert an OLDER config with a HIGHER id,
+        # so "latest config" must rank by introduced_at (NULLs last), not id.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(grouping_type="item")
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertIn(
+            "ORDER BY introduced_at IS NULL, introduced_at DESC, id DESC", sql
+        )
+
+    def test_list_dashboards_by_feature_reference_check_kind_uses_exists(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(reference_check_kind="good")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("c.reference_check_kind = %s", sql)
+        self.assertIn("good", params)
+
+    def test_list_dashboards_by_feature_references_property_matches_any_value_form(
+        self,
+    ):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(references_property="P248")
+        _sql, params = self.mock_cursor.execute.call_args[0]
+        # Atoms-only bag -> bare atom OR any valued atom.
+        self.assertIn("%,S248,%", params)
+        self.assertIn("%,S248=%", params)
+
+    def test_references_property_strips_only_one_leading_p(self):
+        # removeprefix, not lstrip: "PP248" -> "SP248" (one P removed), never
+        # "S248" (which lstrip's char-set strip would wrongly produce).
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(references_property="PP248")
+        _sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("%,SP248,%", params)
+
+    def test_list_dashboards_by_feature_mentions_is_fuzzy(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(mentions="Q7889")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("cfg.selector_mentions LIKE %s", sql)
+        self.assertIn("%,Q7889,%", params)
+
+    def test_list_dashboards_by_feature_carries_author_and_identity(self):
+        # The merged query LEFT-joins the latest config, so rows carry config
+        # identity (grouping_type/property) alongside page identity.
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "page_title": "X",
+                "site_hostname": "www.wikidata.org",
+                "grouping_type": "item",
+            },
+        ]
+        rows = self.registry.list_dashboards(grouping_type="item")
+        sql = self.mock_cursor.execute.call_args[0][0]
+        self.assertIn("cfg.grouping_type AS grouping_type", sql)
+        self.assertIn("p.page_title AS page_title", sql)
+        self.assertEqual(rows[0]["grouping_type"], "item")
+
+    def test_list_dashboards_by_feature_combines_filters(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(
+            grouping_type="item", tracks_property="P569", project="enwiki"
+        )
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("cfg.grouping_type = %s", sql)
+        self.assertEqual(sql.count("EXISTS ("), 2)  # tracks_property + project
+        for v in ("item", "P569", "enwiki"):
+            self.assertIn(v, params)
+
+    def test_list_dashboards_no_feature_filter_has_no_cfg_condition(self):
+        # With no feature filter the config is only LEFT-joined (so config-less
+        # dashboards still list); no cfg.* / EXISTS filter condition is added.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards()
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertNotIn("cfg.grouping_type = %s", sql)
+        self.assertNotIn("EXISTS (", sql)
+        # Only the strip-cap placeholder is bound (no filter params).
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE,))
+
+    def test_list_dashboards_language_and_column_type_are_independent(self):
+        # language, project and column_type are INDEPENDENT EXISTS facets — NOT
+        # co-scoped to one column row. Regression: co-scoping project+column_type
+        # made "column_type=property & project=frwiki" impossible (a column can't
+        # be both a property and carry a sitelink project), returning 0 wrongly.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(column_type="property", project="frwiki")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        # Two separate EXISTS, each matching one facet (never "both in one row").
+        self.assertNotIn("c.project = %s AND c.column_type", sql)
+        self.assertNotIn("c.column_type = %s AND c.project", sql)
+        self.assertEqual(sql.count("EXISTS ("), 2)
+        for v in ("property", "frwiki"):
+            self.assertIn(v, params)
+
+    def test_list_dashboards_column_type_filters_any_column_of_that_kind(self):
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(column_type="sitelink")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("c.column_type = %s", sql)
+        self.assertIn("sitelink", params)
+
+    def test_list_dashboards_label_vs_description_language_scoped(self):
+        # The label/description distinction lives in the dedicated params, each a
+        # single EXISTS scoping language to that column_type.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(label_language="en")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("c.column_type = %s AND c.language = %s", sql)
+        for v in ("label", "en"):
+            self.assertIn(v, params)
+
+    def test_list_dashboards_by_feature_label_and_description_language_independent(
+        self,
+    ):
+        # Two separate scoped EXISTS (label-lang AND description-lang), so they
+        # combine — unlike the single language+column_type pair.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(label_language="en", description_language="fr")
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertEqual(sql.count("c.column_type = %s AND c.language = %s"), 2)
+        for v in ("label", "en", "description", "fr"):
+            self.assertIn(v, params)
+
+    def test_feature_facet_values_returns_sorted_distinct_per_facet(self):
+        # One fetchall per facet query; the method sorts each. The final query
+        # returns selector_mention BAGS, unpacked into distinct tokens.
+        self.mock_cursor.fetchall.side_effect = [
+            [{"v": "P21"}, {"v": "P17"}],  # grouping_property
+            [{"v": "P569"}, {"v": "P18"}],  # tracks_property
+            [{"v": "fr"}, {"v": "en"}],  # language
+            [{"v": "frwiki"}, {"v": "enwiki"}],  # project
+            [{"v": "Q5"}],  # source_item
+            [{"bag": ",P31,Q7889,"}, {"bag": ",P31,Q146,"}],  # selector_mentions bags
+        ]
+        values = self.registry.feature_facet_values()
+        self.assertEqual(values["grouping_property"], ["P17", "P21"])
+        self.assertEqual(values["tracks_property"], ["P18", "P569"])
+        self.assertEqual(values["language"], ["en", "fr"])
+        self.assertEqual(values["project"], ["enwiki", "frwiki"])
+        self.assertEqual(values["source_item"], ["Q5"])
+        # Bags unpacked, deduped (P31 appears twice), sorted.
+        self.assertEqual(values["mentions"], ["P31", "Q146", "Q7889"])
+
     def test_list_roots(self):
         self.mock_cursor.fetchall.return_value = [
             {"root_page": "Jean-Fred"},

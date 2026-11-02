@@ -304,11 +304,13 @@ def dashboard():
         config_changes = registry.list_dashboard_configurations(
             site_hostname, page_title
         )
+        latest_config = registry.get_latest_configuration(site_hostname, page_title)
     return render_template(
         "dashboard_history.html",
         dashboard=identity,
         history=history,
         health=health,
+        latest_config=latest_config,
         chart_data=_chart_data(history, health, config_changes),
         has_duration=any(r["duration_ms"] is not None for r in history),
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,

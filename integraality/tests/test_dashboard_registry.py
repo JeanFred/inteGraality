@@ -608,6 +608,68 @@ class TestDashboardRegistry(unittest.TestCase):
         # Bags unpacked, deduped (P31 appears twice), sorted.
         self.assertEqual(values["mentions"], ["P31", "Q146", "Q7889"])
 
+    # --- Per-dashboard configuration panel reader (latest config + history) ---
+
+    def test_get_latest_configuration_returns_config_and_columns(self):
+        config_row = {
+            "id": 9,
+            "config_hash": "abc",
+            "introduced_at": _dt("2026-02-03 04:05:06"),
+            "author": "Alice",
+            "introduced_by_rev_id": 42,
+            "grouping_predicate": "wdt:P21",
+            "grouping_property": "P21",
+            "grouping_type": "item",
+            "grouping_threshold": 20,
+            "higher_grouping": None,
+            "selector_sparql": "?item wdt:P31 wd:Q7889 .",
+            "selector_mentions": ",P31,Q7889,",
+            "explicit_groupings": None,
+            "row_totals": 1,
+            "row_no_group": 0,
+            "grouping_link_mode": "wikilink",
+        }
+        # fetchone: config row, then the history-stats row.
+        self.mock_cursor.fetchone.side_effect = [
+            config_row,
+            {"revisions": 3, "editors": 2},
+        ]
+        self.mock_cursor.fetchall.return_value = [
+            {"position": 1, "column_type": "property", "property_id": "P18"},
+        ]
+        result = self.registry.get_latest_configuration(
+            "www.wikidata.org", "Wikidata:Test"
+        )
+        # Latest-first ordering + single row. NULLs-last so a dated config wins
+        # over an undated snapshot; ranked by introduced_at, not id (backfill can
+        # insert older configs with higher ids).
+        config_sql = self.mock_cursor.execute.call_args_list[0][0][0]
+        self.assertIn(
+            "ORDER BY cfg.introduced_at IS NULL, cfg.introduced_at DESC, cfg.id DESC",
+            config_sql,
+        )
+        self.assertIn("LIMIT 1", config_sql)
+        # Columns fetched by the resolved config id.
+        columns_sql, columns_params = self.mock_cursor.execute.call_args_list[1][0]
+        self.assertIn("FROM dashboard_configuration_columns", columns_sql)
+        self.assertEqual(columns_params, (9,))
+        # History-stats query (revisions + distinct editors) for the panel header.
+        history_sql = self.mock_cursor.execute.call_args_list[2][0][0]
+        self.assertIn("COUNT(DISTINCT cfg.author) AS editors", history_sql)
+        self.assertEqual(result["config"]["grouping_type"], "item")
+        self.assertEqual(result["columns"][0]["property_id"], "P18")
+        self.assertEqual(result["history"]["revisions"], 3)
+        self.assertEqual(result["history"]["editors"], 2)
+
+    def test_get_latest_configuration_none_when_no_config(self):
+        self.mock_cursor.fetchone.return_value = None
+        result = self.registry.get_latest_configuration(
+            "www.wikidata.org", "Wikidata:Test"
+        )
+        self.assertIsNone(result)
+        # Short-circuits: only the config query runs, not the columns query.
+        self.assertEqual(self.mock_cursor.execute.call_count, 1)
+
     # --- Config-change overlay reader (per-dashboard config timeline) ---
 
     def test_list_dashboard_configurations_returns_timeline_oldest_first(self):

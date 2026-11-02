@@ -787,6 +787,67 @@ class DashboardRegistry:
             cur.execute(sql, (site_hostname, page_title))
             return cur.fetchall()
 
+    def get_latest_configuration(self, site_hostname, page_title):
+        """The dashboard's current config with its columns and revision history
+        counts, or None if no config is recorded."""
+        config_sql = f"""\
+            SELECT
+                cfg.id AS id,
+                cfg.config_hash AS config_hash,
+                cfg.introduced_at AS introduced_at,
+                cfg.author AS author,
+                cfg.introduced_by_rev_id AS introduced_by_rev_id,
+                cfg.grouping_predicate AS grouping_predicate,
+                cfg.grouping_property AS grouping_property,
+                cfg.grouping_type AS grouping_type,
+                cfg.grouping_threshold AS grouping_threshold,
+                cfg.higher_grouping AS higher_grouping,
+                cfg.selector_sparql AS selector_sparql,
+                cfg.selector_mentions AS selector_mentions,
+                cfg.explicit_groupings AS explicit_groupings,
+                cfg.row_totals AS row_totals,
+                cfg.row_no_group AS row_no_group,
+                cfg.grouping_link_mode AS grouping_link_mode
+            FROM dashboard_configurations AS cfg
+            JOIN dashboards AS d ON d.id = cfg.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            WHERE w.hostname = %s AND p.page_title = %s
+            ORDER BY {_latest_config_order("cfg")}
+            LIMIT 1
+        """
+        columns_sql = """\
+            SELECT
+                position, column_type, property_id, qualifier_id, value,
+                value_item, reference_check_kind, reference_check_tokens,
+                source_property, source_item, language, project, raw_key
+            FROM dashboard_configuration_columns
+            WHERE configuration_id = %s
+            ORDER BY position ASC
+        """
+        # Config-timeline stats for the panel header ("Revised N times by M
+        # editors"). Counts the dashboard's whole append-only config history.
+        history_sql = """\
+            SELECT
+                COUNT(*) AS revisions,
+                COUNT(DISTINCT cfg.author) AS editors
+            FROM dashboard_configurations AS cfg
+            JOIN dashboards AS d ON d.id = cfg.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            WHERE w.hostname = %s AND p.page_title = %s
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(config_sql, (site_hostname, page_title))
+            config = cur.fetchone()
+            if config is None:
+                return None
+            cur.execute(columns_sql, (config["id"],))
+            columns = cur.fetchall()
+            cur.execute(history_sql, (site_hostname, page_title))
+            history = cur.fetchone()
+        return {"config": config, "columns": columns, "history": history}
+
     @staticmethod
     def compute_health(runs):
         """Summarize a run-history list (oldest->newest): counts, success rate,

@@ -1,0 +1,205 @@
+{#
+  Current-configuration panel for one dashboard. Renders the latest recorded
+  config (facets + columns) as a compact, legible summary. Every facet is a
+  pivot link into the by-feature reader ("other dashboards like this one").
+  Included only when latest_config is not None.
+#}
+{% from "_macros.html" import relative_time %}
+{% set cfg = latest_config.config %}
+{% set cols = latest_config.columns %}
+{% set mentions = (cfg.selector_mentions or '').strip(',').split(',') | select | list %}
+{% set pinned = (cfg.explicit_groupings or '').strip(',').split(',') | select | list %}
+{# Distinct tracked property-ids (property/qualifier/reference columns), order-preserving. #}
+{% set tracked = [] %}
+{% for c in cols if c.property_id %}
+    {% if c.property_id not in tracked %}{{ tracked.append(c.property_id) or '' }}{% endif %}
+{% endfor %}
+{# Non-property columns as {label, params} so each pivots into the feature
+   reader, using the form's own params so a click lands on the exact filter the
+   form exposes: label/description → label_language/description_language,
+   sitelink → project. params is None when the code is missing, in which case it
+   renders as plain muted text. #}
+{% set tracked_other = [] %}
+{% for c in cols if not c.property_id %}
+    {% if c.column_type == 'label' %}
+        {{
+            tracked_other.append({'label': (c.language or '?') ~ ' label', 'params': {'label_language': c.language} if c.language else None}) or ''
+        }}
+    {% elif c.column_type == 'description' %}
+        {{
+            tracked_other.append({'label': (c.language or '?') ~ ' description', 'params': {'description_language': c.language} if c.language else None}) or ''
+        }}
+    {% elif c.column_type == 'sitelink' %}
+        {{
+            tracked_other.append({'label': (c.project or '?') ~ ' sitelink', 'params': {'project': c.project} if c.project else None}) or ''
+        }}
+    {% endif %}
+{% endfor %}
+{% set ref_kinds = [] %}
+{% for c in cols if c.reference_check_kind %}
+    {% if c.reference_check_kind not in ref_kinds %}{{ ref_kinds.append(c.reference_check_kind) or '' }}{% endif %}
+{% endfor %}
+
+{% macro facet_link(label, param, value) -%}
+    <a
+        href="{{ url_for('dashboards', **{param: value}) }}"
+        class="text-decoration-none"
+        title="Find other dashboards with this feature"
+    >{{ label }}</a>
+{%- endmacro %}
+
+{# Like facet_link but takes a multi-param dict (e.g. language + column_type). #}
+{% macro facet_link_params(label, params) -%}
+    <a
+        href="{{ url_for('dashboards', **params) }}"
+        class="text-decoration-none"
+        title="Find other dashboards with this feature"
+    >{{ label }}</a>
+{%- endmacro %}
+
+{# Muted, non-linking item. Macro output is Markup so it survives join()
+   without escaping; the content is still escaped. #}
+{% macro muted_item(text) -%}
+    <span class="text-muted">{{ text }}</span>
+{%- endmacro %}
+
+{# Collapsed by default to a one-line summary so it doesn't push Health and the
+   charts below the fold. Native <details> (no JS needed, like the browse
+   facets). Single instance per page: the ids below (tracks-more,
+   selector-sparql) are fixed, so don't render this panel in a list. #}
+<details class="card config-panel mb-3">
+    <summary class="card-header">
+        <h2 class="h6 fw-bold d-inline mb-0">Configuration</h2>
+        <span class="text-muted small ms-2">
+            Grouping by {{ cfg.grouping_type or '—' }}
+            {%- if cfg.grouping_property %}
+                on {{ cfg.grouping_property }}{% endif %}
+            · Tracking {{ cols | length }} column{{ 's' if cols | length != 1 }}
+            {%- if mentions %}
+                · {{ mentions | length }} selector mention{{ 's' if mentions | length != 1 }}
+            {%- endif %}
+            {#- Hidden while open (.config-edited): the body repeats it, linked. #}
+            {%- if cfg.author or cfg.introduced_at %}
+                <span class="config-edited">
+                    · edited
+                    {%- if cfg.author %}
+                        by {{ cfg.author }}{% endif %}
+                    {% if cfg.introduced_at %}{{ relative_time(cfg.introduced_at) }}{% endif %}
+                </span>
+            {%- endif %}
+        </span>
+    </summary>
+    <div class="card-body">
+        {% if cfg.author or cfg.introduced_at %}
+            <p class="text-muted small mb-1">
+                Last edited
+                {% if cfg.author %}
+                    by <a href="https://{{ dashboard.site_hostname }}/wiki/User:{{ cfg.author }}">{{ cfg.author }}</a>
+                {% endif %}
+                {% if cfg.introduced_at %}
+                    {{ relative_time(cfg.introduced_at) }}
+                {% endif %}
+                {# Churn signal, only when it says something (more than one config). #}
+                {% if latest_config.history and latest_config.history.revisions > 1 %}
+                    · Revised {{ latest_config.history.revisions }} times by {{ latest_config.history.editors }}
+                    editor{{ 's' if latest_config.history.editors != 1 }}
+                {% endif %}
+            </p>
+        {% endif %}
+        <p class="text-muted small mb-2">Click a value to find other dashboards using it.</p>
+        {# dd.mb-1.pb-0: utilities override the global `dl.row dd` 10px+10px spacing. #}
+        <dl class="row mb-0">
+            <dt class="col-sm-3 col-xl-2">Grouping</dt>
+            <dd class="col-sm-9 col-xl-10 mb-1 pb-0">
+                {% if cfg.grouping_type %}
+                    {{ facet_link(cfg.grouping_type, 'grouping_type', cfg.grouping_type) }}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+                {% if cfg.grouping_property %}
+                    on {{ facet_link(cfg.grouping_property, 'grouping_property', cfg.grouping_property) }}
+                {% elif cfg.grouping_predicate %}
+                    <code class="small">{{ cfg.grouping_predicate }}</code>
+                {% endif %}
+                {% if pinned %}
+                    <span class="text-muted small">
+                        · pins {{ pinned | join(', ') }}
+                    </span>
+                {% endif %}
+            </dd>
+
+            <dt class="col-sm-3 col-xl-2">Tracks</dt>
+            <dd class="col-sm-9 col-xl-10 mb-1 pb-0">
+                {% if not cols %}
+                    <span class="text-muted">no columns recorded</span>
+                {% else %}
+                    {# Assemble all items first, then join with a single separator —
+                       avoids per-iteration whitespace the formatter would reflow. #}
+                    {% set items = [] %}
+                    {% for pid in tracked %}
+                        {{ items.append(facet_link(pid, 'tracks_property', pid)) or '' }}
+                    {% endfor %}
+                    {% for other in tracked_other %}
+                        {% if other.params %}
+                            {{ items.append(facet_link_params(other.label, other.params)) or '' }}
+                        {% else %}
+                            {{ items.append(muted_item(other.label)) or '' }}
+                        {% endif %}
+                    {% endfor %}
+                    {# Collapse a long list past N so a 30-column dashboard isn't a
+                       wall of links (consistent with the selector-SPARQL collapse). #}
+                    {% set tracks_cap = 12 %}
+                    {{ items[:tracks_cap] | join(', ') | safe }}
+                    {% if items | length > tracks_cap %}
+                        <span class="collapse" id="tracks-more">, {{ items[tracks_cap:] | join(', ') | safe }}</span>
+                        <a
+                            class="small text-muted text-decoration-none ms-1"
+                            data-bs-toggle="collapse"
+                            href="#tracks-more"
+                            role="button"
+                            aria-expanded="false"
+                            aria-controls="tracks-more"
+                        >… +{{ items | length - tracks_cap }} more</a>
+                    {% endif %}
+                {% endif %}
+            </dd>
+
+            {% if ref_kinds %}
+                <dt class="col-sm-3 col-xl-2">Reference checks</dt>
+                <dd class="col-sm-9 col-xl-10 mb-1 pb-0">
+                    {% set ref_items = [] %}
+                    {% for kind in ref_kinds %}
+                        {{ ref_items.append(facet_link(kind, 'reference_check_kind', kind)) or '' }}
+                    {% endfor %}
+                    {{ ref_items | join(', ') | safe }}
+                </dd>
+            {% endif %}
+
+            {% if mentions %}
+                <dt class="col-sm-3 col-xl-2">Selector mentions</dt>
+                <dd class="col-sm-9 col-xl-10 mb-1 pb-0">
+                    {% set mention_items = [] %}
+                    {% for token in mentions %}
+                        {{ mention_items.append(facet_link(token, 'mentions', token)) or '' }}
+                    {% endfor %}
+                    {{ mention_items | join(', ') | safe }}
+                    <a
+                        class="small text-muted text-decoration-none ms-2"
+                        data-bs-toggle="collapse"
+                        href="#selector-sparql"
+                        role="button"
+                        aria-expanded="false"
+                        aria-controls="selector-sparql"
+                    >show selector</a>
+                </dd>
+            {% endif %}
+        </dl>
+        {# Outside the <dl>: as a trailing <dd> it picked up the global dd
+           padding and left a blank band even when there was nothing to show. #}
+        {% if mentions %}
+            <div class="collapse mt-1" id="selector-sparql">
+                <pre class="small bg-body-secondary p-2 rounded mb-0"><code>{{ cfg.selector_sparql }}</code></pre>
+            </div>
+        {% endif %}
+    </div>
+</details>

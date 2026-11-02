@@ -105,6 +105,16 @@
         .delta-flat {
             color: var(--bs-secondary-color);
         }
+        /* Collapsed config panel: the summary IS the whole card, so drop its
+           header divider and match the card's inner corner radius. */
+        .config-panel:not([open]) > summary {
+            border-bottom: 0;
+            border-radius: var(--bs-card-inner-border-radius);
+        }
+        /* Open: the body already says "Last edited by <linked author> …". */
+        .config-panel[open] > summary .config-edited {
+            display: none;
+        }
         /* Config-change rail: a lane under the trend chart holding author/date
            pills positioned (in JS) at each marker's x. One row by default; JS
            grows it to two when a pill uses the lower row (.rail-pill-low, so
@@ -486,6 +496,8 @@
             {% endif %}
         </small>
     </h1>
+
+    {% if latest_config %}{% include "_config_panel.html" %}{% endif %}
 
     {% if not history %}
         <p class="text-muted">No runs recorded yet for this dashboard.</p>

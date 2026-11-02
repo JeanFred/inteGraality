@@ -870,6 +870,216 @@ class DashboardHistoryTests(AppTests):
         ).get_data(as_text=True)
         self.assertNotIn("configuration changes", contents)
 
+    def _latest_config(self, **overrides):
+        config = {
+            "id": 9,
+            "config_hash": "abc",
+            "introduced_at": datetime(2026, 2, 3, 4, 5, 6),
+            "author": "Alice",
+            "introduced_by_rev_id": 42,
+            "grouping_predicate": "wdt:P21",
+            "grouping_property": "P21",
+            "grouping_type": "item",
+            "grouping_threshold": 20,
+            "higher_grouping": None,
+            "selector_sparql": "?item wdt:P31 wd:Q7889 .",
+            "selector_mentions": ",P31,Q7889,",
+            "explicit_groupings": None,
+            "row_totals": 1,
+            "row_no_group": 0,
+            "grouping_link_mode": "wikilink",
+        }
+        config.update(overrides.pop("config", {}))
+        columns = overrides.pop(
+            "columns",
+            [
+                {
+                    "position": 1,
+                    "column_type": "property",
+                    "property_id": "P18",
+                    "reference_check_kind": None,
+                    "source_item": None,
+                    "language": None,
+                    "project": None,
+                    "raw_key": "P18",
+                },
+                {
+                    "position": 2,
+                    "column_type": "property",
+                    "property_id": "P569",
+                    "reference_check_kind": "good",
+                    "source_item": None,
+                    "language": None,
+                    "project": None,
+                    "raw_key": "P569",
+                },
+            ],
+        )
+        history = overrides.pop("history", {"revisions": 1, "editors": 1})
+        return {"config": config, "columns": columns, "history": history}
+
+    def test_dashboard_renders_config_panel(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config()
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        # Panel header: "Last edited by <author>".
+        self.assertIn("Configuration", contents)
+        self.assertIn("Last edited", contents)
+        self.assertIn("Alice", contents)
+        # Facets render and pivot into the by-feature reader.
+        self.assertIn("tracks_property=P18", contents)
+        self.assertIn("tracks_property=P569", contents)
+        self.assertIn("grouping_type=item", contents)
+        self.assertIn("grouping_property=P21", contents)
+        self.assertIn("reference_check_kind=good", contents)
+        # Selector mention tokens stripped of padding, each a pivot link.
+        self.assertIn("mentions=Q7889", contents)
+        self.assertIn("mentions=P31", contents)
+        # Raw selector available (collapsed).
+        self.assertIn("wdt:P31 wd:Q7889", contents)
+
+    def test_config_panel_collapsed_summary_without_dead_space(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config()
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        # Collapsed by default (no `open`), with a one-line summary of the
+        # grouping, column count, mention count and last editor.
+        self.assertIn('<details class="card config-panel mb-3">', contents)
+        summary = " ".join(contents.split("<summary")[1].split("</summary>")[0].split())
+        for fragment in (
+            "Grouping by item on P21",
+            "Tracking 2 columns",
+            "2 selector mentions",
+        ):
+            self.assertIn(fragment, summary)
+        self.assertIn("edited by Alice", summary)
+        # The edited segment is its own span so it can be hidden while open,
+        # where the body repeats it (linked) — otherwise it shows twice.
+        self.assertIn('class="config-edited"', summary)
+        # The selector collapse lives outside the <dl>; a trailing empty
+        # <dd class="col-12"> used to leave a blank band under the last row.
+        self.assertNotIn('<dd class="col-12', contents)
+
+    def test_dashboard_no_config_panel_when_none(self):
+        self.mock_registry.get_latest_configuration.return_value = None
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        # The panel card header is absent (no config recorded).
+        self.assertNotIn(">Configuration<", contents)
+
+    def test_dashboard_config_panel_renders_without_runs(self):
+        """A dashboard with a recorded config but no runs still shows the panel."""
+        self.mock_registry.list_dashboard_run_history.return_value = []
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config()
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("No runs recorded yet", contents)
+        self.assertIn("Configuration", contents)
+
+    def test_config_panel_hides_revision_count_when_single(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            history={"revisions": 1, "editors": 1}
+        )
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertNotIn("Revised", contents)
+
+    def test_config_panel_shows_revision_count_when_churned(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            history={"revisions": 5, "editors": 3}
+        )
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        # Whitespace-insensitive: the formatter may wrap the inline tokens.
+        self.assertRegex(contents, r"Revised\s+5\s+times\s+by\s+3\s+editors")
+
+    def test_config_panel_lists_non_property_columns_by_name(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            columns=[
+                {
+                    "position": 1,
+                    "column_type": "label",
+                    "property_id": None,
+                    "reference_check_kind": None,
+                    "source_item": None,
+                    "language": "en",
+                    "project": None,
+                    "raw_key": "Len",
+                },
+                {
+                    "position": 2,
+                    "column_type": "description",
+                    "property_id": None,
+                    "reference_check_kind": None,
+                    "source_item": None,
+                    "language": "de",
+                    "project": None,
+                    "raw_key": "Dde",
+                },
+                {
+                    "position": 3,
+                    "column_type": "sitelink",
+                    "property_id": None,
+                    "reference_check_kind": None,
+                    "source_item": None,
+                    "language": None,
+                    "project": "frwiki",
+                    "raw_key": "frwiki",
+                },
+            ],
+        )
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("en label", contents)
+        self.assertIn("de description", contents)
+        self.assertIn("frwiki sitelink", contents)
+        self.assertNotIn("label/description/sitelink only", contents)
+        # Pivot links use the feature form's own params (so a click lands on the
+        # exact filter the form exposes), not the older language+column_type pair.
+        self.assertIn("label_language=en", contents)
+        self.assertIn("description_language=de", contents)
+        self.assertIn("project=frwiki", contents)
+
+    def test_config_panel_no_columns_recorded(self):
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            columns=[]
+        )
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("no columns recorded", contents)
+
+    def test_config_panel_tracks_collapses_past_cap(self):
+        # >12 tracked properties: first 12 shown, rest behind a show-more collapse.
+        cols = [
+            {
+                "position": i,
+                "column_type": "property",
+                "property_id": f"P{100 + i}",
+                "reference_check_kind": None,
+                "source_item": None,
+                "language": None,
+                "project": None,
+                "raw_key": f"P{100 + i}",
+            }
+            for i in range(20)
+        ]
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            columns=cols
+        )
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn('id="tracks-more"', contents)
+        self.assertIn("+8 more", contents)  # 20 - 12 cap
+
     def test_dashboard_runs_table_capped(self):
         """The runs table shows at most RUNS_TABLE_CAP rows with a
         'latest N of M' note; charts/health still consume the full history."""

@@ -9,6 +9,7 @@
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/date-fns/4.4.0/cdn.min.js"></script>
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/chartjs-adapter-date-fns/3.0.0/chartjs-adapter-date-fns.min.js"></script>
+    <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/chartjs-plugin-annotation/3.1.0/chartjs-plugin-annotation.min.js"></script>
     {% include "_run_ticks_style.html" %}
     <style>
         /* Wraps across rows (full history can be long); denser than the browse row. */
@@ -104,6 +105,45 @@
         .delta-flat {
             color: var(--bs-secondary-color);
         }
+        /* Config-change rail: a lane under the trend chart holding author/date
+           pills positioned (in JS) at each marker's x. One row by default; JS
+           grows it to two when a pill uses the lower row (.rail-pill-low, so
+           neighbours on a dense history don't overlap) and hides it when there
+           are no markers, so it never reserves empty space. */
+        .trend-rail {
+            position: relative;
+            height: 2.2em;
+            margin: -0.5em 0 1.5em;
+        }
+        .trend-rail .rail-pill {
+            position: absolute;
+            top: 0;
+            padding: 1px 6px;
+            transform: translateX(-50%);
+            border-top: 2px solid var(--rail-color, var(--bs-secondary-color));
+            border-radius: 0 0 4px 4px;
+            background: var(--bs-tertiary-bg);
+            font-size: 0.75rem;
+            white-space: nowrap;
+            cursor: default;
+        }
+        /* Caret pointing up at the marker line, so the pill reads as anchored
+           to it rather than a stray label. */
+        .trend-rail .rail-pill::before {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-width: 0;
+            border-bottom-color: var(--rail-color, var(--bs-secondary-color));
+            content: '';
+        }
+        /* Offset row: nudged down and connected to the chart edge by a taller
+           border so it still reads as anchored to its marker line. */
+        .trend-rail .rail-pill-low {
+            top: 1.7em;
+        }
     </style>
 {% endblock %}
 {% block body_scripts %}
@@ -136,6 +176,113 @@
                          ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 12 } };
             }
 
+            // Cluster config changes closer than a small fraction of the visible
+            // span into one marker (avoids overlapping ticks on dense histories).
+            // Returns [{ at, t, members:[{at,t,author}] }], chronological.
+            function clusterConfigChanges() {
+                var changes = (d.config_changes || [])
+                    .map(function (c) { return { t: Date.parse(c.at), at: c.at, author: c.author }; })
+                    .filter(function (c) { return !isNaN(c.t); })
+                    .sort(function (a, b) { return a.t - b.t; });
+                var times = d.labels.map(Date.parse).filter(function (t) { return !isNaN(t); });
+                var span = times.length > 1 ? (Math.max.apply(null, times) - Math.min.apply(null, times)) : 0;
+                var threshold = Math.max(span * 0.02, 24 * 3600 * 1000);
+                var clusters = [];
+                changes.forEach(function (c) {
+                    var last = clusters[clusters.length - 1];
+                    if (last && c.t - last.members[last.members.length - 1].t <= threshold) {
+                        last.members.push(c);
+                    } else {
+                        clusters.push({ at: c.at, t: c.t, members: [c] });
+                    }
+                });
+                return clusters;
+            }
+
+            // Bare dashed vertical lines (NO in-plot label) — the config-change
+            // markers on the chart; author/date live in the rail below.
+            //
+            // Why an HTML rail instead of chartjs-plugin-annotation's own label
+            // (which can ride on the line annotation)? Evaluated and rejected:
+            //  - The trend chart uses interaction mode:"index" with a shared
+            //    crosshair tooltip; on-canvas annotation labels share that hit
+            //    surface, so the pill's own hover (full author list for a burst)
+            //    would need re-implementing via enter/leave callbacks anyway.
+            //  - We want the date visible INLINE (not hover-only) for touch;
+            //    multi-line "Author · date" + overflow is easier in an HTML pill.
+            //  - Same-day bursts cluster to one marker AND we alternate pill rows
+            //    to avoid overlap on dense histories — layout the plugin's
+            //    one-label-per-annotation model doesn't give for free.
+            // The clustering + a small resize re-layout are the cost; the pixel
+            // mapping uses the chart's own x-scale so it stays aligned.
+            function configChangeLines(color) {
+                var ann = {};
+                clusterConfigChanges().forEach(function (cl, i) {
+                    ann["cfgline" + i] = {
+                        type: "line",
+                        xMin: cl.at, xMax: cl.at,
+                        borderColor: color,
+                        borderWidth: cl.members.length > 1 ? 2 : 1,
+                        borderDash: [4, 4]
+                    };
+                });
+                return ann;
+            }
+
+            // Position author/date pills in the HTML rail under the chart, one per
+            // cluster, aligned to the cluster's x on the chart's time axis. The
+            // date is shown inline (not hover-only) so touch users see it too; the
+            // full author list for a burst stays in the title. Edge clusters are
+            // clamped inward (never dropped — a dashed line must always have its
+            // pill), and pills alternate a vertical offset so neighbours don't
+            // stack unreadably on dense histories.
+            function buildRail(chart, color) {
+                var rail = document.getElementById("trend-rail");
+                if (!rail) { return; }
+                rail.innerHTML = "";
+                var xScale = chart.scales.x;
+                var area = chart.chartArea;
+                clusterConfigChanges().forEach(function (cl, i) {
+                    // Clamp into the plot area instead of skipping, so every marker
+                    // line on the canvas has a matching pill.
+                    var px = Math.min(Math.max(xScale.getPixelForValue(cl.t), area.left), area.right);
+                    var members = cl.members;
+                    var when = (cl.at || "").slice(0, 10);
+                    // Distinct authors (a burst is often one person editing
+                    // repeatedly), first-seen order.
+                    var authors = [];
+                    members.forEach(function (m) {
+                        var a = m.author || "?";
+                        if (authors.indexOf(a) === -1) { authors.push(a); }
+                    });
+                    // Single change -> author; burst -> "N changes" (+ the author
+                    // when the whole burst is one person, which is the common case).
+                    var who;
+                    if (members.length === 1) {
+                        who = members[0].author || "config change";
+                    } else if (authors.length === 1) {
+                        who = members.length + " changes by " + authors[0];
+                    } else {
+                        who = members.length + " changes";
+                    }
+                    var pill = document.createElement("span");
+                    pill.className = "rail-pill" + (i % 2 ? " rail-pill-low" : "");
+                    pill.style.left = px + "px";
+                    pill.style.setProperty("--rail-color", color);
+                    // Inline, touch-visible: "Author · YYYY-MM-DD" (or "N changes
+                    // [by X] · date").
+                    pill.textContent = who + " · " + when;
+                    // Tooltip lists the authors only when the burst spans several
+                    // (a single-author burst already names them in the pill text).
+                    if (authors.length > 1) { pill.title = authors.join(", "); }
+                    rail.appendChild(pill);
+                });
+                // Size to content: no markers -> hide (no empty band); one row
+                // by default (CSS); two only if a pill actually uses the lower.
+                rail.hidden = rail.firstChild === null;
+                rail.style.height = rail.querySelector(".rail-pill-low") ? "3.6em" : "";
+            }
+
             function sparkline(charts, canvasId, series, color) {
                 var canvas = document.getElementById(canvasId);
                 if (!canvas) { return; }
@@ -161,6 +308,21 @@
             // (Re)build all charts, re-reading the palette so a theme toggle
             // recolours them; destroy the old instances first to avoid leaks.
             var charts = [];
+            // Latest trend chart + marker colour, for the rail resize handler
+            // (attached once; render() refreshes this on every rebuild).
+            var trendRailState = null;
+            // Debounced via rAF so a drag-resize coalesces to one rebuild/frame.
+            var railResizePending = false;
+            window.addEventListener("resize", function () {
+                if (railResizePending) { return; }
+                railResizePending = true;
+                requestAnimationFrame(function () {
+                    railResizePending = false;
+                    if (trendRailState && trendRailState.chart && trendRailState.chart.chartArea) {
+                        buildRail(trendRailState.chart, trendRailState.color);
+                    }
+                });
+            });
             function render() {
                 charts.forEach(function (c) { c.destroy(); });
                 charts = [];
@@ -174,25 +336,46 @@
                 Chart.defaults.color = themeColor("--bs-body-color");
                 Chart.defaults.borderColor = themeColor("--bs-border-color");
 
-                charts.push(new Chart(document.getElementById("trend-chart"), {
-                    type: "line",
-                    data: {
-                        datasets: [
-                            { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
-                              borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
-                            { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
-                              borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
-                        ]
-                    },
-                    options: {
-                        responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
-                        scales: {
-                            x: timeScale(),
-                            yEntities: { type: "linear", position: "left", title: { display: true, text: "Entities" }, beginAtZero: false },
-                            ySmall: { type: "linear", position: "right", title: { display: true, text: "Groupings" }, beginAtZero: true, grid: { drawOnChartArea: false } }
+                // Trend datasets + scales builder; takes the annotation config.
+                function trendConfig(annotations) {
+                    return {
+                        type: "line",
+                        data: {
+                            datasets: [
+                                { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
+                                  borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
+                                { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
+                                  borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
+                            ]
+                        },
+                        options: {
+                            responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
+                            layout: { padding: { top: 10 } },
+                            plugins: { annotation: { annotations: annotations } },
+                            scales: {
+                                x: timeScale(),
+                                yEntities: { type: "linear", position: "left", title: { display: true, text: "Entities" }, beginAtZero: false },
+                                ySmall: { type: "linear", position: "right", title: { display: true, text: "Groupings" }, beginAtZero: true, grid: { drawOnChartArea: false } }
+                            }
                         }
-                    }
-                }));
+                    };
+                }
+
+                var markerColor = themeColor("--bs-secondary-color");
+
+                // Config-change markers: dashed lines on the chart, with author/date
+                // pills in an HTML rail BELOW the plot (date on hover via title). The
+                // rail sits outside the canvas, so its hover never collides with the
+                // chart's dataset tooltip. buildRail positions pills at each cluster's
+                // x once the chart has laid out; it re-runs on resize (below).
+                var trendChart = new Chart(document.getElementById("trend-chart"), trendConfig(configChangeLines(markerColor)));
+                charts.push(trendChart);
+                buildRail(trendChart, markerColor);
+                // Expose the current chart/color for the resize handler, which is
+                // attached once but must act on whatever the latest render() built
+                // (theme toggle rebuilds the chart instance).
+                trendRailState = { chart: trendChart, color: markerColor };
+
 
                 var hasDuration = d.duration_s.some(function (v) { return v !== null; });
                 if (hasDuration) {
@@ -429,7 +612,15 @@
                 Charts require JavaScript; the full run data is in the table below.
             </p></noscript>
         <h2>Trend</h2>
+        {% if chart_data.config_changes %}
+            <p class="text-muted small mb-1">
+                Dashed vertical lines mark the {{ chart_data.config_changes | length }} configuration change{{
+                    's' if chart_data.config_changes | length != 1
+                }}, labelled below with who changed it and when. Same-day bursts are grouped into one marker.
+            </p>
+        {% endif %}
         <div class="chart-box"><canvas id="trend-chart"></canvas></div>
+        <div id="trend-rail" class="trend-rail" hidden></div>
 
         {% if has_duration %}
             <h2>Run duration</h2>

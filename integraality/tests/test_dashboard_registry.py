@@ -608,6 +608,39 @@ class TestDashboardRegistry(unittest.TestCase):
         # Bags unpacked, deduped (P31 appears twice), sorted.
         self.assertEqual(values["mentions"], ["P31", "Q146", "Q7889"])
 
+    # --- Config-change overlay reader (per-dashboard config timeline) ---
+
+    def test_list_dashboard_configurations_returns_timeline_oldest_first(self):
+        self.mock_cursor.fetchall.return_value = [
+            {
+                "id": 1,
+                "config_hash": "aaa",
+                "introduced_at": _dt("2026-01-01 00:00:00"),
+                "author": "Alice",
+                "introduced_by_rev_id": 111,
+                "grouping_type": "item",
+                "grouping_property": "P21",
+            },
+            {
+                "id": 2,
+                "config_hash": "bbb",
+                "introduced_at": _dt("2026-03-01 00:00:00"),
+                "author": "Bob",
+                "introduced_by_rev_id": 222,
+                "grouping_type": "item",
+                "grouping_property": "P21",
+            },
+        ]
+        rows = self.registry.list_dashboard_configurations(
+            "www.wikidata.org", "Wikidata:Test"
+        )
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("FROM dashboard_configurations", sql)
+        self.assertIn("ORDER BY cfg.introduced_at ASC", sql)
+        self.assertIn("cfg.introduced_by_rev_id AS introduced_by_rev_id", sql)
+        self.assertEqual(params, ("www.wikidata.org", "Wikidata:Test"))
+        self.assertEqual([r["author"] for r in rows], ["Alice", "Bob"])
+
     def test_list_roots(self):
         self.mock_cursor.fetchall.return_value = [
             {"root_page": "Jean-Fred"},

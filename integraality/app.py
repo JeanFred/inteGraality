@@ -262,7 +262,7 @@ def runs():
     )
 
 
-def _chart_data(history, health):
+def _chart_data(history, health, config_changes=None):
     """Client-side chart series as a plain dict (emitted via | tojson)."""
     return {
         "labels": [_iso_utc(r["finished_at"]) for r in history],
@@ -277,6 +277,17 @@ def _chart_data(history, health):
         "month_ok_cron": [b["ok_cron"] for b in health["monthly_runs"]],
         "month_ok_web": [b["ok_web"] for b in health["monthly_runs"]],
         "month_fail": [b["fail"] for b in health["monthly_runs"]],
+        # Config-change markers (vertical annotations on the trend chart). Only
+        # changes with a known timestamp can be placed on the time axis.
+        "config_changes": [
+            {
+                "at": _iso_utc(c["introduced_at"]),
+                "author": c["author"],
+                "rev_id": c["introduced_by_rev_id"],
+            }
+            for c in (config_changes or [])
+            if c["introduced_at"] is not None
+        ],
     }
 
 
@@ -290,12 +301,15 @@ def dashboard():
             return render_template("page_not_found.html", title="Dashboard"), 404
         history = registry.list_dashboard_run_history(site_hostname, page_title)
         health = registry.compute_health(history)
+        config_changes = registry.list_dashboard_configurations(
+            site_hostname, page_title
+        )
     return render_template(
         "dashboard_history.html",
         dashboard=identity,
         history=history,
         health=health,
-        chart_data=_chart_data(history, health),
+        chart_data=_chart_data(history, health, config_changes),
         has_duration=any(r["duration_ms"] is not None for r in history),
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
         runs_table_cap=RUNS_TABLE_CAP,

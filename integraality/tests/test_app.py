@@ -811,6 +811,17 @@ class DashboardHistoryTests(AppTests):
         self.assertEqual(contents.count('class="run-tick '), RUNS_STRIP_CAP)
         self.assertIn(f"last {RUNS_STRIP_CAP} of {n} runs", contents)
 
+    def test_dashboard_trend_rail_starts_hidden(self):
+        # JS un-hides the rail only when it builds pills, so a dashboard with no
+        # config changes (or no JS) never reserves an empty band under the chart.
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-01 00:00:00", revision_id=1),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertRegex(contents, r'<div id="trend-rail" class="trend-rail" hidden>')
+
     def test_dashboard_passes_identity_to_registry(self):
         self.app.get("/dashboard?wiki=commons.wikimedia.org&page=Foo")
         self.mock_registry.get_dashboard.assert_called_once_with(
@@ -819,6 +830,45 @@ class DashboardHistoryTests(AppTests):
         self.mock_registry.list_dashboard_run_history.assert_called_once_with(
             "commons.wikimedia.org", "Foo"
         )
+
+    def test_dashboard_renders_config_change_markers(self):
+        """Config-change rows reach the trend chart as annotation data and the
+        annotation plugin is loaded."""
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2026-01-01 00:00:00"),
+        ]
+        self.mock_registry.list_dashboard_configurations.return_value = [
+            {
+                "id": 1,
+                "config_hash": "aaa",
+                "introduced_at": datetime(2026, 1, 1, 0, 0, 0),
+                "author": "Alice",
+                "introduced_by_rev_id": 111,
+                "grouping_type": "item",
+                "grouping_property": "P21",
+            },
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        # The change's author + timestamp land in the injected chart JSON.
+        self.assertIn("Alice", contents)
+        self.assertIn("config_changes", contents)
+        self.assertIn("2026-01-01", contents)
+        # The annotation plugin is pulled from the pinned cdnjs mirror.
+        self.assertIn("chartjs-plugin-annotation", contents)
+        # The legend hint renders when there is at least one change (singular here).
+        self.assertIn("configuration change", contents)
+
+    def test_dashboard_no_config_markers_hint_when_none(self):
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2026-01-01 00:00:00"),
+        ]
+        self.mock_registry.list_dashboard_configurations.return_value = []
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertNotIn("configuration changes", contents)
 
     def test_dashboard_runs_table_capped(self):
         """The runs table shows at most RUNS_TABLE_CAP rows with a

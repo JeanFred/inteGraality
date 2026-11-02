@@ -760,6 +760,33 @@ class DashboardRegistry:
             cur.execute(sql, tuple(params))
             return cur.fetchall()
 
+    def list_dashboard_configurations(self, site_hostname, page_title):
+        """One dashboard's config-change timeline, oldest->newest.
+
+        Each row is an authored config change (append-only history), carrying
+        introduced_at/author/introduced_by_rev_id for annotating the trend
+        charts. Read-only.
+        """
+        sql = """\
+            SELECT
+                cfg.id AS id,
+                cfg.config_hash AS config_hash,
+                cfg.introduced_at AS introduced_at,
+                cfg.author AS author,
+                cfg.introduced_by_rev_id AS introduced_by_rev_id,
+                cfg.grouping_type AS grouping_type,
+                cfg.grouping_property AS grouping_property
+            FROM dashboard_configurations AS cfg
+            JOIN dashboards AS d ON d.id = cfg.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = p.wiki_id
+            WHERE w.hostname = %s AND p.page_title = %s
+            ORDER BY cfg.introduced_at ASC, cfg.id ASC
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (site_hostname, page_title))
+            return cur.fetchall()
+
     @staticmethod
     def compute_health(runs):
         """Summarize a run-history list (oldest->newest): counts, success rate,

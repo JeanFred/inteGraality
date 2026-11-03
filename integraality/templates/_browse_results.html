@@ -91,11 +91,7 @@
                     <td>
                         {% if d.last_success_at %}
                             <small class="text-muted">
-                                <time
-                                    data-relative
-                                    datetime="{{ d.last_success_at | iso_utc }}"
-                                    title="{{ d.last_success_at }} UTC"
-                                >{{ d.last_success_at }}</time>
+                                {{ relative_time(d.last_success_at) }}
                             </small>
                         {% else %}
                             <span class="text-muted">never</span>

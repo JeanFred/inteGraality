@@ -5,6 +5,7 @@
   the data table below the charts is the source of truth and works with no JS;
   Chart.js enhances it into line charts by reading the JSON series injected in #run-series.
 #}
+{% from "_macros.html" import relative_time %}
 {% block head_scripts %}
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/date-fns/4.4.0/cdn.min.js"></script>
@@ -526,11 +527,7 @@
                     <div class="col-sm-3 health-metric">
                         <div class="value">
                             {% if health.last_success_at %}
-                                <time
-                                    data-relative
-                                    datetime="{{ health.last_success_at | iso_utc }}"
-                                    title="{{ health.last_success_at }} UTC"
-                                >{{ health.last_success_at }}</time>
+                                {{ relative_time(health.last_success_at) }}
                             {% else %}never{% endif %}
                         </div>
                         <div class="label">last success</div>
@@ -541,11 +538,7 @@
                     </div>
                     <div class="col-sm-3 health-metric">
                         <div class="value">
-                            <time
-                                data-relative
-                                datetime="{{ health.first_run_at | iso_utc }}"
-                                title="{{ health.first_run_at }} UTC"
-                            >{{ health.first_run_at }}</time>
+                            {{ relative_time(health.first_run_at) }}
                         </div>
                         <div class="label">tracked since</div>
                     </div>
@@ -605,11 +598,7 @@
                             manual</span><br>
                         {% if health.engagement.last_web_at %}
                             <span class="delta-flat">last manual
-                                <time
-                                    data-relative
-                                    datetime="{{ health.engagement.last_web_at | iso_utc }}"
-                                    title="{{ health.engagement.last_web_at }} UTC"
-                                >{{ health.engagement.last_web_at }}</time>
+                                {{ relative_time(health.engagement.last_web_at) }}
                             </span>
                         {% else %}
                             <span class="delta-flat">never run manually</span>
@@ -671,11 +660,7 @@
                     {% for r in (history[-runs_table_cap:] | reverse) %}
                         <tr class="{{ 'table-danger' if r.status == 'FAIL' }}">
                             <td>
-                                <small><time
-                                        data-relative
-                                        datetime="{{ r.finished_at | iso_utc }}"
-                                        title="{{ r.finished_at }} UTC"
-                                    >{{ r.finished_at }}</time></small>
+                                <small>{{ relative_time(r.finished_at) }}</small>
                             </td>
                             <td>
                                 {% if r.status == 'OK' %}<span class="badge text-bg-success">OK</span>

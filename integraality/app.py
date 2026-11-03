@@ -84,26 +84,57 @@ FEATURE_FILTER_LABELS = {
 FEATURE_FILTER_KEYS = tuple(FEATURE_FILTER_LABELS)
 
 
+def _mention_tokens(values):
+    """Normalise raw `mentions` query values into an order-preserving,
+    de-duplicated list of uppercase P/Q tokens (drops blanks)."""
+    tokens = ((value or "").strip().upper() for value in values)
+    return list(dict.fromkeys(token for token in tokens if token))
+
+
 def _feature_chips(feature_filters):
     """Removable active-filter chips for the set feature filters. Each chip's
     remove URL is the full current query (operational + feature) minus that one
-    feature key, so removing a feature chip preserves the operational filters."""
-    base = {k: v for k, v in request.args.items() if v}
+    feature value, so removing a chip preserves the other filters. `mentions` is
+    multi-value: it yields one chip per token, each removing only its own token."""
     chips = []
     for key in FEATURE_FILTER_KEYS:
         value = feature_filters.get(key)
         if not value:
             continue
-        remaining = {k: v for k, v in base.items() if k != key}
-        chips.append(
-            {
-                "key": key,
-                "label": FEATURE_FILTER_LABELS[key],
-                "value": value,
-                "remove_url": url_for("dashboards", **remaining),
-            }
-        )
+        label = FEATURE_FILTER_LABELS[key]
+        if key == "mentions":
+            for token in value:
+                others = [t for t in value if t != token]
+                chips.append(
+                    {
+                        "key": key,
+                        "label": label,
+                        "value": token,
+                        "remove_url": url_for(
+                            "dashboards", **_args_with_tokens("mentions", others)
+                        ),
+                    }
+                )
+        else:
+            remaining = {k: v for k, v in request.args.items() if v and k != key}
+            chips.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "value": value,
+                    "remove_url": url_for("dashboards", **remaining),
+                }
+            )
     return chips
+
+
+def _args_with_tokens(multi_key, tokens):
+    """Current query args as a url_for kwargs dict, with `multi_key` replaced by
+    `tokens` (a list → repeated params). Other args are carried verbatim."""
+    base = {k: v for k, v in request.args.items() if v and k != multi_key}
+    if tokens:
+        base[multi_key] = tokens
+    return base
 
 
 def get_qlever_ui_url(page_url):
@@ -202,9 +233,14 @@ def dashboards():
     )
     # Tier 2: feature facets (config-content filters). Progressive-disclosure —
     # the expander auto-opens when any of these is active (e.g. a pivot link).
+    # `mentions` is multi-value (AND-combined): read every value, uppercased and
+    # de-duplicated (order-preserving); the rest are single-value.
     feature_filters = {
-        key: (request.args.get(key) or None) for key in FEATURE_FILTER_KEYS
+        key: (request.args.get(key) or None)
+        for key in FEATURE_FILTER_KEYS
+        if key != "mentions"
     }
+    feature_filters["mentions"] = _mention_tokens(request.args.getlist("mentions"))
     features_active = any(feature_filters.values())
     is_filtered = (
         any([site_hostname, namespace_active, root_page, search, status])

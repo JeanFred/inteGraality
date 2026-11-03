@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block head_scripts %}
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/htmx/2.0.10/htmx.min.js"></script>
+    {# Tom Select: enhances the multi-value "Selector mentions" <select> into a
+       tag input. Bootstrap5 theme so it matches the form controls. Pinned, from
+       the Toolforge cdnjs mirror (same source as the other client assets). The
+       library JS is loaded in body_scripts, right before its init. #}
+    <link
+        rel="stylesheet"
+        href="//tools-static.wmflabs.org/cdnjs/ajax/libs/tom-select/2.4.1/css/tom-select.bootstrap5.min.css"
+    >
     {% include "_run_ticks_style.html" %}
     <style>
         .browse-filter {
@@ -45,11 +53,16 @@
         }
     </style>
 {% endblock %}
-{% block body_scripts %}{% include "_timeago.html" %}{% endblock %}
+{% block body_scripts %}{% include "_timeago.html" %}{% include "_tom_select.html" %}{% endblock %}
 {% block content %}
     <h1>Browse dashboards</h1>
 
-    <div id="browse-content">
+    {# hx-history="false": the browse filter uses hx-push-url for shareable URLs,
+       but DON'T snapshot the DOM into htmx's history cache — the Tom Select
+       widget's injected DOM doesn't round-trip through a cached snapshot (it
+       raised htmx:historyCacheError and could restore a stale widget). Back
+       re-requests from the server, which is correct for this filter page. #}
+    <div id="browse-content" hx-history="false">
         {% include "_browse_inner.html" %}
     </div>
 {% endblock %}

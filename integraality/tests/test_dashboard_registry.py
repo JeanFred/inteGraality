@@ -501,9 +501,26 @@ class TestDashboardRegistry(unittest.TestCase):
 
     def test_list_dashboards_by_feature_mentions_is_fuzzy(self):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(mentions="Q7889")
+        self.registry.list_dashboards(mentions=["Q7889"])
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("cfg.selector_mentions LIKE %s", sql)
+        self.assertIn("%,Q7889,%", params)
+
+    def test_list_dashboards_mentions_list_is_anded(self):
+        # Multiple mention tokens are ANDed: one bag-membership LIKE per token,
+        # so "P31" + "Q7889" matches only dashboards whose selector bag has both.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(mentions=["P31", "Q7889"])
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertEqual(sql.count("cfg.selector_mentions LIKE %s"), 2)
+        self.assertIn("%,P31,%", params)
+        self.assertIn("%,Q7889,%", params)
+
+    def test_list_dashboards_mentions_tokens_uppercased(self):
+        # Tokens are normalised to the canonical bag's uppercase form.
+        self.mock_cursor.fetchall.return_value = []
+        self.registry.list_dashboards(mentions=["q7889"])
+        _sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("%,Q7889,%", params)
 
     def test_list_dashboards_by_feature_carries_author_and_identity(self):

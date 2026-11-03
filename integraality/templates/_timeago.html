@@ -9,7 +9,10 @@
 <script>
     (function () {
         function enhance(root) {
-            timeago.render((root || document).querySelectorAll("time[data-relative]"));
+            var scope = root && root.querySelectorAll ? root : document;
+            try {
+                timeago.render(scope.querySelectorAll("time[data-relative]"));
+            } catch (e) { /* never let a render error abort the htmx swap settle */ }
         }
         document.addEventListener("DOMContentLoaded", function () { enhance(); });
         document.body.addEventListener("htmx:afterSwap", function (e) { enhance(e.target); });

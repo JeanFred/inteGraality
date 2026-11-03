@@ -1,0 +1,72 @@
+{#
+  Enhance the multi-value "Selector mentions" <select> into a Tom Select tag
+  input. The library is loaded here (immediately before init), mirroring
+  _timeago.html, so TomSelect is defined at init. Its STYLESHEET is linked in
+  dashboards.html's <head> (stylesheets belong there to avoid a flash of the
+  unstyled native select), so keep the two together if this moves. The browse form is NOT swapped
+  by htmx (only #browse-results refreshes), so the enhanced widget stays mounted
+  across filter changes — it's initialised once, no re-init after swaps.
+  No-JS degrades to a native multi-select that still submits mentions=…
+#}
+<script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/tom-select/2.4.1/js/tom-select.complete.min.js"></script>
+<script>
+    (function () {
+        // Init once: the browse form (and this widget) stays mounted — only
+        // #browse-results swaps — so there's no need to re-init after swaps.
+        if (typeof TomSelect !== "undefined") {
+            document.querySelectorAll("[data-tom-select]").forEach(function (el) {
+                if (el.tomselect) { return; }
+                try {
+                    new TomSelect(el, {
+                        plugins: ["remove_button"],
+                        placeholder: el.dataset.placeholder || "",
+                        create: true,
+                        persist: false,
+                        maxOptions: null,
+                        sortField: { field: "text", direction: "asc" },
+                        // Clear leftover typed text after a pick, so typing
+                        // "Q788" then choosing "Q7889" doesn't leave "Q788" in
+                        // the input beside the new pill. (clearAfterSelect isn't
+                        // a setting in 2.4.1 — it'd be a no-op — so clear via the
+                        // onItemAdd callback + setTextboxValue explicitly.)
+                        onItemAdd: function () {
+                            this.setTextboxValue("");
+                            this.refreshOptions(false);
+                        },
+                        // Don't dispatch a native "change" on the <select> to
+                        // notify htmx — Tom Select listens for it and re-ingests,
+                        // re-adding a just-removed item. Fire a CUSTOM event on
+                        // the form that only htmx listens for (add and remove).
+                        onChange: function () {
+                            if (el.form) {
+                                el.form.dispatchEvent(
+                                    new Event("tomselect:changed", { bubbles: true })
+                                );
+                            }
+                        },
+                    });
+                } catch (e) {
+                    // Degrade to the native <select>, but surface the cause —
+                    // a fully-swallowed error makes a broken widget invisible.
+                    if (window.console) { console.warn("Tom Select init failed", e); }
+                }
+            });
+        }
+
+        // A "Selector mentions" chip's × removes its token FROM the widget (the
+        // single source of truth), not via its own htmx request — else the
+        // chip/results update but the widget keeps showing the token. removeItem
+        // fires onChange -> tomselect:changed -> the htmx refresh. Delegated
+        // from body (chips live inside the swapped #browse-results); falls back
+        // to the chip's href if the widget isn't enhanced.
+        document.body.addEventListener("click", function (e) {
+            var chip = e.target.closest ? e.target.closest("[data-mention-chip]") : null;
+            if (!chip) { return; }
+            var sel = document.querySelector("[data-tom-select]");
+            if (sel && sel.tomselect) {
+                e.preventDefault();
+                sel.tomselect.removeItem(chip.getAttribute("data-mention-chip"));
+            }
+        });
+    })();
+</script>

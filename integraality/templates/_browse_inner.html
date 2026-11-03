@@ -1,20 +1,26 @@
 {#
-  Two-tier dashboard filter + results, swapped as one #browse-content unit by
-  htmx (progressive enhancement: plain GET form works without JS). Tier 1 is the
-  always-visible operational bar; tier 2 is the feature facets in a <details>.
-  Both post in ONE form so filters AND together and URL state is shareable.
+  Two-tier dashboard filter. The FORM stays mounted (never swapped): only the
+  results — #browse-results, which includes the feature-filter chips below —
+  refresh on filter changes. Keeping the form mounted is what lets the Tom
+  Select "mentions" widget survive filter updates intact (swapping it would
+  tear down and orphan its injected DOM). Progressive enhancement: the plain GET
+  form works without JS; htmx swaps just the results region.
 
-  Triggers on change (NOT per keystroke, which would destroy the native datalist
-  dropdown mid-type) + keyup on the title search + submit.
+  Triggers: native change (plain selects/inputs) + tomselect:changed (a custom
+  event the Tom Select widget fires on the form for pill add/remove — a native
+  change can't be used there, as Tom Select would re-ingest it and undo the
+  removal) + keyup on the title search + submit. The change/tomselect triggers
+  are debounced 300ms so a burst of pill edits coalesces into one request
+  carrying the final selection instead of racing concurrent requests.
 #}
 <form
     method="get"
     action="{{ url_for('dashboards') }}"
     hx-get="{{ url_for('dashboards') }}"
-    hx-target="#browse-content"
-    hx-trigger="change, keyup delay:250ms from:input[name=search], submit"
+    hx-target="#browse-results"
+    hx-trigger="change delay:300ms, tomselect:changed delay:300ms, keyup delay:250ms from:input[name=search], submit"
     hx-push-url="true"
-    hx-select="#browse-content"
+    hx-select="#browse-results"
     class="mb-3"
 >
     {# Tier 1: primary operational bar #}
@@ -112,23 +118,36 @@
     {% include "_feature_facets.html" %}
 </form>
 
-{# Active-filter chips for the feature tier (removable; each drops its own key,
-   preserving operational filters). #}
-{% if active_chips %}
-    <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
-        <span class="text-muted small">Feature filters:</span>
-        {% for chip in active_chips %}
-            <a
-                href="{{ chip.remove_url }}"
-                hx-get="{{ chip.remove_url }}"
-                hx-target="#browse-content"
-                hx-select="#browse-content"
-                hx-push-url="true"
-                class="badge rounded-pill text-bg-secondary text-decoration-none"
-                title="Remove this filter"
-            >{{ chip.label }}: {{ chip.value }} <span aria-hidden="true">&times;</span></a>
-        {% endfor %}
-    </div>
-{% endif %}
+{# Everything below refreshes on a filter change; the form above stays mounted.
+   #browse-results is the htmx swap target. #}
+<div id="browse-results">
+    {# Active-filter chips for the feature tier (removable; each drops its own
+       key, preserving operational filters). #}
+    {% if active_chips %}
+        <div class="mb-3 d-flex flex-wrap gap-2 align-items-center">
+            <span class="text-muted small">Feature filters:</span>
+            {% for chip in active_chips %}
+                {# A mentions chip removes its token FROM the Tom Select widget
+                   (data-mention) so the widget and chips stay in sync; the
+                   widget's own change then drives the htmx refresh. Other facet
+                   chips have no widget, so they keep the plain hx-get removal.
+                   Both keep href so no-JS still works. #}
+                <a
+                    href="{{ chip.remove_url }}"
+                    {% if chip.key == 'mentions' %}
+                        data-mention-chip="{{ chip.value }}"
+                    {% else %}
+                        hx-get="{{ chip.remove_url }}"
+                        hx-target="#browse-results"
+                        hx-select="#browse-results"
+                        hx-push-url="true"
+                    {% endif %}
+                    class="badge rounded-pill text-bg-secondary text-decoration-none"
+                    title="Remove this filter"
+                >{{ chip.label }}: {{ chip.value }} <span aria-hidden="true">&times;</span></a>
+            {% endfor %}
+        </div>
+    {% endif %}
 
-{% include "_browse_results.html" %}
+    {% include "_browse_results.html" %}
+</div>

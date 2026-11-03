@@ -1171,10 +1171,16 @@ class DashboardRegistry:
             conditions.append("cfg.grouping_property = %s")
             params.append(grouping_property)
         if mentions:
-            # Fuzzy membership in the comma-padded selector bag (unindexable
-            # leading-% LIKE; fine at current scale).
-            conditions.append("cfg.selector_mentions LIKE %s")
-            params.append(f"%,{mentions},%")
+            # Membership in the comma-padded selector bag. `mentions` is a list
+            # of P/Q ids (the route always passes one); each is ANDed (all must
+            # appear), so ["P31", "Q7889"] matches the exact signature of
+            # "instances of video game". Tokens are uppercased to match the
+            # canonical bag (unindexable leading-% LIKE; fine at current scale).
+            for token in mentions:
+                token = token.strip().upper()
+                if token:
+                    conditions.append("cfg.selector_mentions LIKE %s")
+                    params.append(f"%,{token},%")
         if references_property:
             # A reference check on this property in ANY value-form: atoms-only
             # bag, so match bare atom (",S248,") OR any valued atom (",S248=...").

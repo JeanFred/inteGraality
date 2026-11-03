@@ -441,17 +441,17 @@ class DashboardsTests(AppTests):
             "coverage",
         )
 
-    def test_browse_htmx_request_returns_full_page_with_browse_content(self):
-        """htmx uses hx-select to extract #browse-content client-side."""
+    def test_browse_htmx_request_returns_full_page_with_browse_results(self):
+        """htmx uses hx-select to extract #browse-results client-side."""
         self.mock_registry.list_dashboards.return_value = [
             self._dashboard("My Dashboard", "My Dashboard"),
         ]
         response = self.app.get("/dashboards", headers={"HX-Request": "true"})
         self.assertEqual(response.status_code, 200)
         contents = response.get_data(as_text=True)
-        # Full page returned (htmx extracts #browse-content via hx-select).
+        # Full page returned (htmx extracts #browse-results via hx-select).
         self.assertIn("My Dashboard", contents)
-        self.assertIn('id="browse-content"', contents)
+        self.assertIn('id="browse-results"', contents)
 
     def test_browse_empty(self):
         response = self.app.get("/dashboards")
@@ -524,12 +524,55 @@ class FeatureFacetsTests(AppTests):
             "grouping_property": "P21",
             "project": "enwiki",
             "source_item": "Q5",
-            "mentions": "Q7889",
             "column_type": "label",
             "label_language": "en",
             "description_language": "fr",
         }.items():
             self.assertEqual(kwargs[key], value)
+        # mentions is multi-value: passed as a list even for a single token.
+        self.assertEqual(kwargs["mentions"], ["Q7889"])
+
+    def test_mentions_multi_value_anded_and_deduped(self):
+        # Repeated mentions params become an order-preserving, uppercased,
+        # de-duplicated list handed to the query layer for ANDing.
+        self.app.get("/dashboards?mentions=P31&mentions=q7889&mentions=P31")
+        kwargs = self.mock_registry.list_dashboards.call_args.kwargs
+        self.assertEqual(kwargs["mentions"], ["P31", "Q7889"])
+
+    def test_mentions_renders_multiple_select_with_selected(self):
+        # Server-rendered <select multiple> (works without JS); Tom Select
+        # enhances it. Selected tokens are marked; data-tom-select hooks the JS.
+        contents = self.app.get("/dashboards?mentions=P31").get_data(as_text=True)
+        self.assertIn('name="mentions"', contents)
+        self.assertIn("multiple", contents)
+        self.assertIn("data-tom-select", contents)
+        # size=1 keeps the native fallback compact (not a tall listbox). Tom
+        # Select is torn down/rebuilt per htmx swap (not hx-preserve'd, which
+        # broke id-reconciliation and dropped the widget).
+        self.assertIn('size="1"', contents)
+        normalized = " ".join(contents.split())
+        self.assertIn('<option value="P31" selected>P31</option>', normalized)
+
+    def test_mentions_one_chip_per_token_removing_only_itself(self):
+        # Each selected token is its own removable chip; its remove URL drops
+        # only that token and preserves the rest (and operational filters).
+        contents = self.app.get(
+            "/dashboards?status=OK&mentions=P31&mentions=Q7889"
+        ).get_data(as_text=True)
+        self.assertIn("Selector mentions: P31", contents)
+        self.assertIn("Selector mentions: Q7889", contents)
+        # P31's chip keeps Q7889 and status; Q7889's keeps P31 and status.
+        self.assertRegex(
+            contents, r'href="/dashboards\?[^"]*status=OK[^"]*mentions=Q7889'
+        )
+        self.assertRegex(
+            contents, r'href="/dashboards\?[^"]*status=OK[^"]*mentions=P31'
+        )
+        # Mention chips carry data-mention-chip so their × removes the token
+        # from the Tom Select widget (keeping widget and chips in sync) rather
+        # than firing an independent htmx request that bypasses the widget.
+        self.assertIn('data-mention-chip="P31"', contents)
+        self.assertIn('data-mention-chip="Q7889"', contents)
 
     def test_feature_facets_collapsed_by_default_open_when_active(self):
         collapsed = self.app.get("/dashboards").get_data(as_text=True)
@@ -551,11 +594,14 @@ class FeatureFacetsTests(AppTests):
         self.assertIn('name="label_language"', contents)
         self.assertIn('name="description_language"', contents)
 
-    def test_unified_form_swaps_browse_content(self):
+    def test_unified_form_swaps_browse_results(self):
+        # The form stays mounted; only #browse-results refreshes on a filter
+        # change (so the Tom Select widget survives swaps intact).
         contents = self.app.get("/dashboards").get_data(as_text=True)
         self.assertIn("htmx.min.js", contents)
-        self.assertIn('hx-target="#browse-content"', contents)
-        self.assertIn('hx-select="#browse-content"', contents)
+        self.assertIn('hx-target="#browse-results"', contents)
+        self.assertIn('hx-select="#browse-results"', contents)
+        self.assertIn('id="browse-results"', contents)
 
     def test_feature_active_filter_chips(self):
         contents = self.app.get(

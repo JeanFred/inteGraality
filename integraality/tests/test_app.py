@@ -516,6 +516,7 @@ class FeatureFacetsTests(AppTests):
             "&column_type=label&label_language=en&description_language=fr"
         )
         kwargs = self.mock_registry.list_dashboards.call_args.kwargs
+        features = kwargs["features"]
         for key, value in {
             "grouping_type": "item",
             "reference_check_kind": "good",
@@ -528,16 +529,16 @@ class FeatureFacetsTests(AppTests):
             "label_language": "en",
             "description_language": "fr",
         }.items():
-            self.assertEqual(kwargs[key], value)
+            self.assertEqual(features[key], value)
         # mentions is multi-value: passed as a list even for a single token.
-        self.assertEqual(kwargs["mentions"], ["Q7889"])
+        self.assertEqual(features["mentions"], ["Q7889"])
 
     def test_mentions_multi_value_anded_and_deduped(self):
         # Repeated mentions params become an order-preserving, uppercased,
         # de-duplicated list handed to the query layer for ANDing.
         self.app.get("/dashboards?mentions=P31&mentions=q7889&mentions=P31")
         kwargs = self.mock_registry.list_dashboards.call_args.kwargs
-        self.assertEqual(kwargs["mentions"], ["P31", "Q7889"])
+        self.assertEqual(kwargs["features"]["mentions"], ["P31", "Q7889"])
 
     def test_mentions_renders_multiple_select_with_selected(self):
         # Server-rendered <select multiple> (works without JS); Tom Select

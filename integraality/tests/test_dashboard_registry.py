@@ -458,7 +458,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
     def test_list_dashboards_by_feature_grouping_type(self):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(grouping_type="year")
+        self.registry.list_dashboards(features={"grouping_type": "year"})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("cfg.grouping_type = %s", sql)
         self.assertIn("cfg.rn = 1", sql)
@@ -468,7 +468,7 @@ class TestDashboardRegistry(unittest.TestCase):
         # Regression: the backfiller can insert an OLDER config with a HIGHER id,
         # so "latest config" must rank by introduced_at (NULLs last), not id.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(grouping_type="item")
+        self.registry.list_dashboards(features={"grouping_type": "item"})
         sql = self.mock_cursor.execute.call_args[0][0]
         self.assertIn(
             "ORDER BY introduced_at IS NULL, introduced_at DESC, id DESC", sql
@@ -476,7 +476,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
     def test_list_dashboards_by_feature_reference_check_kind_uses_exists(self):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(reference_check_kind="good")
+        self.registry.list_dashboards(features={"reference_check_kind": "good"})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("c.reference_check_kind = %s", sql)
         self.assertIn("good", params)
@@ -485,7 +485,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self,
     ):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(references_property="P248")
+        self.registry.list_dashboards(features={"references_property": "P248"})
         _sql, params = self.mock_cursor.execute.call_args[0]
         # Atoms-only bag -> bare atom OR any valued atom.
         self.assertIn("%,S248,%", params)
@@ -495,13 +495,13 @@ class TestDashboardRegistry(unittest.TestCase):
         # removeprefix, not lstrip: "PP248" -> "SP248" (one P removed), never
         # "S248" (which lstrip's char-set strip would wrongly produce).
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(references_property="PP248")
+        self.registry.list_dashboards(features={"references_property": "PP248"})
         _sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("%,SP248,%", params)
 
     def test_list_dashboards_by_feature_mentions_is_fuzzy(self):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(mentions=["Q7889"])
+        self.registry.list_dashboards(features={"mentions": ["Q7889"]})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("cfg.selector_mentions LIKE %s", sql)
         self.assertIn("%,Q7889,%", params)
@@ -510,7 +510,7 @@ class TestDashboardRegistry(unittest.TestCase):
         # Multiple mention tokens are ANDed: one bag-membership LIKE per token,
         # so "P31" + "Q7889" matches only dashboards whose selector bag has both.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(mentions=["P31", "Q7889"])
+        self.registry.list_dashboards(features={"mentions": ["P31", "Q7889"]})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertEqual(sql.count("cfg.selector_mentions LIKE %s"), 2)
         self.assertIn("%,P31,%", params)
@@ -519,7 +519,7 @@ class TestDashboardRegistry(unittest.TestCase):
     def test_list_dashboards_mentions_tokens_uppercased(self):
         # Tokens are normalised to the canonical bag's uppercase form.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(mentions=["q7889"])
+        self.registry.list_dashboards(features={"mentions": ["q7889"]})
         _sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("%,Q7889,%", params)
 
@@ -533,7 +533,7 @@ class TestDashboardRegistry(unittest.TestCase):
                 "grouping_type": "item",
             },
         ]
-        rows = self.registry.list_dashboards(grouping_type="item")
+        rows = self.registry.list_dashboards(features={"grouping_type": "item"})
         sql = self.mock_cursor.execute.call_args[0][0]
         self.assertIn("cfg.grouping_type AS grouping_type", sql)
         self.assertIn("p.page_title AS page_title", sql)
@@ -542,7 +542,11 @@ class TestDashboardRegistry(unittest.TestCase):
     def test_list_dashboards_by_feature_combines_filters(self):
         self.mock_cursor.fetchall.return_value = []
         self.registry.list_dashboards(
-            grouping_type="item", tracks_property="P569", project="enwiki"
+            features={
+                "grouping_type": "item",
+                "tracks_property": "P569",
+                "project": "enwiki",
+            }
         )
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("cfg.grouping_type = %s", sql)
@@ -567,7 +571,9 @@ class TestDashboardRegistry(unittest.TestCase):
         # made "column_type=property & project=frwiki" impossible (a column can't
         # be both a property and carry a sitelink project), returning 0 wrongly.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(column_type="property", project="frwiki")
+        self.registry.list_dashboards(
+            features={"column_type": "property", "project": "frwiki"}
+        )
         sql, params = self.mock_cursor.execute.call_args[0]
         # Two separate EXISTS, each matching one facet (never "both in one row").
         self.assertNotIn("c.project = %s AND c.column_type", sql)
@@ -578,7 +584,7 @@ class TestDashboardRegistry(unittest.TestCase):
 
     def test_list_dashboards_column_type_filters_any_column_of_that_kind(self):
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(column_type="sitelink")
+        self.registry.list_dashboards(features={"column_type": "sitelink"})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("c.column_type = %s", sql)
         self.assertIn("sitelink", params)
@@ -587,7 +593,7 @@ class TestDashboardRegistry(unittest.TestCase):
         # The label/description distinction lives in the dedicated params, each a
         # single EXISTS scoping language to that column_type.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(label_language="en")
+        self.registry.list_dashboards(features={"label_language": "en"})
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertIn("c.column_type = %s AND c.language = %s", sql)
         for v in ("label", "en"):
@@ -599,7 +605,9 @@ class TestDashboardRegistry(unittest.TestCase):
         # Two separate scoped EXISTS (label-lang AND description-lang), so they
         # combine — unlike the single language+column_type pair.
         self.mock_cursor.fetchall.return_value = []
-        self.registry.list_dashboards(label_language="en", description_language="fr")
+        self.registry.list_dashboards(
+            features={"label_language": "en", "description_language": "fr"}
+        )
         sql, params = self.mock_cursor.execute.call_args[0]
         self.assertEqual(sql.count("c.column_type = %s AND c.language = %s"), 2)
         for v in ("label", "en", "description", "fr"):

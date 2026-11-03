@@ -253,7 +253,7 @@ def dashboards():
             root_page=root_page,
             search=search,
             status=status,
-            **feature_filters,
+            features=feature_filters,
         )
         wikis = registry.list_wikis(
             namespace_canonical=namespace_filter if namespace_active else None,

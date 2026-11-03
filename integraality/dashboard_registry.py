@@ -1012,17 +1012,7 @@ class DashboardRegistry:
         root_page=None,
         search=None,
         status=None,
-        grouping_type=None,
-        grouping_property=None,
-        tracks_property=None,
-        reference_check_kind=None,
-        references_property=None,
-        project=None,
-        source_item=None,
-        mentions=None,
-        column_type=None,
-        label_language=None,
-        description_language=None,
+        features=None,
     ):
         """Return all registered dashboards, optionally filtered.
 
@@ -1049,14 +1039,32 @@ class DashboardRegistry:
         a same-second FAIL still counts; drives the severity tint).
 
         Feature filters (all optional, AND-combined with the above) match on the
-        dashboard's LATEST recorded configuration: grouping_type/grouping_property,
-        tracks_property, reference_check_kind, references_property,
-        project, source_item, mentions (fuzzy selector-bag P/Q id), column_type,
-        label_language, description_language. The config is LEFT-joined, so a
-        dashboard with no recorded config still appears under operational-only
-        filters; applying ANY feature filter necessarily excludes config-less
-        dashboards (they can't match a config predicate), which is correct.
+        dashboard's LATEST recorded configuration and are passed as a single
+        `features` dict (keys below), rather than one kwarg each, so the
+        route→registry boundary and adding a facet stay a one-place change:
+        grouping_type/grouping_property, tracks_property, reference_check_kind,
+        references_property, project, source_item, mentions (list of P/Q ids,
+        all required), column_type, label_language, description_language.
+        The config is LEFT-joined, so a dashboard with no recorded config still
+        appears under operational-only filters; applying ANY feature filter
+        necessarily excludes config-less dashboards (they can't match a config
+        predicate), which is correct.
         """
+        # Unpack the feature-filter dict into locals the condition-building below
+        # uses. Keeping them as one dict param (not 13 kwargs) means the signature
+        # and callers don't change when a facet is added.
+        features = features or {}
+        grouping_type = features.get("grouping_type")
+        grouping_property = features.get("grouping_property")
+        tracks_property = features.get("tracks_property")
+        reference_check_kind = features.get("reference_check_kind")
+        references_property = features.get("references_property")
+        project = features.get("project")
+        source_item = features.get("source_item")
+        mentions = features.get("mentions")
+        column_type = features.get("column_type")
+        label_language = features.get("label_language")
+        description_language = features.get("description_language")
         sql = f"""\
             SELECT
                 p.page_url AS page_url,

@@ -41,3 +41,11 @@ run = "docker compose exec -it db mariadb -u\"$DB_USER\" -p\"$DB_PASSWORD\" \"${
 description = "Run a SQL query against the local database, e.g. mise run query-db 'SELECT * FROM pages'"
 usage = 'arg "<query>" help="SQL query to run"'
 run = 'docker compose exec -T db mariadb -u"$DB_USER" -p"$DB_PASSWORD" "${DB_NAME}" -e "${usage_query?}"'
+
+[tasks.load-dump]
+description = "Reset the local database, then download the production dump and load it"
+depends = ["reset-db"]
+run = """
+curl -fSL https://tools-static.wmflabs.org/integraality/dump.sql -o dump.sql
+docker compose exec -T db mariadb -u"$DB_USER" -p"$DB_PASSWORD" "${DB_NAME}" < dump.sql
+"""

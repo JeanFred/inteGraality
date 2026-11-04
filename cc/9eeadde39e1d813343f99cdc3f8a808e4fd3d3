@@ -1,0 +1,15 @@
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 1046-1048
+  h_bc010f8da910ff 1049-1051
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "cc9eeadde39e1d813343f99cdc3f8a808e4fd3d3",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

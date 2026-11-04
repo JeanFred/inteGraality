@@ -3,9 +3,9 @@
 One paginated prop=revisions query per dashboard
 (rvuser=bot,rvprop=ids|timestamp|comment|content, rvlimit=50)
 returns, in each response, both the edit summary (=> trigger/engine/elapsed)
-and the wikitext content (=> the totals-row counts), so a single pass
-fills every dashboard_runs column the live path would
-(entity_total/grouping_count/column_count included).
+and the wikitext content (=> the totals-row counts and per-grouping counts),
+so a single pass fills every dashboard_runs column the live path would
+(entity_total/grouping_count/column_count/grouping_counts included).
 
 Reads the dashboard set from the registry, records each revision as an
 idempotent OK run (INSERT IGNORE on the revision), commits per dashboard, and
@@ -17,6 +17,7 @@ the pre-Nov-2019 {{Coloured cell|pct|count}} era.
 
 import argparse
 import datetime
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -84,15 +85,9 @@ def parse_edit_summary(summary):
 REV_BATCH = 50
 
 
-def parse_totals_from_wikitext(wikitext):
-    """Return (entity_total, grouping_count, column_count) for a revision's
-    rendered dashboard table, or (None, None, None) when not recoverable.
-
-    Thin wrapper over ReportParser.shape — the parser handles both the modern
-    Integraality-cell and old Coloured-cell eras, the higher-grouping totals
-    prefix, linked count cells, and excludes the No-grouping/config rows.
-    """
-    return ReportParser().parse(wikitext).shape
+def parse_report_from_wikitext(wikitext):
+    """Return a ParsedReport for a revision's rendered dashboard table."""
+    return ReportParser().parse(wikitext)
 
 
 def _slot_content(rev):
@@ -179,27 +174,28 @@ class ApiRunsBackfiller:
         return parsed.strftime("%Y-%m-%d %H:%M:%S")
 
     def _counts_for_revision(self, revid, content):
-        """Parse (entity_total, grouping_count, column_count) from a revision's
-        content, re-fetching the revision alone if a batched fetch truncated it.
+        """Parse a ParsedReport from a revision's content, re-fetching the
+        revision alone if a batched fetch truncated it.
 
-        A non-empty content that parses to all-None means the totals row was cut
-        off — almost always the 12 MB response cap on a batch of huge revisions.
-        Re-fetching the single revision gets complete content. If it *still*
-        won't parse, the counts stay None (logged) — an acceptable NULL row.
+        A non-empty content that parses to all-None shape means the totals row
+        was cut off — almost always the 12 MB response cap on a batch of huge
+        revisions. Re-fetching the single revision gets complete content. If it
+        *still* won't parse, the report stays empty (logged) — an acceptable
+        NULL row.
         """
-        shape = parse_totals_from_wikitext(content)
-        if content and shape == (None, None, None):
+        report = parse_report_from_wikitext(content)
+        if content and report.shape == (None, None, None):
             logger.warning(
                 "Revision %s parsed to no counts (likely truncated); re-fetching",
                 revid,
             )
-            shape = parse_totals_from_wikitext(self._fetch_revision_content(revid))
-            if shape == (None, None, None):
+            report = parse_report_from_wikitext(self._fetch_revision_content(revid))
+            if report.shape == (None, None, None):
                 logger.warning(
                     "Revision %s still unparseable after re-fetch; counts NULL",
                     revid,
                 )
-        return shape
+        return report
 
     def backfill_dashboard(self, registry, title, dashboard_id, wiki_id):
         """Backfill every bot run of one dashboard. Returns count inserted.
@@ -210,9 +206,9 @@ class ApiRunsBackfiller:
         inserted = 0
         for revid, timestamp, comment, content in self._bot_revisions(title):
             parsed = parse_edit_summary(comment)
-            entity_total, grouping_count, column_count = self._counts_for_revision(
-                revid, content
-            )
+            report = self._counts_for_revision(revid, content)
+            entity_total, grouping_count, column_count = report.shape
+            counts_dict = report.grouping_counts_dict
             run = RunResult.ok(
                 revision_id=revid,
                 trigger_source=parsed.trigger_source,
@@ -221,6 +217,7 @@ class ApiRunsBackfiller:
                 entity_total=entity_total,
                 grouping_count=grouping_count,
                 column_count=column_count,
+                grouping_counts=json.dumps(counts_dict) if counts_dict else None,
             )
             finished_at = self._timestamp_to_datetime_str(timestamp)
             if registry.record_resolved_backfilled_run(

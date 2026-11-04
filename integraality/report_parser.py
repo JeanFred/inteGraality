@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 
 import mwparserfromhell
 
+from .line import NoGroupGrouping, TotalsGrouping
+
 # The totals row anchor, stable since the earliest dashboards. Anchoring here
 # (never the heading text) survives the malformed "<small>...<small>:" of early
 # revisions.
@@ -45,11 +47,13 @@ class ParsedReport:
     """A parsed report: the real groupings, plus the totals row if present.
 
     ``groupings`` excludes the totals row and the "No grouping" row (mirroring
-    the live path's len(groupings)); ``totals`` is the sortbottom row.
+    the live path's len(groupings)); ``totals`` is the sortbottom row;
+    ``no_group`` is the "None"-titled row when present.
     """
 
     groupings: list[ParsedGrouping]
     totals: ParsedGrouping | None
+    no_group: ParsedGrouping | None = None
 
     @property
     def entity_total(self):
@@ -78,6 +82,23 @@ class ParsedReport:
     def shape(self):
         """(entity_total, grouping_count, column_count) — the backfiller's view."""
         return (self.entity_total, self.grouping_count, self.column_count)
+
+    @property
+    def grouping_counts_dict(self):
+        """Dict of grouping key → count for all rows, or None if the report is empty.
+
+        Returns None when no regular grouping titles were recoverable (e.g.
+        old-era revisions where {{Coloured cell}} rows have no grouping= param
+        and no {{Q|...}} name cell), to avoid a misleading entity_sum of 0.
+        """
+        result = {g.title: g.count for g in self.groupings}
+        if not result:
+            return None
+        if self.no_group is not None:
+            result[NoGroupGrouping.MARKER] = self.no_group.count
+        if self.totals is not None:
+            result[TotalsGrouping.MARKER] = self.totals.count
+        return result
 
 
 def _parse_count(text):
@@ -131,6 +152,7 @@ class ReportParser:
         # Split the table body into row blocks on row openers ("|-").
         groupings = []
         totals = None
+        no_group = None
         for start, end, is_totals in self._row_spans(lines, sortbottom_idx):
             row = self._parse_row(lines[start:end])
             if row is None:
@@ -139,7 +161,9 @@ class ReportParser:
                 totals = row
             elif self._is_real_grouping(row):
                 groupings.append(row)
-        return ParsedReport(groupings=groupings, totals=totals)
+            elif self._is_no_group(row):
+                no_group = row
+        return ParsedReport(groupings=groupings, totals=totals, no_group=no_group)
 
     @staticmethod
     def _row_spans(lines, sortbottom_idx):
@@ -208,4 +232,9 @@ class ReportParser:
         no grouping= param and no {{Q|...}} name cell, so _name_from_qid returns
         None. Either way it fails this check.
         """
-        return bool(row.title) and row.title != "None"
+        return bool(row.title) and row.title != NoGroupGrouping.MARKER
+
+    @staticmethod
+    def _is_no_group(row):
+        """Whether ``row`` is the "No grouping" row."""
+        return row.title == NoGroupGrouping.MARKER

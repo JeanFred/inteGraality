@@ -4,13 +4,14 @@ Fully testable with pywikibot's api.PropertyGenerator mocked — no replica, no
 Docker, no network.
 """
 
+import json
 import unittest
 from unittest.mock import MagicMock, patch
 
 from ..runs_backfiller import (
     REV_BATCH,
     ApiRunsBackfiller,
-    parse_totals_from_wikitext,
+    parse_report_from_wikitext,
 )
 
 _CURRENT_TABLE = """\
@@ -45,17 +46,24 @@ _OLD_TABLE = """\
 
 
 class TestParseTotals(unittest.TestCase):
-    """parse_totals_from_wikitext delegates to ReportParser.shape; the parser's
-    own era/grouping-type coverage lives in test_report_parser.py. These just
-    confirm the delegation and the empty guard."""
+    """parse_report_from_wikitext delegates to ReportParser; the parser's own
+    era/grouping-type coverage lives in test_report_parser.py. These confirm
+    the delegation, the shape shortcut, and grouping_counts_dict."""
 
     def test_delegates_to_report_parser_shape(self):
-        self.assertEqual(parse_totals_from_wikitext(_CURRENT_TABLE), (39163, 1, 2))
-        self.assertEqual(parse_totals_from_wikitext(_OLD_TABLE), (1234, None, 1))
+        self.assertEqual(
+            parse_report_from_wikitext(_CURRENT_TABLE).shape, (39163, 1, 2)
+        )
+        self.assertEqual(parse_report_from_wikitext(_OLD_TABLE).shape, (1234, None, 1))
 
     def test_empty_or_none(self):
-        self.assertEqual(parse_totals_from_wikitext(""), (None, None, None))
-        self.assertEqual(parse_totals_from_wikitext(None), (None, None, None))
+        self.assertEqual(parse_report_from_wikitext("").shape, (None, None, None))
+        self.assertEqual(parse_report_from_wikitext(None).shape, (None, None, None))
+
+    def test_grouping_counts_dict_includes_groupings_and_total(self):
+        d = parse_report_from_wikitext(_CURRENT_TABLE).grouping_counts_dict
+        self.assertEqual(d["Q183"], 500)
+        self.assertEqual(d[""], 39163)  # TotalsGrouping key
 
 
 class TestApiBackfill(unittest.TestCase):
@@ -169,6 +177,9 @@ class TestApiBackfill(unittest.TestCase):
         self.assertEqual(run.entity_total, 39163)
         self.assertEqual(run.column_count, 2)
         self.assertEqual(finished_at, "2026-02-13 01:18:34")
+        counts = json.loads(run.grouping_counts)
+        self.assertEqual(counts["Q183"], 500)
+        self.assertEqual(counts[""], 39163)
         registry.conn.commit.assert_called()
 
     def test_refetches_truncated_revision_content(self):

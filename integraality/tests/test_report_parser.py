@@ -115,6 +115,18 @@ class TestModernReport(unittest.TestCase):
         self.assertEqual(self.report.totals.count, 39163)
         self.assertEqual(self.report.totals.cells, {"P21": 39163, "P569": 39163})
 
+    def test_no_group_captured(self):
+        self.assertIsNotNone(self.report.no_group)
+        self.assertEqual(self.report.no_group.count, 200)
+
+    def test_grouping_counts_dict(self):
+        d = self.report.grouping_counts_dict
+        self.assertEqual(d["Q30"], 500)
+        self.assertEqual(d["Q145"], 300)
+        self.assertEqual(d["UNKNOWN_VALUE"], 4)
+        self.assertEqual(d["None"], 200)  # NoGroupGrouping key
+        self.assertEqual(d[""], 39163)  # TotalsGrouping key
+
 
 class TestHigherGrouping(unittest.TestCase):
     def test_shape_and_config_param_not_a_grouping(self):
@@ -158,6 +170,14 @@ class TestEdgeCases(unittest.TestCase):
         report = ReportParser().parse("just some prose, no table")
         self.assertIsInstance(report, ParsedReport)
         self.assertEqual(report.shape, (None, None, None))
+
+    def test_grouping_counts_dict_empty_returns_none(self):
+        report = ReportParser().parse("")
+        self.assertIsNone(report.grouping_counts_dict)
+
+    def test_no_group_none_when_absent(self):
+        report = ReportParser().parse(_HIGHER_GROUPING)
+        self.assertIsNone(report.no_group)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,16 @@
+integraality/templates/_feature_facets.html
+  h_bc010f8da910ff 29-32,47-49,60,74-76,88,99,111,124,137,151-153,164
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 23-25,30
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "7b3aef25e04ef5b4cb99d3297e7a5862e1c710f0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

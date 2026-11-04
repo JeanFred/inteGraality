@@ -112,6 +112,7 @@ CREATE TABLE IF NOT EXISTS dashboard_runs (
     entity_total INT UNSIGNED DEFAULT NULL,
     grouping_count INT UNSIGNED DEFAULT NULL,
     column_count INT UNSIGNED DEFAULT NULL,
+    grouping_counts JSON DEFAULT NULL,
     configuration_id INT UNSIGNED DEFAULT NULL,  -- The config this run executed (NULL for historical/unlinked runs).
     UNIQUE KEY uq_revision (revision_id),
     KEY idx_dashboard_finished (dashboard_id, finished_at),

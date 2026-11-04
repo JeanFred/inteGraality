@@ -346,6 +346,8 @@
                 };
                 Chart.defaults.color = themeColor("--bs-body-color");
                 Chart.defaults.borderColor = themeColor("--bs-border-color");
+                // Compact dot legend entries instead of the large default boxes.
+                Chart.defaults.plugins.legend.labels.usePointStyle = true;
 
                 // Trend datasets + scales builder; takes the annotation config.
                 function trendConfig(annotations) {

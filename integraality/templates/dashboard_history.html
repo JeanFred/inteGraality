@@ -59,7 +59,7 @@
         }
         /* Datadog-style single-value cards: a BS .card (border/bg/radius from
            the theme) plus the layout bits the card doesn't provide — equal
-           flex sizing and overflow:hidden to clip the background sparkline. */
+           flex sizing and overflow:hidden to clip the sparkline. */
         .stat-cards {
             display: flex;
             flex-wrap: wrap;
@@ -71,13 +71,19 @@
             min-width: 180px;
             overflow: hidden;
         }
+        /* The wrapper (not the canvas) carries the size: Chart.js sizes a
+           responsive canvas to its PARENT and overrides the canvas's own CSS
+           height, so a bare canvas filled the whole card and the line ran
+           through the label. The wrapper is a flex item beside the big value:
+           it takes the width the value leaves free (min-width:0 lets it shrink
+           to nothing on a narrow card) and has its own height, so it can
+           never underlay any text and the card needs no extra height. */
         .stat-card .spark {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            height: 42px;
-            opacity: 0.18;
+            position: relative;
+            flex: 1 1 0;
+            min-width: 0;
+            height: 36px;
+            opacity: 0.5;
             pointer-events: none;
         }
         .stat-card .sc-label {
@@ -457,10 +463,17 @@
 #}
     {% macro stat_card(title, m, spark_id) %}
         <div class="card stat-card">
-            <canvas class="spark" id="{{ spark_id }}"></canvas>
             <div class="card-body p-2">
                 <div class="sc-label">{{ title }}</div>
-                <div class="sc-value">{{ '{:,}'.format(m.current) if m.current is not none else '−' }}</div>
+                {# Value and sparkline share a row: the value never shrinks and the
+                   sparkline takes whatever width is left, so they can't overlap
+                   however many digits the value has or how narrow the card is. #}
+                <div class="d-flex align-items-center gap-2">
+                    <div class="sc-value flex-shrink-0">
+                        {{ '{:,}'.format(m.current) if m.current is not none else '−' }}
+                    </div>
+                    <div class="spark"><canvas id="{{ spark_id }}"></canvas></div>
+                </div>
                 {% if m.current is not none %}
                     <div class="sc-deltas">
                         {{ delta_badge(m.delta_since_first, "since start") }}

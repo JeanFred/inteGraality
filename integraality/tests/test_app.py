@@ -982,6 +982,28 @@ class DashboardHistoryTests(AppTests):
         ).get_data(as_text=True)
         self.assertNotIn(f">{now:%b %Y}</time>", contents)
 
+    def test_dashboard_sparkline_canvas_has_sized_wrapper(self):
+        # Chart.js sizes a responsive canvas to its parent; a bare canvas in the
+        # card filled it and the line ran through the label. The sized .spark
+        # wrapper must contain the canvas.
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-01 00:00:00", revision_id=1),
+            self._run("2020-01-02 00:00:00", revision_id=2),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        for spark_id in ("spark-entities", "spark-groupings", "spark-columns"):
+            self.assertRegex(
+                contents, rf'<div class="spark">\s*<canvas id="{spark_id}"></canvas>'
+            )
+        # The value never shrinks and the sparkline takes the remaining width in
+        # the same flex row, so a long number on a narrow card can't overlap it.
+        self.assertRegex(
+            contents,
+            r'<div class="sc-value flex-shrink-0">[^<]*</div>\s*<div class="spark">',
+        )
+
     def test_dashboard_run_strip_has_labelled_legend(self):
         # The null-edit and failed ticks are otherwise only decodable by hover.
         self.mock_registry.list_dashboard_run_history.return_value = [

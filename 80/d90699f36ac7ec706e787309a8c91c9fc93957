@@ -1,0 +1,22 @@
+integraality/schema.sql
+  h_bc010f8da910ff 115
+integraality/report_parser.py
+  h_bc010f8da910ff 48-49,54,84-98,151,160-162,232-236
+integraality/runs_backfiller.py
+  h_bc010f8da910ff 6-8,20,88-89,91-93,95,182-189,191-192,197-198,203,214-216,225
+integraality/tests/test_report_parser.py
+  h_bc010f8da910ff 118-129,174-181
+integraality/tests/test_runs_backfiller.py
+  h_bc010f8da910ff 7,14,49-51,54-57,60-66,180-182
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80d90699f36ac7ec706e787309a8c91c9fc93957",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

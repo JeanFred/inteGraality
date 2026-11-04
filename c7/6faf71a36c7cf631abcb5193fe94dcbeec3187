@@ -1,0 +1,20 @@
+integraality/tests/test_report_parser.py
+  h_bc010f8da910ff 118-129,174-181
+integraality/tests/test_runs_backfiller.py
+  h_bc010f8da910ff 7,14,49-51,54-57,60-66,180-182
+integraality/report_parser.py
+  h_bc010f8da910ff 48-49,54,84-93,146,155-157,227-231
+integraality/runs_backfiller.py
+  h_bc010f8da910ff 6-8,20,88-90,177-184,186-187,192-193,198,209-211,220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c76faf71a36c7cf631abcb5193fe94dcbeec3187",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

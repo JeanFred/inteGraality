@@ -3,6 +3,7 @@
 
 import os
 import traceback
+from datetime import UTC, datetime, timedelta
 
 from flask import (
     Flask,
@@ -162,6 +163,15 @@ def _iso_utc(value):
 def iso_utc_filter(value):
     """Template form of _iso_utc: "" for None (never-run dashboards)."""
     return _iso_utc(value) or ""
+
+
+@app.template_test("older_than")
+def older_than_test(value, days):
+    """`ts is older_than(30)`: a naive-UTC datetime more than `days` days old."""
+    if value is None:
+        return False
+    now = datetime.now(UTC).replace(tzinfo=None)
+    return now - value > timedelta(days=days)
 
 
 @app.template_filter("abbreviate")

@@ -5,7 +5,7 @@
   the data table below the charts is the source of truth and works with no JS;
   Chart.js enhances it into line charts by reading the JSON series injected in #run-series.
 #}
-{% from "_macros.html" import relative_time %}
+{% from "_macros.html" import relative_time, relative_or_dated_time %}
 {% block head_scripts %}
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
     <script src="//tools-static.wmflabs.org/cdnjs/ajax/libs/date-fns/4.4.0/cdn.min.js"></script>
@@ -534,7 +534,7 @@
                     </div>
                     <div class="col-sm-3 health-metric">
                         <div class="value">
-                            {{ relative_time(health.first_run_at) }}
+                            {{ relative_or_dated_time(health.first_run_at) }}
                         </div>
                         <div class="label">tracked since</div>
                     </div>

@@ -1,7 +1,7 @@
 import json
 import re
 import unittest
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from html.parser import HTMLParser
 from unittest.mock import patch
 
@@ -54,6 +54,24 @@ class RunStripTicksHelperTests(unittest.TestCase):
             '<span class="run-tick run-tick-ok"></span>'  # after the strip
         )
         self.assertEqual(len(run_strip_ticks(html)), 3)
+
+
+class OlderThanTestTests(unittest.TestCase):
+    """The `older_than` Jinja test compares naive-UTC datetimes (as stored in
+    the DB) to now; checked here on either side of the threshold."""
+
+    def setUp(self):
+        self.older_than = app.jinja_env.tests["older_than"]
+        self.now = datetime.now(UTC).replace(tzinfo=None)
+
+    def test_recent_is_not_older(self):
+        self.assertFalse(self.older_than(self.now - timedelta(days=29), 30))
+
+    def test_beyond_threshold_is_older(self):
+        self.assertTrue(self.older_than(self.now - timedelta(days=31), 30))
+
+    def test_none_is_never_older(self):
+        self.assertFalse(self.older_than(None, 30))
 
 
 class AppTests(unittest.TestCase):
@@ -942,6 +960,27 @@ class DashboardHistoryTests(AppTests):
         self.assertIn("▼ 2", contents)  # columns shrank
         self.assertNotIn("delta-up", contents)
         self.assertNotIn("delta-down", contents)
+
+    def test_dashboard_tracked_since_is_dated_when_old(self):
+        # "6 years ago" is too imprecise for a long-lived dashboard.
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-15 00:00:00", revision_id=1),
+            self._run("2020-01-16 00:00:00", revision_id=2),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn(">Jan 2020</time>", contents)
+
+    def test_dashboard_tracked_since_stays_relative_when_recent(self):
+        now = datetime.now(UTC).replace(tzinfo=None)
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run(now.strftime("%Y-%m-%d %H:%M:%S"), revision_id=1),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertNotIn(f">{now:%b %Y}</time>", contents)
 
     def test_dashboard_run_strip_has_labelled_legend(self):
         # The null-edit and failed ticks are otherwise only decodable by hover.

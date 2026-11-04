@@ -8,3 +8,14 @@
 {% macro relative_time(ts) -%}
     <time data-relative datetime="{{ ts | iso_utc }}" title="{{ ts }} UTC">{{ ts }}</time>
 {%- endmacro %}
+
+{# relative_or_dated_time(ts, days): like relative_time, but beyond `days` days it
+   shows an absolute "Mar 2020" — "6 years ago" is too imprecise for a
+   long-lived value, and the title tooltip doesn't exist on touch. #}
+{% macro relative_or_dated_time(ts, days=30) -%}
+    {%- if ts is older_than(days) -%}
+        <time datetime="{{ ts | iso_utc }}" title="{{ ts }} UTC">{{ ts.strftime('%b %Y') }}</time>
+    {%- else -%}
+        {{ relative_time(ts) }}
+    {%- endif -%}
+{%- endmacro %}

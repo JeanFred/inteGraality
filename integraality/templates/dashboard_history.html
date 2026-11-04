@@ -556,6 +556,10 @@
            runs_strip_cap ticks (a 1000+ run history would otherwise fill the
            screen). The full history still drives the charts and table. #}
                 {% set strip_runs = history[-runs_strip_cap:] %}
+                <div class="d-flex flex-wrap align-items-baseline gap-3 mb-1">
+                    <strong>Recent runs</strong>
+                    {% include "_run_ticks_legend.html" %}
+                </div>
                 {% if history | length > runs_strip_cap %}
                     <p class="text-muted small mb-1">
                         Showing the last {{ runs_strip_cap }} of {{ history | length }} runs.

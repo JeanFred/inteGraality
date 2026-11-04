@@ -2,6 +2,7 @@ import json
 import re
 import unittest
 from datetime import datetime
+from html.parser import HTMLParser
 from unittest.mock import patch
 
 from .. import column
@@ -9,6 +10,50 @@ from ..app import RUNS_STRIP_CAP, RUNS_TABLE_CAP, app
 from ..dashboard_registry import DashboardRegistry
 from ..pages_processor import ProcessingException, TransientServerException
 from ..sparql_utils import QueryException, QueryTimeoutException
+
+
+class _RunStripTicks(HTMLParser):
+    """Collect the run-tick elements nested inside `.run-strip` containers (so
+    the legend's sample ticks aren't counted), tracking depth so extra markup
+    inside a strip doesn't end it early."""
+
+    def __init__(self):
+        super().__init__()
+        self.ticks = []
+        self._depth = 0
+
+    def handle_starttag(self, tag, attrs):
+        classes = (dict(attrs).get("class") or "").split()
+        if self._depth:
+            self._depth += 1
+            if "run-tick" in classes:
+                self.ticks.append(classes)
+        elif "run-strip" in classes:
+            self._depth = 1
+
+    def handle_endtag(self, tag):
+        if self._depth:
+            self._depth -= 1
+
+
+def run_strip_ticks(html):
+    parser = _RunStripTicks()
+    parser.feed(html)
+    return parser.ticks
+
+
+class RunStripTicksHelperTests(unittest.TestCase):
+    def test_counts_only_ticks_inside_strips_even_with_nested_markup(self):
+        html = (
+            '<p><span class="run-tick run-tick-ok"></span></p>'  # legend sample
+            '<div class="run-strip">'
+            '<span class="run-tick run-tick-ok"></span>'
+            '<div><a class="run-tick run-tick-fail"></a></div>'  # nested wrapper
+            '<span class="run-tick run-tick-null"></span>'
+            "</div>"
+            '<span class="run-tick run-tick-ok"></span>'  # after the strip
+        )
+        self.assertEqual(len(run_strip_ticks(html)), 3)
 
 
 class AppTests(unittest.TestCase):
@@ -337,6 +382,8 @@ class DashboardsTests(AppTests):
         self.assertIn("run-tick-ok", contents)
         self.assertIn("run-tick-fail", contents)
         self.assertIn("never run", contents)  # the strip-less dashboard
+        # A key explains the hollow (null edit) and failed ticks.
+        self.assertIn("OK, no change", " ".join(contents.split()))
 
     def test_browse_renders_one_tick_per_status(self):
         """One run-tick renders per recent status."""
@@ -346,7 +393,8 @@ class DashboardsTests(AppTests):
             ),
         ]
         contents = self.app.get("/dashboards").get_data(as_text=True)
-        self.assertEqual(contents.count('class="run-tick '), 3)  # one per status
+        # Count only the row's strip (the legend above the table has sample ticks).
+        self.assertEqual(len(run_strip_ticks(contents)), 3)  # one per status
 
     def test_browse_renders_null_edit_tick(self):
         """A NULL token (OK run, no revision) renders the hollow-green tick
@@ -841,7 +889,7 @@ class DashboardHistoryTests(AppTests):
         contents = self.app.get(
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
-        self.assertEqual(contents.count('class="run-tick '), 2)  # one per run
+        self.assertEqual(len(run_strip_ticks(contents)), 2)  # one per run
 
     def test_dashboard_run_strip_capped_to_recent(self):
         """The decorative health strip caps at RUNS_STRIP_CAP recent ticks (with
@@ -855,7 +903,8 @@ class DashboardHistoryTests(AppTests):
         contents = self.app.get(
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
-        self.assertEqual(contents.count('class="run-tick '), RUNS_STRIP_CAP)
+        # Count only the strip's ticks (the legend renders sample ticks too).
+        self.assertEqual(len(run_strip_ticks(contents)), RUNS_STRIP_CAP)
         self.assertIn(f"last {RUNS_STRIP_CAP} of {n} runs", contents)
 
     def test_dashboard_trend_rail_starts_hidden(self):
@@ -868,6 +917,19 @@ class DashboardHistoryTests(AppTests):
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
         self.assertRegex(contents, r'<div id="trend-rail" class="trend-rail" hidden>')
+
+    def test_dashboard_run_strip_has_labelled_legend(self):
+        # The null-edit and failed ticks are otherwise only decodable by hover.
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-01 00:00:00", revision_id=1)
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("Recent runs", contents)
+        normalized = " ".join(contents.split())
+        self.assertIn("OK, no change", normalized)
+        self.assertIn("failed", normalized)
 
     def test_dashboard_passes_identity_to_registry(self):
         self.app.get("/dashboard?wiki=commons.wikimedia.org&page=Foo")

@@ -11,6 +11,9 @@
             match{{ 'es' if dashboards | length == 1 }}{% else %}
             registered{% endif %}.
     </p>
+    <p class="mb-1 small text-muted">
+        Recent runs, oldest to newest: {% include "_run_ticks_legend.html" %}
+    </p>
     <table class="table table-striped table-sm align-middle" id="dashboard-table">
         <thead>
             <tr>

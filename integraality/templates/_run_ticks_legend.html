@@ -1,0 +1,9 @@
+{# Key for the run-tick strips (history + browse), using the same tick classes
+   so it matches each page's rendering. Decorative like the strips themselves
+   (the runs table is the accessible source of truth), so hidden from AT. #}
+<span class="text-muted small d-inline-flex flex-wrap align-items-center gap-3" aria-hidden="true">
+    <span class="d-inline-flex align-items-center gap-1"><span class="run-tick run-tick-ok"></span> OK</span>
+    <span class="d-inline-flex align-items-center gap-1"><span class="run-tick run-tick-null"></span> OK, no
+        change</span>
+    <span class="d-inline-flex align-items-center gap-1"><span class="run-tick run-tick-fail"></span> failed</span>
+</span>

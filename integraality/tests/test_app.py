@@ -1004,6 +1004,19 @@ class DashboardHistoryTests(AppTests):
             r'<div class="sc-value flex-shrink-0">[^<]*</div>\s*<div class="spark">',
         )
 
+    def test_dashboard_card_titles_are_headings(self):
+        # Screen-reader users navigate by heading; Health and Configuration were
+        # bold text in a card header, not headings.
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config()
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run("2020-01-01 00:00:00", revision_id=1),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertRegex(contents, r"<h2 class=\"h6[^\"]*\">Health</h2>")
+        self.assertRegex(contents, r"<h2 class=\"h6[^\"]*\">Configuration</h2>")
+
     def test_dashboard_run_strip_has_labelled_legend(self):
         # The null-edit and failed ticks are otherwise only decodable by hover.
         self.mock_registry.list_dashboard_run_history.return_value = [

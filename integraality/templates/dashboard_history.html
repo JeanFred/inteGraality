@@ -517,7 +517,7 @@
         <!-- Health summary -->
         <div class="card {{ 'border-danger' if chronic else 'border-warning' if failing else 'border-success' }} mb-4">
             <div class="card-header">
-                <strong>Health</strong>
+                <h2 class="h6 fw-bold d-inline mb-0">Health</h2>
                 {% if chronic %}
                     <span class="badge text-bg-danger"
                     >Chronically failing &mdash; {{ health.failure_streak }} runs</span>

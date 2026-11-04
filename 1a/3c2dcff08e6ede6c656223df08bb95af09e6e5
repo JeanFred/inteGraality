@@ -1,0 +1,30 @@
+integraality/app.py
+  h_bc010f8da910ff 222-251,258
+integraality/templates/_config_panel.html
+  h_bc010f8da910ff 129-141
+integraality/templates/_features_inner.html
+  h_bc010f8da910ff 107,120,185-204
+integraality/templates/_features_results.html
+  h_bc010f8da910ff 43-47
+integraality/templates/base.html
+  h_bc010f8da910ff 122-128
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 108-111,114,129-133,207-213,220-223,231,234-237,270-271,273-280,578
+integraality/templates/dashboards.html
+  h_bc010f8da910ff 28-30
+integraality/templates/features.html
+  h_bc010f8da910ff 2,41-45,48-49
+integraality/tests/test_app.py
+  h_bc010f8da910ff 579-593,1002-1025
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1a3c2dcff08e6ede6c656223df08bb95af09e6e5",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

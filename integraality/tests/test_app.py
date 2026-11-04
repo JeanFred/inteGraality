@@ -1017,6 +1017,29 @@ class DashboardHistoryTests(AppTests):
         self.assertRegex(contents, r"<h2 class=\"h6[^\"]*\">Health</h2>")
         self.assertRegex(contents, r"<h2 class=\"h6[^\"]*\">Configuration</h2>")
 
+    def test_dashboard_title_mutes_parent_path_of_subpages(self):
+        self.mock_registry.get_dashboard.return_value = {
+            **self.mock_registry.get_dashboard.return_value,
+            "page_title": "Wikidata:WikiProject X/Reports/Coverage by series",
+        }
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:WikiProject X/Reports/Coverage by series"
+        ).get_data(as_text=True)
+        normalized = " ".join(contents.split())
+        self.assertIn(
+            '<span class="text-muted fw-normal">'
+            "Wikidata:WikiProject X/Reports/</span>Coverage by series",
+            normalized,
+        )
+
+    def test_dashboard_title_without_subpage_is_unmuted(self):
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        h1 = contents.split("<h1>")[1].split("</h1>")[0]
+        self.assertIn("Wikidata:Test", h1)
+        self.assertNotIn("fw-normal", h1)
+
     def test_dashboard_run_strip_has_labelled_legend(self):
         # The null-edit and failed ticks are otherwise only decodable by hover.
         self.mock_registry.list_dashboard_run_history.return_value = [

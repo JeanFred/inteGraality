@@ -499,8 +499,12 @@
 
     <p><a href="{{ url_for('dashboards') }}">&larr; All dashboards</a></p>
 
+    {# Subpage titles are long paths ("Wikidata:WikiProject X/Y/Page"): mute the
+       parent path so the page's own name is what reads as the title. #}
+    {% set title_parent, title_sep, title_leaf = dashboard.page_title.rpartition('/') %}
     <h1>
-        {{ dashboard.page_title }}
+        {%- if title_sep %}<span class="text-muted fw-normal">{{ title_parent }}{{ title_sep }}</span>{% endif -%}
+        {{ title_leaf }}
         <small>
             <a href="{{ dashboard.page_url }}" title="View on wiki" class="text-muted">↗</a>
             {% if dashboard.site_hostname != 'www.wikidata.org' %}

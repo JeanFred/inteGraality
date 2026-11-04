@@ -175,10 +175,15 @@
             var css = getComputedStyle(document.documentElement);
             function themeColor(name) { return css.getPropertyValue(name).trim(); }
 
-            // {x: ISO timestamp, y: value} points, dropping nulls (failed runs) so the
-            // time axis spaces runs by their real dates. The date-fns adapter parses
-            // the ISO x-values.
+            // {x: ISO timestamp, y: value} points, keeping nulls so all datasets
+            // stay index-aligned with d.labels (gaps render as line breaks;
+            // the time axis spaces real dates correctly).
             function points(y) {
+                return d.labels.map(function (t, i) { return { x: t, y: y[i] }; });
+            }
+            // Sparse series (e.g. duration) filter nulls so the axis starts at
+            // the first real observation rather than the first ever run.
+            function sparsePoints(y) {
                 return d.labels.map(function (t, i) { return { x: t, y: y[i] }; })
                                .filter(function (p) { return p.y !== null; });
             }
@@ -355,8 +360,13 @@
                         type: "line",
                         data: {
                             datasets: [
-                                { label: "Entities", data: points(d.entity_total), yAxisID: "yEntities",
+                                { label: "Population", data: points(d.entity_total), yAxisID: "yEntities",
                                   borderColor: COLOR.primary, backgroundColor: COLOR.primary, pointRadius: 0, tension: 0.1 },
+                                { label: "No grouping", data: points(d.no_group), yAxisID: "yEntities",
+                                  borderColor: COLOR.warning, backgroundColor: COLOR.warning, pointRadius: 0, tension: 0.1 },
+                                { label: "Groupings sum", data: points(d.entity_sum), yAxisID: "yEntities",
+                                  borderColor: COLOR.danger, backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1,
+                                  hidden: !!d.entity_sum_hidden },
                                 { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
                                   borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
                             ]
@@ -364,7 +374,10 @@
                         options: {
                             responsive: true, maintainAspectRatio: false, interaction: { mode: "index", intersect: false },
                             layout: { padding: { top: 10 } },
-                            plugins: { annotation: { annotations: annotations } },
+                            plugins: {
+                                legend: { display: true },
+                                annotation: { annotations: annotations }
+                            },
                             scales: {
                                 x: timeScale(),
                                 yEntities: { type: "linear", position: "left", title: { display: true, text: "Entities" }, beginAtZero: false },
@@ -395,7 +408,7 @@
                     charts.push(new Chart(document.getElementById("duration-chart"), {
                         type: "line",
                         data: { datasets: [
-                            { label: "Duration (s)", data: points(d.duration_s), borderColor: COLOR.danger,
+                            { label: "Duration (s)", data: sparsePoints(d.duration_s), borderColor: COLOR.danger,
                               backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1 }
                         ] },
                         options: { responsive: true, maintainAspectRatio: false,
@@ -441,7 +454,9 @@
 
                 // Sparklines: tiny axis-less line charts drawn as the background of
                 // each stat card. Nulls dropped so the line is continuous.
-                sparkline(charts, "spark-entities", d.entity_total, COLOR.primary);
+                sparkline(charts, "spark-population", d.entity_total, COLOR.primary);
+                sparkline(charts, "spark-no-group", d.no_group, COLOR.warning);
+                sparkline(charts, "spark-entities-sum", d.entity_sum, COLOR.danger);
                 sparkline(charts, "spark-groupings", d.grouping_count, COLOR.success);
                 sparkline(charts, "spark-columns", d.column_count, COLOR.warning);
             }
@@ -601,7 +616,15 @@
 
         <!-- Single-value stat cards with background sparklines -->
         <div class="stat-cards">
-            {{ stat_card("Entities", health.metrics.entity_total, "spark-entities") }}
+            {{ stat_card("Population", health.metrics.entity_total, "spark-population") }}
+            {% if health.metrics.no_group.current is not none %}
+                {{ stat_card("No grouping", health.metrics.no_group, "spark-no-group") }}
+            {% endif %}
+            {%
+                if health.metrics.entity_sum.current is not none and not chart_data.entity_sum_hidden
+            %}
+                {{ stat_card("Groupings sum", health.metrics.entity_sum, "spark-entities-sum") }}
+            {% endif %}
             {{ stat_card("Groupings", health.metrics.grouping_count, "spark-groupings") }}
             {{ stat_card("Columns", health.metrics.column_count, "spark-columns") }}
             <div class="card stat-card">

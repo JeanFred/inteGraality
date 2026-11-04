@@ -19,6 +19,7 @@ from .dashboard_registry import (
     CHRONIC_FAILURE_THRESHOLD,
     DashboardRegistry,
     grouping_counts_to_entity_sum,
+    grouping_counts_to_no_group,
 )
 from .pages_processor import (
     PagesProcessor,
@@ -312,14 +313,23 @@ def runs():
     )
 
 
-def _chart_data(history, health, config_changes=None):
+def _chart_data(history, health, config_changes=None, latest_config=None):
     """Client-side chart series as a plain dict (emitted via | tojson)."""
+    # entity_sum is shown by default only when total or no_group data is absent,
+    # i.e. when the dashboard has no totals row or no no-group row — it serves
+    # as the best available proxy metric in those cases.
+    cfg = (latest_config or {}).get("config") or {}
+    entity_sum_hidden = cfg.get("row_totals", True) and cfg.get("row_no_group", True)
     return {
         "labels": [_iso_utc(r["finished_at"]) for r in history],
         "entity_total": [r["entity_total"] for r in history],
+        "no_group": [
+            grouping_counts_to_no_group(r.get("grouping_counts")) for r in history
+        ],
         "entity_sum": [
             grouping_counts_to_entity_sum(r.get("grouping_counts")) for r in history
         ],
+        "entity_sum_hidden": entity_sum_hidden,
         "grouping_count": [r["grouping_count"] for r in history],
         "column_count": [r["column_count"] for r in history],
         "duration_s": [
@@ -330,14 +340,13 @@ def _chart_data(history, health, config_changes=None):
         "month_ok_cron": [b["ok_cron"] for b in health["monthly_runs"]],
         "month_ok_web": [b["ok_web"] for b in health["monthly_runs"]],
         "month_fail": [b["fail"] for b in health["monthly_runs"]],
-        # Config-change markers (vertical annotations on the trend chart). Only
-        # changes with a known timestamp can be placed on the time axis.
         "config_changes": [
             {
                 "at": _iso_utc(c["introduced_at"]),
                 "author": c["author"],
                 "rev_id": c["introduced_by_rev_id"],
             }
+            # Only changes with a known timestamp can be placed on the time axis.
             for c in (config_changes or [])
             if c["introduced_at"] is not None
         ],
@@ -364,7 +373,7 @@ def dashboard():
         history=history,
         health=health,
         latest_config=latest_config,
-        chart_data=_chart_data(history, health, config_changes),
+        chart_data=_chart_data(history, health, config_changes, latest_config),
         has_duration=any(r["duration_ms"] is not None for r in history),
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,
         runs_table_cap=RUNS_TABLE_CAP,

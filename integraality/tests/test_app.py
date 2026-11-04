@@ -879,6 +879,8 @@ class DashboardHistoryTests(AppTests):
         self.assertIn("381218", contents)  # latest entity_total in chart JSON
         self.assertIn("381,218", contents)  # thousands-formatted, reaches the page
         self.assertIn('"entity_sum"', contents)  # entity_sum series in chart JSON
+        self.assertIn('"no_group"', contents)     # no_group series in chart JSON
+        self.assertIn('"entity_sum_hidden"', contents)  # visibility flag present
         # Charts load from the pinned cdnjs mirror (repo JS constraint), and the
         # server-rendered runs table works without JS.
         self.assertIn("tools-static.wmflabs.org/cdnjs", contents)
@@ -988,23 +990,29 @@ class DashboardHistoryTests(AppTests):
         # Chart.js sizes a responsive canvas to its parent; a bare canvas in the
         # card filled it and the line ran through the label. The sized .spark
         # wrapper must contain the canvas.
+        self.mock_registry.get_latest_configuration.return_value = self._latest_config(
+            config={"row_totals": 0, "row_no_group": 1}
+        )
         self.mock_registry.list_dashboard_run_history.return_value = [
             self._run(
                 "2020-01-01 00:00:00",
                 revision_id=1,
-                grouping_counts='{"Q1": 10, "Q2": 4}',
+                entity_total=None,
+                grouping_counts='{"Q1": 10, "Q2": 4, "None": 50}',
             ),
             self._run(
                 "2020-01-02 00:00:00",
                 revision_id=2,
-                grouping_counts='{"Q1": 12, "Q2": 5}',
+                entity_total=None,
+                grouping_counts='{"Q1": 12, "Q2": 5, "None": 55}',
             ),
         ]
         contents = self.app.get(
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
         for spark_id in (
-            "spark-entities-total",
+            "spark-population",
+            "spark-no-group",
             "spark-entities-sum",
             "spark-groupings",
             "spark-columns",

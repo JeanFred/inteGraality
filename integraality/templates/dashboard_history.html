@@ -97,12 +97,6 @@
             margin-top: 2px;
             font-size: 0.85em;
         }
-        .delta-up {
-            color: var(--bs-success);
-        }
-        .delta-down {
-            color: var(--bs-danger);
-        }
         .delta-flat {
             color: var(--bs-secondary-color);
         }
@@ -478,11 +472,13 @@
         </div>
     {% endmacro %}
 
-    {# One "+N / -N / no change" badge with directional colour. #}
+    {# Count deltas are NEUTRAL: fewer columns (or a smaller population) isn't a
+       failure, so red/green is reserved for health signals. The arrow carries
+       direction; "no change" stays muted. #}
     {% macro delta_badge(delta, label) %}
         {% if delta is none %}<span class="delta-flat">− {{ label }}</span>
-        {% elif delta > 0 %}<span class="delta-up">▲ {{ '{:,}'.format(delta) }} {{ label }}</span>
-        {% elif delta < 0 %}<span class="delta-down">▼ {{ '{:,}'.format(-delta) }} {{ label }}</span>
+        {% elif delta > 0 %}<span>▲ {{ '{:,}'.format(delta) }} {{ label }}</span>
+        {% elif delta < 0 %}<span>▼ {{ '{:,}'.format(-delta) }} {{ label }}</span>
         {% else %}<span class="delta-flat">± 0 {{ label }}</span>{% endif %}
     {% endmacro %}
 

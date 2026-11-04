@@ -918,6 +918,31 @@ class DashboardHistoryTests(AppTests):
         ).get_data(as_text=True)
         self.assertRegex(contents, r'<div id="trend-rail" class="trend-rail" hidden>')
 
+    def test_dashboard_count_deltas_are_neutral(self):
+        # Fewer columns / a smaller population isn't a failure: arrows carry
+        # direction, but nothing is coloured success/danger.
+        self.mock_registry.list_dashboard_run_history.return_value = [
+            self._run(
+                "2020-01-01 00:00:00",
+                entity_total=100,
+                grouping_count=5,
+                column_count=9,
+            ),
+            self._run(
+                "2020-01-02 00:00:00",
+                entity_total=150,
+                grouping_count=5,
+                column_count=7,
+            ),
+        ]
+        contents = self.app.get(
+            "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
+        ).get_data(as_text=True)
+        self.assertIn("▲ 50", contents)  # entities grew
+        self.assertIn("▼ 2", contents)  # columns shrank
+        self.assertNotIn("delta-up", contents)
+        self.assertNotIn("delta-down", contents)
+
     def test_dashboard_run_strip_has_labelled_legend(self):
         # The null-edit and failed ticks are otherwise only decodable by hover.
         self.mock_registry.list_dashboard_run_history.return_value = [

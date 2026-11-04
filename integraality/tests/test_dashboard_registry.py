@@ -8,6 +8,7 @@ from ..dashboard_registry import (
     RECENT_RUNS_STRIP_SIZE,
     DashboardRegistry,
     RunResult,
+    grouping_counts_to_entity_sum,
 )
 
 
@@ -828,6 +829,7 @@ class TestDashboardRegistry(unittest.TestCase):
                 entity_total=39163,
                 grouping_count=40,
                 column_count=7,
+                grouping_counts='{"Q1": 100, "": 39163}',
             ),
         )
 
@@ -838,6 +840,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["status"], "OK")
         self.assertEqual(row["revision_id"], 555)
         self.assertEqual(row["entity_total"], 39163)
+        self.assertEqual(row["grouping_counts"], '{"Q1": 100, "": 39163}')
         self.mock_conn.commit.assert_called_once()
 
     def test_record_run_persists_configuration_id(self):
@@ -1703,3 +1706,65 @@ class RunResultTest(unittest.TestCase):
         self.assertEqual(run.status, "FAIL")
         self.assertEqual(run.error_category, "query")
         self.assertIsNone(run.revision_id)
+
+
+class TestGroupingCountsToEntitySum(unittest.TestCase):
+    def test_sums_regular_groupings(self):
+        blob = '{"Q1": 10, "Q2": 4, "Q3": 3}'
+        self.assertEqual(grouping_counts_to_entity_sum(blob), 17)
+
+    def test_excludes_no_group_key(self):
+        blob = '{"Q1": 10, "None": 1000}'
+        self.assertEqual(grouping_counts_to_entity_sum(blob), 10)
+
+    def test_excludes_totals_key(self):
+        blob = '{"Q1": 10, "": 175000}'
+        self.assertEqual(grouping_counts_to_entity_sum(blob), 10)
+
+    def test_excludes_both_special_keys(self):
+        blob = '{"Q1": 10, "Q2": 4, "None": 1000, "": 175000}'
+        self.assertEqual(grouping_counts_to_entity_sum(blob), 14)
+
+    def test_none_blob_returns_none(self):
+        self.assertIsNone(grouping_counts_to_entity_sum(None))
+
+    def test_invalid_json_returns_none(self):
+        self.assertIsNone(grouping_counts_to_entity_sum("not-json"))
+
+    def test_empty_dict_returns_zero(self):
+        self.assertEqual(grouping_counts_to_entity_sum("{}"), 0)
+
+    def test_only_special_keys_returns_zero(self):
+        blob = '{"None": 1000, "": 175000}'
+        self.assertEqual(grouping_counts_to_entity_sum(blob), 0)
+
+
+class TestComputeHealthEntitySum(unittest.TestCase):
+    def _run(self, finished_at, grouping_counts=None, status="OK"):
+        return {
+            "finished_at": _dt(finished_at),
+            "status": status,
+            "error_category": None if status == "OK" else "query",
+            "entity_total": None,
+            "grouping_count": None,
+            "column_count": None,
+            "grouping_counts": grouping_counts,
+        }
+
+    def test_entity_sum_computed_from_grouping_counts(self):
+        runs = [
+            self._run("2024-01-01 00:00:00", '{"Q1": 10, "Q2": 4, "": 100}'),
+            self._run("2024-02-01 00:00:00", '{"Q1": 12, "Q2": 5, "": 105}'),
+        ]
+        es = DashboardRegistry.compute_health(runs)["entity_sum"]
+        self.assertEqual(es["current"], 17)
+        self.assertEqual(es["first"], 14)
+        self.assertEqual(es["delta_since_first"], 3)
+        self.assertEqual(es["delta_since_last"], 3)
+        self.assertEqual(es["series"], [14, 17])
+
+    def test_entity_sum_none_when_no_grouping_counts(self):
+        runs = [self._run("2024-01-01 00:00:00")]
+        es = DashboardRegistry.compute_health(runs)["entity_sum"]
+        self.assertIsNone(es["current"])
+        self.assertEqual(es["series"], [])

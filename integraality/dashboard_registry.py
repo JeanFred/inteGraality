@@ -1,10 +1,12 @@
 """Registry for dashboard metadata — write during bot runs, read for /browse."""
 
 import datetime
+import json
 import logging
 from dataclasses import dataclass
 
 from .db import ensure_schema, get_connection
+from .line import NoGroupGrouping, TotalsGrouping
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,7 @@ class RunResult:
     entity_total: int | None = None
     grouping_count: int | None = None
     column_count: int | None = None
+    grouping_counts: str | None = None
     configuration_id: int | None = None
 
     @classmethod
@@ -89,6 +92,7 @@ class RunResult:
         entity_total,
         grouping_count,
         column_count,
+        grouping_counts=None,
         configuration_id=None,
     ):
         """A successful run (``revision_id`` may be None: no oldid produced)."""
@@ -101,6 +105,7 @@ class RunResult:
             entity_total=entity_total,
             grouping_count=grouping_count,
             column_count=column_count,
+            grouping_counts=grouping_counts,
             configuration_id=configuration_id,
         )
 
@@ -125,6 +130,24 @@ class RunResult:
             sparql_engine=sparql_engine,
             configuration_id=configuration_id,
         )
+
+
+_SPECIAL_KEYS = {NoGroupGrouping.MARKER, TotalsGrouping.MARKER}
+
+
+def grouping_counts_to_entity_sum(blob):
+    """Sum counts for regular groupings (excluding no-group and totals rows).
+
+    ``blob`` is the JSON string stored in dashboard_runs.grouping_counts.
+    Returns None when blob is NULL or unparseable.
+    """
+    if blob is None:
+        return None
+    try:
+        counts = json.loads(blob)
+    except (ValueError, TypeError):
+        return None
+    return sum(v for k, v in counts.items() if k not in _SPECIAL_KEYS and v is not None)
 
 
 class DashboardRegistry:
@@ -531,8 +554,8 @@ class DashboardRegistry:
                 (dashboard_id, wiki_id, finished_at, duration_ms, status,
                  trigger_source, sparql_engine, error_category, error_detail,
                  revision_id, entity_total, grouping_count, column_count,
-                 configuration_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 grouping_counts, configuration_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         with self.conn.cursor() as cur:
             cur.execute(
@@ -551,6 +574,7 @@ class DashboardRegistry:
                     run.entity_total,
                     run.grouping_count,
                     run.column_count,
+                    run.grouping_counts,
                     run.configuration_id,
                 ),
             )
@@ -732,7 +756,8 @@ class DashboardRegistry:
                 r.revision_id AS revision_id,
                 r.entity_total AS entity_total,
                 r.grouping_count AS grouping_count,
-                r.column_count AS column_count
+                r.column_count AS column_count,
+                r.grouping_counts AS grouping_counts
             FROM dashboard_runs AS r
             JOIN dashboards AS d ON d.id = r.dashboard_id
             JOIN pages AS p ON p.id = d.page_pk
@@ -747,7 +772,7 @@ class DashboardRegistry:
             sql = (
                 "SELECT finished_at, status, trigger_source, duration_ms,\n"
                 "       sparql_engine, error_category, error_detail, revision_id,\n"
-                "       entity_total, grouping_count, column_count\n"
+                "       entity_total, grouping_count, column_count, grouping_counts\n"
                 "FROM (\n"
                 + base
                 + "ORDER BY r.finished_at DESC, r.id DESC\n"
@@ -886,6 +911,9 @@ class DashboardRegistry:
                 key: DashboardRegistry._metric_summary(runs, key)
                 for key in ("entity_total", "grouping_count", "column_count")
             },
+            "entity_sum": DashboardRegistry._metric_summary_computed(
+                runs, lambda r: grouping_counts_to_entity_sum(r.get("grouping_counts"))
+            ),
             "monthly_runs": DashboardRegistry._monthly_runs(runs),
             "engagement": DashboardRegistry._engagement(runs),
         }
@@ -956,6 +984,29 @@ class DashboardRegistry:
         over its non-null observations (failed runs carry no counts).
         """
         values = [r[key] for r in runs if r.get(key) is not None]
+        if not values:
+            return {
+                "current": None,
+                "first": None,
+                "delta_since_first": None,
+                "delta_since_last": None,
+                "series": [],
+            }
+        current = values[-1]
+        first = values[0]
+        previous = values[-2] if len(values) >= 2 else None
+        return {
+            "current": current,
+            "first": first,
+            "delta_since_first": current - first,
+            "delta_since_last": (current - previous) if previous is not None else None,
+            "series": values,
+        }
+
+    @staticmethod
+    def _metric_summary_computed(runs, fn):
+        """Like _metric_summary but derives the value from each run via ``fn``."""
+        values = [v for r in runs if (v := fn(r)) is not None]
         if not values:
             return {
                 "current": None,

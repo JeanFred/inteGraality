@@ -1,5 +1,6 @@
 """Orchestration — reads wiki pages, triggers updates."""
 
+import json
 import logging
 import re
 from dataclasses import dataclass
@@ -323,6 +324,9 @@ class PagesProcessor:
             entity_total=stats.get_entity_total(report_groupings),
             grouping_count=len(groupings),
             column_count=len(stats.columns),
+            grouping_counts=json.dumps(
+                {g.get_key(): g.count for g in report_groupings}
+            ),
             configuration_id=configuration_id,
         )
         try:

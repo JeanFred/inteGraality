@@ -1,6 +1,7 @@
 """Unit tests for pages_processor.py."""
 
 import argparse
+import json
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -10,6 +11,7 @@ from ..column import ColumnMaker, PropertyColumn, PropertySourceColumn
 from ..column_source import ColumnSourceException
 from ..config import ParsedConfig
 from ..grouping import GroupingConfiguration, ItemGroupingType
+from ..line import ItemGrouping, NoGroupGrouping, TotalsGrouping
 from ..pages_processor import (
     ConfigException,
     NoEndTemplateException,
@@ -743,13 +745,20 @@ class TestRunRecording(ProcessortTest):
     def test_record_run_ok_sends_expected_fields(self, mock_registry_cls):
         registry = mock_registry_cls.return_value.__enter__.return_value
 
+        report_groupings = [
+            ItemGrouping(count=10, title="Q1"),
+            ItemGrouping(count=4, title="Q2"),
+            NoGroupGrouping(count=100),
+            TotalsGrouping(count=175000, title=""),
+        ]
+
         self.processor._record_run_ok(
             self._dashboard_page(),
             trigger_source="CRON",
             elapsed_time=1.5,
             stats=self._stats(),
             groupings={"Q1": object(), "Q2": object(), "Q3": object()},
-            report_groupings=[],
+            report_groupings=report_groupings,
             revision_id=555,
         )
 
@@ -761,6 +770,11 @@ class TestRunRecording(ProcessortTest):
         self.assertEqual(run.grouping_count, 3)  # len(groupings)
         self.assertEqual(run.column_count, 2)  # len(stats.columns)
         self.assertEqual(run.entity_total, 39163)  # via stats.get_entity_total
+        counts = json.loads(run.grouping_counts)
+        self.assertEqual(counts["Q1"], 10)
+        self.assertEqual(counts["Q2"], 4)
+        self.assertEqual(counts["None"], 100)  # NoGroupGrouping.MARKER
+        self.assertEqual(counts[""], 175000)  # TotalsGrouping.MARKER
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_derives_category(self, mock_registry_cls):

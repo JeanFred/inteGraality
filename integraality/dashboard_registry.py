@@ -132,6 +132,9 @@ class RunResult:
         )
 
 
+# Helpers for reading values out of the grouping_counts JSON blob stored per
+# run. They live here for proximity to the registry reads, but have no registry
+# coupling — pure blob parsing.
 _SPECIAL_KEYS = {NoGroupGrouping.MARKER, TotalsGrouping.MARKER}
 
 
@@ -148,6 +151,20 @@ def grouping_counts_to_entity_sum(blob):
     except (ValueError, TypeError):
         return None
     return sum(v for k, v in counts.items() if k not in _SPECIAL_KEYS and v is not None)
+
+
+def grouping_counts_to_no_group(blob):
+    """Extract the no-group row count from a grouping_counts blob.
+
+    Returns None when blob is NULL, unparseable, or has no no-group entry.
+    """
+    if blob is None:
+        return None
+    try:
+        counts = json.loads(blob)
+    except (ValueError, TypeError):
+        return None
+    return counts.get(NoGroupGrouping.MARKER)
 
 
 class DashboardRegistry:
@@ -580,6 +597,38 @@ class DashboardRegistry:
             )
             return cur.rowcount > 0
 
+    def update_grouping_counts(self, revision_id, grouping_counts):
+        """Set grouping_counts on an existing run, only when it is still NULL.
+
+        Idempotent: the WHERE grouping_counts IS NULL guard means a re-run never
+        clobbers data that was written by a later pass. Does NOT commit.
+        Returns whether a row was updated.
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                UPDATE dashboard_runs
+                SET grouping_counts = %s
+                WHERE revision_id = %s AND grouping_counts IS NULL
+                """,
+                (grouping_counts, revision_id),
+            )
+            return cur.rowcount > 0
+
+    def list_revisions_missing_grouping_counts(self, dashboard_id):
+        """Return revision_ids for runs that have a revision but no grouping_counts."""
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                SELECT revision_id FROM dashboard_runs
+                WHERE dashboard_id = %s
+                  AND revision_id IS NOT NULL
+                  AND grouping_counts IS NULL
+                """,
+                (dashboard_id,),
+            )
+            return {row["revision_id"] for row in cur.fetchall()}
+
     def list_dashboards_for_backfill(self, site_hostname, only_missing=False):
         """Return this wiki's dashboards as (page_title, dashboard_id, wiki_id).
 
@@ -908,12 +957,19 @@ class DashboardRegistry:
             "failure_streak": failure_streak,
             "error_categories": error_categories,
             "metrics": {
-                key: DashboardRegistry._metric_summary(runs, key)
-                for key in ("entity_total", "grouping_count", "column_count")
+                **{
+                    key: DashboardRegistry._metric_summary(runs, lambda r, k=key: r.get(k))
+                    for key in ("entity_total", "grouping_count", "column_count")
+                },
+                "entity_sum": DashboardRegistry._metric_summary(
+                    runs,
+                    lambda r: grouping_counts_to_entity_sum(r.get("grouping_counts")),
+                ),
+                "no_group": DashboardRegistry._metric_summary(
+                    runs,
+                    lambda r: grouping_counts_to_no_group(r.get("grouping_counts")),
+                ),
             },
-            "entity_sum": DashboardRegistry._metric_summary_computed(
-                runs, lambda r: grouping_counts_to_entity_sum(r.get("grouping_counts"))
-            ),
             "monthly_runs": DashboardRegistry._monthly_runs(runs),
             "engagement": DashboardRegistry._engagement(runs),
         }
@@ -979,33 +1035,12 @@ class DashboardRegistry:
         }
 
     @staticmethod
-    def _metric_summary(runs, key):
-        """current/first + delta-since-first/since-last + series for one metric,
-        over its non-null observations (failed runs carry no counts).
-        """
-        values = [r[key] for r in runs if r.get(key) is not None]
-        if not values:
-            return {
-                "current": None,
-                "first": None,
-                "delta_since_first": None,
-                "delta_since_last": None,
-                "series": [],
-            }
-        current = values[-1]
-        first = values[0]
-        previous = values[-2] if len(values) >= 2 else None
-        return {
-            "current": current,
-            "first": first,
-            "delta_since_first": current - first,
-            "delta_since_last": (current - previous) if previous is not None else None,
-            "series": values,
-        }
+    def _metric_summary(runs, fn):
+        """current/first + delta-since-first/since-last + series for one metric.
 
-    @staticmethod
-    def _metric_summary_computed(runs, fn):
-        """Like _metric_summary but derives the value from each run via ``fn``."""
+        ``fn(run) -> value`` extracts the metric from each run dict.
+        Non-null observations only (failed runs carry no counts).
+        """
         values = [v for r in runs if (v := fn(r)) is not None]
         if not values:
             return {

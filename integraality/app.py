@@ -15,7 +15,11 @@ from flask import (
     url_for,
 )
 
-from .dashboard_registry import CHRONIC_FAILURE_THRESHOLD, DashboardRegistry
+from .dashboard_registry import (
+    CHRONIC_FAILURE_THRESHOLD,
+    DashboardRegistry,
+    grouping_counts_to_entity_sum,
+)
 from .pages_processor import (
     PagesProcessor,
     ProcessingException,
@@ -313,6 +317,9 @@ def _chart_data(history, health, config_changes=None):
     return {
         "labels": [_iso_utc(r["finished_at"]) for r in history],
         "entity_total": [r["entity_total"] for r in history],
+        "entity_sum": [
+            grouping_counts_to_entity_sum(r.get("grouping_counts")) for r in history
+        ],
         "grouping_count": [r["grouping_count"] for r in history],
         "column_count": [r["column_count"] for r in history],
         "duration_s": [

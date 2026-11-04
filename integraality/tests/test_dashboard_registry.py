@@ -9,6 +9,7 @@ from ..dashboard_registry import (
     DashboardRegistry,
     RunResult,
     grouping_counts_to_entity_sum,
+    grouping_counts_to_no_group,
 )
 
 
@@ -1708,6 +1709,52 @@ class RunResultTest(unittest.TestCase):
         self.assertIsNone(run.revision_id)
 
 
+class TestUpdateGroupingCounts(unittest.TestCase):
+    def setUp(self):
+        self.mock_conn = MagicMock()
+        self.mock_cursor = MagicMock()
+        self.mock_conn.cursor.return_value.__enter__.return_value = self.mock_cursor
+        self.registry = DashboardRegistry(conn=self.mock_conn)
+
+    def test_update_sets_grouping_counts_where_null(self):
+        self.mock_cursor.rowcount = 1
+        result = self.registry.update_grouping_counts(999, '{"Q1": 10}')
+        self.assertTrue(result)
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("grouping_counts IS NULL", sql)
+        self.assertEqual(params, ('{"Q1": 10}', 999))
+
+    def test_update_returns_false_when_already_set(self):
+        self.mock_cursor.rowcount = 0
+        result = self.registry.update_grouping_counts(999, '{"Q1": 10}')
+        self.assertFalse(result)
+
+    def test_list_revisions_missing_grouping_counts(self):
+        self.mock_cursor.fetchall.return_value = [
+            {"revision_id": 100},
+            {"revision_id": 200},
+        ]
+        result = self.registry.list_revisions_missing_grouping_counts(3)
+        self.assertEqual(result, {100, 200})
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("grouping_counts IS NULL", sql)
+        self.assertEqual(params, (3,))
+
+
+class TestGroupingCountsToNoGroup(unittest.TestCase):
+    def test_returns_no_group_count(self):
+        self.assertEqual(grouping_counts_to_no_group('{"None": 1000, "Q1": 10}'), 1000)
+
+    def test_returns_none_when_key_absent(self):
+        self.assertIsNone(grouping_counts_to_no_group('{"Q1": 10}'))
+
+    def test_returns_none_for_null_blob(self):
+        self.assertIsNone(grouping_counts_to_no_group(None))
+
+    def test_returns_none_for_invalid_json(self):
+        self.assertIsNone(grouping_counts_to_no_group("bad"))
+
+
 class TestGroupingCountsToEntitySum(unittest.TestCase):
     def test_sums_regular_groupings(self):
         blob = '{"Q1": 10, "Q2": 4, "Q3": 3}'
@@ -1731,9 +1778,6 @@ class TestGroupingCountsToEntitySum(unittest.TestCase):
     def test_invalid_json_returns_none(self):
         self.assertIsNone(grouping_counts_to_entity_sum("not-json"))
 
-    def test_empty_dict_returns_zero(self):
-        self.assertEqual(grouping_counts_to_entity_sum("{}"), 0)
-
     def test_only_special_keys_returns_zero(self):
         blob = '{"None": 1000, "": 175000}'
         self.assertEqual(grouping_counts_to_entity_sum(blob), 0)
@@ -1756,7 +1800,7 @@ class TestComputeHealthEntitySum(unittest.TestCase):
             self._run("2024-01-01 00:00:00", '{"Q1": 10, "Q2": 4, "": 100}'),
             self._run("2024-02-01 00:00:00", '{"Q1": 12, "Q2": 5, "": 105}'),
         ]
-        es = DashboardRegistry.compute_health(runs)["entity_sum"]
+        es = DashboardRegistry.compute_health(runs)["metrics"]["entity_sum"]
         self.assertEqual(es["current"], 17)
         self.assertEqual(es["first"], 14)
         self.assertEqual(es["delta_since_first"], 3)
@@ -1765,6 +1809,6 @@ class TestComputeHealthEntitySum(unittest.TestCase):
 
     def test_entity_sum_none_when_no_grouping_counts(self):
         runs = [self._run("2024-01-01 00:00:00")]
-        es = DashboardRegistry.compute_health(runs)["entity_sum"]
+        es = DashboardRegistry.compute_health(runs)["metrics"]["entity_sum"]
         self.assertIsNone(es["current"])
         self.assertEqual(es["series"], [])

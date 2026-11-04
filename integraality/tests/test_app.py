@@ -828,6 +828,7 @@ class DashboardHistoryTests(AppTests):
             "entity_total": 180579,
             "grouping_count": 34,
             "column_count": 9,
+            "grouping_counts": None,
         }
         row.update(fields)
         return row
@@ -877,6 +878,7 @@ class DashboardHistoryTests(AppTests):
         self.assertIn("query", contents)  # error category surfaced
         self.assertIn("381218", contents)  # latest entity_total in chart JSON
         self.assertIn("381,218", contents)  # thousands-formatted, reaches the page
+        self.assertIn('"entity_sum"', contents)  # entity_sum series in chart JSON
         # Charts load from the pinned cdnjs mirror (repo JS constraint), and the
         # server-rendered runs table works without JS.
         self.assertIn("tools-static.wmflabs.org/cdnjs", contents)
@@ -987,13 +989,26 @@ class DashboardHistoryTests(AppTests):
         # card filled it and the line ran through the label. The sized .spark
         # wrapper must contain the canvas.
         self.mock_registry.list_dashboard_run_history.return_value = [
-            self._run("2020-01-01 00:00:00", revision_id=1),
-            self._run("2020-01-02 00:00:00", revision_id=2),
+            self._run(
+                "2020-01-01 00:00:00",
+                revision_id=1,
+                grouping_counts='{"Q1": 10, "Q2": 4}',
+            ),
+            self._run(
+                "2020-01-02 00:00:00",
+                revision_id=2,
+                grouping_counts='{"Q1": 12, "Q2": 5}',
+            ),
         ]
         contents = self.app.get(
             "/dashboard?wiki=www.wikidata.org&page=Wikidata:Test"
         ).get_data(as_text=True)
-        for spark_id in ("spark-entities", "spark-groupings", "spark-columns"):
+        for spark_id in (
+            "spark-entities-total",
+            "spark-entities-sum",
+            "spark-groupings",
+            "spark-columns",
+        ):
             self.assertRegex(
                 contents, rf'<div class="spark">\s*<canvas id="{spark_id}"></canvas>'
             )

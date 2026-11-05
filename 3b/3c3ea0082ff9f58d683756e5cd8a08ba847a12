@@ -1,0 +1,18 @@
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 961-963
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 351,372-373,462,625
+tickets/open/T_grouping_counts_helpers_location.md
+  h_bc010f8da910ff 1-21
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3b3c3ea0082ff9f58d683756e5cd8a08ba847a12",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

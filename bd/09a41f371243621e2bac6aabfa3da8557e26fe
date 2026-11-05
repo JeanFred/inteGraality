@@ -1,0 +1,32 @@
+integraality/pages_processor.py
+  h_bc010f8da910ff 21,239-240,341-348,349,350-351,352,353-359
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 1072-1112,1113-1114,1115-1130
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 6,83,85,102-104,111-113,172-174
+integraality/label_resolver.py
+  h_bc010f8da910ff 6,9,34,90,94
+integraality/tests/test_app.py
+  h_bc010f8da910ff 792
+integraality/app.py
+  h_bc010f8da910ff 28,384,403,406-407
+requirements-dev.txt
+  h_bc010f8da910ff 2-3,5,7,9-10,12,14,18,20-26,28,30
+requirements.txt
+  h_bc010f8da910ff 2-3,5,7,9,11,13-17,19-20,22,24-26,28,30,35,39,41-49,53,55-61,63,65-69,73-77,79,81
+  h_bc010f8da910ff 40
+uv.lock
+  h_bc010f8da910ff 2,196,215,349-358
+  h_bc010f8da910ff 359-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bd09a41f371243621e2bac6aabfa3da8557e26fe",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

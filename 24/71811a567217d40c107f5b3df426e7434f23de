@@ -1,0 +1,20 @@
+requirements-dev.txt
+  h_bc010f8da910ff 2-3,5,7,9-10,12,14,18,20-26,28,30
+requirements.txt
+  h_bc010f8da910ff 2-3,5,7,9,11,13-17,19-20,22,24-26,28,30,35,39,41-49,53,55-61,63,65-69,73-77,79,81
+  h_bc010f8da910ff 40
+uv.lock
+  h_bc010f8da910ff 2,196,215,349-358
+  h_bc010f8da910ff 359-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2471811a567217d40c107f5b3df426e7434f23de",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

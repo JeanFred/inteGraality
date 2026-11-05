@@ -1,0 +1,24 @@
+integraality/label_resolver.py
+  h_bc010f8da910ff 1-7,9-32,34-58,59-92,94-99
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 1-82,84,86-180
+pyproject.toml
+  h_bc010f8da910ff 24,37,41
+integraality/app.py
+  h_bc010f8da910ff 5,9,19,21,288,307,363-383,385-402,404-405,408-432,447,454
+integraality/templates/_config_panel.html
+  h_bc010f8da910ff 6-7,68-74,129,149,192
+integraality/tests/test_app.py
+  h_bc010f8da910ff 576-580,736-791,793-824,911-915,981
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "aab56feee18b985fc7b75ed88eba130078fd6ab1",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

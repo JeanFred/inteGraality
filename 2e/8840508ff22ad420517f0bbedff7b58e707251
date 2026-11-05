@@ -1,0 +1,32 @@
+requirements-dev.txt
+  h_bc010f8da910ff 2-3,5,7,9-10,12,14,18,20-26,28,30
+requirements.txt
+  h_bc010f8da910ff 2-3,5,7,9,11,13-17,19-20,22,24-26,28,30,35,39-49,53,55-61,63,65-69,73-77,79,81
+uv.lock
+  h_bc010f8da910ff 2,196,215,349-360
+integraality/tests/test_app.py
+  h_bc010f8da910ff 792
+integraality/label_resolver.py
+  h_bc010f8da910ff 8,33,93
+integraality/app.py
+  h_bc010f8da910ff 28,384,403,406-407
+integraality/pages_processor.py
+  h_bc010f8da910ff 21,349,352
+tickets/label-cache-warming-thread-guard.md
+  h_bc010f8da910ff 1-38
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 1113-1114
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 83,85
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2e8840508ff22ad420517f0bbedff7b58e707251",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

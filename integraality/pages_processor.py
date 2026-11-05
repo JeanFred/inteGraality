@@ -18,6 +18,7 @@ from .dashboard_registry import DashboardRegistry, RunResult
 from .error_category import ErrorCategory
 from .grouping import EmptyGroupingException, UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
+from .label_resolver import is_entity_id, warm_label_cache
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException
@@ -235,6 +236,8 @@ class PagesProcessor:
                 configuration_id=run_context.configuration_id,
             )
 
+            self._warm_label_cache(config_facets)
+
             if grouping_link_mode == "create":
                 logger.info(
                     "Creating grouping pages...", extra={"step_key": "page_creation"}
@@ -334,6 +337,25 @@ class PagesProcessor:
                 registry.record_run(self._dashboard_metadata(page), run)
         except Exception as e:
             logger.warning("Failed to record run for %s: %s", page.title(), e)
+
+    def _warm_label_cache(self, config_facets):
+        """Populate the Redis label cache for P/Q ids in config_facets."""
+        ids = set()
+        if config_facets.grouping_property:
+            ids.add(config_facets.grouping_property)
+        for col in config_facets.columns:
+            for attr in ("property_id", "qualifier_id", "source_item"):
+                val = getattr(col, attr, None)
+                if val and is_entity_id(val):
+                    ids.add(val)
+        mentions = (config_facets.selector_mentions or "").strip(",").split(",")
+        ids.update(m for m in mentions if m and is_entity_id(m))
+        if not ids:
+            return
+        try:
+            warm_label_cache(ids, repo=self.site.data_repository(), cache=self.cache)
+        except Exception as e:
+            logger.debug("Label cache warming failed: %s", e)
 
     def _record_run_fail(
         self,

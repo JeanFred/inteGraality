@@ -1069,6 +1069,65 @@ class TestRunRecording(ProcessortTest):
         registry.record_run.assert_not_called()
 
 
+class WarmLabelCacheTest(ProcessortTest):
+    """Tests for PagesProcessor._warm_label_cache."""
+
+    def _facets(self, **kwargs):
+        from ..config_facets import ColumnFacets, ConfigFacets
+
+        defaults = {
+            "config_hash": "h",
+            "grouping_predicate": "wdt:P17",
+            "grouping_property": "P17",
+            "grouping_type": "item",
+            "grouping_threshold": 20,
+            "higher_grouping": None,
+            "selector_sparql": "?item wdt:P31 wd:Q5 .",
+            "selector_mentions": ",P31,Q5,",
+            "row_totals": True,
+            "row_no_group": False,
+            "grouping_link_mode": "link",
+            "explicit_groupings": None,
+            "columns": [
+                ColumnFacets(
+                    position=0,
+                    column_type="property",
+                    raw_key="P18",
+                    property_id="P18",
+                ),
+            ],
+        }
+        defaults.update(kwargs)
+        return ConfigFacets(**defaults)
+
+    @patch("integraality.pages_processor.warm_label_cache")
+    def test_warm_called_with_ids_from_config_facets(self, mock_warm):
+        self.processor._warm_label_cache(self._facets())
+        ids = mock_warm.call_args[0][0]
+        self.assertIn("P17", ids)
+        self.assertIn("P18", ids)
+        self.assertIn("P31", ids)
+        self.assertIn("Q5", ids)
+
+    @patch("integraality.pages_processor.warm_label_cache")
+    def test_warm_noop_when_no_ids(self, mock_warm):
+        # No P/Q ids anywhere in the facets → early return, warm not called.
+        self.processor._warm_label_cache(
+            self._facets(
+                grouping_property=None,
+                selector_mentions=None,
+                columns=[],
+            )
+        )
+        mock_warm.assert_not_called()
+
+    @patch("integraality.pages_processor.warm_label_cache")
+    def test_warm_failure_is_silent(self, mock_warm):
+        mock_warm.side_effect = Exception("network error")
+        # Should not raise.
+        self.processor._warm_label_cache(self._facets())
+
+
 class TestProcessOnePage(ProcessortTest):
     """process_one_page classifies transient failures, including those raised
     while lazily constructing the site (login/maxlag)."""

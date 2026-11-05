@@ -144,7 +144,10 @@
                     {% endif %}
                     class="badge rounded-pill text-bg-secondary text-decoration-none"
                     title="Remove this filter"
-                >{{ chip.label }}: {{ chip.value }} <span aria-hidden="true">&times;</span></a>
+                >{{ chip.label }}: {% set lbl = labels.get(chip.value) if labels is defined else None %}{%
+                        if lbl and lbl != chip.value
+                    %}{{ lbl }} <span class="text-muted">({{ chip.value }})</span>{% else %}{{ chip.value }}{% endif %}
+                    <span aria-hidden="true">&times;</span></a>
             {% endfor %}
         </div>
     {% endif %}

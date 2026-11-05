@@ -3,11 +3,18 @@
   is active). Posts inside the browse <form>; datalists autocomplete from values
   present in the data.
 #}
+{# Display text for a facet value: "label (id)" if a label is available, else
+   the bare value. Used for both datalist hints and select options. #}
+{% macro facet_label(v) -%}
+    {%- set lbl = labels.get(v) if labels is defined else None -%}
+    {%- if lbl and lbl != v -%}{{ lbl }} ({{ v }}){%- else -%}{{ v }}{%- endif -%}
+{%- endmacro %}
+
 <datalist id="dl-tracks">
-    {% for v in facet_values.tracks_property %}<option value="{{ v }}"></option>{% endfor %}
+    {% for v in facet_values.tracks_property %}<option value="{{ v }}">{{ facet_label(v) }}</option>{% endfor %}
 </datalist>
 <datalist id="dl-grouping">
-    {% for v in facet_values.grouping_property %}<option value="{{ v }}"></option>{% endfor %}
+    {% for v in facet_values.grouping_property %}<option value="{{ v }}">{{ facet_label(v) }}</option>{% endfor %}
 </datalist>
 <datalist id="dl-language">
     {% for v in facet_values.language %}<option value="{{ v }}"></option>{% endfor %}
@@ -16,7 +23,7 @@
     {% for v in facet_values.project %}<option value="{{ v }}"></option>{% endfor %}
 </datalist>
 <datalist id="dl-source">
-    {% for v in facet_values.source_item %}<option value="{{ v }}"></option>{% endfor %}
+    {% for v in facet_values.source_item %}<option value="{{ v }}">{{ facet_label(v) }}</option>{% endfor %}
 </datalist>
 
 <details class="feature-facets mt-2" {{ 'open' if features_active }}>
@@ -46,10 +53,10 @@
                     title="One or more P/Q ids in the item-selection query (all required)"
                 >
                     {% for v in facet_values.mentions %}
-                        <option value="{{ v }}" {{ 'selected' if v in selected }}>{{ v }}</option>
+                        <option value="{{ v }}" {{ 'selected' if v in selected }}>{{ facet_label(v) }}</option>
                     {% endfor %}
                     {% for v in selected if v not in facet_values.mentions %}
-                        <option value="{{ v }}" selected>{{ v }}</option>
+                        <option value="{{ v }}" selected>{{ facet_label(v) }}</option>
                     {% endfor %}
                 </select>
             </div>

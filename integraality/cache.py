@@ -36,12 +36,12 @@ class RedisCache:
         else:
             return None
 
-    def set_cache_value(self, key, value):
+    def set_cache_value(self, key, value, ttl=DEFAULT_TTL):
         ns_key = self.make_key(key)
         cached_value = pickle.dumps(value)
         pipe = self.client.pipeline()
         pipe.set(ns_key, cached_value)
-        pipe.expire(ns_key, DEFAULT_TTL)
+        pipe.expire(ns_key, ttl)
         pipe.execute()
 
     def invalidate(self, key):

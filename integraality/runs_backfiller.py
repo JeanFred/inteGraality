@@ -227,7 +227,30 @@ class ApiRunsBackfiller:
         registry.conn.commit()
         return inserted
 
-    def backfill_runs(self, limit=None, only_missing=False):
+    def update_dashboard(self, registry, title, dashboard_id):
+        """Update grouping_counts for already-backfilled runs that lack it.
+
+        Fetches all bot revisions, skips any whose revision_id is not in the
+        missing set, parses the rest and UPDATEs the existing row. Commits per
+        dashboard. Returns count updated.
+        """
+        missing = registry.list_revisions_missing_grouping_counts(dashboard_id)
+        if not missing:
+            return 0
+        updated = 0
+        for revid, _timestamp, _comment, content in self._bot_revisions(title):
+            if revid not in missing:
+                continue
+            report = self._counts_for_revision(revid, content)
+            counts_dict = report.grouping_counts_dict
+            if registry.update_grouping_counts(
+                revid, json.dumps(counts_dict) if counts_dict else None
+            ):
+                updated += 1
+        registry.conn.commit()
+        return updated
+
+    def backfill_runs(self, limit=None, only_missing=False, update_existing=False):
         """Backfill runs for this wiki's registered dashboards via the API.
 
         One paginated rvuser+content query per dashboard fills metadata +
@@ -236,9 +259,10 @@ class ApiRunsBackfiller:
         outlives ToolsDB's idle timeout and one dropped connection can't poison
         the rest of the batch. A failing dashboard is logged and skipped so one
         bad page never kills the batch. ``limit`` caps the number of dashboards
-        processed; ``only_missing`` restricts to dashboards with no runs yet (to
-        retry the ones an earlier pass skipped without re-crawling the rest).
-        Returns the total runs inserted.
+        processed; ``only_missing`` restricts to dashboards with no runs yet;
+        ``update_existing`` re-parses already-backfilled runs that lack
+        grouping_counts and UPDATEs them (mutually exclusive with only_missing).
+        Returns the total runs inserted or updated.
         """
         with DashboardRegistry() as registry:
             dashboards = registry.list_dashboards_for_backfill(
@@ -250,37 +274,45 @@ class ApiRunsBackfiller:
         if limit is not None:
             dashboards = dashboards[:limit]
 
+        mode = "updating existing" if update_existing else "backfilling"
         logger.info(
-            "Backfilling runs for %d dashboards on %s",
+            "%s runs for %d dashboards on %s",
+            mode.capitalize(),
             len(dashboards),
             self.site_hostname,
         )
-        inserted = 0
+        total = 0
         failed = 0
         for i, (title, dashboard_id, wiki_id) in enumerate(dashboards, start=1):
-            logger.info("[%d/%d] Backfilling %s...", i, len(dashboards), title)
+            logger.info("[%d/%d] %s %s...", i, len(dashboards), mode, title)
             try:
                 with DashboardRegistry() as registry:
-                    n = self.backfill_dashboard(registry, title, dashboard_id, wiki_id)
-                inserted += n
+                    if update_existing:
+                        n = self.update_dashboard(registry, title, dashboard_id)
+                    else:
+                        n = self.backfill_dashboard(
+                            registry, title, dashboard_id, wiki_id
+                        )
+                total += n
                 logger.info(
-                    "[%d/%d] %s: +%d runs (%d total)",
+                    "[%d/%d] %s: +%d (%d total)",
                     i,
                     len(dashboards),
                     title,
                     n,
-                    inserted,
+                    total,
                 )
             except Exception as e:
                 failed += 1
-                logger.warning("Failed to backfill %s: %s", title, e)
+                logger.warning("Failed to %s %s: %s", mode, title, e)
         logger.info(
-            "Done on %s: inserted %d runs, %d dashboards failed",
+            "Done on %s: %s %d runs, %d dashboards failed",
             self.site_hostname,
-            inserted,
+            mode,
+            total,
             failed,
         )
-        return inserted
+        return total
 
 
 def main():
@@ -307,10 +339,18 @@ def main():
         help="only backfill dashboards that have no runs recorded yet "
         "(retry a previous pass's skips without re-crawling the rest)",
     )
+    parser.add_argument(
+        "--update-existing",
+        action="store_true",
+        help="update already-backfilled runs that are missing grouping_counts "
+        "(re-parses wikitext and UPDATEs existing rows; skips new inserts)",
+    )
     args = parser.parse_args()
     site = pywikibot.Site(url=args.url)
     ApiRunsBackfiller(site).backfill_runs(
-        limit=args.limit, only_missing=args.only_missing
+        limit=args.limit,
+        only_missing=args.only_missing,
+        update_existing=args.update_existing,
     )
 
 

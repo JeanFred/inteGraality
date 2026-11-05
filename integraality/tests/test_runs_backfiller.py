@@ -340,16 +340,93 @@ class TestApiBackfill(unittest.TestCase):
         )
 
 
-class TestTimestampConversion(unittest.TestCase):
-    def test_iso_z_to_naive_datetime(self):
-        self.assertEqual(
-            ApiRunsBackfiller._timestamp_to_datetime_str("2026-02-13T01:18:34Z"),
-            "2026-02-13 01:18:34",
-        )
+class TestUpdateExisting(unittest.TestCase):
+    """--update-existing re-parses revisions whose grouping_counts is NULL and
+    UPDATEs the existing row, leaving rows that already have data untouched."""
 
-    def test_malformed_timestamp_raises(self):
-        with self.assertRaises(ValueError):
-            ApiRunsBackfiller._timestamp_to_datetime_str("not-a-timestamp")
+    def _registry(self, dashboards, missing_revids=None):
+        registry = MagicMock()
+        registry.list_dashboards_for_backfill.return_value = dashboards
+        registry.list_revisions_missing_grouping_counts.return_value = (
+            set(missing_revids) if missing_revids is not None else set()
+        )
+        registry.update_grouping_counts.return_value = True
+        return registry
+
+    def _page(self, revs):
+        return {
+            "revisions": [
+                {
+                    "revid": revid,
+                    "timestamp": ts,
+                    "comment": comment,
+                    "slots": {"main": {"*": content}},
+                }
+                for (revid, ts, comment, content) in revs
+            ]
+        }
+
+    def _patch_generator(self, pages_by_call):
+        calls = iter(pages_by_call)
+
+        def factory(prop, site=None, parameters=None):
+            pages = next(calls)
+
+            def gen():
+                yield from pages
+
+            return gen()
+
+        return patch("pywikibot.data.api.PropertyGenerator", side_effect=factory)
+
+    def _run_update(self, registry, pages_by_call):
+        patcher = self._patch_generator(pages_by_call)
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            updated = ApiRunsBackfiller(site).backfill_runs(update_existing=True)
+        return updated
+
+    def test_updates_runs_missing_grouping_counts(self):
+        registry = self._registry([("Wikidata:X", 3, 7)], missing_revids=[999])
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        updated = self._run_update(registry, [pages])
+
+        self.assertEqual(updated, 1)
+        registry.update_grouping_counts.assert_called_once()
+        revid, counts_json = registry.update_grouping_counts.call_args[0]
+        self.assertEqual(revid, 999)
+        counts = json.loads(counts_json)
+        self.assertEqual(counts["Q183"], 500)
+        self.assertEqual(counts[""], 39163)
+        registry.conn.commit.assert_called()
+
+    def test_skips_revisions_not_in_missing_set(self):
+        """Revisions whose grouping_counts is already populated are skipped."""
+        registry = self._registry([("Wikidata:X", 3, 7)], missing_revids=[])
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        updated = self._run_update(registry, [pages])
+
+        self.assertEqual(updated, 0)
+        registry.update_grouping_counts.assert_not_called()
+
+    def test_no_missing_revisions_skips_api_fetch(self):
+        """When list_revisions_missing_grouping_counts returns empty, no API
+        call is made for that dashboard."""
+        registry = self._registry([("Wikidata:X", 3, 7)], missing_revids=[])
+        patcher = self._patch_generator([[]])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        with patcher as mock_gen, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            updated = ApiRunsBackfiller(site).backfill_runs(update_existing=True)
+        self.assertEqual(updated, 0)
+        mock_gen.assert_not_called()
 
 
 class TestMain(unittest.TestCase):
@@ -363,7 +440,7 @@ class TestMain(unittest.TestCase):
         mock_site.assert_called_once_with(url="https://commons.wikimedia.org/wiki/")
         mock_cls.assert_called_once_with(mock_site.return_value)
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=5, only_missing=False
+            limit=5, only_missing=False, update_existing=False
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -375,7 +452,7 @@ class TestMain(unittest.TestCase):
         main()
         mock_site.assert_called_once_with(url="https://www.wikidata.org/wiki/")
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=False
+            limit=None, only_missing=False, update_existing=False
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -386,8 +463,31 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=True
+            limit=None, only_missing=True, update_existing=False
         )
+
+    @patch("integraality.runs_backfiller.pywikibot.Site")
+    @patch("integraality.runs_backfiller.ApiRunsBackfiller")
+    @patch("sys.argv", ["prog", "--update-existing"])
+    def test_main_update_existing_flag(self, mock_cls, mock_site):
+        from integraality.runs_backfiller import main
+
+        main()
+        mock_cls.return_value.backfill_runs.assert_called_once_with(
+            limit=None, only_missing=False, update_existing=True
+        )
+
+
+class TestTimestampConversion(unittest.TestCase):
+    def test_iso_z_to_naive_datetime(self):
+        self.assertEqual(
+            ApiRunsBackfiller._timestamp_to_datetime_str("2026-02-13T01:18:34Z"),
+            "2026-02-13 01:18:34",
+        )
+
+    def test_malformed_timestamp_raises(self):
+        with self.assertRaises(ValueError):
+            ApiRunsBackfiller._timestamp_to_datetime_str("not-a-timestamp")
 
 
 if __name__ == "__main__":

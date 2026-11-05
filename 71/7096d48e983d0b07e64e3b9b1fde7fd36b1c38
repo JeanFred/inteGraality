@@ -1,0 +1,14 @@
+integraality/cache.py
+  h_bc010f8da910ff 39,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "717096d48e983d0b07e64e3b9b1fde7fd36b1c38",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

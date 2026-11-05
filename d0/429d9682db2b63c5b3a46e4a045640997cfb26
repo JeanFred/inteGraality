@@ -1,0 +1,18 @@
+requirements-dev.txt
+  h_bc010f8da910ff 54-56,60-62
+uv.lock
+  h_bc010f8da910ff 2,196,215,349-360
+integraality/cache.py
+  h_bc010f8da910ff 39,44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d0429d9682db2b63c5b3a46e4a045640997cfb26",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

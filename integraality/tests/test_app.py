@@ -573,6 +573,11 @@ class FeatureFacetsTests(AppTests):
             "source_item": ["Q5"],
             "mentions": ["P31", "Q7889"],
         }
+        labels_patcher = patch(
+            "integraality.app._resolve_labels_for_dashboards", return_value={}
+        )
+        labels_patcher.start()
+        self.addCleanup(labels_patcher.stop)
 
     def test_feature_filters_passed_to_list_dashboards(self):
         self.app.get(
@@ -728,6 +733,77 @@ class FeatureFacetsTests(AppTests):
         self.assertNotIn("<th>Last edited by</th>", plain)
 
 
+class ResolveLabelsDashboardsTests(unittest.TestCase):
+    """Unit tests for _resolve_labels_for_dashboards."""
+
+    def setUp(self):
+        patcher = patch("integraality.app.LabelResolver", autospec=True)
+        self.mock_resolver_cls = patcher.start()
+        self.addCleanup(patcher.stop)
+        patcher2 = patch("integraality.app.StrictRedis")
+        patcher2.start()
+        self.addCleanup(patcher2.stop)
+        self.mock_resolver = self.mock_resolver_cls.return_value
+
+    def _call(self, facet_values=None, feature_filters=None):
+        from ..app import _resolve_labels_for_dashboards
+
+        return _resolve_labels_for_dashboards(
+            facet_values
+            or {
+                "grouping_property": [],
+                "tracks_property": [],
+                "language": [],
+                "project": [],
+                "source_item": [],
+                "mentions": [],
+            },
+            feature_filters or {},
+        )
+
+    def test_collects_entity_ids_from_facet_values(self):
+        self.mock_resolver.resolve.return_value = {"P17": "country", "Q5": "human"}
+        self._call(
+            facet_values={
+                "grouping_property": ["P17"],
+                "tracks_property": [],
+                "language": ["en"],
+                "project": ["enwiki"],
+                "source_item": ["Q5"],
+                "mentions": [],
+            }
+        )
+        ids_resolved = self.mock_resolver.resolve.call_args[0][0]
+        self.assertIn("P17", ids_resolved)
+        self.assertIn("Q5", ids_resolved)
+        self.assertNotIn("en", ids_resolved)
+        self.assertNotIn("enwiki", ids_resolved)
+
+    def test_collects_entity_ids_from_active_filters(self):
+        self.mock_resolver.resolve.return_value = {"P21": "sex or gender"}
+        self._call(
+            feature_filters={"grouping_property": "P21", "mentions": ["Q7889"]},
+        )
+        ids_resolved = self.mock_resolver.resolve.call_args[0][0]
+        self.assertIn("P21", ids_resolved)
+        self.assertIn("Q7889", ids_resolved)
+
+    def test_returns_empty_dict_when_no_entity_ids(self):
+        result = self._call()
+        self.assertEqual(result, {})
+        self.mock_resolver_cls.assert_not_called()
+
+    def test_returns_empty_dict_on_exception(self):
+        self.mock_resolver_cls.side_effect = Exception("connection refused")
+        result = self._call(facet_values={"grouping_property": ["P17"]})
+        self.assertEqual(result, {})
+
+    def test_returns_resolver_result(self):
+        self.mock_resolver.resolve.return_value = {"P17": "country"}
+        result = self._call(facet_values={"grouping_property": ["P17"]})
+        self.assertEqual(result, {"P17": "country"})
+
+
 class RunsTests(AppTests):
     def setUp(self):
         super().setUp()
@@ -814,6 +890,11 @@ class DashboardHistoryTests(AppTests):
         # pure staticmethod), so the route + summary integration is exercised
         # rather than a hand-built fixture that can drift from real output.
         self.mock_registry.compute_health.side_effect = DashboardRegistry.compute_health
+        labels_patcher = patch(
+            "integraality.app._resolve_config_labels", return_value={}
+        )
+        labels_patcher.start()
+        self.addCleanup(labels_patcher.stop)
 
     def _run(self, finished_at, status="OK", **fields):
         row = {
@@ -879,7 +960,7 @@ class DashboardHistoryTests(AppTests):
         self.assertIn("381218", contents)  # latest entity_total in chart JSON
         self.assertIn("381,218", contents)  # thousands-formatted, reaches the page
         self.assertIn('"entity_sum"', contents)  # entity_sum series in chart JSON
-        self.assertIn('"no_group"', contents)     # no_group series in chart JSON
+        self.assertIn('"no_group"', contents)  # no_group series in chart JSON
         self.assertIn('"entity_sum_hidden"', contents)  # visibility flag present
         # Charts load from the pinned cdnjs mirror (repo JS constraint), and the
         # server-rendered runs table works without JS.

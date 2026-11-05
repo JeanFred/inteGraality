@@ -2,9 +2,11 @@
 """Flask web application."""
 
 import os
+import threading
 import traceback
 from datetime import UTC, datetime, timedelta
 
+import pywikibot
 from flask import (
     Flask,
     Response,
@@ -14,13 +16,16 @@ from flask import (
     request,
     url_for,
 )
+from redis import StrictRedis
 
+from .cache import RedisCache, redis_host
 from .dashboard_registry import (
     CHRONIC_FAILURE_THRESHOLD,
     DashboardRegistry,
     grouping_counts_to_entity_sum,
     grouping_counts_to_no_group,
 )
+from .label_resolver import LabelResolver, is_entity_id, warm_label_cache
 from .pages_processor import (
     PagesProcessor,
     ProcessingException,
@@ -280,6 +285,7 @@ def dashboards():
         )
         facet_values = registry.feature_facet_values()
     active_chips = _feature_chips(feature_filters)
+    labels = _resolve_labels_for_dashboards(facet_values, feature_filters)
     return render_template(
         "dashboards.html",
         dashboards=dashboards,
@@ -298,6 +304,7 @@ def dashboards():
         features_active=features_active,
         facet_values=facet_values,
         active_chips=active_chips,
+        labels=labels,
     )
 
 
@@ -353,6 +360,76 @@ def _chart_data(history, health, config_changes=None, latest_config=None):
     }
 
 
+def _resolve_labels(ids):
+    """Resolve P/Q ids from Redis cache only — no pywikibot network call.
+
+    Cache misses fall back to bare ids instantly. A background thread is fired
+    to warm the cache via pywikibot so the next request gets labels.
+    The cache is also warmed by the bot side (pages_processor) on each run.
+    """
+    if not ids:
+        return {}
+    ids = set(ids)
+    try:
+        cache_client = StrictRedis(host=redis_host(), decode_responses=False)
+        cache = RedisCache(cache_client=cache_client)
+        result = LabelResolver(repo=None, cache=cache).resolve(ids, cache_only=True)
+    except Exception:
+        app.logger.debug(
+            "Label resolution failed; rendering without labels", exc_info=True
+        )
+        return {}
+
+    # Fire a background thread to warm any ids that were cache misses.
+    missed = {eid for eid in ids if is_entity_id(eid) and result.get(eid) == eid}
+    if missed:
+
+        def _warm():
+            try:
+                repo = pywikibot.Site("wikidata", "wikidata").data_repository()
+                warm_label_cache(missed, repo=repo, cache=cache)
+            except Exception:
+                pass
+
+        threading.Thread(target=_warm, daemon=True).start()
+
+    return result
+
+
+def _resolve_labels_for_dashboards(facet_values, feature_filters):
+    """Collect P/Q ids from facet_values and active filters, resolve labels."""
+    ids = set()
+    for key, values in facet_values.items():
+        ids.update(v for v in values if is_entity_id(v))
+    for key, value in feature_filters.items():
+        if key == "mentions":
+            ids.update(v for v in (value or []) if is_entity_id(v))
+        elif value and is_entity_id(value):
+            ids.add(value)
+    return _resolve_labels(ids)
+
+
+def _resolve_config_labels(latest_config):
+    """Collect P/Q ids from latest_config, resolve labels."""
+    if latest_config is None:
+        return {}
+    cfg = latest_config.get("config") or {}
+    cols = latest_config.get("columns") or []
+    ids = set()
+    if cfg.get("grouping_property"):
+        ids.add(cfg["grouping_property"])
+    for col in cols:
+        if col.get("property_id"):
+            ids.add(col["property_id"])
+        if col.get("qualifier_id"):
+            ids.add(col["qualifier_id"])
+        if col.get("source_item"):
+            ids.add(col["source_item"])
+    mentions = (cfg.get("selector_mentions") or "").strip(",").split(",")
+    ids.update(m for m in mentions if m)
+    return _resolve_labels(ids)
+
+
 @app.route("/dashboard")
 def dashboard():
     site_hostname = request.args.get("wiki")
@@ -367,12 +444,14 @@ def dashboard():
             site_hostname, page_title
         )
         latest_config = registry.get_latest_configuration(site_hostname, page_title)
+    labels = _resolve_config_labels(latest_config)
     return render_template(
         "dashboard_history.html",
         dashboard=identity,
         history=history,
         health=health,
         latest_config=latest_config,
+        labels=labels,
         chart_data=_chart_data(history, health, config_changes, latest_config),
         has_duration=any(r["duration_ms"] is not None for r in history),
         chronic_failure_threshold=CHRONIC_FAILURE_THRESHOLD,

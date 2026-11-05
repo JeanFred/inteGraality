@@ -3,6 +3,8 @@
   config (facets + columns) as a compact, legible summary. Every facet is a
   pivot link into the by-feature reader ("other dashboards like this one").
   Included only when latest_config is not None.
+
+  labels: optional dict {id: label} passed from the dashboard route.
 #}
 {% from "_macros.html" import relative_time %}
 {% set cfg = latest_config.config %}
@@ -63,6 +65,13 @@
     <span class="text-muted">{{ text }}</span>
 {%- endmacro %}
 
+{# Human-readable label for a P/Q id. If labels dict has an entry and it
+   differs from the bare id, renders "label (id)"; otherwise just the id. #}
+{% macro entity_label(id) -%}
+    {%- set lbl = labels.get(id) if labels is defined else None -%}
+    {%- if lbl and lbl != id -%}{{ lbl }} <span class="text-muted">({{ id }})</span>{%- else -%}{{ id }}{%- endif -%}
+{%- endmacro %}
+
 {# Collapsed by default to a one-line summary so it doesn't push Health and the
    charts below the fold. Native <details> (no JS needed, like the browse
    facets). Single instance per page: the ids below (tracks-more,
@@ -117,7 +126,7 @@
                     <span class="text-muted">—</span>
                 {% endif %}
                 {% if cfg.grouping_property %}
-                    on {{ facet_link(cfg.grouping_property, 'grouping_property', cfg.grouping_property) }}
+                    on {{ facet_link(entity_label(cfg.grouping_property), 'grouping_property', cfg.grouping_property) }}
                 {% elif cfg.grouping_predicate %}
                     <code class="small">{{ cfg.grouping_predicate }}</code>
                 {% endif %}
@@ -137,7 +146,7 @@
                        avoids per-iteration whitespace the formatter would reflow. #}
                     {% set items = [] %}
                     {% for pid in tracked %}
-                        {{ items.append(facet_link(pid, 'tracks_property', pid)) or '' }}
+                        {{ items.append(facet_link(entity_label(pid), 'tracks_property', pid)) or '' }}
                     {% endfor %}
                     {% for other in tracked_other %}
                         {% if other.params %}
@@ -180,7 +189,7 @@
                 <dd class="col-sm-9 col-xl-10 mb-1 pb-0">
                     {% set mention_items = [] %}
                     {% for token in mentions %}
-                        {{ mention_items.append(facet_link(token, 'mentions', token)) or '' }}
+                        {{ mention_items.append(facet_link(entity_label(token), 'mentions', token)) or '' }}
                     {% endfor %}
                     {{ mention_items | join(', ') | safe }}
                     <a

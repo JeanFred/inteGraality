@@ -266,7 +266,9 @@ class ApiRunsBackfiller:
         """
         with DashboardRegistry() as registry:
             dashboards = registry.list_dashboards_for_backfill(
-                self.site_hostname, only_missing=only_missing
+                self.site_hostname,
+                only_missing=only_missing,
+                only_needs_update=update_existing,
             )
         if not dashboards:
             logger.info("No dashboards on %s; nothing to backfill", self.site_hostname)

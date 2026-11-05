@@ -324,7 +324,7 @@ class TestApiBackfill(unittest.TestCase):
         registry = self._registry([])
         self._run(registry, [], limit=None)
         registry.list_dashboards_for_backfill.assert_called_with(
-            "www.wikidata.org", only_missing=False
+            "www.wikidata.org", only_missing=False, only_needs_update=False
         )
 
         registry = self._registry([])
@@ -336,7 +336,22 @@ class TestApiBackfill(unittest.TestCase):
                 MagicMock(hostname=lambda: "www.wikidata.org")
             ).backfill_runs(only_missing=True)
         registry.list_dashboards_for_backfill.assert_called_with(
-            "www.wikidata.org", only_missing=True
+            "www.wikidata.org", only_missing=True, only_needs_update=False
+        )
+
+    def test_update_existing_forwarded_to_listing(self):
+        """backfill_runs(update_existing=True) passes only_needs_update=True so
+        already-complete dashboards are skipped on each iteration."""
+        registry = self._registry([])
+        patcher, _ = self._patch_generator([])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs(update_existing=True)
+        registry.list_dashboards_for_backfill.assert_called_with(
+            "www.wikidata.org", only_missing=False, only_needs_update=True
         )
 
 

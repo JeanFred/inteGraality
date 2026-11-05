@@ -629,14 +629,18 @@ class DashboardRegistry:
             )
             return {row["revision_id"] for row in cur.fetchall()}
 
-    def list_dashboards_for_backfill(self, site_hostname, only_missing=False):
+    def list_dashboards_for_backfill(
+        self, site_hostname, only_missing=False, only_needs_update=False
+    ):
         """Return this wiki's dashboards as (page_title, dashboard_id, wiki_id).
 
         The runs backfiller's join set: page_title to query the action API, and
         the resolved ids so it records via record_resolved_backfilled_run
         without re-resolving per revision. With ``only_missing``, restricts to
-        dashboards that have no dashboard_runs row yet, so a rerun can target
-        only the never-recorded ones.
+        dashboards that have no dashboard_runs row yet. With
+        ``only_needs_update``, restricts to dashboards that have at least one
+        run with a revision_id but no grouping_counts (i.e. work left for
+        --update-existing).
         """
         sql = """\
             SELECT p.page_title AS page_title, d.id AS dashboard_id,
@@ -650,6 +654,15 @@ class DashboardRegistry:
             sql += """\
                 AND NOT EXISTS (
                     SELECT 1 FROM dashboard_runs AS r WHERE r.dashboard_id = d.id
+                )
+            """
+        if only_needs_update:
+            sql += """\
+                AND EXISTS (
+                    SELECT 1 FROM dashboard_runs AS r
+                    WHERE r.dashboard_id = d.id
+                      AND r.revision_id IS NOT NULL
+                      AND r.grouping_counts IS NULL
                 )
             """
         with self.conn.cursor() as cur:

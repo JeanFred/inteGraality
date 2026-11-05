@@ -348,6 +348,7 @@
                     success: themeColor("--bs-success"),
                     danger: themeColor("--bs-danger"),
                     warning: themeColor("--bs-warning"),
+                    muted: themeColor("--bs-secondary-color"),
                 };
                 Chart.defaults.color = themeColor("--bs-body-color");
                 Chart.defaults.borderColor = themeColor("--bs-border-color");
@@ -368,7 +369,8 @@
                                   borderColor: COLOR.danger, backgroundColor: COLOR.danger, pointRadius: 0, tension: 0.1,
                                   hidden: !!d.entity_sum_hidden },
                                 { label: "Groupings", data: points(d.grouping_count), yAxisID: "ySmall",
-                                  borderColor: COLOR.success, backgroundColor: COLOR.success, pointRadius: 0, tension: 0.1 }
+                                  borderColor: COLOR.muted, backgroundColor: COLOR.muted,
+                                  borderWidth: 1, borderDash: [4, 4], pointRadius: 0, tension: 0.1 }
                             ]
                         },
                         options: {
@@ -457,7 +459,7 @@
                 sparkline(charts, "spark-population", d.entity_total, COLOR.primary);
                 sparkline(charts, "spark-no-group", d.no_group, COLOR.warning);
                 sparkline(charts, "spark-entities-sum", d.entity_sum, COLOR.danger);
-                sparkline(charts, "spark-groupings", d.grouping_count, COLOR.success);
+                sparkline(charts, "spark-groupings", d.grouping_count, COLOR.muted);
                 sparkline(charts, "spark-columns", d.column_count, COLOR.warning);
             }
 
@@ -620,9 +622,7 @@
             {% if health.metrics.no_group.current is not none %}
                 {{ stat_card("No grouping", health.metrics.no_group, "spark-no-group") }}
             {% endif %}
-            {%
-                if health.metrics.entity_sum.current is not none and not chart_data.entity_sum_hidden
-            %}
+            {% if health.metrics.entity_sum.current is not none and not chart_data.entity_sum_hidden %}
                 {{ stat_card("Groupings sum", health.metrics.entity_sum, "spark-entities-sum") }}
             {% endif %}
             {{ stat_card("Groupings", health.metrics.grouping_count, "spark-groupings") }}

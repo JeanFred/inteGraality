@@ -958,7 +958,9 @@ class DashboardRegistry:
             "error_categories": error_categories,
             "metrics": {
                 **{
-                    key: DashboardRegistry._metric_summary(runs, lambda r, k=key: r.get(k))
+                    key: DashboardRegistry._metric_summary(
+                        runs, lambda r, k=key: r.get(k)
+                    )
                     for key in ("entity_total", "grouping_count", "column_count")
                 },
                 "entity_sum": DashboardRegistry._metric_summary(

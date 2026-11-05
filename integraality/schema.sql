@@ -124,3 +124,17 @@ CREATE TABLE IF NOT EXISTS dashboard_runs (
     FOREIGN KEY (wiki_id) REFERENCES wikis (id),
     FOREIGN KEY (configuration_id) REFERENCES dashboard_configurations (id)
 );
+
+-- Per-cell counts for each run: one row per (run, grouping, column).
+-- grouping_key: get_key() value (Q-id, year, sitelink URL, NoGroupGrouping/TotalsGrouping markers).
+-- column_key: column.get_key() value (e.g. "P18", "P21/P580").
+-- Populated by the bot on each run and backfilled from revision_id via report_parser.
+CREATE TABLE IF NOT EXISTS dashboard_run_cells (
+    run_id INT UNSIGNED NOT NULL,
+    grouping_key VARCHAR(255) NOT NULL,
+    column_key VARCHAR(255) NOT NULL,
+    count INT UNSIGNED NOT NULL,
+    total INT UNSIGNED DEFAULT NULL,
+    PRIMARY KEY (run_id, grouping_key, column_key),
+    FOREIGN KEY (run_id) REFERENCES dashboard_runs (id) ON DELETE CASCADE
+);

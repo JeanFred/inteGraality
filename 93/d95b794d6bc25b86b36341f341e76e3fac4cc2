@@ -1,0 +1,16 @@
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 83,85
+integraality/label_resolver.py
+  h_bc010f8da910ff 8,33,93
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93d95b794d6bc25b86b36341f341e76e3fac4cc2",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

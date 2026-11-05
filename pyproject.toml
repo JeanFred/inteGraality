@@ -21,6 +21,7 @@ dev = [
   "fakeredis",
   "pytest",
   "pytest-cov",
+  "pytest-socket>=0.8.1",
 ]
 
 [tool.uv]
@@ -33,6 +34,7 @@ lint.ignore = [
   "DTZ001", # datetimes are deliberately naive-UTC to match MariaDB DATETIME columns
   "DTZ007",
   "FLY002", # join-to-f-string hurts readability of multi-line SPARQL test fixtures
+  "S110",   # try-except-pass is intentional for best-effort operations
 ]
 
 [tool.pytest]

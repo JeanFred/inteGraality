@@ -1,0 +1,14 @@
+uv.lock
+  h_bc010f8da910ff 2,196,215,349-360
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "93d84fbcd3e42ce2278c929c993460901b06bdc8",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

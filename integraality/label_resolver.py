@@ -47,7 +47,8 @@ class LabelResolver:
             fetched = self._fetch(to_fetch)
             for eid, label in fetched.items():
                 result[eid] = label
-                self._cache_set(eid, label)
+                if label != eid:
+                    self._cache_set(eid, label)
 
         # Non-entity tokens and cache misses (in cache_only mode) pass through.
         for token in ids:

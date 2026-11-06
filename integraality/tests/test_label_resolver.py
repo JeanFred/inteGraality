@@ -112,6 +112,13 @@ class LabelResolverTest(unittest.TestCase):
             "label:fr:Q142", "France", ttl=LABEL_TTL
         )
 
+    def test_fallback_id_not_cached(self):
+        cache = MagicMock()
+        cache.get_cache_value.return_value = None
+        self.repo.loadcontent.return_value = {}
+        self._resolver(cache=cache).resolve(["Q404"])
+        cache.set_cache_value.assert_not_called()
+
     def test_no_cache_still_works(self):
         self._loadcontent_returns({"Q42": {"en": "Douglas Adams"}})
         result = self._resolver(cache=None).resolve(["Q42"])

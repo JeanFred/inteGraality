@@ -763,7 +763,7 @@ class TestRunRecording(ProcessortTest):
         )
 
         registry.record_run.assert_called_once()
-        _page_meta, run = registry.record_run.call_args[0]
+        _page_meta, run, _report_groupings = registry.record_run.call_args[0]
         self.assertEqual(run.status, "OK")
         # Derived/computed fields (the wiring's actual logic):
         self.assertEqual(run.duration_ms, 1500)  # 1.5s -> ms
@@ -775,6 +775,8 @@ class TestRunRecording(ProcessortTest):
         self.assertEqual(counts["Q2"], 4)
         self.assertEqual(counts["None"], 100)  # NoGroupGrouping.MARKER
         self.assertEqual(counts[""], 175000)  # TotalsGrouping.MARKER
+        # report_groupings is forwarded so the registry can insert cell rows.
+        self.assertIs(_report_groupings, report_groupings)
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_fail_derives_category(self, mock_registry_cls):
@@ -920,7 +922,7 @@ class TestRunRecording(ProcessortTest):
             revision_id=1,
             configuration_id=99,
         )
-        _page_meta, run = registry.record_run.call_args[0]
+        _page_meta, run, _report_groupings = registry.record_run.call_args[0]
         self.assertEqual(run.configuration_id, 99)
 
     @patch("integraality.pages_processor.DashboardRegistry")
@@ -1028,7 +1030,7 @@ class TestRunRecording(ProcessortTest):
             revision_id=None,
         )
         registry.record_run.assert_called_once()
-        _page_meta, run = registry.record_run.call_args[0]
+        _page_meta, run, _report_groupings = registry.record_run.call_args[0]
         self.assertEqual(run.status, "OK")
         self.assertIsNone(run.revision_id)
 

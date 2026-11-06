@@ -888,6 +888,72 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertEqual(row["error_category"], "query")
         self.assertIsNone(row["revision_id"])  # NULL on failure
 
+    def test_record_run_inserts_cells_when_report_groupings_provided(self):
+        """record_run bulk-inserts dashboard_run_cells when report_groupings given."""
+        from ..line import ItemGrouping, NoGroupGrouping, TotalsGrouping
+
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
+        self.mock_cursor.lastrowid = 42
+
+        groupings = [
+            ItemGrouping(count=100, title="Q1", cells={"P18": 60, "P569": 80}),
+            NoGroupGrouping(count=5, cells={"P18": 1, "P569": 2}),
+            TotalsGrouping(count=105, cells={"P18": 61, "P569": 82}),
+        ]
+        self.registry.record_run(
+            self._page_metadata(),
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=1000,
+                sparql_engine="WDQS",
+                revision_id=555,
+                entity_total=105,
+                grouping_count=1,
+                column_count=2,
+            ),
+            report_groupings=groupings,
+        )
+
+        executemany_calls = [
+            c
+            for c in self.mock_cursor.executemany.call_args_list
+            if "dashboard_run_cells" in c[0][0]
+        ]
+        self.assertEqual(len(executemany_calls), 1)
+        rows = executemany_calls[0][0][1]
+        self.assertEqual(len(rows), 6)  # 3 groupings × 2 columns
+        # Spot-check Q1/P18 and totals/P569
+        self.assertIn((42, "Q1", "P18", 60, 100), rows)
+        self.assertIn((42, "", "P569", 82, 105), rows)  # TotalsGrouping.MARKER = ""
+
+    def test_record_run_skips_cells_when_no_report_groupings(self):
+        """record_run with no report_groupings does not insert any cell rows."""
+        self.mock_cursor.fetchall.return_value = [
+            {"id": 7, "hostname": "www.wikidata.org", "name": "Wikidata"},
+        ]
+        self.mock_cursor.fetchone.side_effect = [{"id": 20}, {"id": 3}]
+        self.registry.record_run(
+            self._page_metadata(),
+            RunResult.ok(
+                trigger_source="CRON",
+                duration_ms=1000,
+                sparql_engine="WDQS",
+                revision_id=555,
+                entity_total=1,
+                grouping_count=1,
+                column_count=1,
+            ),
+        )
+        executemany_calls = [
+            c
+            for c in self.mock_cursor.executemany.call_args_list
+            if "dashboard_run_cells" in c[0][0]
+        ]
+        self.assertEqual(len(executemany_calls), 0)
+
     def _config_facets(self, config_hash="abc123", columns=None):
         from ..config_facets import ColumnFacets, ConfigFacets
 

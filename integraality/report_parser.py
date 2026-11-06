@@ -41,6 +41,9 @@ class ParsedGrouping:
     count: int | None
     cells: dict[str, int | None] = field(default_factory=dict)  # column -> count
 
+    def get_key(self):
+        return self.title
+
 
 @dataclass(frozen=True)
 class ParsedReport:

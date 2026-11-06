@@ -334,7 +334,9 @@ class PagesProcessor:
         )
         try:
             with DashboardRegistry() as registry:
-                registry.record_run(self._dashboard_metadata(page), run)
+                registry.record_run(
+                    self._dashboard_metadata(page), run, report_groupings
+                )
         except Exception as e:
             logger.warning("Failed to record run for %s: %s", page.title(), e)
 

@@ -536,11 +536,12 @@ class DashboardRegistry:
             ],
         )
 
-    def record_run(self, page_metadata, run: "RunResult"):
+    def record_run(self, page_metadata, run: "RunResult", report_groupings=None):
         """Append one completed run for a dashboard.
 
         Resolves wiki/page/dashboard from ``page_metadata`` (get-or-create, so
-        an unregistered page still records), then INSERTs the ``run``.
+        an unregistered page still records), then INSERTs the ``run`` and its
+        per-cell counts when ``report_groupings`` is provided. Commits once.
         finished_at is stamped here in naive UTC. Append-only.
         """
         wiki_id = self._get_or_create_wiki(
@@ -556,14 +557,16 @@ class DashboardRegistry:
             page_metadata["root_page"],
         )
         dashboard_id = self._get_or_create_dashboard(page_pk)
-        self._insert_run(dashboard_id, wiki_id, self._utc_now_str(), run)
+        run_id = self._insert_run(dashboard_id, wiki_id, self._utc_now_str(), run)
+        if report_groupings is not None and run_id is not None:
+            self._insert_run_cells(run_id, report_groupings)
         self.conn.commit()
 
     def _insert_run(self, dashboard_id, wiki_id, finished_at, run, ignore=False):
-        """Append one dashboard_runs row; return whether a row was inserted.
+        """Append one dashboard_runs row.
 
-        With ``ignore``, uses INSERT IGNORE so a duplicate ``revision_id`` is
-        skipped (rowcount 0) instead of raising.
+        Returns the new run's id, or None when INSERT IGNORE skipped a
+        duplicate revision_id.
         """
         verb = "INSERT IGNORE" if ignore else "INSERT"
         sql = f"""\
@@ -595,7 +598,62 @@ class DashboardRegistry:
                     run.configuration_id,
                 ),
             )
-            return cur.rowcount > 0
+            return cur.lastrowid if cur.rowcount > 0 else None
+
+    def _insert_run_cells(self, run_id, groupings):
+        """Bulk-insert dashboard_run_cells rows for one run. Does NOT commit.
+
+        Accepts any iterable of grouping objects that expose .get_key(),
+        .count, and .cells.
+        """
+        rows = []
+        for grouping in groupings:
+            grouping_key = grouping.get_key()
+            total = grouping.count
+            for column_key, count in grouping.cells.items():
+                if count is not None and column_key is not None:
+                    rows.append((run_id, grouping_key, column_key, count, total))
+        if not rows:
+            return
+        sql = """\
+            INSERT INTO dashboard_run_cells
+                (run_id, grouping_key, column_key, count, total)
+            VALUES (%s, %s, %s, %s, %s)
+        """
+        with self.conn.cursor() as cur:
+            cur.executemany(sql, rows)
+
+    def insert_run_cells_from_parsed(self, run_id, parsed_report):
+        """Bulk-insert dashboard_run_cells from a ParsedReport. Does NOT commit.
+
+        Assembles all grouping rows (regular groupings, no_group, totals)
+        and delegates to _insert_run_cells.
+        """
+        all_groupings = list(parsed_report.groupings)
+        if parsed_report.no_group is not None:
+            all_groupings.append(parsed_report.no_group)
+        if parsed_report.totals is not None:
+            all_groupings.append(parsed_report.totals)
+        self._insert_run_cells(run_id, all_groupings)
+
+    def list_runs_missing_cells(self, dashboard_id):
+        """Return (run_id, revision_id) pairs for OK runs that have a revision
+        but no cells yet."""
+        with self.conn.cursor() as cur:
+            cur.execute(
+                """\
+                SELECT r.id AS run_id, r.revision_id
+                FROM dashboard_runs AS r
+                WHERE r.dashboard_id = %s
+                  AND r.status = 'OK'
+                  AND r.revision_id IS NOT NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM dashboard_run_cells c WHERE c.run_id = r.id
+                  )
+                """,
+                (dashboard_id,),
+            )
+            return [(row["run_id"], row["revision_id"]) for row in cur.fetchall()]
 
     def update_grouping_counts(self, revision_id, grouping_counts):
         """Set grouping_counts on an existing run, only when it is still NULL.

@@ -604,7 +604,10 @@ class DashboardRegistry:
         """Bulk-insert dashboard_run_cells rows for one run. Does NOT commit.
 
         Accepts any iterable of grouping objects that expose .get_key(),
-        .count, and .cells.
+        .count, and .cells. Skips the entire insert if duplicate
+        (grouping_key, column_key) pairs are detected — this indicates a
+        multi-dashboard page whose tables were merged by the parser,
+        producing untrustworthy mixed data.
         """
         rows = []
         for grouping in groupings:
@@ -618,6 +621,14 @@ class DashboardRegistry:
                 ):
                     rows.append((run_id, grouping_key, column_key, count, total))
         if not rows:
+            return
+        keys = [(r[1], r[2]) for r in rows]
+        if len(keys) != len(set(keys)):
+            logger.warning(
+                "Skipping cells for run %s: duplicate (grouping_key, column_key) "
+                "detected (likely a multi-dashboard page)",
+                run_id,
+            )
             return
         sql = """\
             INSERT INTO dashboard_run_cells

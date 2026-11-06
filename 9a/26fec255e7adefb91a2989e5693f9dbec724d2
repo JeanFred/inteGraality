@@ -1,0 +1,17 @@
+integraality/tests/test_report_parser.py
+  h_bc010f8da910ff 213-215,218-264
+  h_bc010f8da910ff 216-217
+integraality/report_parser.py
+  h_bc010f8da910ff 160-185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "9a26fec255e7adefb91a2989e5693f9dbec724d2",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,16 @@
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 115-121
+integraality/label_resolver.py
+  h_bc010f8da910ff 50-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d5113fe1cccc9f22cbb629d7f14d2445020f7977",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -611,7 +611,11 @@ class DashboardRegistry:
             grouping_key = grouping.get_key()
             total = grouping.count
             for column_key, count in grouping.cells.items():
-                if count is not None and column_key is not None:
+                if (
+                    count is not None
+                    and column_key is not None
+                    and grouping_key is not None
+                ):
                     rows.append((run_id, grouping_key, column_key, count, total))
         if not rows:
             return
@@ -627,13 +631,22 @@ class DashboardRegistry:
         """Bulk-insert dashboard_run_cells from a ParsedReport. Does NOT commit.
 
         Assembles all grouping rows (regular groupings, no_group, totals)
-        and delegates to _insert_run_cells.
+        and delegates to _insert_run_cells. The totals row has no grouping=
+        marker in the wikitext, so its ParsedGrouping.title is None; replace
+        it with TotalsGrouping.MARKER so the row gets a non-NULL grouping_key.
         """
+        from dataclasses import replace
+
+        from .line import TotalsGrouping
+
         all_groupings = list(parsed_report.groupings)
         if parsed_report.no_group is not None:
             all_groupings.append(parsed_report.no_group)
         if parsed_report.totals is not None:
-            all_groupings.append(parsed_report.totals)
+            totals = parsed_report.totals
+            if totals.title is None:
+                totals = replace(totals, title=TotalsGrouping.MARKER)
+            all_groupings.append(totals)
         self._insert_run_cells(run_id, all_groupings)
 
     def list_runs_missing_cells(self, dashboard_id):

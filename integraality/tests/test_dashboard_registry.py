@@ -954,6 +954,60 @@ class TestDashboardRegistry(unittest.TestCase):
         ]
         self.assertEqual(len(executemany_calls), 0)
 
+    def test_insert_run_cells_from_parsed_modern_totals(self):
+        """Totals row with grouping='' (modern era) stores cells with
+        TotalsGrouping.MARKER as grouping_key."""
+        from ..line import TotalsGrouping
+        from ..report_parser import ParsedGrouping, ParsedReport
+
+        report = ParsedReport(
+            groupings=[ParsedGrouping(title="Q30", count=100, cells={"P625": 60})],
+            totals=ParsedGrouping(title="", count=200, cells={"P625": 120}),
+        )
+        self.registry.insert_run_cells_from_parsed(42, report)
+
+        rows = self.mock_cursor.executemany.call_args[0][1]
+        totals_rows = [r for r in rows if r[1] == TotalsGrouping.MARKER]
+        self.assertEqual(len(totals_rows), 1)
+        self.assertEqual(totals_rows[0], (42, "", "P625", 120, 200))
+
+    def test_insert_run_cells_from_parsed_old_totals_no_grouping_param(self):
+        """Totals row with no grouping= param (old era) has title=None;
+        substituted with TotalsGrouping.MARKER so grouping_key is not NULL."""
+        from ..line import TotalsGrouping
+        from ..report_parser import ParsedGrouping, ParsedReport
+
+        report = ParsedReport(
+            groupings=[ParsedGrouping(title="Q30", count=100, cells={"P625": 60})],
+            totals=ParsedGrouping(title=None, count=200, cells={"P625": 120}),
+        )
+        self.registry.insert_run_cells_from_parsed(42, report)
+
+        rows = self.mock_cursor.executemany.call_args[0][1]
+        totals_rows = [r for r in rows if r[1] == TotalsGrouping.MARKER]
+        self.assertEqual(len(totals_rows), 1)
+        self.assertEqual(totals_rows[0], (42, "", "P625", 120, 200))
+
+    def test_insert_run_cells_from_parsed_null_title_grouping_dropped(self):
+        """Old-era regular rows with title=None (no grouping= and no {{Q|}})
+        are silently dropped — not stored with a NULL grouping_key."""
+        from ..report_parser import ParsedGrouping, ParsedReport
+
+        report = ParsedReport(
+            groupings=[
+                ParsedGrouping(title="Q30", count=100, cells={"P625": 60}),
+                ParsedGrouping(title=None, count=50, cells={"P625": 30}),
+            ],
+            totals=None,
+        )
+        self.registry.insert_run_cells_from_parsed(42, report)
+
+        rows = self.mock_cursor.executemany.call_args[0][1]
+        grouping_keys = {r[1] for r in rows}
+        self.assertIn("Q30", grouping_keys)
+        self.assertNotIn(None, grouping_keys)
+        self.assertEqual(len(rows), 1)  # only Q30 row stored
+
     def _config_facets(self, config_hash="abc123", columns=None):
         from ..config_facets import ColumnFacets, ConfigFacets
 

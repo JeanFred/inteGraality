@@ -1,0 +1,20 @@
+integraality/tests/test_report_parser.py
+  h_bc010f8da910ff 98-118,185-212
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 614-618,634-636,638-641,646-649
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 957-1010
+integraality/report_parser.py
+  h_bc010f8da910ff 130-136
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dcd4c69f9b02dab2e3bc2f26a16f49b49d3ec070",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

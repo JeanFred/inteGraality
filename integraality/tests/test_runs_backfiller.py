@@ -78,7 +78,7 @@ class TestApiBackfill(unittest.TestCase):
         registry.list_dashboards_for_backfill.return_value = (
             dashboards if dashboards is not None else [("Wikidata:X", 3, 7)]
         )
-        registry.record_resolved_backfilled_run.return_value = True
+        registry.record_resolved_backfilled_run.return_value = 42
         return registry
 
     def _page(self, revs):
@@ -273,7 +273,7 @@ class TestApiBackfill(unittest.TestCase):
             ("A", 1, 7),
             ("B", 2, 7),
         ]
-        registry.record_resolved_backfilled_run.return_value = True
+        registry.record_resolved_backfilled_run.return_value = 42
 
         patcher, _ = self._patch_generator(
             [
@@ -301,7 +301,7 @@ class TestApiBackfill(unittest.TestCase):
         bad = MagicMock()
         bad.record_resolved_backfilled_run.side_effect = Exception("server gone away")
         good = MagicMock()
-        good.record_resolved_backfilled_run.return_value = True
+        good.record_resolved_backfilled_run.return_value = 42
         # __enter__ returns, in order: listing, bad, good.
         mock_registry_cls.return_value.__enter__.side_effect = [listing, bad, good]
 
@@ -324,7 +324,10 @@ class TestApiBackfill(unittest.TestCase):
         registry = self._registry([])
         self._run(registry, [], limit=None)
         registry.list_dashboards_for_backfill.assert_called_with(
-            "www.wikidata.org", only_missing=False, only_needs_update=False
+            "www.wikidata.org",
+            only_missing=False,
+            only_needs_update=False,
+            only_needs_cells=False,
         )
 
         registry = self._registry([])
@@ -336,7 +339,10 @@ class TestApiBackfill(unittest.TestCase):
                 MagicMock(hostname=lambda: "www.wikidata.org")
             ).backfill_runs(only_missing=True)
         registry.list_dashboards_for_backfill.assert_called_with(
-            "www.wikidata.org", only_missing=True, only_needs_update=False
+            "www.wikidata.org",
+            only_missing=True,
+            only_needs_update=False,
+            only_needs_cells=False,
         )
 
     def test_update_existing_forwarded_to_listing(self):
@@ -351,8 +357,87 @@ class TestApiBackfill(unittest.TestCase):
                 MagicMock(hostname=lambda: "www.wikidata.org")
             ).backfill_runs(update_existing=True)
         registry.list_dashboards_for_backfill.assert_called_with(
-            "www.wikidata.org", only_missing=False, only_needs_update=True
+            "www.wikidata.org",
+            only_missing=False,
+            only_needs_update=True,
+            only_needs_cells=False,
         )
+
+    def test_update_cells_forwarded_to_listing(self):
+        """backfill_runs(update_cells=True) passes only_needs_cells=True so
+        fully-populated dashboards are skipped, making the run idempotent."""
+        registry = self._registry([])
+        patcher, _ = self._patch_generator([])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs(update_cells=True)
+        registry.list_dashboards_for_backfill.assert_called_with(
+            "www.wikidata.org",
+            only_missing=False,
+            only_needs_update=False,
+            only_needs_cells=True,
+        )
+
+    def test_backfill_inserts_cells_for_inserted_runs(self):
+        """backfill_dashboard inserts cell rows for each run that was inserted."""
+        registry = self._registry([("Wikidata:X", 3, 7)])
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        self._run(registry, [pages])
+
+        registry.insert_run_cells_from_parsed.assert_called_once()
+        run_id, parsed_report = registry.insert_run_cells_from_parsed.call_args[0]
+        self.assertEqual(run_id, 42)
+        self.assertEqual(len(parsed_report.groupings), 1)
+
+    def test_backfill_skips_cells_for_duplicate_runs(self):
+        """When INSERT IGNORE skips a duplicate revision (returns None), no cell
+        rows are inserted for that revision."""
+        registry = self._registry([("Wikidata:X", 3, 7)])
+        registry.record_resolved_backfilled_run.return_value = None
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        self._run(registry, [pages])
+
+        registry.insert_run_cells_from_parsed.assert_not_called()
+
+    def test_update_cells_inserts_cells_for_missing_runs(self):
+        """update_cells_dashboard re-parses revisions and inserts cell rows."""
+        registry = self._registry([("Wikidata:X", 3, 7)])
+        registry.list_runs_missing_cells.return_value = [(10, 999)]
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        patcher, _ = self._patch_generator([pages])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            updated = ApiRunsBackfiller(site).backfill_runs(update_cells=True)
+
+        self.assertEqual(updated, 1)
+        registry.insert_run_cells_from_parsed.assert_called_once()
+        run_id, parsed_report = registry.insert_run_cells_from_parsed.call_args[0]
+        self.assertEqual(run_id, 10)
+        self.assertEqual(len(parsed_report.groupings), 1)
+
+    def test_update_cells_skips_when_none_missing(self):
+        """update_cells_dashboard makes no API call when no runs lack cells."""
+        registry = self._registry([("Wikidata:X", 3, 7)])
+        registry.list_runs_missing_cells.return_value = []
+        patcher, _ = self._patch_generator([[]])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            updated = ApiRunsBackfiller(site).backfill_runs(update_cells=True)
+        self.assertEqual(updated, 0)
+        registry.insert_run_cells_from_parsed.assert_not_called()
 
 
 class TestUpdateExisting(unittest.TestCase):
@@ -455,7 +540,7 @@ class TestMain(unittest.TestCase):
         mock_site.assert_called_once_with(url="https://commons.wikimedia.org/wiki/")
         mock_cls.assert_called_once_with(mock_site.return_value)
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=5, only_missing=False, update_existing=False
+            limit=5, only_missing=False, update_existing=False, update_cells=False
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -467,7 +552,7 @@ class TestMain(unittest.TestCase):
         main()
         mock_site.assert_called_once_with(url="https://www.wikidata.org/wiki/")
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=False, update_existing=False
+            limit=None, only_missing=False, update_existing=False, update_cells=False
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -478,7 +563,7 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=True, update_existing=False
+            limit=None, only_missing=True, update_existing=False, update_cells=False
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -489,7 +574,7 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=False, update_existing=True
+            limit=None, only_missing=False, update_existing=True, update_cells=False
         )
 
 

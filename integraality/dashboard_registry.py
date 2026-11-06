@@ -688,7 +688,11 @@ class DashboardRegistry:
             return {row["revision_id"] for row in cur.fetchall()}
 
     def list_dashboards_for_backfill(
-        self, site_hostname, only_missing=False, only_needs_update=False
+        self,
+        site_hostname,
+        only_missing=False,
+        only_needs_update=False,
+        only_needs_cells=False,
     ):
         """Return this wiki's dashboards as (page_title, dashboard_id, wiki_id).
 
@@ -698,7 +702,9 @@ class DashboardRegistry:
         dashboards that have no dashboard_runs row yet. With
         ``only_needs_update``, restricts to dashboards that have at least one
         run with a revision_id but no grouping_counts (i.e. work left for
-        --update-existing).
+        --update-existing). With ``only_needs_cells``, restricts to dashboards
+        that have at least one OK run with a revision_id but no cell rows yet
+        (i.e. work left for --update-cells).
         """
         sql = """\
             SELECT p.page_title AS page_title, d.id AS dashboard_id,
@@ -721,6 +727,18 @@ class DashboardRegistry:
                     WHERE r.dashboard_id = d.id
                       AND r.revision_id IS NOT NULL
                       AND r.grouping_counts IS NULL
+                )
+            """
+        if only_needs_cells:
+            sql += """\
+                AND EXISTS (
+                    SELECT 1 FROM dashboard_runs AS r
+                    WHERE r.dashboard_id = d.id
+                      AND r.status = 'OK'
+                      AND r.revision_id IS NOT NULL
+                      AND NOT EXISTS (
+                          SELECT 1 FROM dashboard_run_cells c WHERE c.run_id = r.id
+                      )
                 )
             """
         with self.conn.cursor() as cur:

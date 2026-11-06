@@ -95,6 +95,27 @@ _OLD = """\
 """
 
 
+# Intermediate era: named params but property= (not column=) and no grouping=
+# on the totals row. Matches the original FindingGLAMs wikitext format.
+_INTERMEDIATE = """\
+{| class="wikitable sortable"
+|-
+! Name
+! Count
+|-
+| {{Q|Q30}}
+| 32740
+| {{Integraality cell|63.1|20658|property=P625|grouping=Q30}}
+| {{Integraality cell|95.96|31416|property=P131|grouping=Q30}}
+|- class="sortbottom"
+|'''Totals''' <small>(all items)</small>:
+| 151112
+| {{Integraality cell|70.04|105832|property=P625}}
+| {{Integraality cell|84.58|127804|property=P131}}
+|}
+"""
+
+
 class TestModernReport(unittest.TestCase):
     def setUp(self):
         self.report = ReportParser().parse(_MODERN)
@@ -159,6 +180,34 @@ class TestOldColouredCellEra(unittest.TestCase):
     def test_linked_count_cell_parsed(self):
         # The first grouping's count came from a [[link|12297]] cell.
         self.assertEqual(self.report.groupings[0].count, 12297)
+
+
+class TestIntermediateEra(unittest.TestCase):
+    """Intermediate era: property= (not column=) with grouping= on regular rows
+    but no grouping= on the totals row. Totals ParsedGrouping.title must be
+    None (not a string) so callers can substitute TotalsGrouping.MARKER."""
+
+    def setUp(self):
+        self.report = ReportParser().parse(_INTERMEDIATE)
+
+    def test_shape(self):
+        self.assertEqual(self.report.shape, (151112, 1, 2))
+
+    def test_grouping_recovered(self):
+        self.assertEqual(self.report.groupings[0].title, "Q30")
+        self.assertEqual(self.report.groupings[0].cells, {"P625": 20658, "P131": 31416})
+
+    def test_totals_title_is_none(self):
+        """Totals row has no grouping= → title stays None."""
+        self.assertIsNone(self.report.totals.title)
+
+    def test_totals_cells_recovered(self):
+        self.assertEqual(self.report.totals.cells, {"P625": 105832, "P131": 127804})
+
+    def test_grouping_counts_dict_uses_totals_marker(self):
+        d = self.report.grouping_counts_dict
+        self.assertIn("", d)  # TotalsGrouping.MARKER
+        self.assertEqual(d[""], 151112)
 
 
 class TestEdgeCases(unittest.TestCase):

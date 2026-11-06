@@ -127,7 +127,12 @@ def _cell_templates(row_text):
         name = str(tpl.name).strip()
         if name not in _CELL_TEMPLATE_NAMES:
             continue
-        column = str(tpl.get("column").value).strip() if tpl.has("column") else None
+        if tpl.has("column"):
+            column = str(tpl.get("column").value).strip()
+        elif tpl.has("property"):
+            column = str(tpl.get("property").value).strip()
+        else:
+            column = None
         grouping = (
             str(tpl.get("grouping").value).strip() if tpl.has("grouping") else None
         )

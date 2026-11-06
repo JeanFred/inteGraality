@@ -181,6 +181,41 @@ class TestOldColouredCellEra(unittest.TestCase):
         # The first grouping's count came from a [[link|12297]] cell.
         self.assertEqual(self.report.groupings[0].count, 12297)
 
+    def test_cells_recovered_from_header_columns(self):
+        """Old-era {{Coloured cell}} rows get real P-id column keys by matching
+        positional counts to the header {{Property|Pxxx}} order."""
+        q1406 = self.report.groupings[0]
+        self.assertEqual(q1406.cells, {"P136": 9138, "P178": 7175})
+
+    def test_totals_cells_recovered(self):
+        self.assertEqual(self.report.totals.cells, {"P136": 25390, "P178": 19912})
+
+    def test_cells_fallback_to_synthetic_keys_when_no_property_header(self):
+        """When no {{Property|}} header is present, positional cells fall back
+        to synthetic _0/_1 keys rather than crashing."""
+        wikitext = """\
+{| class="wikitable sortable"
+|-
+! Name
+! Count
+! Prop A
+! Prop B
+|-
+| {{Q|Q1}}
+| 100
+| {{Coloured cell|50|50}}
+| {{Coloured cell|80|80}}
+|- class="sortbottom"
+|'''Totals''':
+| 100
+| {{Coloured cell|50|50}}
+| {{Coloured cell|80|80}}
+|}
+"""
+        report = ReportParser().parse(wikitext)
+        self.assertEqual(report.groupings[0].title, "Q1")
+        self.assertEqual(report.groupings[0].cells, {"_0": 50, "_1": 80})
+
 
 class TestIntermediateEra(unittest.TestCase):
     """Intermediate era: property= (not column=) with grouping= on regular rows
@@ -210,11 +245,9 @@ class TestIntermediateEra(unittest.TestCase):
         self.assertEqual(d[""], 151112)
 
 
-# Multi-table page: a Listeria-style wikitable followed by a dashboard table.
-# The Listeria table uses wikilinks ([[Q30|...]]) not {{Q|}} templates. The
-# real bug: _row_spans used the first |} as table close, scoping to the
-# Listeria table entirely and missing the dashboard rows (entity_total = None,
-# no groupings, no cells).
+# Multi-table page: a Listeria-style wikitable (wikilinks, not {{Q|}})
+# followed by the dashboard table. The dashboard table must be parsed
+# exclusively — scoped by the sortbottom row.
 _MULTI_TABLE = """\
 {| class="wikitable sortable"
 |-

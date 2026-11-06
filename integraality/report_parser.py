@@ -144,6 +144,20 @@ def _cell_templates(row_text):
         yield (column, count, grouping)
 
 
+def _parse_header_columns(lines):
+    """Extract ordered P-ids from {{Property|Pxxx}} header cells."""
+    columns = []
+    for ln in lines:
+        if not ln.strip().startswith("!"):
+            continue
+        for tpl in mwparserfromhell.parse(ln).filter_templates():
+            if str(tpl.name).strip().lower() == "property" and tpl.has("1"):
+                pid = str(tpl.get("1").value).strip()
+                if pid:
+                    columns.append(pid)
+    return columns
+
+
 class ReportParser:
     """Parse an inteGraality report from its wikitext into a ParsedReport."""
 
@@ -183,12 +197,15 @@ class ReportParser:
                 (i for i, ln in enumerate(lines) if _SORTBOTTOM_RE.search(ln)), None
             )
 
+        # Extract column order from the header for old-era positional cells.
+        header_columns = _parse_header_columns(lines)
+
         # Split the table body into row blocks on row openers ("|-").
         groupings = []
         totals = None
         no_group = None
         for start, end, is_totals in self._row_spans(lines, sortbottom_idx):
-            row = self._parse_row(lines[start:end])
+            row = self._parse_row(lines[start:end], header_columns)
             if row is None:
                 continue
             if is_totals:
@@ -212,21 +229,21 @@ class ReportParser:
         for a, b in zip(openers, bounds[1:]):
             yield (a + 1, b, a == sortbottom_idx)
 
-    def _parse_row(self, row_lines):
+    def _parse_row(self, row_lines, header_columns=None):
         """Parse one row block into a ParsedGrouping (or None if not a data row)."""
         row_text = "\n".join(row_lines)
         cells = {}
         title = None
-        positional_columns = 0
+        positional_counts = []
         for column, count, grouping in _cell_templates(row_text):
             if grouping and title is None:
                 title = grouping
             if column is not None:
                 cells[column] = count
             else:
-                positional_columns += 1  # old {{Coloured cell}}, no column=
+                positional_counts.append(count)  # old {{Coloured cell}}, no column=
 
-        n_columns = len(cells) or positional_columns
+        n_columns = len(cells) or len(positional_counts)
         if n_columns == 0:
             return None  # header or a non-data row
 
@@ -241,9 +258,18 @@ class ReportParser:
         if title is None:
             title = self._name_from_qid(row_lines)
 
-        # Represent old-era column width even though we lack per-column keys.
-        if not cells and positional_columns:
-            cells = {f"_{i}": None for i in range(positional_columns)}
+        # Old-era positional cells: map counts to real column keys via the
+        # header order when available; fall back to synthetic _0/_1 keys.
+        if not cells and positional_counts:
+            if header_columns and len(header_columns) >= len(positional_counts):
+                cells = {
+                    header_columns[i]: positional_counts[i]
+                    for i in range(len(positional_counts))
+                }
+            else:
+                cells = {
+                    f"_{i}": positional_counts[i] for i in range(len(positional_counts))
+                }
         return ParsedGrouping(title=title, count=count, cells=cells)
 
     @staticmethod

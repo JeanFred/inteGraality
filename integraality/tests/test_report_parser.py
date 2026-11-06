@@ -210,6 +210,52 @@ class TestIntermediateEra(unittest.TestCase):
         self.assertEqual(d[""], 151112)
 
 
+# Multi-table page: a Listeria-style wikitable followed by a dashboard table.
+# The Listeria table uses wikilinks ([[Q30|...]]) not {{Q|}} templates. The
+# real bug: _row_spans used the first |} as table close, scoping to the
+# Listeria table entirely and missing the dashboard rows (entity_total = None,
+# no groupings, no cells).
+_MULTI_TABLE = """\
+{| class="wikitable sortable"
+|-
+| [[Q30|United States]]
+| [[Q145|United Kingdom]]
+|}
+{| class="wikitable sortable"
+|-
+! Name
+! Count
+|-
+| {{Q|Q30}}
+| 500
+| {{Integraality cell|80|400|column=P21|grouping=Q30}}
+|-
+| {{Q|Q145}}
+| 300
+| {{Integraality cell|90|270|column=P21|grouping=Q145}}
+|- class="sortbottom"
+| '''Totals''' <small>(all items)</small>
+| 800
+| {{Integraality cell|84|672|column=P21|grouping=}}
+|}
+"""
+
+
+class TestMultiTablePage(unittest.TestCase):
+    """Pages with a non-dashboard wikitable before the dashboard table must
+    only parse the dashboard table (the one containing sortbottom)."""
+
+    def setUp(self):
+        self.report = ReportParser().parse(_MULTI_TABLE)
+
+    def test_shape(self):
+        self.assertEqual(self.report.shape, (800, 2, 1))
+
+    def test_groupings_from_dashboard_table_only(self):
+        titles = [g.title for g in self.report.groupings]
+        self.assertEqual(titles, ["Q30", "Q145"])
+
+
 class TestEdgeCases(unittest.TestCase):
     def test_empty_and_none(self):
         self.assertEqual(ReportParser().parse("").shape, (None, None, None))

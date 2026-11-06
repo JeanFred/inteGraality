@@ -157,6 +157,32 @@ class ReportParser:
             (i for i, ln in enumerate(lines) if _SORTBOTTOM_RE.search(ln)), None
         )
 
+        # Scope to the table that contains the sortbottom row.  On pages with
+        # multiple tables (e.g. a Listeria list + a dashboard), we must not
+        # bleed rows from other tables into the parse.  Find the {| opener that
+        # precedes sortbottom_idx and the matching |} closer that follows it.
+        if sortbottom_idx is not None:
+            table_open = next(
+                (
+                    i
+                    for i in range(sortbottom_idx, -1, -1)
+                    if lines[i].strip().startswith("{|")
+                ),
+                0,
+            )
+            table_close = next(
+                (
+                    i
+                    for i in range(sortbottom_idx, len(lines))
+                    if lines[i].strip().startswith("|}")
+                ),
+                len(lines),
+            )
+            lines = lines[table_open : table_close + 1]
+            sortbottom_idx = next(
+                (i for i, ln in enumerate(lines) if _SORTBOTTOM_RE.search(ln)), None
+            )
+
         # Split the table body into row blocks on row openers ("|-").
         groupings = []
         totals = None

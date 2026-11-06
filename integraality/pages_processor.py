@@ -355,7 +355,17 @@ class PagesProcessor:
         if not ids:
             return
         try:
+            logger.info(
+                "Warming label cache for %d id(s)...",
+                len(ids),
+                extra={"step_key": "label_cache"},
+            )
             warm_label_cache(ids, repo=self.site.data_repository(), cache=self.cache)
+            logger.info(
+                "Label cache warmed (%d id(s))",
+                len(ids),
+                extra={"phase": "end", "step_key": "label_cache"},
+            )
         except Exception as e:
             logger.debug("Label cache warming failed: %s", e)
 

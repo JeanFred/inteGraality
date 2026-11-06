@@ -1228,6 +1228,23 @@ class TestDashboardRegistry(unittest.TestCase):
         self.assertIn("revision_id IS NOT NULL", sql)
         self.assertEqual(params, ("www.wikidata.org",))
 
+    def test_list_dashboards_for_backfill_only_needs_counts_or_cells(self):
+        """only_needs_counts_or_cells adds an OR EXISTS covering both missing
+        grouping_counts and missing cells."""
+        self.mock_cursor.fetchall.return_value = [
+            {"page_title": "Wikidata:A", "dashboard_id": 3, "wiki_id": 7},
+        ]
+
+        result = self.registry.list_dashboards_for_backfill(
+            "www.wikidata.org", only_needs_counts_or_cells=True
+        )
+
+        self.assertEqual(result, [("Wikidata:A", 3, 7)])
+        sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertIn("grouping_counts IS NULL", sql)
+        self.assertIn("dashboard_run_cells", sql)
+        self.assertEqual(params, ("www.wikidata.org",))
+
     def test_record_resolved_backfilled_run_inserts_ignore_no_commit(self):
         """Inserts against resolved ids via INSERT IGNORE; does NOT commit
         (the backfiller commits per dashboard)."""

@@ -328,6 +328,7 @@ class TestApiBackfill(unittest.TestCase):
             only_missing=False,
             only_needs_update=False,
             only_needs_cells=False,
+            only_needs_counts_or_cells=False,
         )
 
         registry = self._registry([])
@@ -343,6 +344,7 @@ class TestApiBackfill(unittest.TestCase):
             only_missing=True,
             only_needs_update=False,
             only_needs_cells=False,
+            only_needs_counts_or_cells=False,
         )
 
     def test_update_existing_forwarded_to_listing(self):
@@ -361,6 +363,7 @@ class TestApiBackfill(unittest.TestCase):
             only_missing=False,
             only_needs_update=True,
             only_needs_cells=False,
+            only_needs_counts_or_cells=False,
         )
 
     def test_update_cells_forwarded_to_listing(self):
@@ -379,7 +382,53 @@ class TestApiBackfill(unittest.TestCase):
             only_missing=False,
             only_needs_update=False,
             only_needs_cells=True,
+            only_needs_counts_or_cells=False,
         )
+
+    def test_update_existing_and_cells_forwarded_to_listing(self):
+        """backfill_runs(update_existing_and_cells=True) passes
+        only_needs_counts_or_cells=True so the combined pass skips dashboards
+        with no remaining work."""
+        registry = self._registry([])
+        patcher, _ = self._patch_generator([])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            ApiRunsBackfiller(
+                MagicMock(hostname=lambda: "www.wikidata.org")
+            ).backfill_runs(update_existing_and_cells=True)
+        registry.list_dashboards_for_backfill.assert_called_with(
+            "www.wikidata.org",
+            only_missing=False,
+            only_needs_update=False,
+            only_needs_cells=False,
+            only_needs_counts_or_cells=True,
+        )
+
+    def test_update_existing_and_cells_updates_both_in_one_pass(self):
+        """update_counts_and_cells_dashboard updates grouping_counts and inserts
+        cells for qualifying revisions in a single API crawl."""
+        registry = self._registry([("Wikidata:X", 3, 7)])
+        registry.list_revisions_missing_grouping_counts.return_value = {999}
+        registry.list_runs_missing_cells.return_value = [(10, 999)]
+        registry.update_grouping_counts.return_value = True
+        pages = [
+            self._page([(999, "2026-02-13T01:18:34Z", "Weekly update", _CURRENT_TABLE)])
+        ]
+        patcher, _ = self._patch_generator([pages])
+        registry_patch = patch("integraality.runs_backfiller.DashboardRegistry")
+        site = MagicMock(hostname=lambda: "www.wikidata.org")
+        with patcher, registry_patch as mock_registry_cls:
+            mock_registry_cls.return_value.__enter__.return_value = registry
+            total = ApiRunsBackfiller(site).backfill_runs(
+                update_existing_and_cells=True
+            )
+
+        self.assertEqual(total, 1)
+        registry.update_grouping_counts.assert_called_once()
+        registry.insert_run_cells_from_parsed.assert_called_once()
+        run_id = registry.insert_run_cells_from_parsed.call_args[0][0]
+        self.assertEqual(run_id, 10)
 
     def test_backfill_inserts_cells_for_inserted_runs(self):
         """backfill_dashboard inserts cell rows for each run that was inserted."""
@@ -540,7 +589,11 @@ class TestMain(unittest.TestCase):
         mock_site.assert_called_once_with(url="https://commons.wikimedia.org/wiki/")
         mock_cls.assert_called_once_with(mock_site.return_value)
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=5, only_missing=False, update_existing=False, update_cells=False
+            limit=5,
+            only_missing=False,
+            update_existing=False,
+            update_cells=False,
+            update_existing_and_cells=False,
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -552,7 +605,11 @@ class TestMain(unittest.TestCase):
         main()
         mock_site.assert_called_once_with(url="https://www.wikidata.org/wiki/")
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=False, update_existing=False, update_cells=False
+            limit=None,
+            only_missing=False,
+            update_existing=False,
+            update_cells=False,
+            update_existing_and_cells=False,
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -563,7 +620,11 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=True, update_existing=False, update_cells=False
+            limit=None,
+            only_missing=True,
+            update_existing=False,
+            update_cells=False,
+            update_existing_and_cells=False,
         )
 
     @patch("integraality.runs_backfiller.pywikibot.Site")
@@ -574,7 +635,11 @@ class TestMain(unittest.TestCase):
 
         main()
         mock_cls.return_value.backfill_runs.assert_called_once_with(
-            limit=None, only_missing=False, update_existing=True, update_cells=False
+            limit=None,
+            only_missing=False,
+            update_existing=True,
+            update_cells=False,
+            update_existing_and_cells=False,
         )
 
 

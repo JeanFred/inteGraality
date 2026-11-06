@@ -274,8 +274,43 @@ class ApiRunsBackfiller:
         registry.conn.commit()
         return updated
 
+    def update_counts_and_cells_dashboard(self, registry, title, dashboard_id):
+        """Update grouping_counts and insert cells for runs that need either,
+        in a single API pass. Commits per dashboard. Returns count updated.
+        """
+        missing_counts = registry.list_revisions_missing_grouping_counts(dashboard_id)
+        missing_cells = registry.list_runs_missing_cells(dashboard_id)
+        if not missing_counts and not missing_cells:
+            return 0
+        missing_cells_by_rev = {rev_id: run_id for run_id, rev_id in missing_cells}
+        all_target_revs = missing_counts | set(missing_cells_by_rev)
+        updated = 0
+        for revid, _timestamp, _comment, content in self._bot_revisions(title):
+            if revid not in all_target_revs:
+                continue
+            report = self._counts_for_revision(revid, content)
+            if revid in missing_counts:
+                counts_dict = report.grouping_counts_dict
+                if registry.update_grouping_counts(
+                    revid, json.dumps(counts_dict) if counts_dict else None
+                ):
+                    updated += 1
+            if revid in missing_cells_by_rev:
+                registry.insert_run_cells_from_parsed(
+                    missing_cells_by_rev[revid], report
+                )
+                if revid not in missing_counts:
+                    updated += 1
+        registry.conn.commit()
+        return updated
+
     def backfill_runs(
-        self, limit=None, only_missing=False, update_existing=False, update_cells=False
+        self,
+        limit=None,
+        only_missing=False,
+        update_existing=False,
+        update_cells=False,
+        update_existing_and_cells=False,
     ):
         """Backfill runs for this wiki's registered dashboards via the API.
 
@@ -288,7 +323,8 @@ class ApiRunsBackfiller:
         processed; ``only_missing`` restricts to dashboards with no runs yet;
         ``update_existing`` re-parses already-backfilled runs that lack
         grouping_counts and UPDATEs them; ``update_cells`` inserts cells for
-        runs that have none yet (mutually exclusive with the others).
+        runs that have none yet; ``update_existing_and_cells`` does both in a
+        single API pass (saves one full crawl vs running the two separately).
         Returns the total runs inserted or updated.
         """
         with DashboardRegistry() as registry:
@@ -297,6 +333,7 @@ class ApiRunsBackfiller:
                 only_missing=only_missing,
                 only_needs_update=update_existing,
                 only_needs_cells=update_cells,
+                only_needs_counts_or_cells=update_existing_and_cells,
             )
         if not dashboards:
             logger.info("No dashboards on %s; nothing to backfill", self.site_hostname)
@@ -304,7 +341,9 @@ class ApiRunsBackfiller:
         if limit is not None:
             dashboards = dashboards[:limit]
 
-        if update_cells:
+        if update_existing_and_cells:
+            mode = "updating counts and cells for"
+        elif update_cells:
             mode = "updating cells for"
         elif update_existing:
             mode = "updating existing"
@@ -322,7 +361,11 @@ class ApiRunsBackfiller:
             logger.info("[%d/%d] %s %s...", i, len(dashboards), mode, title)
             try:
                 with DashboardRegistry() as registry:
-                    if update_cells:
+                    if update_existing_and_cells:
+                        n = self.update_counts_and_cells_dashboard(
+                            registry, title, dashboard_id
+                        )
+                    elif update_cells:
                         n = self.update_cells_dashboard(registry, title, dashboard_id)
                     elif update_existing:
                         n = self.update_dashboard(registry, title, dashboard_id)
@@ -388,6 +431,13 @@ def main():
         help="insert dashboard_run_cells for runs that have none yet "
         "(re-parses wikitext for each qualifying revision)",
     )
+    parser.add_argument(
+        "--update-existing-and-cells",
+        action="store_true",
+        help="update missing grouping_counts AND insert missing cells in a "
+        "single API pass (equivalent to --update-existing + --update-cells "
+        "but with only one crawl per dashboard)",
+    )
     args = parser.parse_args()
     site = pywikibot.Site(url=args.url)
     ApiRunsBackfiller(site).backfill_runs(
@@ -395,6 +445,7 @@ def main():
         only_missing=args.only_missing,
         update_existing=args.update_existing,
         update_cells=args.update_cells,
+        update_existing_and_cells=args.update_existing_and_cells,
     )
 
 

@@ -693,6 +693,7 @@ class DashboardRegistry:
         only_missing=False,
         only_needs_update=False,
         only_needs_cells=False,
+        only_needs_counts_or_cells=False,
     ):
         """Return this wiki's dashboards as (page_title, dashboard_id, wiki_id).
 
@@ -704,7 +705,9 @@ class DashboardRegistry:
         run with a revision_id but no grouping_counts (i.e. work left for
         --update-existing). With ``only_needs_cells``, restricts to dashboards
         that have at least one OK run with a revision_id but no cell rows yet
-        (i.e. work left for --update-cells).
+        (i.e. work left for --update-cells). With
+        ``only_needs_counts_or_cells``, restricts to dashboards that need
+        either (i.e. work left for --update-existing-and-cells).
         """
         sql = """\
             SELECT p.page_title AS page_title, d.id AS dashboard_id,
@@ -739,6 +742,27 @@ class DashboardRegistry:
                       AND NOT EXISTS (
                           SELECT 1 FROM dashboard_run_cells c WHERE c.run_id = r.id
                       )
+                )
+            """
+        if only_needs_counts_or_cells:
+            sql += """\
+                AND (
+                    EXISTS (
+                        SELECT 1 FROM dashboard_runs AS r
+                        WHERE r.dashboard_id = d.id
+                          AND r.revision_id IS NOT NULL
+                          AND r.grouping_counts IS NULL
+                    )
+                    OR EXISTS (
+                        SELECT 1 FROM dashboard_runs AS r
+                        WHERE r.dashboard_id = d.id
+                          AND r.status = 'OK'
+                          AND r.revision_id IS NOT NULL
+                          AND NOT EXISTS (
+                              SELECT 1 FROM dashboard_run_cells c
+                              WHERE c.run_id = r.id
+                          )
+                    )
                 )
             """
         with self.conn.cursor() as cur:

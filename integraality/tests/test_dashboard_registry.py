@@ -1992,3 +1992,44 @@ class TestComputeHealthEntitySum(unittest.TestCase):
         es = DashboardRegistry.compute_health(runs)["metrics"]["entity_sum"]
         self.assertIsNone(es["current"])
         self.assertEqual(es["series"], [])
+
+
+class TestGetPreviousGroupingCounts(unittest.TestCase):
+    def setUp(self):
+        self.mock_conn = MagicMock()
+        self.mock_cursor = MagicMock()
+        self.mock_conn.cursor.return_value.__enter__ = MagicMock(
+            return_value=self.mock_cursor
+        )
+        self.mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        self.registry = DashboardRegistry(conn=self.mock_conn)
+
+    def test_returns_none_when_no_current_config(self):
+        result = self.registry.get_previous_grouping_counts(
+            "www.wikidata.org", "Wikidata:Test", None
+        )
+        self.assertIsNone(result)
+        self.mock_cursor.execute.assert_not_called()
+
+    def test_returns_none_when_no_previous_run(self):
+        self.mock_cursor.fetchone.return_value = None
+        result = self.registry.get_previous_grouping_counts(
+            "www.wikidata.org", "Wikidata:Test", 42
+        )
+        self.assertIsNone(result)
+
+    def test_returns_parsed_dict(self):
+        self.mock_cursor.fetchone.return_value = {
+            "grouping_counts": '{"Q17": 9004, "Q30": 8707}'
+        }
+        result = self.registry.get_previous_grouping_counts(
+            "www.wikidata.org", "Wikidata:Test", 42
+        )
+        self.assertEqual(result, {"Q17": 9004, "Q30": 8707})
+
+    def test_returns_none_on_invalid_json(self):
+        self.mock_cursor.fetchone.return_value = {"grouping_counts": "not-json"}
+        result = self.registry.get_previous_grouping_counts(
+            "www.wikidata.org", "Wikidata:Test", 42
+        )
+        self.assertIsNone(result)

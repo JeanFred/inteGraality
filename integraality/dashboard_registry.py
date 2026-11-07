@@ -660,6 +660,43 @@ class DashboardRegistry:
             all_groupings.append(totals)
         self._insert_run_cells(run_id, all_groupings)
 
+    def get_previous_grouping_counts(
+        self, site_hostname, page_title, current_config_id
+    ):
+        """Return the previous OK run's grouping_counts, or None if configs diverged."""
+        if current_config_id is None:
+            return None
+        sql = """\
+            SELECT r.grouping_counts
+            FROM dashboard_runs AS r
+            JOIN dashboards AS d ON d.id = r.dashboard_id
+            JOIN pages AS p ON p.id = d.page_pk
+            JOIN wikis AS w ON w.id = r.wiki_id
+            -- Self-join on config to compare selector/predicate columns
+            -- between the current run and previous runs.
+            JOIN dashboard_configurations AS cur
+                ON cur.id = %s
+            JOIN dashboard_configurations AS prev
+                ON prev.id = r.configuration_id
+            WHERE w.hostname = %s AND p.page_title = %s
+              AND r.status = 'OK'
+              AND r.grouping_counts IS NOT NULL
+              AND r.configuration_id IS NOT NULL
+              AND prev.selector_sparql = cur.selector_sparql
+              AND prev.grouping_predicate = cur.grouping_predicate
+            ORDER BY r.finished_at DESC, r.id DESC
+            LIMIT 1
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql, (current_config_id, site_hostname, page_title))
+            row = cur.fetchone()
+        if row is None:
+            return None
+        try:
+            return json.loads(row["grouping_counts"])
+        except (ValueError, TypeError):
+            return None
+
     def list_runs_missing_cells(self, dashboard_id):
         """Return (run_id, revision_id) pairs for OK runs that have a revision
         but no cells yet."""

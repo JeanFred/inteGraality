@@ -19,6 +19,7 @@ from .error_category import ErrorCategory
 from .grouping import EmptyGroupingException, UnsupportedGroupingConfigurationException
 from .grouping_page_creator import GroupingPageCreator
 from .label_resolver import is_entity_id, warm_label_cache
+from .line import NoGroupGrouping, TotalsGrouping
 from .page_saving import save_to_wiki_or_local
 from .property_statistics import PropertyStatistics
 from .sparql_utils import QueryException
@@ -86,6 +87,21 @@ def validate_wiki_url(url):
     if not allowed:
         raise UnsupportedWikiException(f"Not a Wikimedia wiki URL: {url!r}")
     return host
+
+
+def _build_prev_rank_lookup(prev_counts, special_markers):
+    """Return {grouping_key: 1-based rank} from a previous run's counts dict.
+
+    Ranks regular groupings (excluding special_markers) by (-count, key) —
+    same tiebreaker as prepare_report_groupings, so ranks are stable across
+    runs even when multiple groupings share the same count.
+    """
+    keys = [
+        k
+        for k in sorted(prev_counts, key=lambda k: (-prev_counts[k], k))
+        if k not in special_markers
+    ]
+    return {k: i + 1 for i, k in enumerate(keys)}
 
 
 class PagesProcessor:
@@ -205,15 +221,18 @@ class PagesProcessor:
             stats, grouping_link_mode, config_facets = self.make_stats_object_for_page(
                 page, run_context=run_context
             )
-            # Record the config at successful assembly -- earlier than the run,
-            # so a config whose query later fails is still captured. The id is
-            # threaded onto the run via run_context.
-            run_context.configuration_id = self._record_configuration(
+            # Record the config and fetch previous counts in a single registry
+            # context before running SPARQL, so we don't hold a DB connection
+            # across the slow query work.
+            run_context.configuration_id, prev_counts = self._record_configuration(
                 page, config_facets
             )
             groupings = stats.retrieve_data()
             report_groupings = stats.prepare_report_groupings(groupings)
-            formatter = stats.build_formatter()
+            count_diffs, rank_diffs = self._compute_diffs(report_groupings, prev_counts)
+            formatter = stats.build_formatter(
+                count_diffs=count_diffs, rank_diffs=rank_diffs
+            )
             output = formatter.format_report(report_groupings)
             elapsed_time = perf_counter() - start_time
             new_text = self.replace_in_page(output, page.get())
@@ -284,28 +303,67 @@ class PagesProcessor:
             )
             raise
 
-    def _record_configuration(self, page, config_facets):
-        """Record the assembled config (get-or-create by hash). Best-effort.
+    def _compute_diffs(self, report_groupings, prev_counts):
+        """Compute count_diffs and rank_diffs from prev_counts.
 
-        Returns the config id (or None on missing facets / failed write) to
-        thread onto the run. Provenance is approximate (page head, not the
-        human config edit); the backfiller corrects the full history offline.
+        prev_counts: {grouping_key: count} from the previous run, or None.
+        Returns (count_diffs, rank_diffs) — both empty dicts when prev_counts
+        is None (no comparable prior run).
+
+        count_diffs: {grouping_key: int delta}
+        rank_diffs:  {grouping_key: (curr_rank, prev_rank_or_None)}
+          prev_rank is None for groupings not present in the previous run (★).
+        """
+        if prev_counts is None:
+            return {}, {}
+
+        special_markers = {NoGroupGrouping.MARKER, TotalsGrouping.MARKER}
+        regular = sorted(
+            (g for g in report_groupings if g.get_key() not in special_markers),
+            key=lambda g: (-g.count, g.get_key()),
+        )
+        prev_rank_lookup = _build_prev_rank_lookup(prev_counts, special_markers)
+
+        count_diffs = {}
+        rank_diffs = {}
+        for curr_rank, grouping in enumerate(regular, start=1):
+            key = grouping.get_key()
+            prev_count = prev_counts.get(key)
+            if prev_count is not None:
+                count_diffs[key] = grouping.count - prev_count
+            rank_diffs[key] = (curr_rank, prev_rank_lookup.get(key))
+
+        return count_diffs, rank_diffs
+
+    def _record_configuration(self, page, config_facets):
+        """Record the assembled config and fetch previous counts in one DB context.
+
+        Returns (config_id, prev_counts). config_id is None when config_facets
+        is None or the write fails. prev_counts is None when there is no
+        comparable prior run. Best-effort: on any failure returns (None, None).
+
+        When config_facets is None, skips the DB entirely: get_previous_grouping_counts
+        requires a config_id and would return None immediately anyway.
         """
         if config_facets is None:
-            return None
+            return None, None
         rev_id, introduced_at, author = self._approximate_provenance(page)
         try:
             with DashboardRegistry() as registry:
-                return registry.record_configuration(
+                config_id = registry.record_configuration(
                     self._dashboard_metadata(page),
                     config_facets,
                     introduced_by_rev_id=rev_id,
                     introduced_at=introduced_at,
                     author=author,
                 )
+                prev_counts = registry.get_previous_grouping_counts(
+                    page.site.hostname(), page.title(), config_id
+                )
+                return config_id, prev_counts
         except Exception as e:
             logger.warning("Failed to record configuration for %s: %s", page.title(), e)
-            return None
+            return None, None
 
     @staticmethod
     def _approximate_provenance(page):

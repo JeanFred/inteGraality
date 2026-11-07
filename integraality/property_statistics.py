@@ -380,10 +380,11 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return sorted_groupings
 
-    def build_formatter(self, formatter_class=ResultsFormatter):
+    def build_formatter(self, formatter_class=ResultsFormatter, **kwargs):
         return formatter_class(
             columns=self.columns,
             grouping_configuration=self.grouping_configuration,
+            **kwargs,
         )
 
     @staticmethod

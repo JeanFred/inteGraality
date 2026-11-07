@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import typing
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -20,6 +21,7 @@ from ..pages_processor import (
     RunContext,
     TransientServerException,
     UnsupportedWikiException,
+    _build_prev_rank_lookup,
     main,
     validate_wiki_url,
 )
@@ -987,7 +989,11 @@ class TestRunRecording(ProcessortTest):
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_configuration_none_is_noop(self, mock_cls):
-        self.processor._record_configuration(self._dashboard_page(), None)
+        config_id, prev_counts = self.processor._record_configuration(
+            self._dashboard_page(), None
+        )
+        self.assertIsNone(config_id)
+        self.assertIsNone(prev_counts)
         mock_cls.assert_not_called()
 
     @patch("integraality.pages_processor.DashboardRegistry")
@@ -1011,8 +1017,12 @@ class TestRunRecording(ProcessortTest):
             explicit_groupings=None,
             columns=[],
         )
-        # Should not raise.
-        self.processor._record_configuration(self._dashboard_page(), facets)
+        # Should not raise; returns (None, None) on failure.
+        config_id, prev_counts = self.processor._record_configuration(
+            self._dashboard_page(), facets
+        )
+        self.assertIsNone(config_id)
+        self.assertIsNone(prev_counts)
 
     @patch("integraality.pages_processor.DashboardRegistry")
     def test_record_run_ok_records_with_null_revision(self, mock_registry_cls):
@@ -1171,3 +1181,94 @@ class TestProcessOnePage(ProcessortTest):
             self.assertRaises(TransientServerException),
         ):
             self.processor.make_stats_object_for_page_title("Some/Dashboard")
+
+
+class TestBuildPrevRankLookup(unittest.TestCase):
+    _SPECIAL: typing.ClassVar[set] = {NoGroupGrouping.MARKER, TotalsGrouping.MARKER}
+
+    def test_ranks_by_count_descending(self):
+        result = _build_prev_rank_lookup(
+            {"Q17": 90, "Q30": 85, "Q38": 55}, self._SPECIAL
+        )
+        self.assertEqual(result, {"Q17": 1, "Q30": 2, "Q38": 3})
+
+    def test_ties_broken_by_key(self):
+        result = _build_prev_rank_lookup({"Q30": 3, "Q17": 3, "Q38": 3}, self._SPECIAL)
+        # Q17 < Q30 < Q38 alphabetically → ranks 1, 2, 3
+        self.assertEqual(result, {"Q17": 1, "Q30": 2, "Q38": 3})
+
+    def test_special_markers_excluded(self):
+        result = _build_prev_rank_lookup(
+            {"Q17": 90, NoGroupGrouping.MARKER: 5, TotalsGrouping.MARKER: 95},
+            self._SPECIAL,
+        )
+        self.assertNotIn(NoGroupGrouping.MARKER, result)
+        self.assertNotIn(TotalsGrouping.MARKER, result)
+        self.assertEqual(result, {"Q17": 1})
+
+    def test_empty_counts(self):
+        self.assertEqual(_build_prev_rank_lookup({}, self._SPECIAL), {})
+
+
+class TestComputeDiffs(unittest.TestCase):
+    def setUp(self):
+        fake_cache_client = fakeredis.FakeStrictRedis()
+        self.processor = PagesProcessor(cache_client=fake_cache_client)
+
+    def _make_report_groupings(self, items):
+        groupings = [ItemGrouping(count=count, title=title) for title, count in items]
+        groupings.append(NoGroupGrouping(count=10))
+        groupings.append(TotalsGrouping(count=sum(c for _, c in items) + 10))
+        return groupings
+
+    def test_rank_recomputed_from_current_order(self):
+        report_groupings = self._make_report_groupings(
+            [("Q17", 100), ("Q30", 80), ("Q38", 60)]
+        )
+        prev_counts = {"Q17": 90, "Q30": 85, "Q38": 55}
+        count_diffs, rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        self.assertEqual(count_diffs["Q17"], 10)
+        self.assertEqual(count_diffs["Q30"], -5)
+        self.assertEqual(count_diffs["Q38"], 5)
+        # Q17=90, Q30=85, Q38=55 → prev ranks: Q17=1, Q30=2, Q38=3
+        self.assertEqual(rank_diffs["Q17"], (1, 1))
+        self.assertEqual(rank_diffs["Q30"], (2, 2))
+        self.assertEqual(rank_diffs["Q38"], (3, 3))
+
+    def test_special_markers_excluded_from_rank_diffs(self):
+        report_groupings = self._make_report_groupings([("Q17", 100)])
+        prev_counts = {"Q17": 90, NoGroupGrouping.MARKER: 5, TotalsGrouping.MARKER: 95}
+        _count_diffs, rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        self.assertNotIn(NoGroupGrouping.MARKER, rank_diffs)
+        self.assertNotIn(TotalsGrouping.MARKER, rank_diffs)
+        self.assertIn("Q17", rank_diffs)
+
+    def test_disappeared_entries_not_in_rank_diffs(self):
+        report_groupings = self._make_report_groupings([("Q17", 100)])
+        prev_counts = {"Q17": 90, "Q30": 80}
+        count_diffs, rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        self.assertNotIn("Q30", rank_diffs)
+        self.assertNotIn("Q30", count_diffs)
+
+    def test_new_entry_has_none_prev_rank(self):
+        report_groupings = self._make_report_groupings([("Q17", 100), ("Q38", 60)])
+        prev_counts = {"Q17": 90}
+        count_diffs, rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        curr_rank, prev_rank = rank_diffs["Q38"]
+        self.assertEqual(curr_rank, 2)
+        self.assertIsNone(prev_rank)
+        self.assertNotIn("Q38", count_diffs)
+
+    def test_none_prev_counts_returns_empty_dicts(self):
+        report_groupings = self._make_report_groupings([("Q17", 100)])
+        count_diffs, rank_diffs = self.processor._compute_diffs(report_groupings, None)
+        self.assertEqual(count_diffs, {})
+        self.assertEqual(rank_diffs, {})

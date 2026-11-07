@@ -274,8 +274,15 @@ class ReportParser:
 
     @staticmethod
     def _name_from_qid(row_lines):
-        """Old-era grouping name: the {{Q|Q...}} link in the name cell."""
+        """Old-era grouping name: the {{Q|Q...}} link in the name cell.
+
+        Skips lines that carry a data-sort-value= attribute — those are the
+        higher-grouping cell (a different Q-id used only for sorting), not the
+        actual grouping key.
+        """
         for ln in row_lines:
+            if "data-sort-value=" in ln:
+                continue
             m = re.search(r"\{\{Q\|(Q\d+)\}\}", ln)
             if m:
                 return m.group(1)

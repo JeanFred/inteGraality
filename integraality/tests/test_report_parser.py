@@ -165,6 +165,59 @@ class TestHigherGrouping(unittest.TestCase):
         self.assertEqual(q30.cells, {"P175": 23127})
 
 
+# Old-era higher-grouping: each data row has a data-sort-value= higher-grouping
+# cell (Q-id for sorting only) followed by the actual grouping cell. Multiple
+# rows can share the same higher grouping, so _name_from_qid must skip the
+# data-sort-value cell and return the actual grouping Q-id.
+_OLD_HIGHER_GROUPING = """\
+{| class="wikitable sortable"
+|-
+! 
+! Name
+! Count
+! data-sort-type="number"|{{Property|P31}}
+! data-sort-type="number"|{{Property|P131}}
+|-
+| data-sort-value="Q100"| {{Q|Q100}}
+| {{Q|Q1}}
+| 500
+| {{Coloured cell|80|400}}
+| {{Coloured cell|90|450}}
+|-
+| data-sort-value="Q100"| {{Q|Q100}}
+| {{Q|Q2}}
+| 300
+| {{Coloured cell|70|210}}
+| {{Coloured cell|60|180}}
+|- class="sortbottom"
+|'''Totals''':
+| 800
+| {{Coloured cell|76|608}}
+| {{Coloured cell|79|632}}
+|}
+"""
+
+
+class TestOldHigherGrouping(unittest.TestCase):
+    """Higher-grouping rows carry a data-sort-value= cell before the actual
+    grouping. Multiple rows may share the same higher grouping (e.g. Q100),
+    so _name_from_qid must skip it and return the actual grouping Q-id."""
+
+    def setUp(self):
+        self.report = ReportParser().parse(_OLD_HIGHER_GROUPING)
+
+    def test_groupings_use_actual_not_higher_grouping_key(self):
+        titles = [g.title for g in self.report.groupings]
+        self.assertEqual(titles, ["Q1", "Q2"])
+
+    def test_no_duplicate_grouping_keys(self):
+        keys = [g.title for g in self.report.groupings]
+        self.assertEqual(len(keys), len(set(keys)))
+
+    def test_cells_mapped_from_header(self):
+        self.assertEqual(self.report.groupings[0].cells, {"P31": 400, "P131": 450})
+
+
 class TestOldColouredCellEra(unittest.TestCase):
     def setUp(self):
         self.report = ReportParser().parse(_OLD)

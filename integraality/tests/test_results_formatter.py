@@ -573,3 +573,80 @@ class TestFormatReport(ResultsFormatterTest):
             "|}\n"
         )
         self.assertEqual(result, expected)
+
+
+class TestFormatHeaderWithDiffs(ResultsFormatterTest):
+    def setUp(self):
+        super().setUp()
+        self.formatter_with_diffs = ResultsFormatter(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+            count_diffs={"Q17": 234},
+            rank_diffs={"Q17": (1, 2)},
+        )
+
+    def test_format_header_with_diffs_colspan(self):
+        result = self.formatter_with_diffs._format_header()
+        self.assertIn('! colspan="4"', result)
+
+    def test_format_header_with_diffs_has_pos_and_delta(self):
+        result = self.formatter_with_diffs._format_header()
+        self.assertIn("! Pos\n", result)
+        self.assertIn("! Δ\n", result)
+
+    def test_format_header_without_diffs_no_pos_or_delta(self):
+        formatter = ResultsFormatter(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+        )
+        result = formatter._format_header()
+        self.assertNotIn("! Pos\n", result)
+        self.assertNotIn("! Δ\n", result)
+
+
+class TestFormatReportWithDiffs(ResultsFormatterTest):
+    def setUp(self):
+        super().setUp()
+        self.grouping = ItemGrouping(
+            count=100,
+            title="Q17",
+            cells={"P21": 50, "P19": 30, "Lbr": 10},
+        )
+        self.count_diffs = {"Q17": 234}
+        self.rank_diffs = {"Q17": (1, 3)}
+        self.formatter_with_diffs = ResultsFormatter(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+            count_diffs=self.count_diffs,
+            rank_diffs=self.rank_diffs,
+        )
+
+    def test_row_rendering(self):
+        result = self.formatter_with_diffs._format_grouping(self.grouping)
+        expected = (
+            "|-\n"
+            '| 1 <span style="color:gray">↑2</span> \n'
+            "| {{Q|Q17}}\n"
+            "| 100 \n"
+            '| <span style="color:green">+234</span> \n'
+            "| {{Integraality cell|50.0|50|column=P21|grouping=Q17}}\n"
+            "| {{Integraality cell|30.0|30|column=P19|grouping=Q17}}\n"
+            "| {{Integraality cell|10.0|10|column=Lbr|grouping=Q17}}\n"
+        )
+        self.assertEqual(result, expected)
+
+    def test_row_new_entry_star(self):
+        formatter = ResultsFormatter(
+            columns=self.columns,
+            grouping_configuration=self.grouping_configuration,
+            count_diffs={"Q17": None},
+            rank_diffs={"Q17": (1, None)},
+        )
+        result = formatter._format_grouping(self.grouping)
+        self.assertIn("★", result)
+
+    def test_no_diffs_no_extra_cells(self):
+        result = self.formatter._format_grouping(self.grouping)
+        self.assertNotIn("★", result)
+        self.assertNotIn("↑", result)
+        self.assertNotIn("color:green", result)

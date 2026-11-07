@@ -18,6 +18,34 @@ class AbstractLine:
             return 0
         return round(1.0 * value / max(self.count, 1) * 100, 2)
 
+    def format_diff_cell(self, diff):
+        return "| \n"
+
+    def format_position_cell(self, position, prev_position):
+        return "| \n"
+
+
+class _RankedGroupingMixin:
+    """Mixin for position/diff cell formatting on ranked grouping rows."""
+
+    def format_diff_cell(self, diff):
+        """Render the Δ cell: +N green, -N red, omit on zero or None."""
+        if diff is None or diff == 0:
+            return "| \n"
+        if diff > 0:
+            return f'| <span style="color:green">+{diff}</span> \n'
+        return f'| <span style="color:red">−{abs(diff)}</span> \n'
+
+    def format_position_cell(self, position, prev_position):
+        if prev_position is None:
+            return f"| {position}\u00a0★ \n"
+        movement = prev_position - position
+        if movement > 0:
+            return f'| {position} <span style="color:gray">↑{movement}</span> \n'
+        if movement < 0:
+            return f'| {position} <span style="color:gray">↓{abs(movement)}</span> \n'
+        return f"| {position} \n"
+
 
 class Grouping(AbstractLine):
     is_linkable = True
@@ -158,7 +186,7 @@ class NoGroupGrouping(Grouping):
         return ["  MINUS {", f"    ?entity {grouping_predicate} [] .", "  }"]
 
 
-class ItemGrouping(Grouping):
+class ItemGrouping(_RankedGroupingMixin, Grouping):
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping
         type_mapping = {
@@ -193,7 +221,7 @@ class ItemGrouping(Grouping):
         return f"\n  BIND(wd:{grouping} AS ?grouping) ."
 
 
-class SitelinkGrouping(Grouping):
+class SitelinkGrouping(_RankedGroupingMixin, Grouping):
     def heading(self):
         return f"{self.title}"
 
@@ -207,7 +235,7 @@ class SitelinkGrouping(Grouping):
         ]
 
 
-class YearGrouping(Grouping):
+class YearGrouping(_RankedGroupingMixin, Grouping):
     def __init__(
         self,
         count,
@@ -252,7 +280,7 @@ class YearGrouping(Grouping):
         return f"\n  BIND({grouping} AS ?grouping) ."
 
 
-class UnknownValueGrouping(Grouping):
+class UnknownValueGrouping(_RankedGroupingMixin, Grouping):
     MARKER = "UNKNOWN_VALUE"
     HEADING_TEXT = "{{int:wikibase-snakview-variations-somevalue-label}}"
 

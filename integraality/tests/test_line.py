@@ -510,3 +510,61 @@ class YearGroupingDisplayTest(unittest.TestCase):
             "  FILTER(?year = 1950).",
         ]
         self.assertEqual(result, expected)
+
+
+class FormatDiffCellTest(unittest.TestCase):
+    def setUp(self):
+        self.grouping = line.ItemGrouping(count=10, title="Q42")
+
+    def test_positive_diff(self):
+        result = self.grouping.format_diff_cell(234)
+        self.assertEqual(result, '| <span style="color:green">+234</span> \n')
+
+    def test_negative_diff(self):
+        result = self.grouping.format_diff_cell(-20)
+        self.assertEqual(result, '| <span style="color:red">−20</span> \n')
+
+    def test_zero_diff(self):
+        result = self.grouping.format_diff_cell(0)
+        self.assertEqual(result, "| \n")
+
+    def test_none_diff(self):
+        result = self.grouping.format_diff_cell(None)
+        self.assertEqual(result, "| \n")
+
+    def test_no_group_returns_empty(self):
+        result = line.NoGroupGrouping(count=5).format_diff_cell(100)
+        self.assertEqual(result, "| \n")
+
+    def test_totals_returns_empty(self):
+        result = line.TotalsGrouping(count=5).format_diff_cell(100)
+        self.assertEqual(result, "| \n")
+
+
+class FormatPositionCellTest(unittest.TestCase):
+    def setUp(self):
+        self.grouping = line.ItemGrouping(count=10, title="Q42")
+
+    def test_new_entry(self):
+        result = self.grouping.format_position_cell(1, None)
+        self.assertEqual(result, "| 1\u00a0★ \n")
+
+    def test_moved_up(self):
+        result = self.grouping.format_position_cell(1, 3)
+        self.assertEqual(result, '| 1 <span style="color:gray">↑2</span> \n')
+
+    def test_moved_down(self):
+        result = self.grouping.format_position_cell(3, 1)
+        self.assertEqual(result, '| 3 <span style="color:gray">↓2</span> \n')
+
+    def test_unchanged(self):
+        result = self.grouping.format_position_cell(2, 2)
+        self.assertEqual(result, "| 2 \n")
+
+    def test_no_group_returns_empty(self):
+        result = line.NoGroupGrouping(count=5).format_position_cell(1, 1)
+        self.assertEqual(result, "| \n")
+
+    def test_totals_returns_empty(self):
+        result = line.TotalsGrouping(count=5).format_position_cell(1, 1)
+        self.assertEqual(result, "| \n")

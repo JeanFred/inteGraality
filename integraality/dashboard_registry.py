@@ -1385,10 +1385,10 @@ class DashboardRegistry:
             conditions.append("p.root_page = %s")
             params.append(root_page)
         if search:
-            # Escape SQL LIKE wildcards in user input so literal % and _ are
-            # matched as-is rather than treated as pattern characters.
-            escaped = search.replace("%", r"\%").replace("_", r"\_")
-            conditions.append(r"p.page_title LIKE %s ESCAPE '\'")
+            # Escape SQL LIKE wildcards and the escape character itself so
+            # literal %, _ and ! are matched as-is.
+            escaped = search.replace("!", "!!").replace("%", "!%").replace("_", "!_")
+            conditions.append("p.page_title LIKE %s ESCAPE '!'")
             params.append(f"%{escaped}%")
         if status:
             # r.status is the latest run's status (LEFT JOIN); a never-run

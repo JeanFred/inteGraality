@@ -418,7 +418,7 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(search="coverage")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn(r"p.page_title LIKE %s ESCAPE '\'", sql)
+        self.assertIn("p.page_title LIKE %s ESCAPE '!'", sql)
         self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "%coverage%"))
 
     def test_list_dashboards_search_escapes_wildcards(self):
@@ -427,8 +427,16 @@ class TestDashboardRegistry(unittest.TestCase):
         self.registry.list_dashboards(search="100%_done")
 
         sql, params = self.mock_cursor.execute.call_args[0]
-        self.assertIn(r"ESCAPE '\'", sql)
-        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, r"%100\%\_done%"))
+        self.assertIn("ESCAPE '!'", sql)
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "%100!%!_done%"))
+
+    def test_list_dashboards_search_escapes_bang(self):
+        self.mock_cursor.fetchall.return_value = []
+
+        self.registry.list_dashboards(search="!important")
+
+        _sql, params = self.mock_cursor.execute.call_args[0]
+        self.assertEqual(params, (RECENT_RUNS_STRIP_SIZE, "%!!important%"))
 
     def test_list_dashboards_combined_filters(self):
         self.mock_cursor.fetchall.return_value = []

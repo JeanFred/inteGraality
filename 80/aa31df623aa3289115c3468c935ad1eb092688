@@ -1,0 +1,16 @@
+integraality/results_formatter.py
+  h_bc010f8da910ff 20
+integraality/tests/test_results_formatter.py
+  h_bc010f8da910ff 598-602,617,623-625,629
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "80aa31df623aa3289115c3468c935ad1eb092688",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

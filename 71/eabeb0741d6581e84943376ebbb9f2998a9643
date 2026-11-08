@@ -1,0 +1,14 @@
+integraality/tests/test_results_formatter.py
+  h_bc010f8da910ff 632-635
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "71eabeb0741d6581e84943376ebbb9f2998a9643",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

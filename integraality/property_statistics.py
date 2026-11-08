@@ -357,7 +357,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     def prepare_report_groupings(self, groupings):
         sorted_groupings = sorted(
-            groupings.values(), key=lambda t: t.count, reverse=True
+            groupings.values(), key=lambda t: (-t.count, t.get_key())
         )
 
         if self.row_no_group:

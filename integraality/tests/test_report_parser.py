@@ -408,5 +408,73 @@ class TestYearGrouping(unittest.TestCase):
         self.assertEqual(d["2006"], 9953)
 
 
+class TestModernWithDiffColumns(unittest.TestCase):
+    """Parser is transparent to the Pos and Δ columns added by T328534.
+
+    Pos cells (``| 1 ↑ 2``) and Δ cells (``| <span ...>+234</span>``) contain
+    no {{Integraality cell}} template and contain non-digit text, so they are
+    silently skipped by _parse_count and _cell_templates, leaving count and
+    column cells unaffected.
+    """
+
+    _WIKITEXT = """\
+{| class="wikitable sortable"
+! colspan="4" |Top groupings (Minimum 20 items)
+! colspan="2"|Top Properties
+|-
+! Pos
+! Name
+! Count
+! Δ
+|-
+| 1 ↑ 2 
+| {{Q|Q30}}
+| 500
+| <span style="color:green">+50</span>
+| {{Integraality cell|80|400|column=P21|grouping=Q30}}
+| {{Integraality cell|60|300|column=P569|grouping=Q30}}
+|-
+| 2 ★ 
+| {{Q|Q145}}
+| 300
+|
+| {{Integraality cell|90|270|column=P21|grouping=Q145}}
+| {{Integraality cell|50|150|column=P569|grouping=Q145}}
+|-
+|
+| No grouping
+|
+| 200
+|
+| {{Integraality cell|33|66|column=P21|grouping=None}}
+| {{Integraality cell|10|20|column=P569|grouping=None}}
+|- class="sortbottom"
+|
+| '''Totals''' <small>(all items)</small>
+| 1000
+|
+| {{Integraality cell|67|670|column=P21|grouping=}}
+| {{Integraality cell|45|450|column=P569|grouping=}}
+|}
+"""
+
+    def setUp(self):
+        self.report = ReportParser().parse(self._WIKITEXT)
+
+    def test_shape(self):
+        self.assertEqual(self.report.shape, (1000, 2, 2))
+
+    def test_grouping_counts(self):
+        self.assertEqual(self.report.groupings[0].count, 500)
+        self.assertEqual(self.report.groupings[1].count, 300)
+
+    def test_cells_unaffected(self):
+        self.assertEqual(self.report.groupings[0].cells, {"P21": 400, "P569": 300})
+
+    def test_grouping_titles(self):
+        self.assertEqual(self.report.groupings[0].title, "Q30")
+        self.assertEqual(self.report.groupings[1].title, "Q145")
+
+
 if __name__ == "__main__":
     unittest.main()

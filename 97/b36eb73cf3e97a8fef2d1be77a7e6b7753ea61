@@ -1,0 +1,14 @@
+integraality/results_formatter.py
+  h_bc010f8da910ff 18,24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "97b36eb73cf3e97a8fef2d1be77a7e6b7753ea61",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

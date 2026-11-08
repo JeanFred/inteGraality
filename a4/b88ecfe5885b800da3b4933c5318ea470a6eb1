@@ -1,0 +1,16 @@
+integraality/line.py
+  h_bc010f8da910ff 47
+integraality/tests/test_line.py
+  h_bc010f8da910ff 562
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a4b88ecfe5885b800da3b4933c5318ea470a6eb1",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

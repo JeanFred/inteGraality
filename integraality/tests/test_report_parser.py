@@ -361,5 +361,52 @@ class TestEdgeCases(unittest.TestCase):
         self.assertIsNone(report.no_group)
 
 
+class TestYearGrouping(unittest.TestCase):
+    """Year groupings have bare integers as name cells (e.g. '| 2007').
+    _parse_count must not confuse the year name cell with the count cell."""
+
+    _WIKITEXT = """\
+{| class="wikitable sortable"
+! colspan="2" |Top groupings (Minimum 0 items)
+! colspan="2"|Top Properties
+|-
+! Name
+! Count
+! data-sort-type="number"|{{Property|P175}}
+! data-sort-type="number"|{{Property|P1476}}
+|-
+| 2007
+| 10070
+| {{Integraality cell|99.68|10038|column=P175|grouping=2007}}
+| {{Integraality cell|31.87|3209|column=P1476|grouping=2007}}
+|-
+| 2006
+| 9953
+| {{Integraality cell|99.77|9930|column=P175|grouping=2006}}
+| {{Integraality cell|31.71|3156|column=P1476|grouping=2006}}
+|- class="sortbottom"
+| '''Totals''' <small>(all items)</small>
+| 100000
+| {{Integraality cell|99.0|99000|column=P175|grouping=}}
+| {{Integraality cell|32.0|32000|column=P1476|grouping=}}
+|}
+"""
+
+    def setUp(self):
+        self.report = ReportParser().parse(self._WIKITEXT)
+
+    def test_shape(self):
+        self.assertEqual(self.report.shape, (100000, 2, 2))
+
+    def test_grouping_counts_are_item_counts_not_years(self):
+        self.assertEqual(self.report.groupings[0].count, 10070)
+        self.assertEqual(self.report.groupings[1].count, 9953)
+
+    def test_grouping_counts_dict(self):
+        d = self.report.grouping_counts_dict
+        self.assertEqual(d["2007"], 10070)
+        self.assertEqual(d["2006"], 9953)
+
+
 if __name__ == "__main__":
     unittest.main()

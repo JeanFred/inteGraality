@@ -247,11 +247,15 @@ class ReportParser:
         if n_columns == 0:
             return None  # header or a non-data row
 
-        # Count cell is the first bare/linked integer cell in the row.
+        # Count cell is the first bare/linked integer cell in the row,
+        # skipping any cell whose value equals the grouping title — year
+        # groupings have a bare integer name cell (e.g. "| 2007") that would
+        # otherwise be mistaken for the count.
         count = None
         for ln in row_lines:
-            count = _parse_count(ln)
-            if count is not None:
+            candidate = _parse_count(ln)
+            if candidate is not None and str(candidate) != title:
+                count = candidate
                 break
 
         # Old era has no grouping= marker; fall back to the {{Q|Q...}} name cell.

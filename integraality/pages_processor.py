@@ -333,6 +333,8 @@ class PagesProcessor:
             prev_count = prev_counts.get(key)
             if prev_count is not None:
                 count_diffs[key] = grouping.count - prev_count
+            else:
+                count_diffs[key] = grouping.count
             rank_diffs[key] = (curr_rank, prev_rank_lookup.get(key))
 
         return count_diffs, rank_diffs

@@ -1256,7 +1256,7 @@ class TestComputeDiffs(unittest.TestCase):
         self.assertNotIn("Q30", rank_diffs)
         self.assertNotIn("Q30", count_diffs)
 
-    def test_new_entry_has_none_prev_rank(self):
+    def test_new_entry_has_none_prev_rank_and_count_as_delta(self):
         report_groupings = self._make_report_groupings([("Q17", 100), ("Q38", 60)])
         prev_counts = {"Q17": 90}
         count_diffs, rank_diffs = self.processor._compute_diffs(
@@ -1265,7 +1265,7 @@ class TestComputeDiffs(unittest.TestCase):
         curr_rank, prev_rank = rank_diffs["Q38"]
         self.assertEqual(curr_rank, 2)
         self.assertIsNone(prev_rank)
-        self.assertNotIn("Q38", count_diffs)
+        self.assertEqual(count_diffs["Q38"], 60)
 
     def test_none_prev_counts_returns_empty_dicts(self):
         report_groupings = self._make_report_groupings([("Q17", 100)])

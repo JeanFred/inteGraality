@@ -1,0 +1,20 @@
+docker-compose.yml
+  h_bc010f8da910ff 20-23,35-38,46-53
+.mise.toml
+  h_bc010f8da910ff 46-56
+.gitignore
+  h_bc010f8da910ff 116
+integraality/pages_processor.py
+  h_bc010f8da910ff 244,246-255
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "451ccafd7f189af6092e2a830a1e12dabbb26d80",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

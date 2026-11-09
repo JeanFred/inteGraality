@@ -10,3 +10,7 @@ harakiri-verbose = true
 max-worker-lifetime = 3600
 ; Opt in to toolcounter page-view analytics (prod only).
 env = ANALYTICS_ENABLED=1
+
+; Do not log /healthz health-check endpoint, as it is
+; hit constantly by Kubernetes startup/liveness probes.
+route = ^/healthz donotlog:

@@ -1,0 +1,18 @@
+deploy/main.yml
+  h_bc010f8da910ff 41-48
+bin/dump-database.sh
+  h_bc010f8da910ff 1-21
+bin/defaults.sh
+  h_bc010f8da910ff 8
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b27b5acbdcb449831cf0d94b38b1d7bae2de8158",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

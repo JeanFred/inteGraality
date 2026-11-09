@@ -1,0 +1,18 @@
+.gitignore
+  h_bc010f8da910ff 116
+.mise.toml
+  h_bc010f8da910ff 46,48-52
+docker-compose.yml
+  h_bc010f8da910ff 20-23,35-38,46-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "177fe5e4dd38290a497fa4c8ce63b50bd7a44056",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

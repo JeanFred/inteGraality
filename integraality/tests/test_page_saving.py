@@ -71,13 +71,24 @@ class PageSavingTest(unittest.TestCase):
         )
         self.assertEqual(result, 987654)
 
-    @patch("pywikibot.warning")
-    def test_to_wiki_error(self, mock_warning):
+    def test_to_wiki_error(self):
+        self.mock_page.exists.return_value = True
+        self.mock_page.latest_revision_id = 111
         self.mock_page.put.side_effect = pywikibot.exceptions.PageSaveRelatedError(
             self.mock_page
         )
-        result = page_saving.save_to_wiki_or_local(
-            self.mock_page, "Update page", "Lorem ipsum"
+        with self.assertRaises(pywikibot.exceptions.PageSaveRelatedError):
+            page_saving.save_to_wiki_or_local(
+                self.mock_page, "Update page", "Lorem ipsum"
+            )
+
+    def test_to_wiki_other_save_error(self):
+        self.mock_page.exists.return_value = True
+        self.mock_page.latest_revision_id = 111
+        self.mock_page.put.side_effect = pywikibot.exceptions.OtherPageSaveError(
+            self.mock_page, "Edit conflict"
         )
-        self.assertTrue(mock_warning.called)
-        self.assertIsNone(result)
+        with self.assertRaises(pywikibot.exceptions.OtherPageSaveError):
+            page_saving.save_to_wiki_or_local(
+                self.mock_page, "Update page", "Lorem ipsum"
+            )

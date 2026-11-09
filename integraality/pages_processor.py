@@ -621,6 +621,8 @@ class PagesProcessor:
             except (
                 pywikibot.exceptions.ApiTimeoutError,
                 pywikibot.exceptions.ServerError,
+                pywikibot.exceptions.OtherPageSaveError,
+                pywikibot.exceptions.PageSaveRelatedError,
             ) as e:
                 logger.warning(
                     "Temporary server issue with page %s: %s. Will retry later.",
@@ -639,6 +641,8 @@ class PagesProcessor:
         except (
             pywikibot.exceptions.ApiTimeoutError,
             pywikibot.exceptions.ServerError,
+            pywikibot.exceptions.OtherPageSaveError,
+            pywikibot.exceptions.PageSaveRelatedError,
         ) as e:
             raise TransientServerException(
                 f"Temporary server issue: {e}. Please try again later."

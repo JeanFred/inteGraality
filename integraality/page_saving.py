@@ -17,8 +17,8 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     @param summary: the edit summary to save the content with
     @param minor: if the edit should be marked as minor (defaults to True)
     @return: the new revision id on a successful wiki save that produced a
-        revision, or None (local write, a swallowed save failure, or a null
-        edit that produced no new revision).
+        revision, or None (local write or a null edit that produced no new
+        revision). Raises pywikibot save exceptions on failure.
     """
     if not isinstance(page, pywikibot.Page):
         pywikibot.warning(
@@ -28,29 +28,19 @@ def save_to_wiki_or_local(page, summary, content, minor=True):
     local_path = os.environ.get("LOCAL_WRITE_PATH")
 
     if not local_path:
-        try:
-            # A not-yet-existing page has no revision to read, and no null edit
-            # to detect, so skip the pre-save read (page.exists() -> NoPageError).
-            revision_before = page.latest_revision_id if page.exists() else None
-            page.put(newtext=content, summary=summary, minor=minor)
-            # On a null edit MediaWiki produces no revision; pywikibot's editpage
-            # takes the 'nochange' branch and leaves latest_revision_id untouched,
-            # whereas a real edit advances it to the new oldid. An unchanged id
-            # therefore means "no revision produced" -> return None (so the run is
-            # recorded with a NULL revision_id, exempt from uq_revision, instead of
-            # colliding on the previous run's oldid).
-            if (
-                revision_before is not None
-                and page.latest_revision_id == revision_before
-            ):
-                return None
-            return page.latest_revision_id
-        except (
-            pywikibot.exceptions.OtherPageSaveError,
-            pywikibot.exceptions.PageSaveRelatedError,
-        ):
-            pywikibot.warning(f"Could not save page {page} ({summary})")
+        # A not-yet-existing page has no revision to read, and no null edit
+        # to detect, so skip the pre-save read (page.exists() -> NoPageError).
+        revision_before = page.latest_revision_id if page.exists() else None
+        page.put(newtext=content, summary=summary, minor=minor)
+        # On a null edit MediaWiki produces no revision; pywikibot's editpage
+        # takes the 'nochange' branch and leaves latest_revision_id untouched,
+        # whereas a real edit advances it to the new oldid. An unchanged id
+        # therefore means "no revision produced" -> return None (so the run is
+        # recorded with a NULL revision_id, exempt from uq_revision, instead of
+        # colliding on the previous run's oldid).
+        if revision_before is not None and page.latest_revision_id == revision_before:
             return None
+        return page.latest_revision_id
     else:
         filename = os.path.join(
             bytes(local_path, encoding="utf-8"), page_to_filename(page)

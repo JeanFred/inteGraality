@@ -1,0 +1,24 @@
+bin/dump-database.sh
+  h_bc010f8da910ff 1-14,15,16,17-21
+.gitignore
+  h_bc010f8da910ff 116
+docker-compose.yml
+  h_bc010f8da910ff 20-23,35-38,46-53
+bin/defaults.sh
+  h_bc010f8da910ff 8
+.mise.toml
+  h_bc010f8da910ff 46,48-52
+deploy/main.yml
+  h_bc010f8da910ff 41-48
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "c79fd8573a676edca2e7f3b50ac6be5380cf949b",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

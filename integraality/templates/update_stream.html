@@ -97,8 +97,9 @@
                             if (el) {
                                 var summary = el.querySelector("summary");
                                 if (summary) {
+                                    var foldLabel = stepKey === "save" ? "show wikitext" : "show query";
                                     summary.innerHTML = "✅ " + escapeHtml(data.message) +
-                                        " <small class=\"text-muted\">▸ show query</small>";
+                                        " <small class=\"text-muted\">▸ " + foldLabel + "</small>";
                                 } else {
                                     el.innerHTML = "✅ " + renderMessage(data.message, data.url);
                                 }
@@ -115,6 +116,20 @@
                             "<a class=\"btn btn-xs btn-primary\" href=\"https://query.wikidata.org/#" + encodeURIComponent(query) + "\">WDQS</a> " +
                             "<a class=\"btn btn-xs btn-info\" href=\"" + escapeHtml(qleverUiUrl) + "?query=" + encodeURIComponent(addPrefixes(query)) + "\">QLever</a>" +
                             "</p></details>";
+                        var container = section ? document.getElementById("section-" + section) : null;
+                        if (container) {
+                            container.insertAdjacentHTML("beforeend", html);
+                        } else {
+                            progress.insertAdjacentHTML("beforeend", html);
+                        }
+                        progress.lastElementChild.scrollIntoView({behavior: "smooth", block: "nearest"});
+                    } else if (data.wikitext) {
+                        var elId = stepKey ? " id=\"step-" + escapeHtml(stepKey) + "\"" : "";
+                        var html =
+                            "<details" + elId + "><summary>" + icon + " " + escapeHtml(data.message) +
+                            " <small class=\"text-muted\">▸ show wikitext</small></summary>" +
+                            "<pre><code>" + escapeHtml(data.wikitext) + "</code></pre>" +
+                            "</details>";
                         var container = section ? document.getElementById("section-" + section) : null;
                         if (container) {
                             container.insertAdjacentHTML("beforeend", html);

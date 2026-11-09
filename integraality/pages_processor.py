@@ -241,7 +241,9 @@ class PagesProcessor:
                 self.summary
                 + f" using {stats.get_sparql_engine_name()} ({int(elapsed_time)}s)"
             )
-            logger.info("Saving to wiki...", extra={"step_key": "save"})
+            logger.info(
+                "Saving to wiki...", extra={"step_key": "save", "wikitext": output}
+            )
             revision_id = save_to_wiki_or_local(page, summary, new_text)
             revision_url = (
                 page.site.base_url(f"/wiki/Special:Diff/{revision_id}")

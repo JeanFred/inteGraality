@@ -200,6 +200,27 @@ class WarmLabelCacheTest(unittest.TestCase):
             "label:en:P17", "country", ttl=LABEL_TTL
         )
 
+    def test_warm_force_bypasses_cache_read(self):
+        cache = MagicMock()
+        self._loadcontent_returns({"P17": {"en": "country"}})
+        warm_label_cache({"P17"}, repo=self.repo, cache=cache, force=True)
+        # cache.get_cache_value must not be called — we go straight to the API.
+        cache.get_cache_value.assert_not_called()
+        cache.set_cache_value.assert_called_once_with(
+            "label:en:P17", "country", ttl=LABEL_TTL
+        )
+
+    def test_warm_force_overwrites_stale_cache(self):
+        cache = MagicMock()
+        # Stale entry: cached value equals the id.
+        cache.get_cache_value.return_value = "P17"
+        self._loadcontent_returns({"P17": {"en": "country"}})
+        warm_label_cache({"P17"}, repo=self.repo, cache=cache, force=True)
+        cache.get_cache_value.assert_not_called()
+        cache.set_cache_value.assert_called_once_with(
+            "label:en:P17", "country", ttl=LABEL_TTL
+        )
+
     def test_warm_empty_ids_is_noop(self):
         cache = MagicMock()
         warm_label_cache(set(), repo=self.repo, cache=cache)
@@ -233,3 +254,4 @@ class WarmLabelCachesFromDbTest(unittest.TestCase):
         mock_warm.assert_called_once()
         ids = mock_warm.call_args[0][0]
         self.assertEqual(ids, {"P17", "P18"})
+        self.assertTrue(mock_warm.call_args[1].get("force"))

@@ -104,12 +104,24 @@ class LabelResolver:
         self.cache.set_cache_value(self._cache_key(eid), label, ttl=LABEL_TTL)
 
 
-def warm_label_cache(ids, repo, cache, lang="en"):
-    """Warm the Redis label cache for the given P/Q ids; silently ignores errors."""
+def warm_label_cache(ids, repo, cache, lang="en", force=False):
+    """Warm the Redis label cache for the given P/Q ids.
+
+    If force=True, bypass the cache read and fetch all ids from the API,
+    overwriting any existing (possibly stale) cached values.
+    """
     if not ids:
         return
     try:
-        LabelResolver(repo=repo, cache=cache, lang=lang).resolve(ids, cache_only=False)
+        resolver = LabelResolver(repo=repo, cache=cache, lang=lang)
+        if force:
+            entity_ids = [i for i in ids if is_entity_id(i)]
+            fetched = resolver._fetch(list(entity_ids))
+            for eid, label in fetched.items():
+                if label != eid:
+                    resolver._cache_set(eid, label)
+        else:
+            resolver.resolve(ids, cache_only=False)
     except Exception as e:
         _logger.warning("Label cache warming failed: %s", e)
 
@@ -133,7 +145,7 @@ def warm_label_caches_from_db():
 
     cache = RedisCache(StrictRedis(host=redis_host(), decode_responses=False))
     repo = pywikibot.Site("wikidata", "wikidata").data_repository()
-    warm_label_cache(ids, repo=repo, cache=cache)
+    warm_label_cache(ids, repo=repo, cache=cache, force=True)
     _logger.info("Done (%d id(s))", len(ids))
 
 

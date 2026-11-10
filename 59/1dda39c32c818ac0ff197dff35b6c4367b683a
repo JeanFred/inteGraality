@@ -1,0 +1,14 @@
+CODE_OF_CONDUCT.md
+  h_bc010f8da910ff 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "591dda39c32c818ac0ff197dff35b6c4367b683a",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

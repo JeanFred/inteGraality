@@ -1,0 +1,14 @@
+.pre-commit-config.yaml
+  h_bc010f8da910ff 3,13,30,47,58,64,69
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6f37ad358fa75f018b0c01ca21f3d157d84661c0",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,21 @@
+integraality/label_resolver.py
+  s_0f353154882b8c::t_cb9dea282b9465 8
+integraality/tests/test_label_resolver.py
+  s_0f353154882b8c::t_be4ad8cf8a8973 52-58,144
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b3fd24fe8e769a7acded70aeef5b790402569ebe",
+  "prompts": {},
+  "sessions": {
+    "s_0f353154882b8c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79595703-8382-4cf9-8981-fd951b155eae",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

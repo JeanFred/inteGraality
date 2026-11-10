@@ -49,6 +49,13 @@ class LabelResolverTest(unittest.TestCase):
         self.assertEqual(result["2023"], "2023")
         self.repo.loadcontent.assert_not_called()
 
+    def test_malformed_ids_with_leading_zeros_pass_through(self):
+        # P06 is not a valid Wikidata id; it must not reach the API.
+        result = self._resolver().resolve(["P06", "Q007"])
+        self.assertEqual(result["P06"], "P06")
+        self.assertEqual(result["Q007"], "Q007")
+        self.repo.loadcontent.assert_not_called()
+
     def test_mixed_ids_and_tokens(self):
         self._loadcontent_returns({"P569": {"en": "date of birth"}})
         result = self._resolver().resolve(["P569", "en"])
@@ -134,7 +141,7 @@ class LabelResolverTest(unittest.TestCase):
         self.repo.loadcontent.assert_called_once_with({"ids": ["Q42"]}, "labels")
 
     def test_fetches_in_batches_of_50(self):
-        ids = [f"Q{i}" for i in range(120)]
+        ids = [f"Q{i}" for i in range(1, 121)]
         self.repo.loadcontent.return_value = {}
         self._resolver().resolve(ids)
         # 120 ids → 3 batches: 50, 50, 20

@@ -5,7 +5,7 @@ import re
 
 from .dashboard_registry import DashboardRegistry
 
-_PQ_RE = re.compile(r"^[PQ]\d+$")
+_PQ_RE = re.compile(r"^[PQ][1-9]\d*$")
 LABEL_TTL = 30 * 24 * 3600  # 30 days; labels are stable
 
 

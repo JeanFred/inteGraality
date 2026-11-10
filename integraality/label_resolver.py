@@ -1,9 +1,15 @@
 """Resolve P/Q entity ids to human-readable labels via pywikibot."""
 
+import logging
 import re
+
+from .dashboard_registry import DashboardRegistry
 
 _PQ_RE = re.compile(r"^[PQ]\d+$")
 LABEL_TTL = 30 * 24 * 3600  # 30 days; labels are stable
+
+
+_logger = logging.getLogger(__name__)
 
 
 def is_entity_id(token):
@@ -57,20 +63,24 @@ class LabelResolver:
 
         return result
 
+    BATCH_SIZE = 50
+
     def _fetch(self, entity_ids):
         labels = {}
-        try:
-            result = self.repo.loadcontent({"ids": entity_ids}, "labels")
-            for eid, data in result.items():
-                lang_labels = data.get("labels", {})
-                label = (
-                    lang_labels.get(self.lang, {}).get("value")
-                    or lang_labels.get("en", {}).get("value")
-                    or eid
-                )
-                labels[eid] = label
-        except Exception:  # noqa: S110
-            pass
+        for i in range(0, len(entity_ids), self.BATCH_SIZE):
+            batch = entity_ids[i : i + self.BATCH_SIZE]
+            try:
+                result = self.repo.loadcontent({"ids": batch}, "labels")
+                for eid, data in result.items():
+                    lang_labels = data.get("labels", {})
+                    label = (
+                        lang_labels.get(self.lang, {}).get("value")
+                        or lang_labels.get("en", {}).get("value")
+                        or eid
+                    )
+                    labels[eid] = label
+            except Exception as e:
+                _logger.warning("Label fetch failed for batch starting at %d: %s", i, e)
 
         for eid in entity_ids:
             labels.setdefault(eid, eid)
@@ -97,5 +107,37 @@ def warm_label_cache(ids, repo, cache, lang="en"):
         return
     try:
         LabelResolver(repo=repo, cache=cache, lang=lang).resolve(ids, cache_only=False)
-    except Exception:
-        pass
+    except Exception as e:
+        _logger.warning("Label cache warming failed: %s", e)
+
+
+def warm_label_caches_from_db():
+    """Warm the Redis label cache for all P/Q ids recorded in the DB.
+
+    Imports of pywikibot and redis are deferred to avoid pulling those
+    heavy dependencies into the module namespace — label_resolver is also
+    used in lightweight paths (web requests, tests) that don't need them.
+    """
+    import pywikibot
+    from redis import StrictRedis
+
+    from .cache import RedisCache, redis_host
+
+    _logger.info("Warming label cache from DB...")
+    with DashboardRegistry() as registry:
+        ids = registry.list_all_label_ids()
+    _logger.info("Found %d id(s) to warm", len(ids))
+
+    cache = RedisCache(StrictRedis(host=redis_host(), decode_responses=False))
+    repo = pywikibot.Site("wikidata", "wikidata").data_repository()
+    warm_label_cache(ids, repo=repo, cache=cache)
+    _logger.info("Done (%d id(s))", len(ids))
+
+
+def main():
+    logging.basicConfig(level=logging.INFO)
+    warm_label_caches_from_db()
+
+
+if __name__ == "__main__":
+    main()

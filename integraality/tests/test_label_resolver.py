@@ -1,7 +1,7 @@
 """Unit tests for label_resolver.py."""
 
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 from ..label_resolver import LABEL_TTL, LabelResolver, warm_label_cache
 
@@ -74,8 +74,10 @@ class LabelResolverTest(unittest.TestCase):
 
     def test_falls_back_gracefully_on_exception(self):
         self.repo.loadcontent.side_effect = Exception("network error")
-        result = self._resolver().resolve(["Q142"])
+        with self.assertLogs("integraality.label_resolver", level="WARNING") as cm:
+            result = self._resolver().resolve(["Q142"])
         self.assertEqual(result["Q142"], "Q142")
+        self.assertIn("network error", cm.output[0])
 
     # --- preferred lang ---
 
@@ -131,6 +133,17 @@ class LabelResolverTest(unittest.TestCase):
         self._resolver().resolve(["Q42"])
         self.repo.loadcontent.assert_called_once_with({"ids": ["Q42"]}, "labels")
 
+    def test_fetches_in_batches_of_50(self):
+        ids = [f"Q{i}" for i in range(120)]
+        self.repo.loadcontent.return_value = {}
+        self._resolver().resolve(ids)
+        # 120 ids → 3 batches: 50, 50, 20
+        self.assertEqual(self.repo.loadcontent.call_count, 3)
+        first_batch = self.repo.loadcontent.call_args_list[0][0][0]["ids"]
+        self.assertEqual(len(first_batch), 50)
+        last_batch = self.repo.loadcontent.call_args_list[2][0][0]["ids"]
+        self.assertEqual(len(last_batch), 20)
+
     def test_empty_input(self):
         result = self._resolver().resolve([])
         self.assertEqual(result, {})
@@ -185,9 +198,31 @@ class WarmLabelCacheTest(unittest.TestCase):
         warm_label_cache(set(), repo=self.repo, cache=cache)
         self.repo.loadcontent.assert_not_called()
 
-    def test_warm_silently_ignores_exception(self):
+    def test_warm_logs_warning_on_exception_and_does_not_raise(self):
         self.repo.loadcontent.side_effect = Exception("network error")
         cache = MagicMock()
         cache.get_cache_value.return_value = None
-        # Should not raise.
+        # Should not raise (logs a warning instead).
         warm_label_cache({"P17"}, repo=self.repo, cache=cache)
+
+
+class WarmLabelCachesFromDbTest(unittest.TestCase):
+    @patch("integraality.label_resolver.warm_label_cache")
+    @patch("integraality.label_resolver.DashboardRegistry")
+    @patch("pywikibot.Site")
+    @patch("redis.StrictRedis")
+    def test_fetches_ids_from_db_and_warms(
+        self, mock_redis, mock_site, mock_registry_cls, mock_warm
+    ):
+        from ..label_resolver import warm_label_caches_from_db
+
+        mock_registry = MagicMock()
+        mock_registry_cls.return_value.__enter__ = MagicMock(return_value=mock_registry)
+        mock_registry_cls.return_value.__exit__ = MagicMock(return_value=False)
+        mock_registry.list_all_label_ids.return_value = {"P17", "P18"}
+
+        warm_label_caches_from_db()
+
+        mock_warm.assert_called_once()
+        ids = mock_warm.call_args[0][0]
+        self.assertEqual(ids, {"P17", "P18"})

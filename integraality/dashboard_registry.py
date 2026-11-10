@@ -1651,3 +1651,40 @@ class DashboardRegistry:
         with self.conn.cursor() as cur:
             cur.execute(sql, tuple(params))
             return [row["root_page"] for row in cur.fetchall()]
+
+    def list_all_label_ids(self):
+        """Return the set of all P/Q ids referenced across all dashboard configs."""
+        sql = """\
+            SELECT grouping_property AS id
+            FROM dashboard_configurations
+            WHERE grouping_property IS NOT NULL
+            UNION
+            SELECT property_id
+            FROM dashboard_configuration_columns
+            WHERE property_id IS NOT NULL
+            UNION
+            SELECT qualifier_id
+            FROM dashboard_configuration_columns
+            WHERE qualifier_id IS NOT NULL
+            UNION
+            SELECT source_item
+            FROM dashboard_configuration_columns
+            WHERE source_item IS NOT NULL
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(sql)
+            ids = {row["id"] for row in cur.fetchall()}
+        # selector_mentions is a comma-padded bag (",P195,Q861252,"); split here.
+        mentions_sql = """\
+            SELECT selector_mentions
+            FROM dashboard_configurations
+            WHERE selector_mentions IS NOT NULL
+        """
+        with self.conn.cursor() as cur:
+            cur.execute(mentions_sql)
+            for row in cur.fetchall():
+                for token in row["selector_mentions"].strip(",").split(","):
+                    token = token.strip()
+                    if token:
+                        ids.add(token)
+        return ids

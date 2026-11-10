@@ -2033,3 +2033,45 @@ class TestGetPreviousGroupingCounts(unittest.TestCase):
             "www.wikidata.org", "Wikidata:Test", 42
         )
         self.assertIsNone(result)
+
+
+class ListAllLabelIdsTest(unittest.TestCase):
+    def setUp(self):
+        self.mock_conn = MagicMock()
+        self.mock_cursor = MagicMock()
+        self.mock_conn.cursor.return_value.__enter__ = MagicMock(
+            return_value=self.mock_cursor
+        )
+        self.mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
+        self.registry = DashboardRegistry(conn=self.mock_conn)
+
+    def test_splits_selector_mentions_bag(self):
+        self.mock_cursor.fetchall.side_effect = [
+            [],
+            [{"selector_mentions": ",P195,Q861252,"}],
+        ]
+        result = self.registry.list_all_label_ids()
+        self.assertIn("P195", result)
+        self.assertIn("Q861252", result)
+
+    def test_combines_column_ids_and_mentions(self):
+        self.mock_cursor.fetchall.side_effect = [
+            [{"id": "P17"}],
+            [{"selector_mentions": ",P31,Q5,"}],
+        ]
+        result = self.registry.list_all_label_ids()
+        self.assertEqual(result, {"P17", "P31", "Q5"})
+
+    def test_deduplicates_ids_across_sources(self):
+        # P17 appears as both grouping_property and property_id — UNION returns it once.
+        self.mock_cursor.fetchall.side_effect = [
+            [{"id": "P17"}, {"id": "P18"}, {"id": "P17"}],
+            [],
+        ]
+        result = self.registry.list_all_label_ids()
+        self.assertEqual(result, {"P17", "P18"})
+
+    def test_empty_db_returns_empty_set(self):
+        self.mock_cursor.fetchall.side_effect = [[], []]
+        result = self.registry.list_all_label_ids()
+        self.assertEqual(result, set())

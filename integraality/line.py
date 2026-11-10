@@ -25,8 +25,8 @@ class AbstractLine:
         return "| \n"
 
 
-class _RankedGroupingMixin:
-    """Mixin for position/diff cell formatting on ranked grouping rows."""
+class _DiffCellMixin:
+    """Mixin for the Δ cell only (coloured +N / −N rendering)."""
 
     def format_diff_cell(self, diff):
         """Render the Δ cell: +N green, -N red, omit on zero or None."""
@@ -35,6 +35,10 @@ class _RankedGroupingMixin:
         if diff > 0:
             return f'| <span style="color:green">+{diff}</span> \n'
         return f'| <span style="color:red">−{abs(diff)}</span> \n'
+
+
+class _RankedGroupingMixin(_DiffCellMixin):
+    """Mixin for position/rank cell formatting on ranked grouping rows."""
 
     def format_position_cell(self, position, prev_position):
         if prev_position is None:

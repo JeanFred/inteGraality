@@ -28,14 +28,16 @@ dev = [
 package = false
 
 [tool.ruff]
-lint.extend-select = [ "E4", "E7", "E9", "F", "I" ]
+lint.extend-select = [ "E4", "E7", "E9", "F", "I", "S" ]
 lint.ignore = [
   "BLE001", # broad `except Exception` is intentional at error boundaries
   "DTZ001", # datetimes are deliberately naive-UTC to match MariaDB DATETIME columns
   "DTZ007",
   "FLY002", # join-to-f-string hurts readability of multi-line SPARQL test fixtures
-  "S110",   # try-except-pass is intentional for best-effort operations
+  "S301",   # pickle cache on shared Toolforge Redis; accepted risk
+  "S608",   # false positive: f-strings interpolate internal constants, not user input
 ]
+lint.per-file-ignores."integraality/tests/test_sparql_functional.py" = [ "S101" ]
 
 [tool.pytest]
 ini_options.addopts = "-m 'not functional' --disable-socket"

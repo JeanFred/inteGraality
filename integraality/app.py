@@ -65,7 +65,7 @@ def inject_analytics():
 
 # Form token for the Main namespace, whose canonical name is the empty string
 # which would otherwise collide with the "All / no filter" empty value.
-MAIN_NAMESPACE_TOKEN = "(Main)"
+MAIN_NAMESPACE_TOKEN = "(Main)"  # noqa: S105
 
 # The charts and the run-outcome strip intentionally consume the *full* run
 # history (that's the point — long-term trend + every run at a glance). Only
@@ -388,7 +388,7 @@ def _resolve_labels(ids):
             try:
                 repo = pywikibot.Site("wikidata", "wikidata").data_repository()
                 warm_label_cache(missed, repo=repo, cache=cache)
-            except Exception:
+            except Exception:  # noqa: S110
                 pass
 
         threading.Thread(target=_warm, daemon=True).start()

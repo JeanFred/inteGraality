@@ -308,7 +308,7 @@ class TestGetConnection(unittest.TestCase):
                 host="myhost",
                 port=3307,
                 user="myuser",
-                password="mypass",
+                password="mypass",  # noqa: S106
                 database="mydb",
                 charset="utf8mb4",
                 cursorclass=DictCursor,

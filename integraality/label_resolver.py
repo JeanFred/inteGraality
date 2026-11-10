@@ -69,7 +69,7 @@ class LabelResolver:
                     or eid
                 )
                 labels[eid] = label
-        except Exception:
+        except Exception:  # noqa: S110
             pass
 
         for eid in entity_ids:

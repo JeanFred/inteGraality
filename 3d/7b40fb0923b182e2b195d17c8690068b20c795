@@ -1,0 +1,16 @@
+integraality/templates/queries.html
+  h_bc010f8da910ff 22-24
+.pre-commit-config.yaml
+  h_bc010f8da910ff 19
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3d7b40fb0923b182e2b195d17c8690068b20c795",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+pyproject.toml
+  h_bc010f8da910ff 31,37-38,40
+integraality/tests/test_db.py
+  h_bc010f8da910ff 311
+integraality/label_resolver.py
+  h_bc010f8da910ff 76
+integraality/app.py
+  h_bc010f8da910ff 68,391
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "623b8c4ca40d2f43bccd4c742c34d44f4c4c2770",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

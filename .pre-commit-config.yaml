@@ -16,7 +16,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/UnknownPlatypus/djangofmt-pre-commit
-    rev: v1.0.0
+    rev: v1.1.0
     hooks:
       # Run the linter.
       - id: djangofmt-check

@@ -536,8 +536,20 @@ class FormatDiffCellTest(unittest.TestCase):
         result = line.NoGroupGrouping(count=5).format_diff_cell(100)
         self.assertEqual(result, "| \n")
 
-    def test_totals_returns_empty(self):
+    def test_totals_renders_positive_diff(self):
         result = line.TotalsGrouping(count=5).format_diff_cell(100)
+        self.assertEqual(result, '| <span style="color:green">+100</span> \n')
+
+    def test_totals_renders_negative_diff(self):
+        result = line.TotalsGrouping(count=5).format_diff_cell(-20)
+        self.assertEqual(result, '| <span style="color:red">−20</span> \n')
+
+    def test_totals_returns_empty_on_zero(self):
+        result = line.TotalsGrouping(count=5).format_diff_cell(0)
+        self.assertEqual(result, "| \n")
+
+    def test_totals_returns_empty_on_none(self):
+        result = line.TotalsGrouping(count=5).format_diff_cell(None)
         self.assertEqual(result, "| \n")
 
 

@@ -1272,3 +1272,32 @@ class TestComputeDiffs(unittest.TestCase):
         count_diffs, rank_diffs = self.processor._compute_diffs(report_groupings, None)
         self.assertEqual(count_diffs, {})
         self.assertEqual(rank_diffs, {})
+
+    def test_totals_delta_included_in_count_diffs(self):
+        report_groupings = self._make_report_groupings([("Q17", 100), ("Q30", 80)])
+        # TotalsGrouping count = 100 + 80 + 10 (NoGroup) = 190
+        prev_counts = {
+            "Q17": 90,
+            "Q30": 75,
+            NoGroupGrouping.MARKER: 10,
+            TotalsGrouping.MARKER: 175,
+        }
+        count_diffs, rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        self.assertEqual(count_diffs[TotalsGrouping.MARKER], 15)
+        self.assertNotIn(TotalsGrouping.MARKER, rank_diffs)
+
+    def test_totals_delta_absent_when_no_prev_total(self):
+        report_groupings = self._make_report_groupings([("Q17", 100)])
+        prev_counts = {"Q17": 90}
+        count_diffs, _rank_diffs = self.processor._compute_diffs(
+            report_groupings, prev_counts
+        )
+        self.assertNotIn(TotalsGrouping.MARKER, count_diffs)
+
+    def test_totals_delta_absent_when_no_totals_row(self):
+        groupings = [ItemGrouping(count=100, title="Q17")]  # no TotalsGrouping
+        prev_counts = {"Q17": 90, TotalsGrouping.MARKER: 90}
+        count_diffs, _rank_diffs = self.processor._compute_diffs(groupings, prev_counts)
+        self.assertNotIn(TotalsGrouping.MARKER, count_diffs)

@@ -337,6 +337,17 @@ class PagesProcessor:
                 count_diffs[key] = grouping.count
             rank_diffs[key] = (curr_rank, prev_rank_lookup.get(key))
 
+        totals_key = TotalsGrouping.MARKER
+        prev_total = prev_counts.get(totals_key)
+        totals_grouping = next(
+            (g for g in report_groupings if g.get_key() == totals_key), None
+        )
+        # Unlike regular groupings, we don't treat a missing prev_total as a
+        # delta equal to the full count: showing the full population as a
+        # "new" delta would be misleading on a first run or config change.
+        if totals_grouping is not None and prev_total is not None:
+            count_diffs[totals_key] = totals_grouping.count - prev_total
+
         return count_diffs, rank_diffs
 
     def _record_configuration(self, page, config_facets):

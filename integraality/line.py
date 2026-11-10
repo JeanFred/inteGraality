@@ -298,7 +298,7 @@ class UnknownValueGrouping(_RankedGroupingMixin, Grouping):
         ]
 
 
-class TotalsGrouping(Grouping):
+class TotalsGrouping(_DiffCellMixin, Grouping):
     MARKER = ""
     is_linkable = False
 

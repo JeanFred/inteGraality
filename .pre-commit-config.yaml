@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/astral-sh/uv-pre-commit
-    rev: 0.12.16
+    rev: 0.13.7
     hooks:
       - id: uv-export
         name: uv-export requirements.txt
@@ -10,7 +10,7 @@ repos:
         args: [--quiet, --only-dev, --output-file, requirements-dev.txt]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.16.8
+    rev: v0.17.4
     hooks:
       - id: ruff-check
       - id: ruff-format
@@ -27,7 +27,7 @@ repos:
         files: ^integraality/templates/.*\.html$
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.11.0-1
+    rev: v3.14.1-1
     hooks:
       - id: shfmt
         args: [--indent, "4", --write]
@@ -44,7 +44,7 @@ repos:
       - id: mdformat
 
   - repo: https://github.com/python-jsonschema/check-jsonschema
-    rev: 0.38.0
+    rev: 0.39.0
     hooks:
       - id: check-compose-spec
       - id: check-jsonschema
@@ -55,18 +55,18 @@ repos:
           - https://raw.githubusercontent.com/wikimedia/wikimedia-toolhub/main/jsonschema/toolinfo/1.2.2.json
 
   - repo: https://github.com/sqlfluff/sqlfluff
-    rev: 4.3.0
+    rev: 4.5.0
     hooks:
       - id: sqlfluff-lint
       - id: sqlfluff-fix
 
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.29.4
+    rev: v2.30.6
     hooks:
       - id: pyproject-fmt
 
   - repo: https://github.com/ansible/ansible-lint
-    rev: v26.8.0
+    rev: v26.11.0
     hooks:
       - id: ansible-lint
         language_version: python3

@@ -79,10 +79,13 @@ class LabelResolver:
                         or eid
                     )
                     labels[eid] = label
+                    _logger.debug("Resolved %s -> %r", eid, label)
             except Exception as e:
                 _logger.warning("Label fetch failed for batch starting at %d: %s", i, e)
 
         for eid in entity_ids:
+            if eid not in labels:
+                _logger.debug("Fallback %s -> %r (not returned by API)", eid, eid)
             labels.setdefault(eid, eid)
 
         return labels
@@ -135,7 +138,7 @@ def warm_label_caches_from_db():
 
 
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     warm_label_caches_from_db()
 
 

@@ -3,6 +3,7 @@
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
 ![Python Version from PEP 621 TOML](https://img.shields.io/python/required-version-toml?tomlFilePath=https://raw.githubusercontent.com/JeanFred/inteGraality/refs/heads/master/pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16532/badge)](https://www.bestpractices.dev/projects/16532)
 
 [![Toolforge](https://img.shields.io/badge/hosted-Toolforge-990000.svg)](https://integraality.toolforge.org/)
 [![Issues](https://img.shields.io/badge/issues-Phabricator-blue.svg)](https://phabricator.wikimedia.org/tag/tool-integraality/)

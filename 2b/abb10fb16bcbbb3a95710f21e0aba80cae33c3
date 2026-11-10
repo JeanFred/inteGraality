@@ -1,0 +1,20 @@
+integraality/dashboard_registry.py
+  h_bc010f8da910ff 1654-1690
+integraality/label_resolver.py
+  h_bc010f8da910ff 102-133
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 2036-2076
+integraality/tests/test_label_resolver.py
+  h_bc010f8da910ff 4,194-235
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "2babb10fb16bcbbb3a95710f21e0aba80cae33c3",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

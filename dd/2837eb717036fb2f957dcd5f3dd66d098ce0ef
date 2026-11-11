@@ -1,0 +1,16 @@
+integraality/compare_formatter.py
+  h_bc010f8da910ff 1-409
+integraality/tests/test_compare_formatter.py
+  h_bc010f8da910ff 1-314
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dd2837eb717036fb2f957dcd5f3dd66d098ce0ef",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

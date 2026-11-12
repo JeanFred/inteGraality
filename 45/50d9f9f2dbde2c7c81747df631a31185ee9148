@@ -1,0 +1,21 @@
+integraality/property_statistics.py
+  h_bc010f8da910ff 247-264,266-269,275-276,279-292,294,334-335,337-338,340-363,365-371,396,403-404,413-414,420-422
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 7,654-666
+integraality/grouping.py
+  h_bc010f8da910ff 98-105
+  h_bc010f8da910ff 117
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 251-252,273-274,294-295,2608-2609,2630-2631,2651-2652
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4550d9f9f2dbde2c7c81747df631a31185ee9148",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

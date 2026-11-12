@@ -1,0 +1,14 @@
+integraality/grouping.py
+  h_bc010f8da910ff 98,110
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b9d6a08c658ba2892e0c3c9ca0d8716870d82432",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

@@ -68,6 +68,7 @@ def run_with_sse(func, logger_name="integraality.update"):
                     "step_key": getattr(event, "step_key", None),
                     "url": getattr(event, "url", None),
                     "wikitext": getattr(event, "wikitext", None),
+                    "error": getattr(event, "error", False),
                 }
 
             yield f"data: {json.dumps(event)}\n\n"

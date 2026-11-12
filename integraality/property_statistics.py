@@ -260,6 +260,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
                 extra={"phase": "end", "step_key": step_key},
             )
 
+        task.step_key = step_key
         return task
 
     def _make_special_row(self, grouping_class, count_fn, column_query_fn, step_label):
@@ -314,21 +315,33 @@ SELECT (COUNT(*) as ?count) WHERE {{
     def _run_query_queue(self, tasks, max_passes=3):
         """Run tasks, retrying transiently-failed ones up to max_passes times."""
         remaining = list(tasks)
-        for _ in range(max_passes):
+        for attempt in range(max_passes):
             if not remaining:
                 break
             next_round = []
             for task in remaining:
+                step_key = getattr(task, "step_key", None)
                 try:
                     task()
                 except QueryException as e:
-                    if e.error_category in (
-                        ErrorCategory.TRANSIENT,
-                        ErrorCategory.TIMEOUT,
+                    if (
+                        e.error_category
+                        in (
+                            ErrorCategory.TRANSIENT,
+                            ErrorCategory.TIMEOUT,
+                        )
+                        and attempt < max_passes - 1
                     ):
+                        logger.warning(
+                            f"{step_key}: transient failure, will retry",
+                            extra={"phase": "end", "step_key": step_key, "error": True},
+                        )
                         next_round.append(task)
                     else:
-                        logger.warning("Giving up on task: %s", e)
+                        logger.warning(
+                            f"{step_key}: giving up after {attempt + 1} attempt(s): {e}",
+                            extra={"phase": "end", "step_key": step_key, "error": True},
+                        )
             remaining = next_round
 
     def _make_groupings_tasks(self, groupings):

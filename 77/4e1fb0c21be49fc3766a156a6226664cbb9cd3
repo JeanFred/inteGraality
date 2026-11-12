@@ -1,0 +1,18 @@
+integraality/tests/test_property_statistics.py
+  h_bc010f8da910ff 5,2748-2788
+integraality/property_statistics.py
+  h_bc010f8da910ff 248,252-255,258-259,263-264,268,285,297,323-328,333-340,343-351,364-369,374-379,381-388,418
+integraality/templates/update_stream.html
+  h_bc010f8da910ff 55-67
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "774e1fb0c21be49fc3766a156a6226664cbb9cd3",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

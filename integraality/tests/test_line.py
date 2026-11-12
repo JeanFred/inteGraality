@@ -86,6 +86,32 @@ class GroupingTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class SortPriorityTest(unittest.TestCase):
+    def test_regular_grouping_sorts_first(self):
+        self.assertEqual(line.ItemGrouping(title="Q1", count=1).sort_priority, 0)
+
+    def test_no_group_sorts_second_to_last(self):
+        self.assertEqual(line.NoGroupGrouping(count=1).sort_priority, 1)
+
+    def test_totals_sorts_last(self):
+        self.assertEqual(line.TotalsGrouping(count=1).sort_priority, 2)
+
+    def test_sort_order(self):
+        groupings = [
+            line.TotalsGrouping(count=100),
+            line.ItemGrouping(title="Q1", count=50),
+            line.NoGroupGrouping(count=10),
+            line.ItemGrouping(title="Q2", count=80),
+        ]
+        result = sorted(groupings, key=lambda g: (g.sort_priority, -g.count))
+        self.assertIsInstance(result[0], line.ItemGrouping)
+        self.assertEqual(result[0].count, 80)
+        self.assertIsInstance(result[1], line.ItemGrouping)
+        self.assertEqual(result[1].count, 50)
+        self.assertIsInstance(result[2], line.NoGroupGrouping)
+        self.assertIsInstance(result[3], line.TotalsGrouping)
+
+
 class NoGroupGroupingTest(unittest.TestCase):
     def test_heading(self):
         grouping = line.NoGroupGrouping(count=1)

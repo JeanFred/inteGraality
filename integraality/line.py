@@ -53,6 +53,7 @@ class _RankedGroupingMixin(_DiffCellMixin):
 
 class Grouping(AbstractLine):
     is_linkable = True
+    sort_priority = 0
 
     def __init__(
         self, count, cells=None, title=None, higher_grouping=None, grouping_link=None
@@ -177,6 +178,7 @@ class NoGroupGrouping(Grouping):
     """Group for items that do not belong to any group."""
 
     is_linkable = False
+    sort_priority = 1
     MARKER = "None"
     HEADING_TEXT = "No grouping"
 
@@ -301,6 +303,7 @@ class UnknownValueGrouping(_RankedGroupingMixin, Grouping):
 class TotalsGrouping(_DiffCellMixin, Grouping):
     MARKER = ""
     is_linkable = False
+    sort_priority = 2
 
     def heading(self):
         return "'''Totals''' <small>(all items)</small>"

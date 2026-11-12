@@ -34,7 +34,13 @@ from ..reference_check import (
     PropertyReferenceCheck,
 )
 from ..results_formatter import ResultsFormatter
-from ..sparql_utils import QueryException, WdqsSparqlQueryEngine
+from ..sparql_utils import (
+    BackendUnavailableException,
+    QueryException,
+    QuerySyntaxException,
+    QueryTimeoutException,
+    WdqsSparqlQueryEngine,
+)
 
 
 class PropertyStatisticsTest(unittest.TestCase):
@@ -2655,6 +2661,83 @@ class MakeTotalsTest(PropertyStatisticsTest):
             ]
         )
         self.assertEqual(result, expected)
+
+
+class RunQueryQueueTest(PropertyStatisticsTest):
+    def test_all_tasks_succeed(self):
+        calls = []
+        tasks = [lambda i=i: calls.append(i) for i in range(3)]
+        self.stats._run_query_queue(tasks)
+        self.assertEqual(calls, [0, 1, 2])
+
+    def test_retries_transient_failure(self):
+        calls = []
+
+        def flaky():
+            calls.append(len(calls))
+            if len(calls) == 1:
+                raise BackendUnavailableException("transient", query="q")
+
+        self.stats._run_query_queue([flaky])
+        self.assertEqual(len(calls), 2)
+
+    def test_retries_timeout(self):
+        calls = []
+
+        def flaky():
+            calls.append(len(calls))
+            if len(calls) == 1:
+                raise QueryTimeoutException("timeout", query="q")
+
+        self.stats._run_query_queue([flaky])
+        self.assertEqual(len(calls), 2)
+
+    def test_no_retry_on_query_error(self):
+        calls = []
+
+        def bad():
+            calls.append(1)
+            raise QuerySyntaxException("syntax error", query="q")
+
+        self.stats._run_query_queue([bad])
+        self.assertEqual(len(calls), 1)
+
+    def test_gives_up_after_max_passes(self):
+        calls = []
+
+        def always_fails():
+            calls.append(1)
+            raise BackendUnavailableException("transient", query="q")
+
+        self.stats._run_query_queue([always_fails], max_passes=2)
+        self.assertEqual(len(calls), 2)
+
+    def test_gives_up_after_default_max_passes(self):
+        calls = []
+
+        def always_fails():
+            calls.append(1)
+            raise BackendUnavailableException("transient", query="q")
+
+        self.stats._run_query_queue([always_fails])
+        self.assertEqual(len(calls), 3)
+
+    def test_partial_success(self):
+        calls = []
+        results = []
+
+        def good():
+            results.append("good")
+
+        def bad():
+            calls.append(1)
+            if len(calls) <= 1:
+                raise BackendUnavailableException("transient", query="q")
+            results.append("bad-recovered")
+
+        self.stats._run_query_queue([good, bad])
+        self.assertIn("good", results)
+        self.assertIn("bad-recovered", results)
 
 
 class PopulateGroupingsTest(PropertyStatisticsTest):

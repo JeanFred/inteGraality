@@ -4,6 +4,7 @@ import collections
 import logging
 
 from .column import ColumnMaker, PropertySourceColumn, UnresolvedColumnSourceException
+from .error_category import ErrorCategory
 from .grouping import (
     EmptyGroupingException,
     GroupingConfiguration,
@@ -282,6 +283,26 @@ SELECT (COUNT(*) as ?count) WHERE {{
             column_query_fn=lambda col: col.get_totals_query(self),
             step_label="totals",
         )
+
+    def _run_query_queue(self, tasks, max_passes=3):
+        """Run tasks, retrying transiently-failed ones up to max_passes times."""
+        remaining = list(tasks)
+        for _ in range(max_passes):
+            if not remaining:
+                break
+            next_round = []
+            for task in remaining:
+                try:
+                    task()
+                except QueryException as e:
+                    if e.error_category in (
+                        ErrorCategory.TRANSIENT,
+                        ErrorCategory.TIMEOUT,
+                    ):
+                        next_round.append(task)
+                    else:
+                        logger.warning("Giving up on task: %s", e)
+            remaining = next_round
 
     def populate_groupings(self, groupings):
         column_keys = list(self.columns.keys())

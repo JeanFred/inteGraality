@@ -228,6 +228,7 @@ class QLeverSparqlQueryEngineTest(unittest.TestCase):
             self.engine.select("SELECT ?entity WHERE { ?entity wdt:P31 wd:Q5 }")
 
         self.assertEqual(cm.exception.error_category, ErrorCategory.TRANSIENT)
+        self.assertIn("rate-limited", str(cm.exception))
         self.assertEqual(mock_get.call_count, self.engine.max_retries + 1)
         self.assertEqual(mock_sleep.call_count, self.engine.max_retries)
 

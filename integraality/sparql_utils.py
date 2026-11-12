@@ -215,6 +215,12 @@ class QLeverSparqlQueryEngine(SparqlQueryEngine):
             query = add_prefixes_to_query(query)
 
             response = self._get(query)
+            if response.status_code == 429:
+                raise BackendUnavailableException(
+                    "QLever rate-limited this request after retries. "
+                    "Please try again later.",
+                    query=query,
+                )
             response.raise_for_status()
 
             data = response.json()

@@ -248,7 +248,8 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
 
     def test_make_stats_for_no_group(self):
         self.maxDiff = None
-        result = self.stats.make_stats_for_no_group()
+        result, tasks = self.stats.make_stats_for_no_group()
+        self.stats._run_query_queue(tasks)
         expected = NoGroupGrouping(
             count=20, higher_grouping=self.grouping_configuration.higher_grouping
         )
@@ -269,7 +270,8 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
 
     def test_make_stats_for_no_group_with_higher_grouping(self):
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
-        result = self.stats.make_stats_for_no_group()
+        result, tasks = self.stats.make_stats_for_no_group()
+        self.stats._run_query_queue(tasks)
         expected = NoGroupGrouping(
             count=20, higher_grouping=self.stats.grouping_configuration.higher_grouping
         )
@@ -289,7 +291,8 @@ class MakeStatsForNoGroupTest(PropertyStatisticsTest):
         self.assertEqual(self.mock_sparql_query.select.call_count, 7)
 
     def test_make_stats_for_no_group_with_grouping_link(self):
-        result = self.stats.make_stats_for_no_group()
+        result, tasks = self.stats.make_stats_for_no_group()
+        self.stats._run_query_queue(tasks)
         expected = NoGroupGrouping(
             count=20, higher_grouping=self.grouping_configuration.higher_grouping
         )
@@ -2602,7 +2605,8 @@ class MakeTotalsTest(PropertyStatisticsTest):
         ]
 
     def test_make_totals(self):
-        result = self.stats.make_totals()
+        result, tasks = self.stats.make_totals()
+        self.stats._run_query_queue(tasks)
         expected = TotalsGrouping(
             count=120,
             title="",
@@ -2623,7 +2627,8 @@ class MakeTotalsTest(PropertyStatisticsTest):
 
     def test_make_totals_with_higher_grouping(self):
         self.stats.grouping_configuration.higher_grouping = "wdt:P17/wdt:P298"
-        result = self.stats.make_totals()
+        result, tasks = self.stats.make_totals()
+        self.stats._run_query_queue(tasks)
         expected = TotalsGrouping(
             count=120,
             title="",
@@ -2643,7 +2648,8 @@ class MakeTotalsTest(PropertyStatisticsTest):
         self.assertEqual(result, expected)
 
     def test_make_totals_with_grouping_link(self):
-        result = self.stats.make_totals()
+        result, tasks = self.stats.make_totals()
+        self.stats._run_query_queue(tasks)
         expected = TotalsGrouping(
             count=120,
             title="",
@@ -2944,6 +2950,8 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
 class RetrieveDataTest(PropertyStatisticsTest):
     def setUp(self):
         super().setUp()
+        # Base fixture sets row_totals=True; disable it so retrieve_data
+        # returns only the regular groupings dict, without a TotalsGrouping entry.
         self.stats.row_totals = False
 
     def test_retrieve_data_empty(self):

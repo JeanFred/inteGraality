@@ -244,27 +244,54 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return result
 
+    @staticmethod
+    def _make_column_task(col, idx, total, step_key, query_fn, handle_result):
+        """Return a callable that runs query_fn(col) and passes the result to handle_result."""
+
+        def task():
+            query = query_fn(col)
+            logger.info(
+                f"Querying {step_key}... ({idx}/{total})",
+                extra={"query": query, "step_key": step_key},
+            )
+            handle_result(query)
+            logger.info(
+                f"{step_key} done ({idx}/{total})",
+                extra={"phase": "end", "step_key": step_key},
+            )
+
+        return task
+
     def _make_special_row(self, grouping_class, count_fn, column_query_fn, step_label):
-        """Build a special grouping row by running count_fn then one query (column_query_fn) per column."""
+        """Build a special grouping row object and return it with its per-column tasks."""
+        # count_fn runs eagerly: the grouping object must exist before column
+        # tasks can write into its cells. Column queries are deferred into tasks
+        # for _run_query_queue.
         count = count_fn()
         grouping_object = grouping_class(
             count=count, higher_grouping=self.grouping_configuration.higher_grouping
         )
         column_keys = list(self.columns.keys())
+        total = len(column_keys)
+        tasks = []
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
-            query = column_query_fn(column_entry)
             step_key = f"{step_label}_{column_entry_key}"
-            logger.info(
-                f"Querying {step_label} for column {column_entry_key}... ({i}/{len(column_keys)})",
-                extra={"query": query, "step_key": step_key},
+
+            def handle_result(query, key=column_entry_key):
+                value = self._get_count_from_sparql(query)
+                grouping_object.cells[key] = value
+
+            tasks.append(
+                self._make_column_task(
+                    col=column_entry,
+                    idx=i,
+                    total=total,
+                    step_key=step_key,
+                    query_fn=column_query_fn,
+                    handle_result=handle_result,
+                )
             )
-            value = self._get_count_from_sparql(query)
-            logger.info(
-                f"{step_label} for column {column_entry_key} done ({i}/{len(column_keys)})",
-                extra={"phase": "end", "step_key": step_key},
-            )
-            grouping_object.cells[column_entry_key] = value
-        return grouping_object
+        return grouping_object, tasks
 
     def make_stats_for_no_group(self):
         """Build the no-group row: items that don't match any grouping."""
@@ -304,37 +331,44 @@ SELECT (COUNT(*) as ?count) WHERE {{
                         logger.warning("Giving up on task: %s", e)
             remaining = next_round
 
-    def populate_groupings(self, groupings):
+    def _make_groupings_tasks(self, groupings):
+        """Return per-column tasks that populate cells across all grouping objects."""
         column_keys = list(self.columns.keys())
-        logger.info(
-            f"Querying columns ({len(column_keys)})...",
-            extra={"step_key": "columns"},
-        )
+        total = len(column_keys)
+        tasks = []
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
-            query = column_entry.get_info_query(self)
-            logger.info(
-                f"Querying column {column_entry_key}... ({i}/{len(column_keys)})",
-                extra={"query": query, "step_key": f"columns_{column_entry_key}"},
+            step_key = f"columns_{column_entry_key}"
+
+            def handle_result(query, key=column_entry_key):
+                data = self._get_grouping_counts_from_sparql(query)
+                if not data:
+                    return
+                for grouping_item, value in data.items():
+                    grouping = groupings.get(grouping_item)
+                    if grouping:
+                        grouping.cells[key] = value
+                    else:
+                        logger.debug(
+                            f"Discarding data on {grouping_item}, not in the groupings"
+                        )
+
+            tasks.append(
+                self._make_column_task(
+                    col=column_entry,
+                    idx=i,
+                    total=total,
+                    step_key=step_key,
+                    query_fn=lambda col: col.get_info_query(self),
+                    handle_result=handle_result,
+                )
             )
-            data = self._get_grouping_counts_from_sparql(query)
-            logger.info(
-                f"Column {column_entry_key} done ({i}/{len(column_keys)})",
-                extra={"phase": "end", "step_key": f"columns_{column_entry_key}"},
-            )
-            if not data:
-                continue
-            for grouping_item, value in data.items():
-                grouping = groupings.get(grouping_item)
-                if grouping:
-                    grouping.cells[column_entry_key] = value
-                else:
-                    logger.debug(
-                        f"Discarding data on {grouping_item}, not in the groupings"
-                    )
-        logger.info(
-            f"All columns queried ({len(column_keys)}/{len(column_keys)})",
-            extra={"phase": "end", "step_key": "columns"},
-        )
+        return tasks
+
+    def populate_groupings(self, groupings):
+        """Run per-column queries and populate grouping cells."""
+        if groupings is None:
+            return None
+        self._run_query_queue(self._make_groupings_tasks(groupings))
         return groupings
 
     def retrieve_data(self):
@@ -359,15 +393,15 @@ SELECT (COUNT(*) as ?count) WHERE {{
             f"Retrieved {len(groupings)} groupings",
             extra={"phase": "end", "step_key": "groupings"},
         )
-        groupings = self.populate_groupings(groupings)
-        groupings = self.grouping_configuration.post_process(groupings)
+        all_tasks = self._make_groupings_tasks(groupings)
 
         if self.row_no_group:
             logger.info(
                 "Computing stats for items without grouping...",
                 extra={"step_key": "nogroup"},
             )
-            no_group = self.make_stats_for_no_group()
+            no_group, tasks = self.make_stats_for_no_group()
+            all_tasks.extend(tasks)
             groupings[NoGroupGrouping.MARKER] = no_group
             logger.info(
                 "Computing stats for items without grouping done",
@@ -376,11 +410,15 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         if self.row_totals:
             logger.info("Computing totals...", extra={"step_key": "totals"})
-            totals = self.make_totals()
+            totals, tasks = self.make_totals()
+            all_tasks.extend(tasks)
             groupings[TotalsGrouping.MARKER] = totals
             logger.info(
                 "Computing totals done", extra={"phase": "end", "step_key": "totals"}
             )
+
+        self._run_query_queue(all_tasks)
+        groupings = self.grouping_configuration.post_process(groupings)
 
         return groupings
 

@@ -340,19 +340,14 @@ SELECT (COUNT(*) as ?count) WHERE {{
         )
         groupings = self.populate_groupings(groupings)
         groupings = self.grouping_configuration.post_process(groupings)
-        return groupings
-
-    def prepare_report_groupings(self, groupings):
-        sorted_groupings = sorted(
-            groupings.values(), key=lambda t: (-t.count, t.get_key())
-        )
 
         if self.row_no_group:
             logger.info(
                 "Computing stats for items without grouping...",
                 extra={"step_key": "nogroup"},
             )
-            sorted_groupings.append(self.make_stats_for_no_group())
+            no_group = self.make_stats_for_no_group()
+            groupings[NoGroupGrouping.MARKER] = no_group
             logger.info(
                 "Computing stats for items without grouping done",
                 extra={"phase": "end", "step_key": "nogroup"},
@@ -360,12 +355,20 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         if self.row_totals:
             logger.info("Computing totals...", extra={"step_key": "totals"})
-            sorted_groupings.append(self.make_totals())
+            totals = self.make_totals()
+            groupings[TotalsGrouping.MARKER] = totals
             logger.info(
                 "Computing totals done", extra={"phase": "end", "step_key": "totals"}
             )
 
-        return sorted_groupings
+        return groupings
+
+    def prepare_report_groupings(self, groupings):
+        """Sort groupings by priority then count − special rows always last."""
+        return sorted(
+            groupings.values(),
+            key=lambda t: (t.sort_priority, -t.count, t.get_key()),
+        )
 
     def build_formatter(self, formatter_class=ResultsFormatter, **kwargs):
         return formatter_class(

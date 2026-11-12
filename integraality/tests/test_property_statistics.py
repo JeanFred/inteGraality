@@ -2859,6 +2859,10 @@ class PopulateGroupingsTest(PropertyStatisticsTest):
 
 
 class RetrieveDataTest(PropertyStatisticsTest):
+    def setUp(self):
+        super().setUp()
+        self.stats.row_totals = False
+
     def test_retrieve_data_empty(self):
         result = self.stats.retrieve_data()
         expected = {}
@@ -2922,21 +2926,25 @@ class RetrieveDataTest(PropertyStatisticsTest):
 
 
 class PrepareReportGroupingsTest(PropertyStatisticsTest):
-    def test_prepare_report_groupings_no_totals(self):
-        self.stats.row_totals = False
-        result = self.stats.prepare_report_groupings({})
-        self.assertFalse(
-            any(isinstance(g, TotalsGrouping) for g in result),
-            "TotalsGrouping should not be present when row_totals=False",
-        )
+    def test_sorts_by_count_descending(self):
+        groupings = {
+            "Q1": ItemGrouping(title="Q1", count=5),
+            "Q2": ItemGrouping(title="Q2", count=10),
+        }
+        result = self.stats.prepare_report_groupings(groupings)
+        self.assertEqual(result[0].count, 10)
+        self.assertEqual(result[1].count, 5)
 
-    def test_prepare_report_groupings_with_totals(self):
-        self.stats.row_totals = True
-        result = self.stats.prepare_report_groupings({})
-        self.assertTrue(
-            any(isinstance(g, TotalsGrouping) for g in result),
-            "TotalsGrouping should be present when row_totals=True",
-        )
+    def test_special_rows_sort_last(self):
+        groupings = {
+            TotalsGrouping.MARKER: TotalsGrouping(count=100),
+            "Q1": ItemGrouping(title="Q1", count=5),
+            NoGroupGrouping.MARKER: NoGroupGrouping(count=3),
+        }
+        result = self.stats.prepare_report_groupings(groupings)
+        self.assertIsInstance(result[0], ItemGrouping)
+        self.assertIsInstance(result[1], NoGroupGrouping)
+        self.assertIsInstance(result[2], TotalsGrouping)
 
 
 class BuildFormatterTest(PropertyStatisticsTest):

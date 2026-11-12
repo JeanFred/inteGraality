@@ -52,13 +52,19 @@
             }
 
             function findSection(stepKey) {
-                // Everything before the last underscore is the section name
-                var idx = stepKey.lastIndexOf("_");
-                if (idx > 0) {
-                    var prefix = stepKey.substring(0, idx);
-                    if (document.getElementById("section-" + prefix)) {
-                        return prefix;
-                    }
+                // If the step_key contains a /, everything before the first / is the section.
+                // Otherwise, everything before the last _ is the section name.
+                var slashIdx = stepKey.indexOf("/");
+                var prefix;
+                if (slashIdx > 0) {
+                    prefix = stepKey.substring(0, slashIdx);
+                } else {
+                    var underscoreIdx = stepKey.lastIndexOf("_");
+                    if (underscoreIdx <= 0) return null;
+                    prefix = stepKey.substring(0, underscoreIdx);
+                }
+                if (document.getElementById("section-" + prefix)) {
+                    return prefix;
                 }
                 return null;
             }

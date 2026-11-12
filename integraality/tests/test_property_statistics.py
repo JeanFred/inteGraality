@@ -2,7 +2,7 @@
 
 import unittest
 from collections import OrderedDict
-from unittest.mock import create_autospec, patch
+from unittest.mock import MagicMock, create_autospec, patch
 
 from ..column import (
     DescriptionColumn,
@@ -2744,6 +2744,47 @@ class RunQueryQueueTest(PropertyStatisticsTest):
         self.stats._run_query_queue([good, bad])
         self.assertIn("good", results)
         self.assertIn("bad-recovered", results)
+
+    def test_task_step_key_prefixed_per_pass(self):
+        observed_step_keys = []
+
+        def task():
+            observed_step_keys.append(task.step_key)
+
+        task.step_key = "columns_P31"
+        task.label = "column P31"
+        self.stats._run_query_queue([task])
+        self.assertEqual(observed_step_keys, ["query_pass_1/columns_P31"])
+
+    def test_task_step_key_restored_for_retry(self):
+        calls = []
+
+        def task():
+            calls.append(task.step_key)
+            if len(calls) == 1:
+                raise BackendUnavailableException("transient", query="q")
+
+        task.step_key = "columns_P31"
+        task.label = "column P31"
+        self.stats._run_query_queue([task])
+        self.assertEqual(calls[0], "query_pass_1/columns_P31")
+        self.assertEqual(calls[1], "query_pass_2/columns_P31")
+
+    def test_make_column_task_has_label_attribute(self):
+        def handle_result(q):
+            pass
+
+        t = PropertyStatistics._make_column_task(
+            col=MagicMock(),
+            idx=1,
+            total=3,
+            step_key="columns_P31",
+            label="column P31",
+            query_fn=lambda col: "SELECT ?x WHERE {}",
+            handle_result=handle_result,
+        )
+        self.assertEqual(t.step_key, "columns_P31")
+        self.assertEqual(t.label, "column P31")
 
 
 class PopulateGroupingsTest(PropertyStatisticsTest):

@@ -245,22 +245,27 @@ SELECT (COUNT(*) as ?count) WHERE {{
         return result
 
     @staticmethod
-    def _make_column_task(col, idx, total, step_key, query_fn, handle_result):
+    def _make_column_task(col, idx, total, step_key, label, query_fn, handle_result):
         """Return a callable that runs query_fn(col) and passes the result to handle_result."""
 
         def task():
+            # Read step_key from the attribute rather than closing over the
+            # local variable: _run_query_queue mutates task.step_key to inject
+            # the per-pass prefix before calling.
+            sk = task.step_key
             query = query_fn(col)
             logger.info(
-                f"Querying {step_key}... ({idx}/{total})",
-                extra={"query": query, "step_key": step_key},
+                f"Querying {label}... ({idx}/{total})",
+                extra={"query": query, "step_key": sk},
             )
             handle_result(query)
             logger.info(
-                f"{step_key} done ({idx}/{total})",
-                extra={"phase": "end", "step_key": step_key},
+                f"{label} done ({idx}/{total})",
+                extra={"phase": "end", "step_key": sk},
             )
 
         task.step_key = step_key
+        task.label = label
         return task
 
     def _make_special_row(self, grouping_class, count_fn, column_query_fn, step_label):
@@ -277,6 +282,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
         tasks = []
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
             step_key = f"{step_label}_{column_entry_key}"
+            label = f"{step_label} for column {column_entry_key}"
 
             def handle_result(query, key=column_entry_key):
                 value = self._get_count_from_sparql(query)
@@ -288,6 +294,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
                     idx=i,
                     total=total,
                     step_key=step_key,
+                    label=label,
                     query_fn=column_query_fn,
                     handle_result=handle_result,
                 )
@@ -313,14 +320,35 @@ SELECT (COUNT(*) as ?count) WHERE {{
         )
 
     def _run_query_queue(self, tasks, max_passes=3):
-        """Run tasks, retrying transiently-failed ones up to max_passes times."""
+        """Run tasks, retrying transiently-failed ones up to max_passes times.
+
+        On transient failures (TRANSIENT/TIMEOUT), the task is re-queued for
+        the next pass, up to max_passes total attempts. Non-retryable failures
+        (QUERY, ERROR) are logged and dropped immediately.
+        """
         remaining = list(tasks)
         for attempt in range(max_passes):
             if not remaining:
                 break
+            pass_step_key = f"query_pass_{attempt + 1}"
+            n = len(remaining)
+            logger.info(
+                f"Running {n} column quer{'y' if n == 1 else 'ies'}"
+                + (f" (retry pass {attempt + 1})" if attempt > 0 else "")
+                + "...",
+                extra={"step_key": pass_step_key},
+            )
             next_round = []
             for task in remaining:
-                step_key = getattr(task, "step_key", None)
+                base_step_key = getattr(task, "step_key", None)
+                task_label = getattr(task, "label", base_step_key)
+                prefixed_step_key = (
+                    f"{pass_step_key}/{base_step_key}"
+                    if base_step_key
+                    else pass_step_key
+                )
+                if base_step_key:
+                    task.step_key = prefixed_step_key
                 try:
                     task()
                 except QueryException as e:
@@ -333,15 +361,31 @@ SELECT (COUNT(*) as ?count) WHERE {{
                         and attempt < max_passes - 1
                     ):
                         logger.warning(
-                            f"{step_key}: transient failure, will retry",
-                            extra={"phase": "end", "step_key": step_key, "error": True},
+                            f"{task_label}: transient failure, will retry",
+                            extra={
+                                "phase": "end",
+                                "step_key": prefixed_step_key,
+                                "error": True,
+                            },
                         )
                         next_round.append(task)
                     else:
                         logger.warning(
-                            f"{step_key}: giving up after {attempt + 1} attempt(s): {e}",
-                            extra={"phase": "end", "step_key": step_key, "error": True},
+                            f"{task_label}: giving up after {attempt + 1} attempt(s): {e}",
+                            extra={
+                                "phase": "end",
+                                "step_key": prefixed_step_key,
+                                "error": True,
+                            },
                         )
+                finally:
+                    if base_step_key:
+                        task.step_key = base_step_key
+            logger.info(
+                f"Column quer{'y' if n == 1 else 'ies'} done"
+                + (f" (retry pass {attempt + 1})" if attempt > 0 else ""),
+                extra={"phase": "end", "step_key": pass_step_key},
+            )
             remaining = next_round
 
     def _make_groupings_tasks(self, groupings):
@@ -371,6 +415,7 @@ SELECT (COUNT(*) as ?count) WHERE {{
                     idx=i,
                     total=total,
                     step_key=step_key,
+                    label=f"column {column_entry_key}",
                     query_fn=lambda col: col.get_info_query(self),
                     handle_result=handle_result,
                 )
@@ -409,26 +454,14 @@ SELECT (COUNT(*) as ?count) WHERE {{
         all_tasks = self._make_groupings_tasks(groupings)
 
         if self.row_no_group:
-            logger.info(
-                "Computing stats for items without grouping...",
-                extra={"step_key": "nogroup"},
-            )
             no_group, tasks = self.make_stats_for_no_group()
             all_tasks.extend(tasks)
             groupings[NoGroupGrouping.MARKER] = no_group
-            logger.info(
-                "Computing stats for items without grouping done",
-                extra={"phase": "end", "step_key": "nogroup"},
-            )
 
         if self.row_totals:
-            logger.info("Computing totals...", extra={"step_key": "totals"})
             totals, tasks = self.make_totals()
             all_tasks.extend(tasks)
             groupings[TotalsGrouping.MARKER] = totals
-            logger.info(
-                "Computing totals done", extra={"phase": "end", "step_key": "totals"}
-            )
 
         self._run_query_queue(all_tasks)
         groupings = self.grouping_configuration.post_process(groupings)

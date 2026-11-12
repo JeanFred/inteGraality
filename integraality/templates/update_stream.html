@@ -84,12 +84,13 @@
                     var section = findSection(stepKey);
 
                     if (data.phase === "end" && stepKey) {
+                        var endIcon = data.error ? "❌" : "✅";
                         // End of a section header → collapse the section
                         var sectionEl = document.getElementById("section-" + stepKey);
                         if (sectionEl) {
                             sectionEl.removeAttribute("open");
                             var sectionSummary = sectionEl.querySelector("summary");
-                            sectionSummary.innerHTML = "✅ " + escapeHtml(data.message) +
+                            sectionSummary.innerHTML = endIcon + " " + escapeHtml(data.message) +
                                 " <small class=\"text-muted\">▸ details</small>";
                         } else {
                             // End of an individual step → mutate its icon
@@ -98,10 +99,10 @@
                                 var summary = el.querySelector("summary");
                                 if (summary) {
                                     var foldLabel = stepKey === "save" ? "show wikitext" : "show query";
-                                    summary.innerHTML = "✅ " + escapeHtml(data.message) +
+                                    summary.innerHTML = endIcon + " " + escapeHtml(data.message) +
                                         " <small class=\"text-muted\">▸ " + foldLabel + "</small>";
                                 } else {
-                                    el.innerHTML = "✅ " + renderMessage(data.message, data.url);
+                                    el.innerHTML = endIcon + " " + renderMessage(data.message, data.url);
                                 }
                             }
                         }

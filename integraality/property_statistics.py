@@ -243,58 +243,45 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
         return result
 
-    def make_stats_for_no_group(self):
-        """
-        Query the data for no_group, return the grouping object.
-        """
-        count = self.get_totals_no_grouping()
-        grouping_object = NoGroupGrouping(
+    def _make_special_row(self, grouping_class, count_fn, column_query_fn, step_label):
+        """Build a special grouping row by running count_fn then one query (column_query_fn) per column."""
+        count = count_fn()
+        grouping_object = grouping_class(
             count=count, higher_grouping=self.grouping_configuration.higher_grouping
         )
-
         column_keys = list(self.columns.keys())
         for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
-            query = column_entry.get_info_no_grouping_query(self)
-            step_key = f"nogroup_{column_entry_key}"
+            query = column_query_fn(column_entry)
+            step_key = f"{step_label}_{column_entry_key}"
             logger.info(
-                f"Querying column {column_entry_key} without grouping... ({i}/{len(column_keys)})",
+                f"Querying {step_label} for column {column_entry_key}... ({i}/{len(column_keys)})",
                 extra={"query": query, "step_key": step_key},
             )
             value = self._get_count_from_sparql(query)
             logger.info(
-                f"Column {column_entry_key} without grouping done ({i}/{len(column_keys)})",
+                f"{step_label} for column {column_entry_key} done ({i}/{len(column_keys)})",
                 extra={"phase": "end", "step_key": step_key},
             )
             grouping_object.cells[column_entry_key] = value
-
         return grouping_object
 
-    def make_totals(self):
-        """
-        Query the data for totals, return the grouping object.
-        """
-        count = self.get_totals()
-        grouping_object = TotalsGrouping(
-            count=count,
-            higher_grouping=self.grouping_configuration.higher_grouping,
+    def make_stats_for_no_group(self):
+        """Build the no-group row: items that don't match any grouping."""
+        return self._make_special_row(
+            grouping_class=NoGroupGrouping,
+            count_fn=self.get_totals_no_grouping,
+            column_query_fn=lambda col: col.get_info_no_grouping_query(self),
+            step_label="no-group",
         )
 
-        column_keys = list(self.columns.keys())
-        for i, (column_entry_key, column_entry) in enumerate(self.columns.items(), 1):
-            query = column_entry.get_totals_query(self)
-            step_key = f"totals_{column_entry_key}"
-            logger.info(
-                f"Querying totals for column {column_entry_key}... ({i}/{len(column_keys)})",
-                extra={"query": query, "step_key": step_key},
-            )
-            value = self._get_count_from_sparql(query)
-            logger.info(
-                f"Totals for column {column_entry_key} done ({i}/{len(column_keys)})",
-                extra={"phase": "end", "step_key": step_key},
-            )
-            grouping_object.cells[column_entry_key] = value
-
-        return grouping_object
+    def make_totals(self):
+        """Build the totals row: coverage counts across all items in scope."""
+        return self._make_special_row(
+            grouping_class=TotalsGrouping,
+            count_fn=self.get_totals,
+            column_query_fn=lambda col: col.get_totals_query(self),
+            step_label="totals",
+        )
 
     def populate_groupings(self, groupings):
         column_keys = list(self.columns.keys())

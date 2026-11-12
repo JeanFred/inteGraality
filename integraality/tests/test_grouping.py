@@ -4,7 +4,7 @@ from unittest.mock import create_autospec
 
 from .. import grouping
 from ..grouping_link import LabelGroupingLink
-from ..line import UnknownValueGrouping, YearGrouping
+from ..line import NoGroupGrouping, TotalsGrouping, UnknownValueGrouping, YearGrouping
 from ..sparql_utils import WdqsSparqlQueryEngine
 
 
@@ -650,6 +650,19 @@ class YearRebinningTest(unittest.TestCase):
 
         self.assertIn("UNKNOWN_VALUE", result)
         self.assertEqual(result["UNKNOWN_VALUE"].count, 5)
+
+    def test_rebin_skips_special_row_markers(self):
+        groupings = collections.OrderedDict(
+            (str(year), YearGrouping(title=str(year), count=5))
+            for year in range(1800, 2025)
+        )
+        groupings[NoGroupGrouping.MARKER] = NoGroupGrouping(count=10)
+        groupings[TotalsGrouping.MARKER] = TotalsGrouping(count=100)
+
+        result = self.config.post_process(groupings)
+
+        self.assertIn(NoGroupGrouping.MARKER, result)
+        self.assertIn(TotalsGrouping.MARKER, result)
 
     def test_rebin_resolves_grouping_link_with_rebinned_title(self):
         groupings = collections.OrderedDict(

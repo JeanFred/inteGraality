@@ -1,0 +1,14 @@
+.github/workflows/ci.yml
+  h_bc010f8da910ff 15-16,25,29-32
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "dfae2919d68d466b9247472786e4d66deeb54bed",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

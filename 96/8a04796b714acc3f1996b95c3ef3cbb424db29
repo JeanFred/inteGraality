@@ -1,0 +1,18 @@
+.github/workflows/lint.yml
+  h_bc010f8da910ff 1,2-11,12-14,15,16-18,19-22
+.pre-commit-config.yaml
+  h_bc010f8da910ff 50-51
+.github/workflows/test.yml
+  h_bc010f8da910ff 1-20
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "968a04796b714acc3f1996b95c3ef3cbb424db29",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

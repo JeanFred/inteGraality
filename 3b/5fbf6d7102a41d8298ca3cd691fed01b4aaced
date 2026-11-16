@@ -1,0 +1,16 @@
+.github/workflows/ci.yml
+  h_bc010f8da910ff 1-14,15-16,17-24,25,26-28,29-32
+.pre-commit-config.yaml
+  h_bc010f8da910ff 50-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "3b5fbf6d7102a41d8298ca3cd691fed01b4aaced",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

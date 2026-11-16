@@ -5,6 +5,7 @@ import os
 import threading
 import traceback
 from datetime import UTC, datetime, timedelta
+from urllib.parse import quote
 
 import pywikibot
 from flask import (
@@ -30,6 +31,8 @@ from .pages_processor import (
     PagesProcessor,
     ProcessingException,
     TransientServerException,
+    UnsupportedWikiException,
+    resolve_wiki,
 )
 from .sparql_utils import (
     QLeverSparqlQueryEngine,
@@ -148,12 +151,24 @@ def _args_with_tokens(multi_key, tokens):
     return base
 
 
-def get_qlever_ui_url(page_url):
-    """Return the QLever UI URL for the given wiki page URL."""
-    engine = SparqlEngineBuilder.make(site_url=page_url)
+def get_qlever_ui_url(site_url):
+    """Return the QLever UI URL for the given wiki base URL."""
+    engine = SparqlEngineBuilder.make(site_url=site_url)
     if isinstance(engine, QLeverSparqlQueryEngine):
         return engine.ui_url
     return "https://qlever.dev/wikidata/"
+
+
+def _resolve_wiki_params(wiki, url, page_title):
+    """Resolve wiki=/url= to (base_url, page_url).
+
+    base_url is https://<host>/wiki/: passed to PagesProcessor.
+    page_url is https://<host>/wiki/<page_title>: passed to templates for link-backs.
+    Raises UnsupportedWikiException on invalid/missing/disallowed params.
+    """
+    hostname, base_url = resolve_wiki(wiki=wiki, url=url)
+    page_url = f"https://{hostname}/wiki/{quote(page_title or '', safe=':/')}"
+    return base_url, page_url
 
 
 @app.template_filter("add_prefixes")
@@ -462,22 +477,35 @@ def dashboard():
 
 @app.route("/update")
 def update():
-    page_url = request.args.get("url")
+    wiki = request.args.get("wiki")
+    url = request.args.get("url")
     page_title = request.args.get("page")
+    try:
+        base_url, page_url = _resolve_wiki_params(wiki, url, page_title)
+    except UnsupportedWikiException as e:
+        return (
+            render_template(
+                "update_error.html",
+                page_title=page_title,
+                page_url=None,
+                error_message=e,
+            ),
+            422,
+        )
     if "nostream" in request.args:
-        return _update_sync(page_url, page_title)
+        return _update_sync(base_url, page_title, page_url)
     return render_template(
         "update_stream.html",
         page_title=page_title,
         page_url=page_url,
-        qlever_ui_url=get_qlever_ui_url(page_url),
+        qlever_ui_url=get_qlever_ui_url(base_url),
         sparql_prefixes=add_prefixes_to_query(""),
     )
 
 
-def _update_sync(page_url, page_title):
+def _update_sync(base_url, page_title, page_url):
     try:
-        processor = PagesProcessor(page_url)
+        processor = PagesProcessor(base_url)
         elapsed_time = processor.process_one_page(page_title)
         return render_template(
             "update.html",
@@ -493,7 +521,7 @@ def _update_sync(page_url, page_title):
                 page_url=page_url,
                 error_message=e,
                 query=e.query,
-                qlever_ui_url=get_qlever_ui_url(page_url),
+                qlever_ui_url=get_qlever_ui_url(base_url),
             ),
             422,
         )
@@ -531,11 +559,24 @@ def _update_sync(page_url, page_title):
 
 @app.route("/update/stream")
 def update_stream():
-    page_url = request.args.get("url")
+    wiki = request.args.get("wiki")
+    url = request.args.get("url")
     page_title = request.args.get("page")
+    try:
+        base_url, _page_url = _resolve_wiki_params(wiki, url, page_title)
+    except UnsupportedWikiException as e:
+        return (
+            render_template(
+                "update_error.html",
+                page_title=page_title,
+                page_url=None,
+                error_message=e,
+            ),
+            422,
+        )
 
     def do_update():
-        processor = PagesProcessor(page_url)
+        processor = PagesProcessor(base_url)
         return processor.process_one_page(page_title)
 
     return Response(
@@ -547,13 +588,16 @@ def update_stream():
 
 @app.route("/queries")
 def queries():
-    page_url = request.args.get("url")
+    wiki = request.args.get("wiki")
+    url = request.args.get("url")
     page_title = request.args.get("page")
     column_key = request.args.get("column") or request.args.get("property")
     output_format = request.args.get("format")
     processor = None
+    page_url = None
     try:
-        processor = PagesProcessor(page_url)
+        base_url, page_url = _resolve_wiki_params(wiki, url, page_title)
+        processor = PagesProcessor(base_url)
         stats = processor.make_stats_object_for_page_title(page_title)
         grouping = request.args.get("grouping")
         query_data = stats.get_queries_for_column(column_key, grouping)
@@ -562,7 +606,7 @@ def queries():
         positive_query = query_data["positive_query"]
         negative_query = query_data["negative_query"]
         formatted_predicate = query_data["formatted_predicate"]
-        qlever_ui_url = get_qlever_ui_url(page_url)
+        qlever_ui_url = get_qlever_ui_url(base_url)
 
         if output_format == "json":
             return jsonify(

@@ -61,12 +61,14 @@ class UnsupportedWikiException(ConfigException):
     """The target URL is not a Wikimedia wiki (mistake or SSRF/proxy abuse)."""
 
 
-# Wikis supported today: Wikidata plus Commons/Meta (*.wikimedia.org). Static
-# allowlist -- a security boundary that must run at request entry with no I/O.
-ALLOWED_WIKI_DOMAINS = frozenset(
+# Exact SERVERNAME values of supported wikis. Static allowlist:
+# a security boundary that must run at request entry with no I/O.
+# Widen deliberately when adding support for a new wiki.
+ALLOWED_WIKI_HOSTS = frozenset(
     {
-        "wikidata.org",
-        "wikimedia.org",
+        "www.wikidata.org",
+        "commons.wikimedia.org",
+        "meta.wikimedia.org",
     }
 )
 
@@ -81,12 +83,26 @@ def validate_wiki_url(url):
     if parsed.scheme not in ("http", "https"):
         raise UnsupportedWikiException(f"Unsupported URL scheme: {url!r}")
     host = (parsed.hostname or "").lower()
-    allowed = any(
-        host == domain or host.endswith("." + domain) for domain in ALLOWED_WIKI_DOMAINS
-    )
-    if not allowed:
-        raise UnsupportedWikiException(f"Not a Wikimedia wiki URL: {url!r}")
+    if host not in ALLOWED_WIKI_HOSTS:
+        raise UnsupportedWikiException(f"Not a supported wiki URL: {url!r}")
     return host
+
+
+def resolve_wiki(wiki=None, url=None):
+    """Return (hostname, base_url) from wiki=<hostname> (preferred) or url=<full URL>.
+
+    Validates the host against ALLOWED_WIKI_HOSTS.
+    Raises UnsupportedWikiException if the host is missing, invalid, or not allowed.
+    """
+    if wiki is not None:
+        host = (wiki or "").strip().lower()
+        if host not in ALLOWED_WIKI_HOSTS:
+            raise UnsupportedWikiException(f"Not a supported wiki: {wiki!r}")
+        return host, f"https://{host}/wiki/"
+    if url is not None:
+        host = validate_wiki_url(url)
+        return host, f"https://{host}/wiki/"
+    raise UnsupportedWikiException("No wiki or url parameter provided")
 
 
 def _build_prev_rank_lookup(prev_counts, special_markers):

@@ -23,6 +23,7 @@ from ..pages_processor import (
     UnsupportedWikiException,
     _build_prev_rank_lookup,
     main,
+    resolve_wiki,
     validate_wiki_url,
 )
 from ..sparql_utils import QueryException, QueryTimeoutException, SparqlQueryEngine
@@ -49,8 +50,12 @@ class ValidateWikiUrlTest(unittest.TestCase):
         ]:
             self.assertEqual(validate_wiki_url(url), host)
 
+    def test_rejects_bare_domain(self):
+        # wikidata.org without www. is not in the allowlist.
+        with self.assertRaises(UnsupportedWikiException):
+            validate_wiki_url("https://wikidata.org/wiki/")
+
     def test_rejects_unsupported_wiki_family(self):
-        # Not supported yet -- widen ALLOWED_WIKI_DOMAINS when adding support.
         for url in [
             "https://he.wikipedia.org/wiki/",
             "https://fr.wiktionary.org/wiki/",
@@ -62,15 +67,9 @@ class ValidateWikiUrlTest(unittest.TestCase):
         with self.assertRaises(UnsupportedWikiException):
             validate_wiki_url("https://proxy.example/https/www.wikidata.org/wiki/")
 
-    def test_rejects_lookalike_suffix(self):
-        # A host that merely contains a Wikimedia domain but isn't a subdomain.
-        with self.assertRaises(UnsupportedWikiException):
-            validate_wiki_url("https://wikidata.org.evil.example/wiki/")
-
-    def test_rejects_proxy_encoding_wiki_in_subdomain(self):
-        # Open proxies encode the real target into their own host, e.g.
-        # www.wikidata.org.<proxy> or dash-style www-wikidata-org.<proxy>.
+    def test_rejects_lookalike_host(self):
         for url in [
+            "https://wikidata.org.evil.example/wiki/",
             "https://www.wikidata.org.proxy.example/wiki/Foo",
             "https://www-wikidata-org.proxy.example/wiki/Foo",
         ]:
@@ -88,6 +87,51 @@ class ValidateWikiUrlTest(unittest.TestCase):
     def test_constructor_rejects_bad_url(self):
         with self.assertRaises(UnsupportedWikiException):
             PagesProcessor(url="https://proxy.example/https/www.wikidata.org/wiki/")
+
+
+class ResolveWikiTest(unittest.TestCase):
+    def test_wiki_param_returns_hostname_and_base_url(self):
+        for host, expected_base in [
+            ("www.wikidata.org", "https://www.wikidata.org/wiki/"),
+            ("commons.wikimedia.org", "https://commons.wikimedia.org/wiki/"),
+            ("meta.wikimedia.org", "https://meta.wikimedia.org/wiki/"),
+        ]:
+            hostname, base_url = resolve_wiki(wiki=host)
+            self.assertEqual(hostname, host)
+            self.assertEqual(base_url, expected_base)
+
+    def test_url_param_fallback(self):
+        hostname, base_url = resolve_wiki(url="https://www.wikidata.org/wiki/Foo")
+        self.assertEqual(hostname, "www.wikidata.org")
+        self.assertEqual(base_url, "https://www.wikidata.org/wiki/")
+
+    def test_wiki_takes_precedence_over_url(self):
+        hostname, _base_url = resolve_wiki(
+            wiki="commons.wikimedia.org",
+            url="https://www.wikidata.org/wiki/Foo",
+        )
+        self.assertEqual(hostname, "commons.wikimedia.org")
+
+    def test_rejects_disallowed_host_via_wiki(self):
+        for host in ["evil.example", "wikidata.org", "https://www.wikidata.org/wiki/"]:
+            with self.assertRaises(UnsupportedWikiException):
+                resolve_wiki(wiki=host)
+
+    def test_rejects_disallowed_host_via_url(self):
+        with self.assertRaises(UnsupportedWikiException):
+            resolve_wiki(url="https://evil.example/wiki/Foo")
+
+    def test_rejects_bytes_url(self):
+        with self.assertRaises(UnsupportedWikiException):
+            resolve_wiki(url=b"https://evil.example/wiki/")
+
+    def test_rejects_neither_param(self):
+        with self.assertRaises(UnsupportedWikiException):
+            resolve_wiki()
+
+    def test_normalises_wiki_to_lowercase(self):
+        hostname, _ = resolve_wiki(wiki="WWW.WIKIDATA.ORG")
+        self.assertEqual(hostname, "www.wikidata.org")
 
 
 class ProcessortTest(unittest.TestCase):

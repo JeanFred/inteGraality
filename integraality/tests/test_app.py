@@ -1458,7 +1458,8 @@ class PagesProcessorTests(AppTests):
         self.mock_pages_processor = patcher.start()
         self.addCleanup(patcher.stop)
         self.page_title = "Foo"
-        self.page_url = f"https://wikidata.org/wiki/{self.page_title}"
+        self.page_url = f"https://www.wikidata.org/wiki/{self.page_title}"
+        self.base_url = "https://www.wikidata.org/wiki/"
         self.linked_page = f'<a href="{self.page_url}">{self.page_title}</a>'
 
     def assertSuccessPage(self, response, message):
@@ -1490,12 +1491,27 @@ class UpdateTests(PagesProcessorTests):
         self.assertIn("EventSource", contents)
         self.assertIn(self.page_title, contents)
 
+    def test_update_stream_page_wiki_param(self):
+        response = self.app.get(f"/update?page={self.page_title}&wiki=www.wikidata.org")
+        self.assertEqual(response.status_code, 200)
+        contents = response.get_data(as_text=True)
+        self.assertIn("EventSource", contents)
+        self.assertIn(self.page_title, contents)
+
     def test_update_stream_endpoint(self):
         self.mock_pages_processor.return_value.process_one_page.return_value = 1.23
         response = self.app.get(
             f"/update/stream?page={self.page_title}&url={self.page_url}"
         )
         self.assertIn("text/event-stream", response.content_type)
+
+    def test_update_stream_endpoint_wiki_param(self):
+        self.mock_pages_processor.return_value.process_one_page.return_value = 1.23
+        response = self.app.get(
+            f"/update/stream?page={self.page_title}&wiki=www.wikidata.org"
+        )
+        self.assertIn("text/event-stream", response.content_type)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
 
     def _parse_sse_events(self, response):
         """Parse SSE events from a streaming response into a list of dicts."""
@@ -1579,7 +1595,18 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get(
             f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
+        self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
+            page_title=self.page_title
+        )
+        message = f"Updated page {self.linked_page}"
+        self.assertSuccessPage(response, message)
+
+    def test_update_success_wiki_param(self):
+        response = self.app.get(
+            f"/update?page={self.page_title}&wiki=www.wikidata.org&nostream"
+        )
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1593,7 +1620,7 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get(
             f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1605,7 +1632,7 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get(
             f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1619,12 +1646,12 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get(
             f"/update?page={self.page_title}&url={self.page_url}&nostream"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
         expected = (
-            '<p>Something went wrong when updating page <a href="https://wikidata.org/wiki/Foo">Foo</a>.</p>\n'
+            '<p>Something went wrong when updating page <a href="https://www.wikidata.org/wiki/Foo">Foo</a>.</p>\n'
             "<p>The following SPARQL query timed out or returned no result:</p>\n"
             "<pre><code>SELECT X</code></pre>\n"
         )
@@ -1640,7 +1667,9 @@ class UpdateTests(PagesProcessorTests):
         response = self.app.get(
             f"/update?page={self.page_title}&url={page_url}&nostream"
         )
-        self.mock_pages_processor.assert_called_once_with(page_url)
+        self.mock_pages_processor.assert_called_once_with(
+            "https://meta.wikimedia.org/wiki/"
+        )
         self.mock_pages_processor.return_value.process_one_page.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1701,7 +1730,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=Q2"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1717,6 +1746,20 @@ class QueriesTests(PagesProcessorTests):
             '<a href="https://wikidata.org/wiki/Property:P1">P1</a> − the ones lacking it are your worklist.'
         )
         self.assertPresent(expected_body, content)
+
+    def test_queries_success_wiki_param(self):
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.return_value = self.mock_property_statistics
+        self.mock_property_statistics.get_queries_for_column.return_value = (
+            self._make_query_data(self.column_P1)
+        )
+        response = self.app.get(
+            f"/queries?page={self.page_title}&wiki=www.wikidata.org&column=P1&grouping=Q2"
+        )
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
+        self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
+            page_title=self.page_title
+        )
+        self.assertEqual(response.status_code, 200)
 
     def test_queries_button_hrefs(self):
         # The button→query wiring: each engine's positive/negative button must
@@ -1820,7 +1863,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=None"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1845,7 +1888,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping="
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1866,7 +1909,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping=Q2"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1878,7 +1921,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&property=P1&grouping=Q2"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )
@@ -1906,7 +1949,7 @@ class QueriesTests(PagesProcessorTests):
         response = self.app.get(
             f"/queries?page={self.page_title}&url={self.page_url}&column=P1&grouping=UNKNOWN_VALUE"
         )
-        self.mock_pages_processor.assert_called_once_with(self.page_url)
+        self.mock_pages_processor.assert_called_once_with(self.base_url)
         self.mock_pages_processor.return_value.make_stats_object_for_page_title.assert_called_once_with(
             page_title=self.page_title
         )

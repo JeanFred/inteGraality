@@ -74,7 +74,9 @@ The pre-commit hook automatically regenerates `requirements.txt` and `requiremen
 
 ## Code style
 
-This project uses [ruff](https://docs.astral.sh/ruff/) for formatting and linting Python code. This is enforced via [pre-commit hooks](https://pre-commit.com/).
+Python code follows the [Ruff formatter style](https://docs.astral.sh/ruff/formatter/#style-guide) (Black-compatible and PEP 8-based) and is checked by the [Ruff Linter](https://docs.astral.sh/ruff/linter/). Both are enforced via [pre-commit hooks](https://pre-commit.com/) and in CI.
+
+Non-Python files are covered by various formatters, enforced by pre-commit hooks.
 
 ## Architecture overview
 

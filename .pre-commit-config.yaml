@@ -47,6 +47,8 @@ repos:
     rev: 0.39.0
     hooks:
       - id: check-compose-spec
+      - id: check-github-workflows
+        args: ["--verbose"]
       - id: check-jsonschema
         name: Validate toolinfo.json
         files: (^|/)toolinfo\.json$

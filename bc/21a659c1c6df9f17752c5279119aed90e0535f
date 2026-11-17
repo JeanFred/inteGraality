@@ -1,0 +1,20 @@
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 26,53-57,70,72,92-136
+integraality/app.py
+  h_bc010f8da910ff 8,34-35,154-156,162-173,480-481,483-494,496,501,506,508,524,562-563,565-576,579,591-592,597,599-600,609
+integraality/tests/test_app.py
+  h_bc010f8da910ff 1461-1462,1494-1500,1508-1515,1598-1609,1623,1635,1649,1654,1670-1672,1733,1750-1763,1866,1891,1912,1924,1952
+integraality/pages_processor.py
+  h_bc010f8da910ff 64-67,69-71,86-87,91-107
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "bc21a659c1c6df9f17752c5279119aed90e0535f",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

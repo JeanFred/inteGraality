@@ -198,9 +198,7 @@ class DashboardRegistry:
         sql = "SELECT id, hostname, name FROM wikis"
         with self.conn.cursor() as cur:
             cur.execute(sql)
-            self._wiki_cache = {
-                row["hostname"]: (row["id"], row["name"]) for row in cur.fetchall()
-            }
+            return {row["hostname"]: (row["id"], row["name"]) for row in cur.fetchall()}
 
     def _get_or_create_wiki(self, site_hostname, site_name):
         """Return the wikis.id for a hostname, creating the row if new.
@@ -209,7 +207,7 @@ class DashboardRegistry:
         name self-heals via UPDATE.
         """
         if self._wiki_cache is None:
-            self._load_wiki_cache()
+            self._wiki_cache = self._load_wiki_cache()
 
         if site_hostname in self._wiki_cache:
             wiki_id, cached_name = self._wiki_cache[site_hostname]

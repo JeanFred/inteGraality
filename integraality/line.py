@@ -195,6 +195,8 @@ class NoGroupGrouping(Grouping):
 class ItemGrouping(_RankedGroupingMixin, Grouping):
     def format_higher_grouping_text(self, grouping_type):
         higher_grouping_value = self.higher_grouping
+        if higher_grouping_value is None:
+            return "|\n"
         type_mapping = {
             "country": f"{{{{Flag|{higher_grouping_value}}}}}",
         }

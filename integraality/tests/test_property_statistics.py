@@ -26,7 +26,7 @@ from ..line import (
     UnknownValueGrouping,
     YearGrouping,
 )
-from ..property_statistics import PropertyStatistics
+from ..property_statistics import PropertyStatistics, _ColumnTask
 from ..reference_check import (
     AllPropertiesReferenceCheck,
     AnyOfPropertiesReferenceCheck,
@@ -2747,25 +2747,34 @@ class RunQueryQueueTest(PropertyStatisticsTest):
 
     def test_task_step_key_prefixed_per_pass(self):
         observed_step_keys = []
-
-        def task():
-            observed_step_keys.append(task.step_key)
-
-        task.step_key = "columns_P31"
-        task.label = "column P31"
+        task = _ColumnTask(
+            col=None,
+            idx=1,
+            total=1,
+            step_key="columns_P31",
+            label="column P31",
+            query_fn=lambda col: observed_step_keys.append(task.step_key) or "",
+            handle_result=lambda q: None,
+        )
         self.stats._run_query_queue([task])
         self.assertEqual(observed_step_keys, ["query_pass_1/columns_P31"])
 
     def test_task_step_key_restored_for_retry(self):
         calls = []
 
-        def task():
-            calls.append(task.step_key)
+        def handle_result(query):
             if len(calls) == 1:
                 raise BackendUnavailableException("transient", query="q")
 
-        task.step_key = "columns_P31"
-        task.label = "column P31"
+        task = _ColumnTask(
+            col=None,
+            idx=1,
+            total=1,
+            step_key="columns_P31",
+            label="column P31",
+            query_fn=lambda col: calls.append(task.step_key) or "",
+            handle_result=handle_result,
+        )
         self.stats._run_query_queue([task])
         self.assertEqual(calls[0], "query_pass_1/columns_P31")
         self.assertEqual(calls[1], "query_pass_2/columns_P31")

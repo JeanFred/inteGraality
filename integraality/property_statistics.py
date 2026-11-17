@@ -28,6 +28,31 @@ from .sparql_utils import (
 logger = logging.getLogger("integraality.update")
 
 
+class _ColumnTask:
+    """Callable task that runs one column query, with mutable step_key for pass prefixing."""
+
+    def __init__(self, col, idx, total, step_key, label, query_fn, handle_result):
+        self.step_key = step_key
+        self.label = label
+        self._col = col
+        self._idx = idx
+        self._total = total
+        self._query_fn = query_fn
+        self._handle_result = handle_result
+
+    def __call__(self):
+        query = self._query_fn(self._col)
+        logger.info(
+            f"Querying {self.label}... ({self._idx}/{self._total})",
+            extra={"query": query, "step_key": self.step_key},
+        )
+        self._handle_result(query)
+        logger.info(
+            f"{self.label} done ({self._idx}/{self._total})",
+            extra={"phase": "end", "step_key": self.step_key},
+        )
+
+
 class PropertyStatistics:
     """
     Generate statitics
@@ -246,27 +271,16 @@ SELECT (COUNT(*) as ?count) WHERE {{
 
     @staticmethod
     def _make_column_task(col, idx, total, step_key, label, query_fn, handle_result):
-        """Return a callable that runs query_fn(col) and passes the result to handle_result."""
-
-        def task():
-            # Read step_key from the attribute rather than closing over the
-            # local variable: _run_query_queue mutates task.step_key to inject
-            # the per-pass prefix before calling.
-            sk = task.step_key
-            query = query_fn(col)
-            logger.info(
-                f"Querying {label}... ({idx}/{total})",
-                extra={"query": query, "step_key": sk},
-            )
-            handle_result(query)
-            logger.info(
-                f"{label} done ({idx}/{total})",
-                extra={"phase": "end", "step_key": sk},
-            )
-
-        task.step_key = step_key
-        task.label = label
-        return task
+        """Return a _ColumnTask that runs query_fn(col) and passes the result to handle_result."""
+        return _ColumnTask(
+            col=col,
+            idx=idx,
+            total=total,
+            step_key=step_key,
+            label=label,
+            query_fn=query_fn,
+            handle_result=handle_result,
+        )
 
     def _make_special_row(self, grouping_class, count_fn, column_query_fn, step_label):
         """Build a special grouping row object and return it with its per-column tasks."""

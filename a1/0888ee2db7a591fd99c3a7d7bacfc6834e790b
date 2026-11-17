@@ -1,0 +1,14 @@
+integraality/config_assembler.py
+  h_bc010f8da910ff 160
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a10888ee2db7a591fd99c3a7d7bacfc6834e790b",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

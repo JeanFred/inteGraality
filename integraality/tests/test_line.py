@@ -31,24 +31,31 @@ class AbstractLineTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
 
+class _ConcreteGrouping(line.Grouping):
+    """Minimal concrete Grouping for testing base class behaviour."""
+
+    def heading(self):
+        return "test"
+
+
 class GroupingTest(unittest.TestCase):
     def test(self):
-        line.Grouping(count=1)
+        _ConcreteGrouping(count=1)
 
     def test_format_count_cell(self):
-        grouping = line.Grouping(count=1, title="smth")
+        grouping = _ConcreteGrouping(count=1, title="smth")
         result = grouping.format_count_cell()
         expected = "| 1 \n"
         self.assertEqual(result, expected)
 
     def test_format_count_cell_with_grouping_link(self):
-        grouping = line.Grouping(count=1, grouping_link="Foo/smth", title="smth")
+        grouping = _ConcreteGrouping(count=1, grouping_link="Foo/smth", title="smth")
         result = grouping.format_count_cell()
         expected = "| [[Foo/smth|1]] \n"
         self.assertEqual(result, expected)
 
     def test_format_count_cell_with_external_grouping_link(self):
-        grouping = line.Grouping(
+        grouping = _ConcreteGrouping(
             count=10,
             grouping_link="https://scholia.toolforge.org/publisher/Q123",
             title="Q123",
@@ -58,7 +65,7 @@ class GroupingTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_postive_query(self):
-        grouping = line.Grouping(count=1)
+        grouping = _ConcreteGrouping(count=1)
         result = grouping.postive_query(
             selector_sparql="wdt:P31 wd:Q39715",
             select_clause="?entity ?entityLabel ?value ?valueLabel",
@@ -72,7 +79,7 @@ class GroupingTest(unittest.TestCase):
         self.assertEqual(result, expected)
 
     def test_negative_query(self):
-        grouping = line.Grouping(count=1)
+        grouping = _ConcreteGrouping(count=1)
         result = grouping.negative_query(
             selector_sparql="wdt:P31 wd:Q39715",
             select_clause="?entity ?entityLabel",

@@ -2,6 +2,7 @@
 
 import collections
 import re
+from abc import ABC, abstractmethod
 
 from .sparql_utils import UNKNOWN_VALUE_PREFIX
 
@@ -51,7 +52,7 @@ class _RankedGroupingMixin(_DiffCellMixin):
         return f"| {position} \n"
 
 
-class Grouping(AbstractLine):
+class Grouping(AbstractLine, ABC):
     is_linkable = True
     sort_priority = 0
 
@@ -111,6 +112,8 @@ class Grouping(AbstractLine):
             return f"| {self.count} \n"
 
     def format_grouping_link(self):
+        if self.grouping_link is None:
+            return f"| {self.count} \n"
         if self.grouping_link.startswith(("http://", "https://")):
             return f"| [{self.grouping_link} {self.count}] \n"
         return f"| [[{self.grouping_link}|{self.count}]] \n"
@@ -134,6 +137,12 @@ class Grouping(AbstractLine):
     def grouping_bind(self, grouping):
         """SPARQL BIND for ?grouping in drill-down queries. Override in subclasses."""
         return ""
+
+    @abstractmethod
+    def heading(self): ...
+
+    def format_higher_grouping_text(self, grouping_type):
+        return "|\n"
 
     def negative_query(
         self, selector_sparql, select_clause, grouping_predicate=None, grouping=None
@@ -210,7 +219,7 @@ class ItemGrouping(_RankedGroupingMixin, Grouping):
                 r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$",
                 higher_grouping_value,
             )
-            image_name = match.groups()[0]
+            image_name = match.groups()[0]  # ty: ignore[missing-union-attribute]
             higher_grouping_text = f"[[File:{image_name}|center|100px]]"
             higher_grouping_value = image_name
         elif grouping_type in type_mapping:
@@ -270,7 +279,7 @@ class YearGrouping(_RankedGroupingMixin, Grouping):
     def heading(self):
         if self.time_span == 1:
             return f"{self.title}"
-        title = int(self.title)
+        title = int(self.title)  # ty: ignore[invalid-argument-type]
         if self.time_span >= 1_000_000 and title % 1_000_000 == 0:
             return f"{title // 1_000_000} Ma"
         if self.time_span >= 10_000 and title % 1_000 == 0:

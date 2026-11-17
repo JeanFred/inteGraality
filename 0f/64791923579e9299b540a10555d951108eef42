@@ -1,0 +1,14 @@
+integraality/tests/test_grouping.py
+  h_bc010f8da910ff 7-13,596,649,661
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0f64791923579e9299b540a10555d951108eef42",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

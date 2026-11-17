@@ -46,7 +46,7 @@ def get_connection():
         import toolforge
 
         db_name = os.environ.get("DB_NAME", "s54041__integraality_p")
-        return toolforge.toolsdb(db_name, cursorclass=DictCursor)
+        return toolforge.toolsdb(db_name, cursorclass=DictCursor)  # ty: ignore[invalid-argument-type] − toolforge stub incorrectly types all args as str
 
     import pymysql
 

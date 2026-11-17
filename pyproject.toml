@@ -37,7 +37,7 @@ lint.ignore = [
   "S301",   # pickle cache on shared Toolforge Redis; accepted risk
   "S608",   # false positive: f-strings interpolate internal constants, not user input
 ]
-lint.per-file-ignores."integraality/tests/test_sparql_functional.py" = [ "S101" ]
+lint.per-file-ignores."integraality/tests/*.py" = [ "S101" ]
 
 [tool.pytest]
 ini_options.addopts = "-m 'not functional' --disable-socket"

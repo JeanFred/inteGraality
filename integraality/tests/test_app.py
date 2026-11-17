@@ -1,8 +1,10 @@
 import json
 import re
 import unittest
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from html.parser import HTMLParser
+from typing import cast
 from unittest.mock import patch
 
 from .. import column
@@ -61,7 +63,10 @@ class OlderThanTestTests(unittest.TestCase):
     the DB) to now; checked here on either side of the threshold."""
 
     def setUp(self):
-        self.older_than = app.jinja_env.tests["older_than"]
+        self.older_than = cast(
+            Callable[[datetime | None, int], bool],
+            app.jinja_env.tests["older_than"],
+        )
         self.now = datetime.now(UTC).replace(tzinfo=None)
 
     def test_recent_is_not_older(self):
@@ -221,6 +226,7 @@ class BasicTests(AppTests):
             re.DOTALL,
         )
         self.assertIsNotNone(card)
+        assert card is not None
         self.assertIn('href="/dashboards"', card.group(0))
         # Recent dashboard links to its history page.
         self.assertIn(

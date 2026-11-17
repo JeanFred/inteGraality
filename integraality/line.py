@@ -128,7 +128,7 @@ class Grouping(AbstractLine):
         query.extend(self.query_filter_out_fragment(grouping_predicate, grouping))
         return "\n".join(query)
 
-    def query_filter_out_fragment(self, grouping_predicate=None, grouping=None):
+    def query_filter_out_fragment(self, grouping_predicate, grouping):
         return []
 
     def grouping_bind(self, grouping):

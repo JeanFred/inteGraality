@@ -372,6 +372,11 @@ class FormatHigherGroupingTextTest(unittest.TestCase):
         expected = '| data-sort-value="US%20CDC%20logo.svg"| [[File:US%20CDC%20logo.svg|center|100px]]\n'
         self.assertEqual(result, expected)
 
+    def test_format_higher_grouping_text_none_higher_grouping(self):
+        grouping = line.ItemGrouping(count=1, higher_grouping=None)
+        result = grouping.format_higher_grouping_text(None)
+        self.assertEqual(result, "|\n")
+
 
 class ItemGroupingListeriaTest(unittest.TestCase):
     def test_format_listeria_wikitext(self):

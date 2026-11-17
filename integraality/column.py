@@ -40,6 +40,8 @@ def split_value_traversal(value):
     if value is None or "~" not in value:
         return value, None
     match = VALUE_TRAVERSAL_RE.match(value)
+    if match is None:
+        raise ColumnSyntaxException(f"Invalid traversal value: {value!r}")
     return match.group(1), f"{match.group(2)}{match.group(3)}"
 
 

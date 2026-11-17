@@ -10,6 +10,7 @@ from ..column import (
     QualifierColumn,
     ReferenceColumn,
     SitelinkColumn,
+    split_value_traversal,
 )
 from ..grouping import GroupingConfiguration, ItemGroupingType
 from ..property_statistics import PropertyStatistics
@@ -20,6 +21,24 @@ from ..reference_check import (
     GoodReferenceCheck,
     PropertyReferenceCheck,
 )
+
+
+class TestSplitValueTraversal(unittest.TestCase):
+    def test_no_tilde_returns_value_and_none(self):
+        self.assertEqual(split_value_traversal("Q42"), ("Q42", None))
+
+    def test_none_returns_none_and_none(self):
+        self.assertEqual(split_value_traversal(None), (None, None))
+
+    def test_valid_traversal_splits_correctly(self):
+        self.assertEqual(split_value_traversal("Q42~P279*"), ("Q42", "P279*"))
+
+    def test_valid_traversal_no_quantifier(self):
+        self.assertEqual(split_value_traversal("Q42~P279"), ("Q42", "P279"))
+
+    def test_malformed_traversal_raises(self):
+        with self.assertRaises(ColumnSyntaxException):
+            split_value_traversal("foo~bar")
 
 
 class PropertyStatisticsTest(unittest.TestCase):

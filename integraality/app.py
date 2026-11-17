@@ -136,7 +136,7 @@ def _feature_chips(feature_filters):
                     "key": key,
                     "label": label,
                     "value": value,
-                    "remove_url": url_for("dashboards", **remaining),
+                    "remove_url": url_for("dashboards", **remaining),  # ty: ignore[invalid-argument-type]
                 }
             )
     return chips
@@ -245,7 +245,7 @@ def index():
 def browse():
     # /browse was the original (published) name; /dashboards is now canonical.
     # Redirect so existing links/bookmarks keep working, carrying any filters.
-    return redirect(url_for("dashboards", **request.args), code=301)
+    return redirect(url_for("dashboards", **request.args), code=301)  # ty: ignore[invalid-argument-type]
 
 
 @app.route("/dashboards")

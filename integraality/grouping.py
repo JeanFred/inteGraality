@@ -240,6 +240,7 @@ class GroupingConfiguration:
 
     @property
     def line_type(self):
+        assert self.grouping_type is not None  # noqa: S101
         return self.grouping_type.line_type
 
     def __eq__(self, other):
@@ -255,9 +256,11 @@ class GroupingConfiguration:
         return self.predicate
 
     def get_grouping_selector(self):
+        assert self.grouping_type is not None  # noqa: S101
         return self.grouping_type.get_grouping_selector(self.get_predicate())
 
     def post_process(self, groupings):
+        assert self.grouping_type is not None  # noqa: S101
         return self.grouping_type.post_process(groupings)
 
     def format_predicate_html(self):
@@ -270,6 +273,7 @@ class GroupingConfiguration:
         return f"<tt>{self.predicate}</tt>"
 
     def get_values_clause(self):
+        assert self.grouping_type is not None  # noqa: S101
         return self.grouping_type.get_values_clause(self.explicit_groupings)
 
     def get_grouping_information_query(self, selector_sparql):

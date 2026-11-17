@@ -37,6 +37,8 @@ def run_with_sse(func, logger_name="integraality.update"):
 
     class ThreadFilter(logging.Filter):
         def filter(self, record):
+            if worker_thread is None:
+                return False
             return record.thread == worker_thread.ident
 
     handler.addFilter(ThreadFilter())

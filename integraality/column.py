@@ -3,6 +3,7 @@
 import json
 import os
 import re
+from abc import ABC, abstractmethod
 
 from .reference_check import (
     AllPropertiesReferenceCheck,
@@ -295,7 +296,7 @@ class PropertySourceColumn:
         return base
 
 
-class AbstractColumn:
+class AbstractColumn(ABC):
     def get_info_query(self, property_statistics):
         """
         Get the usage counts for a column for the groupings
@@ -356,6 +357,15 @@ SELECT (COUNT(*) AS ?count) WHERE {{
 
     def make_column_header(self):
         return f'! data-sort-type="number"|{self.get_column_label()}\n'
+
+    @abstractmethod
+    def get_filter_for_info(self): ...
+
+    @abstractmethod
+    def get_column_label(self): ...
+
+    @abstractmethod
+    def get_type_name(self): ...
 
 
 class PropertyColumn(AbstractColumn):
@@ -743,6 +753,9 @@ class TextColumn(AbstractColumn):
 """,
             ["?entity"],
         )
+
+    @abstractmethod
+    def get_selector(self): ...
 
 
 class LabelColumn(TextColumn):

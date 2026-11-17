@@ -196,9 +196,9 @@ class PropertyReferenceCheck(ReferenceCheck):
 class MultiPropertyReferenceCheck(ReferenceCheck):
     """Base for reference checks involving a list of properties (with optional values)."""
 
-    _key_separator = NotImplemented
-    _label_separator = NotImplemented
-    _html_separator = NotImplemented
+    _key_separator: ClassVar[str]
+    _label_separator: ClassVar[str]
+    _html_separator: ClassVar[str]
 
     def __init__(self, properties):
         """Properties is a list of (property, value) tuples, e.g. [("P248", "Q135436770"), ("P813", None)]."""

@@ -12,7 +12,7 @@ from ..column import ColumnMaker, PropertyColumn, PropertySourceColumn
 from ..column_source import ColumnSourceException
 from ..config import ParsedConfig
 from ..grouping import GroupingConfiguration, ItemGroupingType
-from ..line import ItemGrouping, NoGroupGrouping, TotalsGrouping
+from ..line import Grouping, ItemGrouping, NoGroupGrouping, TotalsGrouping
 from ..pages_processor import (
     ConfigException,
     NoEndTemplateException,
@@ -1260,7 +1260,9 @@ class TestComputeDiffs(unittest.TestCase):
         self.processor = PagesProcessor(cache_client=fake_cache_client)
 
     def _make_report_groupings(self, items):
-        groupings = [ItemGrouping(count=count, title=title) for title, count in items]
+        groupings: list[Grouping] = [
+            ItemGrouping(count=count, title=title) for title, count in items
+        ]
         groupings.append(NoGroupGrouping(count=10))
         groupings.append(TotalsGrouping(count=sum(c for _, c in items) + 10))
         return groupings

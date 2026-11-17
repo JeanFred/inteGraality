@@ -3,6 +3,7 @@ Grouping link strategy classes.
 """
 
 import re
+from abc import ABC
 
 from .sparql_utils import get_label_for_variable
 
@@ -42,7 +43,7 @@ class GroupingLinkMaker:
         )
 
 
-class AbstractGroupingLink:
+class AbstractGroupingLink(ABC):
     """Base class for grouping link strategies."""
 
     def __init__(self, template):
@@ -56,6 +57,8 @@ class AbstractGroupingLink:
 
     def get_value(self, qid, resultitem):
         raise NotImplementedError
+
+    placeholder: str
 
     def resolve(self, qid, resultitem):
         value = self.get_value(qid, resultitem)
@@ -84,6 +87,8 @@ class IdGroupingLink(AbstractGroupingLink):
 
 class SparqlGroupingLink(AbstractGroupingLink):
     """Base class for strategies that fetch a value via SPARQL."""
+
+    placeholder: str
 
     def get_select_clause(self):
         return "?grouping_link_value"

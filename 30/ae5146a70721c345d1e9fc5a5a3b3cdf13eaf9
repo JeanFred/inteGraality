@@ -1,0 +1,18 @@
+integraality/sse.py
+  h_bc010f8da910ff 40
+integraality/grouping.py
+  h_bc010f8da910ff 243,258,261,273
+integraality/app.py
+  h_bc010f8da910ff 139,248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "30ae5146a70721c345d1e9fc5a5a3b3cdf13eaf9",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

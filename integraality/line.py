@@ -211,15 +211,11 @@ class ItemGrouping(_RankedGroupingMixin, Grouping):
         }
         if re.match(r"Q\d+", higher_grouping_value):
             higher_grouping_text = f"{{{{Q|{higher_grouping_value}}}}}"
-        elif re.match(
+        elif match := re.match(
             r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$",
             higher_grouping_value,
         ):
-            match = re.match(
-                r"http://commons.wikimedia.org/wiki/Special:FilePath/(.*?)$",
-                higher_grouping_value,
-            )
-            image_name = match.groups()[0]  # ty: ignore[missing-union-attribute]
+            image_name = match.groups()[0]
             higher_grouping_text = f"[[File:{image_name}|center|100px]]"
             higher_grouping_value = image_name
         elif grouping_type in type_mapping:
@@ -279,7 +275,8 @@ class YearGrouping(_RankedGroupingMixin, Grouping):
     def heading(self):
         if self.time_span == 1:
             return f"{self.title}"
-        title = int(self.title)  # ty: ignore[invalid-argument-type]
+        assert self.title is not None  # noqa: S101 — YearGrouping always has title set
+        title = int(self.title)
         if self.time_span >= 1_000_000 and title % 1_000_000 == 0:
             return f"{title // 1_000_000} Ma"
         if self.time_span >= 10_000 and title % 1_000 == 0:

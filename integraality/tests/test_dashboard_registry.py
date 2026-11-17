@@ -1864,7 +1864,7 @@ class RunResultTest(unittest.TestCase):
     def test_failed_run_must_carry_an_error_category(self):
         # FAIL => error_category: the factory makes it a required argument.
         with self.assertRaises(TypeError):
-            RunResult.fail(trigger_source="WEB", duration_ms=1)
+            RunResult.fail(trigger_source="WEB", duration_ms=1)  # ty: ignore[missing-argument] — intentionally omitted to verify TypeError
 
     def test_ok_sets_status_and_fields(self):
         run = RunResult.ok(

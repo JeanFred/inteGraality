@@ -1,0 +1,22 @@
+integraality/tests/test_config.py
+  h_bc010f8da910ff 33
+integraality/tests/test_config_facets.py
+  h_bc010f8da910ff 245
+integraality/tests/test_grouping_page_creator.py
+  h_bc010f8da910ff 59,61-63
+integraality/tests/test_pages_processor.py
+  h_bc010f8da910ff 685
+integraality/tests/test_runs_backfiller.py
+  h_bc010f8da910ff 109,119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1bead44f9e63e64b3182dd16b5352417483aedcc",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

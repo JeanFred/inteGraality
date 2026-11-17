@@ -4,7 +4,13 @@ from unittest.mock import create_autospec
 
 from .. import grouping
 from ..grouping_link import LabelGroupingLink
-from ..line import NoGroupGrouping, TotalsGrouping, UnknownValueGrouping, YearGrouping
+from ..line import (
+    Grouping,
+    NoGroupGrouping,
+    TotalsGrouping,
+    UnknownValueGrouping,
+    YearGrouping,
+)
 from ..sparql_utils import WdqsSparqlQueryEngine
 
 
@@ -587,7 +593,7 @@ class YearRebinningTest(unittest.TestCase):
         self.assertEqual(result["1900/10"].time_span, 10)
 
     def test_ignores_unknown_value(self):
-        groupings = collections.OrderedDict(
+        groupings: collections.OrderedDict[str, Grouping] = collections.OrderedDict(
             (str(year), YearGrouping(title=str(year), count=5))
             for year in range(1950, 2000)
         )
@@ -640,7 +646,7 @@ class YearRebinningTest(unittest.TestCase):
         self.assertEqual(result["1990/10"].time_span, 10)
 
     def test_rebin_preserves_unknown_value(self):
-        groupings = collections.OrderedDict(
+        groupings: collections.OrderedDict[str, Grouping] = collections.OrderedDict(
             (str(year), YearGrouping(title=str(year), count=5))
             for year in range(1800, 2025)
         )
@@ -652,7 +658,7 @@ class YearRebinningTest(unittest.TestCase):
         self.assertEqual(result["UNKNOWN_VALUE"].count, 5)
 
     def test_rebin_skips_special_row_markers(self):
-        groupings = collections.OrderedDict(
+        groupings: collections.OrderedDict[str, Grouping] = collections.OrderedDict(
             (str(year), YearGrouping(title=str(year), count=5))
             for year in range(1800, 2025)
         )

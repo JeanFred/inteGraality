@@ -157,7 +157,7 @@ class ConfigAssembler:
         config.pop("property_threshold", None)
         sparql_query_engine = self._assemble_engine(config)
         return ParsedConfig(
-            selector_sparql=config.get("selector_sparql"),
+            selector_sparql=config["selector_sparql"],
             columns=tuple(columns),
             grouping_configuration=grouping_configuration,
             sparql_query_engine=sparql_query_engine,

@@ -1,0 +1,14 @@
+integraality/tests/test_grouping_page_creator.py
+  h_bc010f8da910ff 59,61-63
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "d812b47e723fd50e2dcbf609116167a6615439e6",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

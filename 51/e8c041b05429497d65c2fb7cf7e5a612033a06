@@ -1,0 +1,16 @@
+integraality/tests/test_grouping_page_creator.py
+  h_bc010f8da910ff 59,61-63
+integraality/tests/test_runs_backfiller.py
+  h_bc010f8da910ff 109,119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "51e8c041b05429497d65c2fb7cf7e5a612033a06",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

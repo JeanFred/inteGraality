@@ -29,6 +29,7 @@ from ..grouping import (
     YearGroupingType,
 )
 from ..reference_check import GoodReferenceCheck
+from ..sparql_utils import SparqlQueryEngine
 
 
 class TestGroupingPropertyFromPredicate(unittest.TestCase):
@@ -227,7 +228,7 @@ class TestBuildConfigFacets(unittest.TestCase):
         fields = {
             "selector_sparql": "wdt:P31 wd:Q5",
             "grouping_configuration": gc,
-            "sparql_query_engine": object(),
+            "sparql_query_engine": SparqlQueryEngine(),
             "row_totals": True,
             "row_no_group": False,
             "grouping_link_mode": "link",

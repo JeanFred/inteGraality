@@ -5,6 +5,7 @@ import unittest
 from ..column import PropertyColumn, PropertySourceColumn
 from ..config import ParsedConfig
 from ..grouping import GroupingConfiguration, ItemGroupingType
+from ..sparql_utils import SparqlQueryEngine
 
 
 class _FakeResolver:
@@ -30,7 +31,7 @@ class TestResolvedPreservesAuthoredKeys(unittest.TestCase):
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P21", grouping_type=ItemGroupingType()
             ),
-            sparql_query_engine=object(),
+            sparql_query_engine=SparqlQueryEngine(),
             authored_column_keys=("P1963(Q5)",),
         )
 

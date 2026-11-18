@@ -682,7 +682,7 @@ class TestSnapshotConfigurations(ProcessortTest):
             grouping_configuration=GroupingConfiguration(
                 predicate="wdt:P21", grouping_type=ItemGroupingType()
             ),
-            sparql_query_engine=object(),
+            sparql_query_engine=SparqlQueryEngine(),
         )
 
     @patch("integraality.pages_processor.DashboardRegistry")

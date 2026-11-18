@@ -1,0 +1,16 @@
+integraality/tests/test_app.py
+  h_bc010f8da910ff 4,7,66-69,73,76,79,229-230
+pyproject.toml
+  h_bc010f8da910ff 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "400c1078f4daf0c5548197f75516a2d5ec56a8fe",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

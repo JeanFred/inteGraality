@@ -56,11 +56,11 @@ class GroupingPageCreatorTest(unittest.TestCase):
         # drives the nested progress rows -- assert the metadata, not just text.
         start = next(r for r in cm.records if r.getMessage().startswith("Creating "))
         end = next(r for r in cm.records if r.getMessage().startswith("Created page"))
-        self.assertEqual(start.step_key, "page_creation_0")
+        self.assertEqual(start.step_key, "page_creation_0")  # ty: ignore[missing-attribute]
         self.assertFalse(hasattr(start, "phase"))
-        self.assertEqual(end.step_key, "page_creation_0")
-        self.assertEqual(end.phase, "end")
-        self.assertEqual(end.url, "https://www.wikidata.org/wiki/Foo/Game_Gear")
+        self.assertEqual(end.step_key, "page_creation_0")  # ty: ignore[missing-attribute]
+        self.assertEqual(end.phase, "end")  # ty: ignore[missing-attribute]
+        self.assertEqual(end.url, "https://www.wikidata.org/wiki/Foo/Game_Gear")  # ty: ignore[missing-attribute]
 
     def test_skips_existing_page(self, mock_page_cls, mock_save):
         self._make_local_page(mock_page_cls, exists=True)

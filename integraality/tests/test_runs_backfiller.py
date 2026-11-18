@@ -104,19 +104,23 @@ class TestApiBackfill(unittest.TestCase):
         """
         calls = iter(pages_by_call)
 
-        def factory(prop, site=None, parameters=None):
-            pages = next(calls)
-            factory.last_parameters = parameters
+        class _PageFactory:
+            def __init__(self):
+                self.last_parameters = None
 
-            def gen():
-                for p in pages:
-                    if isinstance(p, Exception):
-                        raise p
-                    yield p
+            def __call__(self, prop, site=None, parameters=None):
+                pages = next(calls)
+                self.last_parameters = parameters
 
-            return gen()
+                def gen():
+                    for p in pages:
+                        if isinstance(p, Exception):
+                            raise p
+                        yield p
 
-        factory.last_parameters = None
+                return gen()
+
+        factory = _PageFactory()
         return patch(
             "pywikibot.data.api.PropertyGenerator", side_effect=factory
         ), factory

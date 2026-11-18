@@ -8,6 +8,7 @@ from time import perf_counter
 
 import mwparserfromhell
 import pywikibot
+import pywikibot.config
 from redis import StrictRedis
 
 from .cache import RedisCache, redis_host
@@ -665,7 +666,7 @@ class PagesProcessor:
         logger.info("Processing page %s", page_title)
         try:
             page = pywikibot.Page(self.site, page_title)
-            pywikibot.config.max_retries = 5
+            pywikibot.config.max_retries = 5  # ty: ignore[invalid-assignment]
             return self.process_page(page, trigger_source="WEB")
         except (
             pywikibot.exceptions.ApiTimeoutError,

@@ -45,6 +45,11 @@ ini_options.markers = [
   "functional: hits live SPARQL endpoints (WDQS/QLever) — slow, needs network",
 ]
 
+[tool.coverage]
+run.source = ["integraality"]
+run.branch = true
+run.omit = ["**/tests/*"]
+
 [tool.djangofmt]
 profile = "jinja"
 

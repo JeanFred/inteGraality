@@ -12,6 +12,10 @@ _.file = ".env"
 description = "Run tests"
 run = "uv run pytest"
 
+[tasks.coverage]
+description = "Run tests with coverage report"
+run = "uv run pytest --cov --cov-report=html"
+
 [tasks.test-functional-sparql]
 description = "Run functional SPARQL tests against live endpoints, e.g. mise run test-functional-sparql qlever (default: both)"
 usage = 'arg "[engine]" help="Endpoint filter passed to pytest -k" default="qlever or wdqs"'

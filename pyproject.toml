@@ -48,7 +48,8 @@ ini_options.markers = [
 [tool.coverage]
 run.source = ["integraality"]
 run.branch = true
-run.omit = ["**/tests/*"]
+report.fail_under = 90
+report.show_missing = true
 
 [tool.djangofmt]
 profile = "jinja"

@@ -1,0 +1,18 @@
+.gitignore
+  h_bc010f8da910ff 106
+.pre-commit-config.yaml
+  h_bc010f8da910ff 22
+integraality/pages_processor.py
+  h_bc010f8da910ff 5,671-672
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ec6221feb28e406ce560f800a580b4a971e3f6c7",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

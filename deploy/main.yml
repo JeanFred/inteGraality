@@ -141,6 +141,24 @@
       notify:
         - Restart webservice
 
+    - name: Ensure .pywikibot directory exists
+      ansible.builtin.file:
+        path: "{{ base_path }}/.pywikibot"
+        state: directory
+        mode: "02755"
+      tags:
+        - config
+
+    - name: Deploy pywikibot user-config
+      ansible.builtin.template:
+        src: 'user-config.py.j2'
+        dest: '{{ base_path }}/.pywikibot/user-config.py'
+        mode: "0644"
+      notify:
+        - Restart webservice
+      tags:
+        - config
+
     - name: Symlink src directory
       ansible.builtin.file:
         src: '{{ checkout_path }}'

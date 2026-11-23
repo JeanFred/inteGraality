@@ -2,6 +2,7 @@
 
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass
 from time import perf_counter
@@ -667,6 +668,8 @@ class PagesProcessor:
         try:
             page = pywikibot.Page(self.site, page_title)
             pywikibot.config.max_retries = 5  # ty: ignore[invalid-assignment]
+            maxlag = int(os.environ.get("WRITE_MAXLAG", "30"))
+            pywikibot.config.write_maxlag = maxlag  # ty: ignore[invalid-assignment]
             return self.process_page(page, trigger_source="WEB")
         except (
             pywikibot.exceptions.ApiTimeoutError,

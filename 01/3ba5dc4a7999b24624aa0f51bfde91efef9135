@@ -1,0 +1,16 @@
+deploy/main.yml
+  h_bc010f8da910ff 144-147,148,149-155,156,157-159
+deploy/templates/user-config.py.j2
+  h_bc010f8da910ff 1-14
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "013ba5dc4a7999b24624aa0f51bfde91efef9135",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

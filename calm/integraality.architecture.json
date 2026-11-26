@@ -1,0 +1,366 @@
+{
+  "$schema": "https://calm.finos.org/release/1.3/meta/calm.json",
+  "unique-id": "integraality",
+  "name": "inteGraality",
+  "description": "Property-coverage dashboard bot for Wikidata and Wikimedia projects. Reads dashboard configuration templates from MediaWiki, runs SPARQL coverage queries against WDQS or QLever, and writes generated wikitext tables back to the wiki.",
+  "metadata": {
+    "source-code": "https://github.com/JeanFred/integraality/",
+    "tool-url": "https://integraality.toolforge.org",
+    "user-docs": "https://www.wikidata.org/wiki/Wikidata:InteGraality"
+  },
+  "nodes": [
+    {
+      "unique-id": "wiki-editor",
+      "node-type": "actor",
+      "name": "Wiki Editor",
+      "description": "A Wikidata/Wikimedia editor who manages Property dashboard templates on wiki pages."
+    },
+    {
+      "unique-id": "mediawiki",
+      "node-type": "system",
+      "name": "MediaWiki",
+      "description": "The target MediaWiki instance: www.wikidata.org, commons.wikimedia.org, or meta.wikimedia.org.",
+      "metadata": {
+        "allowlisted-hosts": ["www.wikidata.org", "commons.wikimedia.org", "meta.wikimedia.org"]
+      }
+    },
+    {
+      "unique-id": "wdqs",
+      "node-type": "system",
+      "name": "Wikidata Query Service",
+      "description": "Default SPARQL backend (query.wikidata.org), Blazegraph-based.",
+      "metadata": {
+        "docs-url": "https://www.wikidata.org/wiki/Wikidata:SPARQL_query_service"
+      }
+    },
+    {
+      "unique-id": "qlever",
+      "node-type": "system",
+      "name": "QLever",
+      "description": "Alternative SPARQL backend (qlever.dev). Used for dashboards that opt in and forced for all Commons pages.",
+      "metadata": {
+        "docs-url": "https://qlever.dev/wikidata"
+      }
+    },
+    {
+      "unique-id": "integraality-web",
+      "node-type": "service",
+      "name": "inteGraality Web",
+      "description": "Flask HTTP layer: routes, SSE streaming, drill-down query endpoint, and the runs/dashboards browse UI. Triggers processing on demand."
+    },
+    {
+      "unique-id": "integraality-core",
+      "node-type": "service",
+      "name": "inteGraality Core",
+      "description": "Shared Python processing engine invoked by both the web layer and the cron job. Assembles column and grouping configurations from dashboard templates. Always acts as the same pywikibot bot user regardless of trigger."
+    },
+    {
+      "unique-id": "cron-job",
+      "node-type": "service",
+      "name": "Toolforge Cron Job",
+      "description": "Toolforge scheduled job for full-wiki dashboard refreshes (hundreds of pages per run).",
+      "metadata": {
+        "docs-url": "https://wikitech.wikimedia.org/wiki/Help:Toolforge/Running_jobs"
+      }
+    },
+    {
+      "unique-id": "redis",
+      "node-type": "database",
+      "name": "Toolforge Redis",
+      "description": "Optional Toolforge-managed Redis PaaS. A cache miss falls back to MediaWiki; never blocks operation.",
+      "metadata": {
+        "docs-url": "https://wikitech.wikimedia.org/wiki/Help:Toolforge/Redis"
+      }
+    },
+    {
+      "unique-id": "toolsdb",
+      "node-type": "database",
+      "name": "ToolsDB",
+      "description": "Toolforge-managed MariaDB hosting the inteGraality operational schema: wiki and dashboard registry, configuration history with per-column detail, and per-run coverage statistics including per-cell counts.",
+      "metadata": {
+        "docs-url": "https://wikitech.wikimedia.org/wiki/Help:Toolforge/ToolsDB"
+      }
+    },
+    {
+      "unique-id": "integraality-app",
+      "node-type": "system",
+      "name": "inteGraality Application",
+      "description": "The inteGraality application as a whole: Flask web service and shared Python processing core, deployed together on Toolforge."
+    },
+    {
+      "unique-id": "toolforge",
+      "node-type": "ecosystem",
+      "name": "Wikimedia Toolforge",
+      "description": "Wikimedia's hosting platform for community tools. Runs the web service uWSGI and cron jobs.",
+      "metadata": {
+        "docs-url": "https://wikitech.wikimedia.org/wiki/Portal:Toolforge"
+      }
+    }
+  ],
+  "relationships": [
+    {
+      "unique-id": "editor-requests-update",
+      "description": "Wiki editor submits a single-page dashboard update request via /update.",
+      "relationship-type": {
+        "interacts": {
+          "actor": "wiki-editor",
+          "nodes": ["integraality-web"]
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "editor-requests-queries",
+      "description": "Wiki editor calls /queries to retrieve the SPARQL queries behind a specific coverage cell.",
+      "relationship-type": {
+        "interacts": {
+          "actor": "wiki-editor",
+          "nodes": ["integraality-web"]
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "editor-edits-wiki",
+      "description": "Wiki editor places or modifies the Property dashboard template on a MediaWiki page.",
+      "relationship-type": {
+        "interacts": {
+          "actor": "wiki-editor",
+          "nodes": ["mediawiki"]
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "web-invokes-core",
+      "description": "Web layer spawns a thread invoking the processing engine when an update is requested.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-web" },
+          "destination": { "node": "integraality-core" }
+        }
+      }
+    },
+    {
+      "unique-id": "cron-invokes-core",
+      "description": "Cron job directly invokes the processing engine for a scheduled full-wiki run, processing all registered dashboards − hundreds of pages.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "cron-job" },
+          "destination": { "node": "integraality-core" }
+        }
+      }
+    },
+    {
+      "unique-id": "core-reads-wiki",
+      "description": "Processing engine reads dashboard configuration from MediaWiki via pywikibot.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "mediawiki" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "core-writes-wiki",
+      "description": "Processing engine writes the generated wikitext coverage table back to MediaWiki via pywikibot, using the same bot user regardless of trigger.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "mediawiki" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "core-queries-wdqs",
+      "description": "Processing engine executes SPARQL coverage queries against WDQS − default backend.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "wdqs" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "core-queries-qlever",
+      "description": "Processing engine executes SPARQL coverage queries against QLever for Commons dashboards or opt-in dashboards.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "qlever" }
+        }
+      },
+      "protocol": "HTTPS"
+    },
+    {
+      "unique-id": "core-caches-redis",
+      "description": "Processing engine caches parsed dashboard configs in Redis. On query generation, the cache is read first and MediaWiki only hit on a miss; on update, the cache entry is purged to ensure freshness. Optional — missing Redis does not block operation.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "redis" }
+        }
+      },
+      "protocol": "TCP"
+    },
+    {
+      "unique-id": "core-records-runs",
+      "description": "Processing engine writes run results, per-cell coverage counts, and dashboard configuration snapshots to ToolsDB.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-core" },
+          "destination": { "node": "toolsdb" }
+        }
+      },
+      "protocol": "TCP"
+    },
+    {
+      "unique-id": "web-reads-redis",
+      "description": "Web layer reads entity labels from Redis cache; warms the cache via MediaWiki on a miss.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-web" },
+          "destination": { "node": "redis" }
+        }
+      },
+      "protocol": "TCP"
+    },
+    {
+      "unique-id": "web-reads-toolsdb",
+      "description": "Web layer reads run history, dashboard registry, and configuration data from ToolsDB to serve the browse UI.",
+      "relationship-type": {
+        "connects": {
+          "source": { "node": "integraality-web" },
+          "destination": { "node": "toolsdb" }
+        }
+      },
+      "protocol": "TCP"
+    },
+    {
+      "unique-id": "integraality-composed-of",
+      "description": "The inteGraality application is composed of its web service and a shared processing core.",
+      "relationship-type": {
+        "composed-of": {
+          "container": "integraality-app",
+          "nodes": ["integraality-web", "integraality-core"]
+        }
+      }
+    },
+    {
+      "unique-id": "integraality-deployed-in-toolforge",
+      "description": "Components owned and deployed by inteGraality on Wikimedia Toolforge.",
+      "relationship-type": {
+        "deployed-in": {
+          "container": "toolforge",
+          "nodes": ["integraality-app", "cron-job"]
+        }
+      }
+    },
+    {
+      "unique-id": "platform-services-in-toolforge",
+      "description": "Toolforge-managed PaaS services consumed by inteGraality but operated by the Toolforge platform.",
+      "relationship-type": {
+        "deployed-in": {
+          "container": "toolforge",
+          "nodes": ["redis", "toolsdb"]
+        }
+      }
+    }
+  ],
+  "flows": [
+    {
+      "unique-id": "drill-down-query-flow",
+      "name": "Drill-down Query Generation",
+      "description": "A wiki editor requests the SPARQL queries behind a specific coverage cell. The web layer reads the page config and returns the query URLs; the editor opens them in their browser directly against WDQS or QLever − that execution is outside this system's scope.",
+      "transitions": [
+        {
+          "relationship-unique-id": "editor-requests-queries",
+          "sequence-number": 1,
+          "description": "Editor calls /queries with page, column, and grouping parameters"
+        },
+        {
+          "relationship-unique-id": "web-invokes-core",
+          "sequence-number": 2,
+          "description": "Web layer calls core to build the stats object for the page"
+        },
+        {
+          "relationship-unique-id": "core-reads-wiki",
+          "sequence-number": 3,
+          "description": "Core reads the dashboard config from MediaWiki"
+        }
+      ]
+    },
+    {
+      "unique-id": "web-triggered-update",
+      "name": "Web-triggered Dashboard Update",
+      "description": "An editor requests a refresh of a single dashboard page via the web UI; the processing engine reads its config, runs SPARQL queries, and writes the updated table back.",
+      "transitions": [
+        {
+          "relationship-unique-id": "editor-requests-update",
+          "sequence-number": 1,
+          "description": "Editor submits page URL to /update"
+        },
+        {
+          "relationship-unique-id": "web-invokes-core",
+          "sequence-number": 2,
+          "description": "Web layer spawns processing thread"
+        },
+        {
+          "relationship-unique-id": "core-reads-wiki",
+          "sequence-number": 3,
+          "description": "Core fetches and parses the Property dashboard template"
+        },
+        {
+          "relationship-unique-id": "core-queries-wdqs",
+          "sequence-number": 4,
+          "description": "SPARQL queries compute per-property, per-grouping coverage counts"
+        },
+        {
+          "relationship-unique-id": "core-writes-wiki",
+          "sequence-number": 5,
+          "description": "Core writes the generated wikitext table back to the wiki page"
+        },
+        {
+          "relationship-unique-id": "core-records-runs",
+          "sequence-number": 6,
+          "description": "Core records run results in ToolsDB"
+        }
+      ]
+    },
+    {
+      "unique-id": "scheduled-update",
+      "name": "Scheduled Dashboard Update",
+      "description": "Toolforge cron job runs a full-wiki refresh, iterating over all registered dashboards − hundreds of pages; same per-page processing path as the web trigger, no HTTP layer involved.",
+      "transitions": [
+        {
+          "relationship-unique-id": "cron-invokes-core",
+          "sequence-number": 1,
+          "description": "Cron job invokes the processing engine"
+        },
+        {
+          "relationship-unique-id": "core-reads-wiki",
+          "sequence-number": 2,
+          "description": "Core fetches and parses each dashboard's template"
+        },
+        {
+          "relationship-unique-id": "core-queries-wdqs",
+          "sequence-number": 3,
+          "description": "SPARQL queries compute coverage counts"
+        },
+        {
+          "relationship-unique-id": "core-writes-wiki",
+          "sequence-number": 4,
+          "description": "Core writes the generated wikitext table back to the wiki page"
+        },
+        {
+          "relationship-unique-id": "core-records-runs",
+          "sequence-number": 5,
+          "description": "Core records run results in ToolsDB"
+        }
+      ]
+    }
+  ]
+}

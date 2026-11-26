@@ -269,15 +269,50 @@ def expand_select_vars(vars_list):
     return " ".join(f"{var} {var}Label" for var in vars_list)
 
 
+# Stand-in for an unbound display variable, so label lookups never join on an
+# unbound variable. It has no labels, so the ?varLabel stays unbound.
+UNBOUND_LABEL_KEY = "<urn:integraality:unbound>"
+
+
+def _label_key_variable(var):
+    """The variable label lookups join on for ?var.
+
+    ?entity is always bound by the selector, so it is used as is. Any other
+    display variable (e.g. ?value) may be unbound -- negative drilldowns list
+    entities lacking the property -- and an unbound variable on the left of
+    an OPTIONAL is compatible with every binding: the label lookup would pair
+    the row with every labelled item. Those join on a key that is never
+    unbound instead (see get_label_key_projections).
+    """
+    if var == "?entity":
+        return var
+    return f"?_{var.lstrip('?')}LabelKey"
+
+
+def get_label_key_projections(vars_list):
+    """SELECT expressions for the inner subquery that bind each label key.
+
+    ['?entity', '?value'] →
+    '(COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey)'
+    """
+    return " ".join(
+        f"(COALESCE({var}, {UNBOUND_LABEL_KEY}) AS {_label_key_variable(var)})"
+        for var in vars_list
+        if _label_key_variable(var) != var
+    )
+
+
 def get_labels_for_select_vars(vars_list):
     """Derive label-resolution SPARQL from a list of SPARQL variables.
 
     For each variable, generates OPTIONAL/BIND blocks that resolve
-    rdfs:label into a corresponding ?varLabel variable.
+    rdfs:label into a corresponding ?varLabel variable. The lookups join on
+    the label keys, so the inner subquery must project
+    get_label_key_projections(vars_list).
     """
     lines = []
     for var in vars_list:
-        lines.extend(get_label_for_variable(var, f"{var}Label"))
+        lines.extend(get_label_for_variable(_label_key_variable(var), f"{var}Label"))
     return "\n".join(lines) + "\n"
 
 

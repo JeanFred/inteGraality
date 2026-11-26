@@ -1,0 +1,17 @@
+calm/integraality.architecture.json
+  h_bc010f8da910ff 1-31,35-40,44-67,71-76,80-91,95-363
+  h_bc010f8da910ff 32-34,41-43,68-70,77-79,92-94
+.pre-commit-config.yaml
+  h_bc010f8da910ff 54-59
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "beee7121b62c73aa8941ec72ec5db262d7b56068",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

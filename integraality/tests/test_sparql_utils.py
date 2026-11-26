@@ -17,6 +17,7 @@ from ..sparql_utils import (
     add_prefixes_to_query,
     expand_select_vars,
     get_label_for_variable,
+    get_label_key_projections,
     get_labels_for_select_vars,
     validate_query_syntax,
 )
@@ -493,3 +494,42 @@ class GetLabelsForSelectVarsTest(unittest.TestCase):
     def test_empty_list(self):
         result = get_labels_for_select_vars([])
         self.assertEqual(result, "\n")
+
+    def test_possibly_unbound_variable_joins_on_label_key(self):
+        # An unbound ?value on the left of the label OPTIONAL would match
+        # every labelled item, so the lookup must join on the label key.
+        result = get_labels_for_select_vars(["?entity", "?value"])
+        self.assertIn("?entity rdfs:label", result)
+        self.assertIn("?_valueLabelKey rdfs:label", result)
+        self.assertNotIn("?value rdfs:label", result)
+        self.assertIn("AS ?valueLabel)", result)
+
+
+class GetLabelKeyProjectionsTest(unittest.TestCase):
+    def test_entity_needs_no_key(self):
+        self.assertEqual(get_label_key_projections(["?entity"]), "")
+
+    def test_empty_list(self):
+        self.assertEqual(get_label_key_projections([]), "")
+
+    def test_other_variables_get_coalesced_keys(self):
+        result = get_label_key_projections(["?entity", "?value", "?refValue"])
+        self.assertEqual(
+            result,
+            "(COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) "
+            "(COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey)",
+        )
+
+    def test_drilldown_shape_is_valid_sparql(self):
+        select_vars = ["?entity", "?value"]
+        query = (
+            f"SELECT {expand_select_vars(select_vars)} WHERE {{\n"
+            f"  {{ SELECT DISTINCT ?entity ?value "
+            f"{get_label_key_projections(select_vars)} WHERE {{\n"
+            "    ?entity wdt:P31 wd:Q5 .\n"
+            "    OPTIONAL { ?entity wdt:P21 ?value }\n"
+            "  } }\n"
+            f"{get_labels_for_select_vars(select_vars)}"
+            "}\n"
+        )
+        validate_query_syntax(query)

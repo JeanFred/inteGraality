@@ -22,6 +22,7 @@ from .sparql_utils import (
     QueryException,
     WdqsSparqlQueryEngine,
     expand_select_vars,
+    get_label_key_projections,
     get_labels_for_select_vars,
 )
 
@@ -172,6 +173,9 @@ class PropertyStatistics:
         the rdfs:label graph on a small result set.
         """
         inner_select_clause = " ".join(select_vars)
+        label_keys = get_label_key_projections(select_vars)
+        if label_keys:
+            inner_select_clause += f" {label_keys}"
         outer_select_clause = expand_select_vars(select_vars)
 
         # Inner subquery: entity selection without labels

@@ -338,7 +338,7 @@ class GetQueryForItemsForPropertyPositive(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -355,14 +355,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -374,7 +374,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     MINUS {
       ?entity wdt:P17 [] .
@@ -392,14 +392,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -411,7 +411,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity p:P1435 ?statement . OPTIONAL { ?statement ps:P1435 ?value }
   }
@@ -426,14 +426,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -475,7 +475,7 @@ SELECT ?entity ?entityLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 ?grouping.
     FILTER(STRSTARTS(STR(?grouping), 'http://www.wikidata.org/.well-known/genid/')).
@@ -492,14 +492,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -519,7 +519,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P571 ?date.
     BIND(YEAR(?date) as ?year).
@@ -538,14 +538,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -557,7 +557,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -576,14 +576,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -595,7 +595,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -615,14 +615,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -634,7 +634,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -655,14 +655,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -679,7 +679,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q159 .
     BIND(wd:Q159 AS ?grouping) .
@@ -700,14 +700,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -810,7 +810,7 @@ SELECT (COUNT(*) as ?count) WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?refProperty, <urn:integraality:unbound>) AS ?_refPropertyLabelKey) (COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -841,32 +841,32 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelMUL.
-    FILTER(lang(?refPropertylabelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelEN.
-    FILTER(lang(?refPropertylabelEN)='en')
-  }}.
-  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
-  OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelMUL.
-    FILTER(lang(?refValuelabelMUL)='mul')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelMUL.
+    FILTER(lang(?_refPropertyLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelEN.
-    FILTER(lang(?refValuelabelEN)='en')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelEN.
+    FILTER(lang(?_refPropertyLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
+  BIND(COALESCE(?_refPropertyLabelKeylabelEN, ?_refPropertyLabelKeylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelMUL.
+    FILTER(lang(?_refValueLabelKeylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelEN.
+    FILTER(lang(?_refValueLabelKeylabelEN)='en')
+  }}.
+  BIND(COALESCE(?_refValueLabelKeylabelEN, ?_refValueLabelKeylabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -878,7 +878,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -903,14 +903,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -922,7 +922,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     MINUS {
       ?entity wdt:P17 [] .
@@ -948,14 +948,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -976,7 +976,7 @@ class TestReferenceColumnSpecificProperty(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?refValue WHERE {
+  SELECT DISTINCT ?entity ?value ?refValue (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1001,23 +1001,23 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelMUL.
-    FILTER(lang(?refValuelabelMUL)='mul')
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelMUL.
+    FILTER(lang(?_refValueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelEN.
-    FILTER(lang(?refValuelabelEN)='en')
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelEN.
+    FILTER(lang(?_refValueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
+  BIND(COALESCE(?_refValueLabelKeylabelEN, ?_refValueLabelKeylabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1029,7 +1029,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1054,14 +1054,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1083,7 +1083,7 @@ class TestReferenceColumnSpecificPropertyValue(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1107,14 +1107,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1126,7 +1126,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1151,14 +1151,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1182,7 +1182,7 @@ class TestReferenceColumnMultiProperty(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?refValue WHERE {
+  SELECT DISTINCT ?entity ?value ?refValue (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1211,23 +1211,23 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelMUL.
-    FILTER(lang(?refValuelabelMUL)='mul')
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelMUL.
+    FILTER(lang(?_refValueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelEN.
-    FILTER(lang(?refValuelabelEN)='en')
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelEN.
+    FILTER(lang(?_refValueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
+  BIND(COALESCE(?_refValueLabelKeylabelEN, ?_refValueLabelKeylabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1239,7 +1239,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refValue ?refValueLabel WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1265,14 +1265,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1296,7 +1296,7 @@ class TestReferenceColumnAllProperties(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P304 ?ref_P304Label WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?ref_P248 ?ref_P304 WHERE {
+  SELECT DISTINCT ?entity ?value ?ref_P248 ?ref_P304 (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?ref_P248, <urn:integraality:unbound>) AS ?_ref_P248LabelKey) (COALESCE(?ref_P304, <urn:integraality:unbound>) AS ?_ref_P304LabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1325,32 +1325,32 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P30
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?ref_P248 rdfs:label ?ref_P248labelMUL.
-    FILTER(lang(?ref_P248labelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?ref_P248 rdfs:label ?ref_P248labelEN.
-    FILTER(lang(?ref_P248labelEN)='en')
-  }}.
-  BIND(COALESCE(?ref_P248labelEN, ?ref_P248labelMUL) AS ?ref_P248Label).
-  OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelMUL.
-    FILTER(lang(?ref_P304labelMUL)='mul')
+    ?_ref_P248LabelKey rdfs:label ?_ref_P248LabelKeylabelMUL.
+    FILTER(lang(?_ref_P248LabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelEN.
-    FILTER(lang(?ref_P304labelEN)='en')
+    ?_ref_P248LabelKey rdfs:label ?_ref_P248LabelKeylabelEN.
+    FILTER(lang(?_ref_P248LabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
+  BIND(COALESCE(?_ref_P248LabelKeylabelEN, ?_ref_P248LabelKeylabelMUL) AS ?ref_P248Label).
+  OPTIONAL {{
+    ?_ref_P304LabelKey rdfs:label ?_ref_P304LabelKeylabelMUL.
+    FILTER(lang(?_ref_P304LabelKeylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?_ref_P304LabelKey rdfs:label ?_ref_P304LabelKeylabelEN.
+    FILTER(lang(?_ref_P304LabelKeylabelEN)='en')
+  }}.
+  BIND(COALESCE(?_ref_P304LabelKeylabelEN, ?_ref_P304LabelKeylabelMUL) AS ?ref_P304Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1362,7 +1362,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P248 ?ref_P248Label ?ref_P30
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1389,14 +1389,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1421,7 +1421,7 @@ class TestReferenceColumnAllPropertiesValueScoped(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label ?ref_P854 ?ref_P854Label WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?ref_P813 ?ref_P854 WHERE {
+  SELECT DISTINCT ?entity ?value ?ref_P813 ?ref_P854 (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?ref_P813, <urn:integraality:unbound>) AS ?_ref_P813LabelKey) (COALESCE(?ref_P854, <urn:integraality:unbound>) AS ?_ref_P854LabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1452,32 +1452,32 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P813 ?ref_P813Label ?ref_P85
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?ref_P813 rdfs:label ?ref_P813labelMUL.
-    FILTER(lang(?ref_P813labelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?ref_P813 rdfs:label ?ref_P813labelEN.
-    FILTER(lang(?ref_P813labelEN)='en')
-  }}.
-  BIND(COALESCE(?ref_P813labelEN, ?ref_P813labelMUL) AS ?ref_P813Label).
-  OPTIONAL {{
-    ?ref_P854 rdfs:label ?ref_P854labelMUL.
-    FILTER(lang(?ref_P854labelMUL)='mul')
+    ?_ref_P813LabelKey rdfs:label ?_ref_P813LabelKeylabelMUL.
+    FILTER(lang(?_ref_P813LabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?ref_P854 rdfs:label ?ref_P854labelEN.
-    FILTER(lang(?ref_P854labelEN)='en')
+    ?_ref_P813LabelKey rdfs:label ?_ref_P813LabelKeylabelEN.
+    FILTER(lang(?_ref_P813LabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?ref_P854labelEN, ?ref_P854labelMUL) AS ?ref_P854Label).
+  BIND(COALESCE(?_ref_P813LabelKeylabelEN, ?_ref_P813LabelKeylabelMUL) AS ?ref_P813Label).
+  OPTIONAL {{
+    ?_ref_P854LabelKey rdfs:label ?_ref_P854LabelKeylabelMUL.
+    FILTER(lang(?_ref_P854LabelKeylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?_ref_P854LabelKey rdfs:label ?_ref_P854LabelKeylabelEN.
+    FILTER(lang(?_ref_P854LabelKeylabelEN)='en')
+  }}.
+  BIND(COALESCE(?_ref_P854LabelKeylabelEN, ?_ref_P854LabelKeylabelMUL) AS ?ref_P854Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1501,7 +1501,7 @@ class TestReferenceColumnAllPropertiesWithValue(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?ref_P304 WHERE {
+  SELECT DISTINCT ?entity ?value ?ref_P304 (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?ref_P304, <urn:integraality:unbound>) AS ?_ref_P304LabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1529,23 +1529,23 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelMUL.
-    FILTER(lang(?ref_P304labelMUL)='mul')
+    ?_ref_P304LabelKey rdfs:label ?_ref_P304LabelKeylabelMUL.
+    FILTER(lang(?_ref_P304LabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?ref_P304 rdfs:label ?ref_P304labelEN.
-    FILTER(lang(?ref_P304labelEN)='en')
+    ?_ref_P304LabelKey rdfs:label ?_ref_P304LabelKeylabelEN.
+    FILTER(lang(?_ref_P304LabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?ref_P304labelEN, ?ref_P304labelMUL) AS ?ref_P304Label).
+  BIND(COALESCE(?_ref_P304LabelKeylabelEN, ?_ref_P304LabelKeylabelMUL) AS ?ref_P304Label).
 }
 """
         self.assertEqual(result, expected)
@@ -1557,7 +1557,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?ref_P304 ?ref_P304Label WHERE {
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1584,14 +1584,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1612,7 +1612,7 @@ class TestReferenceColumnGood(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?refProperty, <urn:integraality:unbound>) AS ?_refPropertyLabelKey) (COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1646,32 +1646,32 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelMUL.
-    FILTER(lang(?refPropertylabelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelEN.
-    FILTER(lang(?refPropertylabelEN)='en')
-  }}.
-  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
-  OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelMUL.
-    FILTER(lang(?refValuelabelMUL)='mul')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelMUL.
+    FILTER(lang(?_refPropertyLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelEN.
-    FILTER(lang(?refValuelabelEN)='en')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelEN.
+    FILTER(lang(?_refPropertyLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
+  BIND(COALESCE(?_refPropertyLabelKeylabelEN, ?_refPropertyLabelKeylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelMUL.
+    FILTER(lang(?_refValueLabelKeylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelEN.
+    FILTER(lang(?_refValueLabelKeylabelEN)='en')
+  }}.
+  BIND(COALESCE(?_refValueLabelKeylabelEN, ?_refValueLabelKeylabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1683,7 +1683,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1711,14 +1711,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1737,7 +1737,7 @@ class TestReferenceColumnQualifierScoped(PropertyStatisticsTest):
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?refValue ?refValueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value ?refProperty ?refValue WHERE {
+  SELECT DISTINCT ?entity ?value ?refProperty ?refValue (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) (COALESCE(?refProperty, <urn:integraality:unbound>) AS ?_refPropertyLabelKey) (COALESCE(?refValue, <urn:integraality:unbound>) AS ?_refValueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1770,32 +1770,32 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
   OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelMUL.
-    FILTER(lang(?refPropertylabelMUL)='mul')
-  }}.
-  OPTIONAL {{
-    ?refProperty rdfs:label ?refPropertylabelEN.
-    FILTER(lang(?refPropertylabelEN)='en')
-  }}.
-  BIND(COALESCE(?refPropertylabelEN, ?refPropertylabelMUL) AS ?refPropertyLabel).
-  OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelMUL.
-    FILTER(lang(?refValuelabelMUL)='mul')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelMUL.
+    FILTER(lang(?_refPropertyLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?refValue rdfs:label ?refValuelabelEN.
-    FILTER(lang(?refValuelabelEN)='en')
+    ?_refPropertyLabelKey rdfs:label ?_refPropertyLabelKeylabelEN.
+    FILTER(lang(?_refPropertyLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?refValuelabelEN, ?refValuelabelMUL) AS ?refValueLabel).
+  BIND(COALESCE(?_refPropertyLabelKeylabelEN, ?_refPropertyLabelKeylabelMUL) AS ?refPropertyLabel).
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelMUL.
+    FILTER(lang(?_refValueLabelKeylabelMUL)='mul')
+  }}.
+  OPTIONAL {{
+    ?_refValueLabelKey rdfs:label ?_refValueLabelKeylabelEN.
+    FILTER(lang(?_refValueLabelKeylabelEN)='en')
+  }}.
+  BIND(COALESCE(?_refValueLabelKeylabelEN, ?_refValueLabelKeylabelMUL) AS ?refValueLabel).
 }
 """
         self.assertEqual(result, expected)
@@ -1807,7 +1807,7 @@ SELECT ?entity ?entityLabel ?value ?valueLabel ?refProperty ?refPropertyLabel ?r
         expected = """
 SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   {
-  SELECT DISTINCT ?entity ?value WHERE {
+  SELECT DISTINCT ?entity ?value (COALESCE(?value, <urn:integraality:unbound>) AS ?_valueLabelKey) WHERE {
     ?entity wdt:P31 wd:Q39715 .
     ?entity wdt:P17 wd:Q142 .
     BIND(wd:Q142 AS ?grouping) .
@@ -1834,14 +1834,14 @@ SELECT ?entity ?entityLabel ?value ?valueLabel WHERE {
   }}.
   BIND(COALESCE(?entitylabelEN, ?entitylabelMUL) AS ?entityLabel).
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelMUL.
-    FILTER(lang(?valuelabelMUL)='mul')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelMUL.
+    FILTER(lang(?_valueLabelKeylabelMUL)='mul')
   }}.
   OPTIONAL {{
-    ?value rdfs:label ?valuelabelEN.
-    FILTER(lang(?valuelabelEN)='en')
+    ?_valueLabelKey rdfs:label ?_valueLabelKeylabelEN.
+    FILTER(lang(?_valueLabelKeylabelEN)='en')
   }}.
-  BIND(COALESCE(?valuelabelEN, ?valuelabelMUL) AS ?valueLabel).
+  BIND(COALESCE(?_valueLabelKeylabelEN, ?_valueLabelKeylabelMUL) AS ?valueLabel).
 }
 """
         self.assertEqual(result, expected)

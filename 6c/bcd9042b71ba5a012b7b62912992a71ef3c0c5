@@ -1,0 +1,14 @@
+integraality/tests/test_dashboard_registry.py
+  h_bc010f8da910ff 22,35-36,1894,1993,2025
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6cbcd9042b71ba5a012b7b62912992a71ef3c0c5",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

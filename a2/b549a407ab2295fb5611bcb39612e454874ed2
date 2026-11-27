@@ -1,0 +1,22 @@
+integraality/app.py
+  h_bc010f8da910ff 23-30,38,189-194,497-694
+integraality/compare_formatter.py
+  h_bc010f8da910ff 92-93
+integraality/templates/compare.html
+  h_bc010f8da910ff 1-200
+integraality/templates/dashboard_history.html
+  h_bc010f8da910ff 676-709
+integraality/tests/test_app.py
+  h_bc010f8da910ff 2032-2143
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a2b549a407ab2295fb5611bcb39612e454874ed2",
+  "prompts": {},
+  "humans": {
+    "h_bc010f8da910ff": {
+      "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  }
+}

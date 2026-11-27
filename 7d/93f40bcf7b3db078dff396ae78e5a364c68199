@@ -1,5 +1,9 @@
 bin/dump-database.sh
   h_bc010f8da910ff 16
+integraality/property_statistics.py
+  h_bc010f8da910ff 254,259,261-262,264,266-267,269,271,272,280,286,289,291,294
+integraality/line.py
+  h_bc010f8da910ff 177,237
 ---
 {
   "schema_version": "authorship/3.0.0",
@@ -9,6 +13,16 @@ bin/dump-database.sh
   "humans": {
     "h_bc010f8da910ff": {
       "author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
+    }
+  },
+  "sessions": {
+    "s_0f353154882b8c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "79595703-8382-4cf9-8981-fd951b155eae",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Jean-Frédéric <JeanFred@users.noreply.github.com>"
     }
   }
 }

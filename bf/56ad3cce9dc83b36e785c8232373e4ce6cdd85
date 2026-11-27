@@ -2,6 +2,14 @@ bin/dump-database.sh
   h_bc010f8da910ff 15
 deploy/main.yml
   h_bc010f8da910ff 41-48
+integraality/results_formatter.py
+  h_bc010f8da910ff 42-44,55-57
+integraality/tests/test_report_parser.py
+  h_bc010f8da910ff 364-410
+integraality/report_parser.py
+  h_bc010f8da910ff 250-253,256-258
+integraality/pages_processor.py
+  h_bc010f8da910ff 279
 ---
 {
   "schema_version": "authorship/3.0.0",

@@ -424,10 +424,10 @@ def _resolve_labels_for_dashboards(facet_values, feature_filters):
     return _resolve_labels(ids)
 
 
-def _resolve_config_labels(latest_config):
-    """Collect P/Q ids from latest_config, resolve labels."""
-    if latest_config is None:
-        return {}
+def _config_label_ids(latest_config):
+    """Extract P/Q ids from a latest_config dict for label resolution."""
+    if not latest_config:
+        return set()
     cfg = latest_config.get("config") or {}
     cols = latest_config.get("columns") or []
     ids = set()
@@ -442,7 +442,11 @@ def _resolve_config_labels(latest_config):
             ids.add(col["source_item"])
     mentions = (cfg.get("selector_mentions") or "").strip(",").split(",")
     ids.update(m for m in mentions if m)
-    return _resolve_labels(ids)
+    return ids
+
+
+def _resolve_config_labels(latest_config):
+    return _resolve_labels(_config_label_ids(latest_config))
 
 
 @app.route("/dashboard")

@@ -19,7 +19,7 @@ def _dt(ts):
     return datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
 
 
-class TestDashboardRegistry(unittest.TestCase):
+class _RegistryTestBase(unittest.TestCase):
     def setUp(self):
         self.mock_conn = MagicMock()
         self.mock_cursor = MagicMock()
@@ -32,6 +32,8 @@ class TestDashboardRegistry(unittest.TestCase):
         self.mock_cursor.rowcount = 1
         self.registry = DashboardRegistry(conn=self.mock_conn)
 
+
+class TestDashboardRegistry(_RegistryTestBase):
     def test_record(self):
         # Empty wikis preload → wiki miss → INSERT (id 7). Page miss (fetchone
         # None) → page INSERT (id 20). Dashboard miss (fetchone None) → INSERT.
@@ -1889,13 +1891,7 @@ class RunResultTest(unittest.TestCase):
         self.assertIsNone(run.revision_id)
 
 
-class TestUpdateGroupingCounts(unittest.TestCase):
-    def setUp(self):
-        self.mock_conn = MagicMock()
-        self.mock_cursor = MagicMock()
-        self.mock_conn.cursor.return_value.__enter__.return_value = self.mock_cursor
-        self.registry = DashboardRegistry(conn=self.mock_conn)
-
+class TestUpdateGroupingCounts(_RegistryTestBase):
     def test_update_sets_grouping_counts_where_null(self):
         self.mock_cursor.rowcount = 1
         result = self.registry.update_grouping_counts(999, '{"Q1": 10}')
@@ -1994,16 +1990,7 @@ class TestComputeHealthEntitySum(unittest.TestCase):
         self.assertEqual(es["series"], [])
 
 
-class TestGetPreviousGroupingCounts(unittest.TestCase):
-    def setUp(self):
-        self.mock_conn = MagicMock()
-        self.mock_cursor = MagicMock()
-        self.mock_conn.cursor.return_value.__enter__ = MagicMock(
-            return_value=self.mock_cursor
-        )
-        self.mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
-        self.registry = DashboardRegistry(conn=self.mock_conn)
-
+class TestGetPreviousGroupingCounts(_RegistryTestBase):
     def test_returns_none_when_no_current_config(self):
         result = self.registry.get_previous_grouping_counts(
             "www.wikidata.org", "Wikidata:Test", None
@@ -2035,16 +2022,7 @@ class TestGetPreviousGroupingCounts(unittest.TestCase):
         self.assertIsNone(result)
 
 
-class ListAllLabelIdsTest(unittest.TestCase):
-    def setUp(self):
-        self.mock_conn = MagicMock()
-        self.mock_cursor = MagicMock()
-        self.mock_conn.cursor.return_value.__enter__ = MagicMock(
-            return_value=self.mock_cursor
-        )
-        self.mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
-        self.registry = DashboardRegistry(conn=self.mock_conn)
-
+class ListAllLabelIdsTest(_RegistryTestBase):
     def test_splits_selector_mentions_bag(self):
         self.mock_cursor.fetchall.side_effect = [
             [],

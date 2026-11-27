@@ -190,6 +190,24 @@
             {% endif %}
         </footer>
         <script>
+            // Auto-wire date-range validation on any form with:
+            //   data-daterange-before / data-daterange-after / data-daterange-submit
+            // Templates need no script block — just set those attributes.
+            document.querySelectorAll("[data-daterange-submit]").forEach(function (submit) {
+                var form = submit.closest("form");
+                if (!form) { return; }
+                var before = form.querySelector("[data-daterange-before]");
+                var after = form.querySelector("[data-daterange-after]");
+                if (!before || !after) { return; }
+                var validate = function () {
+                    submit.disabled = !!(before.value && after.value && after.value <= before.value);
+                };
+                before.addEventListener("change", validate);
+                after.addEventListener("change", validate);
+                validate();
+            });
+        </script>
+        <script>
             // Reflect and toggle the theme. The initial data-bs-theme is set in
             // <head> (pre-paint); here we sync the button's icon + aria-pressed to
             // it, and update all three on click. Charts read colours once at load,
